@@ -42,8 +42,8 @@ class MaasNode(base.BaseMetalNode):
 
     def get_power_state(self):
         maas_state = utils.async_compat_call(
-            self._maas_node.query_power_state,
-            timeout=CONF.maas_client.timeout)
+            self._maas_node.query_power_state, timeout=CONF.maas_client.timeout
+        )
 
         # python-libmaas may not be available, so we'll avoid a global
         # variable.
@@ -53,27 +53,32 @@ class MaasNode(base.BaseMetalNode):
             maas_enum.PowerState.ERROR: metal_constants.PowerState.ERROR,
             maas_enum.PowerState.UNKNOWN: metal_constants.PowerState.UNKNOWN,
         }
-        return power_states_map.get(maas_state,
-                                    metal_constants.PowerState.UNKNOWN)
+        return power_states_map.get(
+            maas_state, metal_constants.PowerState.UNKNOWN
+        )
 
     def get_id(self):
         return self._maas_node.system_id
 
     def power_on(self):
-        LOG.info("Powering on MAAS node: %s %s",
-                 self._maas_node.fqdn,
-                 self._maas_node.system_id)
+        LOG.info(
+            "Powering on MAAS node: %s %s",
+            self._maas_node.fqdn,
+            self._maas_node.system_id,
+        )
         utils.async_compat_call(
-            self._maas_node.power_on,
-            timeout=CONF.maas_client.timeout)
+            self._maas_node.power_on, timeout=CONF.maas_client.timeout
+        )
 
     def power_off(self):
-        LOG.info("Powering off MAAS node: %s %s",
-                 self._maas_node.fqdn,
-                 self._maas_node.system_id)
+        LOG.info(
+            "Powering off MAAS node: %s %s",
+            self._maas_node.fqdn,
+            self._maas_node.system_id,
+        )
         utils.async_compat_call(
-            self._maas_node.power_off,
-            timeout=CONF.maas_client.timeout)
+            self._maas_node.power_off, timeout=CONF.maas_client.timeout
+        )
 
 
 class MaasHelper(base.BaseMetalHelper):
@@ -81,7 +86,8 @@ class MaasHelper(base.BaseMetalHelper):
         super().__init__(*args, **kwargs)
         if not maas_enum:
             raise exception.UnsupportedError(
-                "MAAS client unavailable. Please install python-libmaas.")
+                "MAAS client unavailable. Please install python-libmaas."
+            )
 
     @property
     def _client(self):
@@ -92,8 +98,8 @@ class MaasHelper(base.BaseMetalHelper):
     def list_compute_nodes(self):
         out_list = []
         node_list = utils.async_compat_call(
-            self._client.machines.list,
-            timeout=CONF.maas_client.timeout)
+            self._client.machines.list, timeout=CONF.maas_client.timeout
+        )
 
         compute_nodes = self.nova_client.get_compute_node_list(
             filter_ironic_nodes=False
@@ -116,14 +122,17 @@ class MaasHelper(base.BaseMetalHelper):
 
     def _get_compute_node_by_hostname(self, hostname):
         compute_nodes = self.nova_client.get_compute_node_by_hostname(
-            hostname, detailed=True)
+            hostname, detailed=True
+        )
         for compute_node in compute_nodes:
             if compute_node.hypervisor_hostname == hostname:
                 return compute_node
 
     def get_node(self, node_id):
         maas_node = utils.async_compat_call(
-            self._client.machines.get, node_id,
-            timeout=CONF.maas_client.timeout)
+            self._client.machines.get,
+            node_id,
+            timeout=CONF.maas_client.timeout,
+        )
         compute_node = self._get_compute_node_by_hostname(maas_node.fqdn)
         return MaasNode(maas_node, compute_node, self._client)

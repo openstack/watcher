@@ -20,7 +20,6 @@ from watcher.tests.unit.objects import utils as obj_utils
 
 
 class TestPost(api_base.FunctionalTest):
-
     def setUp(self):
         super().setUp()
         obj_utils.create_test_goal(self.context)
@@ -30,20 +29,23 @@ class TestPost(api_base.FunctionalTest):
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
     def test_trigger_audit(self, mock_trigger_audit):
         audit = obj_utils.create_test_audit(
-            self.context,
-            audit_type=objects.audit.AuditType.EVENT.value)
+            self.context, audit_type=objects.audit.AuditType.EVENT.value
+        )
         response = self.post_json(
-            '/webhooks/{}'.format(audit['uuid']), {},
-            headers={'OpenStack-API-Version': 'infra-optim 1.4'})
+            '/webhooks/{}'.format(audit['uuid']),
+            {},
+            headers={'OpenStack-API-Version': 'infra-optim 1.4'},
+        )
         self.assertEqual(HTTPStatus.ACCEPTED, response.status_int)
-        mock_trigger_audit.assert_called_once_with(
-            mock.ANY, audit['uuid'])
+        mock_trigger_audit.assert_called_once_with(mock.ANY, audit['uuid'])
 
     def test_trigger_audit_with_no_audit(self):
         response = self.post_json(
-            '/webhooks/no-audit', {},
+            '/webhooks/no-audit',
+            {},
             headers={'OpenStack-API-Version': 'infra-optim 1.4'},
-            expect_errors=True)
+            expect_errors=True,
+        )
         self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])
@@ -51,9 +53,11 @@ class TestPost(api_base.FunctionalTest):
     def test_trigger_audit_with_not_allowed_audittype(self):
         audit = obj_utils.create_test_audit(self.context)
         response = self.post_json(
-            '/webhooks/{}'.format(audit['uuid']), {},
+            '/webhooks/{}'.format(audit['uuid']),
+            {},
             headers={'OpenStack-API-Version': 'infra-optim 1.4'},
-            expect_errors=True)
+            expect_errors=True,
+        )
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])
@@ -62,11 +66,14 @@ class TestPost(api_base.FunctionalTest):
         audit = obj_utils.create_test_audit(
             self.context,
             audit_type=objects.audit.AuditType.EVENT.value,
-            state=objects.audit.State.FAILED)
+            state=objects.audit.State.FAILED,
+        )
         response = self.post_json(
-            '/webhooks/{}'.format(audit['uuid']), {},
+            '/webhooks/{}'.format(audit['uuid']),
+            {},
             headers={'OpenStack-API-Version': 'infra-optim 1.4'},
-            expect_errors=True)
+            expect_errors=True,
+        )
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])

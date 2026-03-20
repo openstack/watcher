@@ -27,7 +27,6 @@ from watcher.tests.unit import base
 
 
 class TestApplierAPI(base.TestCase):
-
     api = rpcapi.ApplierAPI()
 
     def test_get_api_version(self):
@@ -37,7 +36,8 @@ class TestApplierAPI(base.TestCase):
             mock_call.assert_called_once_with(
                 expected_context,
                 'check_api_version',
-                api_version=rpcapi.ApplierAPI().API_VERSION)
+                api_version=rpcapi.ApplierAPI().API_VERSION,
+            )
 
     def test_execute_action_plan_without_error(self):
         with mock.patch.object(om.RPCClient, 'cast') as mock_cast:
@@ -46,10 +46,13 @@ class TestApplierAPI(base.TestCase):
             mock_cast.assert_called_once_with(
                 self.context,
                 'launch_action_plan',
-                action_plan_uuid=action_plan_uuid)
+                action_plan_uuid=action_plan_uuid,
+            )
 
     def test_execute_action_plan_throw_exception(self):
         action_plan_uuid = "uuid"
-        self.assertRaises(exception.InvalidUuidOrName,
-                          self.api.launch_action_plan,
-                          action_plan_uuid)
+        self.assertRaises(
+            exception.InvalidUuidOrName,
+            self.api.launch_action_plan,
+            action_plan_uuid,
+        )

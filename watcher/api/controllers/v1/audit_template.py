@@ -113,17 +113,19 @@ class AuditTemplatePostType(wtypes.Base):
             "items": {
                 "type": "object",
                 "properties": AuditTemplatePostType._get_schemas(),
-                "additionalProperties": False
-            }
+                "additionalProperties": False,
+            },
         }
         return SCHEMA
 
     @staticmethod
     def _get_schemas():
-        collectors = default_loading.ClusterDataModelCollectorLoader(
-            ).list_available()
-        schemas = {k: c.SCHEMA for k, c
-                   in collectors.items() if hasattr(c, "SCHEMA")}
+        collectors = (
+            default_loading.ClusterDataModelCollectorLoader().list_available()
+        )
+        schemas = {
+            k: c.SCHEMA for k, c in collectors.items() if hasattr(c, "SCHEMA")
+        }
         return schemas
 
     @staticmethod
@@ -144,7 +146,7 @@ class AuditTemplatePostType(wtypes.Base):
                 audit_template.scope = [dict(compute=audit_template.scope)]
             common_utils.Draft4Validator(
                 AuditTemplatePostType._build_schema()
-                ).validate(audit_template.scope)
+            ).validate(audit_template.scope)
 
             include_host_aggregates = False
             exclude_host_aggregates = False
@@ -159,34 +161,47 @@ class AuditTemplatePostType(wtypes.Base):
                 raise exception.Invalid(
                     message=_(
                         "host_aggregates can't be "
-                        "included and excluded together"))
+                        "included and excluded together"
+                    )
+                )
 
         if audit_template.strategy:
             try:
-                if (common_utils.is_uuid_like(audit_template.strategy) or
-                        common_utils.is_int_like(audit_template.strategy)):
+                if common_utils.is_uuid_like(
+                    audit_template.strategy
+                ) or common_utils.is_int_like(audit_template.strategy):
                     strategy = objects.Strategy.get(
-                        AuditTemplatePostType._ctx, audit_template.strategy)
+                        AuditTemplatePostType._ctx, audit_template.strategy
+                    )
                 else:
                     strategy = objects.Strategy.get_by_name(
-                        AuditTemplatePostType._ctx, audit_template.strategy)
+                        AuditTemplatePostType._ctx, audit_template.strategy
+                    )
             except Exception:
                 raise exception.InvalidStrategy(
-                    strategy=audit_template.strategy)
+                    strategy=audit_template.strategy
+                )
 
             # Check that the strategy we indicate is actually related to the
             # specified goal
             if strategy.goal_id != goal.id:
                 available_strategies = objects.Strategy.list(
-                    AuditTemplatePostType._ctx)
-                choices = [f"'{s.uuid}' ({s.name})"
-                           for s in available_strategies]
+                    AuditTemplatePostType._ctx
+                )
+                choices = [
+                    f"'{s.uuid}' ({s.name})" for s in available_strategies
+                ]
                 raise exception.InvalidStrategy(
                     message=_(
                         "'%(strategy)s' strategy does relate to the "
-                        "'%(goal)s' goal. Possible choices: %(choices)s")
-                    % dict(strategy=strategy.name, goal=goal.name,
-                           choices=", ".join(choices)))
+                        "'%(goal)s' goal. Possible choices: %(choices)s"
+                    )
+                    % dict(
+                        strategy=strategy.name,
+                        goal=goal.name,
+                        choices=", ".join(choices),
+                    )
+                )
             audit_template.strategy = strategy.uuid
 
         # We force the UUID so that we do not need to query the DB with the
@@ -197,7 +212,6 @@ class AuditTemplatePostType(wtypes.Base):
 
 
 class AuditTemplatePatchType(types.JsonPatchType):
-
     _ctx = context_utils.make_context()
 
     @staticmethod
@@ -210,8 +224,8 @@ class AuditTemplatePatchType(types.JsonPatchType):
             AuditTemplatePatchType._validate_goal(patch)
         elif patch.path == "/goal" and patch.op == "remove":
             raise wsme.exc.ClientSideError(
-                _("Cannot remove 'goal' attribute "
-                  "from an audit template"))
+                _("Cannot remove 'goal' attribute from an audit template")
+            )
         if patch.path == "/strategy":
             AuditTemplatePatchType._validate_strategy(patch)
         return types.JsonPatchType.validate(patch)
@@ -222,8 +236,7 @@ class AuditTemplatePatchType(types.JsonPatchType):
         goal = patch.value
 
         if goal:
-            available_goals = objects.Goal.list(
-                AuditTemplatePatchType._ctx)
+            available_goals = objects.Goal.list(AuditTemplatePatchType._ctx)
             available_goal_uuids_map = {g.uuid: g for g in available_goals}
             available_goal_names_map = {g.name: g for g in available_goals}
             if goal in available_goal_uuids_map:
@@ -239,11 +252,14 @@ class AuditTemplatePatchType(types.JsonPatchType):
         strategy = patch.value
         if strategy:
             available_strategies = objects.Strategy.list(
-                AuditTemplatePatchType._ctx)
+                AuditTemplatePatchType._ctx
+            )
             available_strategy_uuids_map = {
-                s.uuid: s for s in available_strategies}
+                s.uuid: s for s in available_strategies
+            }
             available_strategy_names_map = {
-                s.name: s for s in available_strategies}
+                s.name: s for s in available_strategies
+            }
             if strategy in available_strategy_uuids_map:
                 patch.value = available_strategy_uuids_map[strategy].id
             elif strategy in available_strategy_names_map:
@@ -271,13 +287,12 @@ class AuditTemplate(base.APIBase):
             return None
         goal = None
         try:
-            if (common_utils.is_uuid_like(value) or
-                    common_utils.is_int_like(value)):
-                goal = objects.Goal.get(
-                    pecan.request.context, value)
+            if common_utils.is_uuid_like(value) or common_utils.is_int_like(
+                value
+            ):
+                goal = objects.Goal.get(pecan.request.context, value)
             else:
-                goal = objects.Goal.get_by_name(
-                    pecan.request.context, value)
+                goal = objects.Goal.get_by_name(pecan.request.context, value)
         except exception.GoalNotFound:
             pass
         if goal:
@@ -289,13 +304,14 @@ class AuditTemplate(base.APIBase):
             return None
         strategy = None
         try:
-            if (common_utils.is_uuid_like(value) or
-                    common_utils.is_int_like(value)):
-                strategy = objects.Strategy.get(
-                    pecan.request.context, value)
+            if common_utils.is_uuid_like(value) or common_utils.is_int_like(
+                value
+            ):
+                strategy = objects.Strategy.get(pecan.request.context, value)
             else:
                 strategy = objects.Strategy.get_by_name(
-                    pecan.request.context, value)
+                    pecan.request.context, value
+                )
         except exception.StrategyNotFound:
             pass
         if strategy:
@@ -352,19 +368,23 @@ class AuditTemplate(base.APIBase):
     """Short description of this audit template"""
 
     goal_uuid = wtypes.wsproperty(
-        wtypes.text, _get_goal_uuid, _set_goal_uuid, mandatory=True)
+        wtypes.text, _get_goal_uuid, _set_goal_uuid, mandatory=True
+    )
     """Goal UUID the audit template refers to"""
 
     goal_name = wtypes.wsproperty(
-        wtypes.text, _get_goal_name, _set_goal_name, mandatory=False)
+        wtypes.text, _get_goal_name, _set_goal_name, mandatory=False
+    )
     """The name of the goal this audit template refers to"""
 
     strategy_uuid = wtypes.wsproperty(
-        wtypes.text, _get_strategy_uuid, _set_strategy_uuid, mandatory=False)
+        wtypes.text, _get_strategy_uuid, _set_strategy_uuid, mandatory=False
+    )
     """Strategy UUID the audit template refers to"""
 
     strategy_name = wtypes.wsproperty(
-        wtypes.text, _get_strategy_name, _set_strategy_name, mandatory=False)
+        wtypes.text, _get_strategy_name, _set_strategy_name, mandatory=False
+    )
     """The name of the strategy this audit template refers to"""
 
     audits = wtypes.wsattr([link.Link], readonly=True)
@@ -400,50 +420,64 @@ class AuditTemplate(base.APIBase):
         self.fields.append('strategy_name')
         setattr(self, 'goal_uuid', kwargs.get('goal_id', wtypes.Unset))
         setattr(self, 'goal_name', kwargs.get('goal_id', wtypes.Unset))
-        setattr(self, 'strategy_uuid',
-                kwargs.get('strategy_id', wtypes.Unset))
-        setattr(self, 'strategy_name',
-                kwargs.get('strategy_id', wtypes.Unset))
+        setattr(self, 'strategy_uuid', kwargs.get('strategy_id', wtypes.Unset))
+        setattr(self, 'strategy_name', kwargs.get('strategy_id', wtypes.Unset))
 
     @staticmethod
     def _convert_with_links(audit_template, url, expand=True):
         if not expand:
             audit_template.unset_fields_except(
-                ['uuid', 'name', 'goal_uuid', 'goal_name',
-                 'scope', 'strategy_uuid', 'strategy_name'])
+                [
+                    'uuid',
+                    'name',
+                    'goal_uuid',
+                    'goal_name',
+                    'scope',
+                    'strategy_uuid',
+                    'strategy_name',
+                ]
+            )
 
         # The numeric ID should not be exposed to
         # the user, it's internal only.
         audit_template.goal_id = wtypes.Unset
         audit_template.strategy_id = wtypes.Unset
 
-        audit_template.links = [link.Link.make_link('self', url,
-                                                    'audit_templates',
-                                                    audit_template.uuid),
-                                link.Link.make_link('bookmark', url,
-                                                    'audit_templates',
-                                                    audit_template.uuid,
-                                                    bookmark=True)]
+        audit_template.links = [
+            link.Link.make_link(
+                'self', url, 'audit_templates', audit_template.uuid
+            ),
+            link.Link.make_link(
+                'bookmark',
+                url,
+                'audit_templates',
+                audit_template.uuid,
+                bookmark=True,
+            ),
+        ]
         return audit_template
 
     @classmethod
     def convert_with_links(cls, rpc_audit_template, expand=True):
         audit_template = AuditTemplate(**rpc_audit_template.as_dict())
         hide_fields_in_newer_versions(audit_template)
-        return cls._convert_with_links(audit_template, pecan.request.host_url,
-                                       expand)
+        return cls._convert_with_links(
+            audit_template, pecan.request.host_url, expand
+        )
 
     @classmethod
     def sample(cls, expand=True):
-        sample = cls(uuid='27e3153e-d5bf-4b7e-b517-fb518e17f34c',
-                     name='My Audit Template',
-                     description='Description of my audit template',
-                     goal_uuid='83e44733-b640-40e2-8d8a-7dd3be7134e6',
-                     strategy_uuid='367d826e-b6a4-4b70-bc44-c3f6fe1c9986',
-                     created_at=timeutils.utcnow(),
-                     deleted_at=None,
-                     updated_at=timeutils.utcnow(),
-                     scope=[],)
+        sample = cls(
+            uuid='27e3153e-d5bf-4b7e-b517-fb518e17f34c',
+            name='My Audit Template',
+            description='Description of my audit template',
+            goal_uuid='83e44733-b640-40e2-8d8a-7dd3be7134e6',
+            strategy_uuid='367d826e-b6a4-4b70-bc44-c3f6fe1c9986',
+            created_at=timeutils.utcnow(),
+            deleted_at=None,
+            updated_at=timeutils.utcnow(),
+            scope=[],
+        )
         return cls._convert_with_links(sample, 'http://localhost:9322', expand)
 
 
@@ -458,12 +492,14 @@ class AuditTemplateCollection(collection.Collection):
         self._type = 'audit_templates'
 
     @staticmethod
-    def convert_with_links(rpc_audit_templates, limit, url=None, expand=False,
-                           **kwargs):
+    def convert_with_links(
+        rpc_audit_templates, limit, url=None, expand=False, **kwargs
+    ):
         at_collection = AuditTemplateCollection()
         at_collection.audit_templates = [
             AuditTemplate.convert_with_links(p, expand)
-            for p in rpc_audit_templates]
+            for p in rpc_audit_templates
+        ]
         at_collection.next = at_collection.get_next(limit, url=url, **kwargs)
         return at_collection
 
@@ -480,54 +516,90 @@ class AuditTemplatesController(rest.RestController):
     def __init__(self):
         super().__init__()
 
-    _custom_actions = {
-        'detail': ['GET'],
-    }
+    _custom_actions = {'detail': ['GET']}
 
-    def _get_audit_templates_collection(self, filters, marker, limit,
-                                        sort_key, sort_dir, expand=False,
-                                        resource_url=None):
-        additional_fields = ["goal_uuid", "goal_name", "strategy_uuid",
-                             "strategy_name"]
+    def _get_audit_templates_collection(
+        self,
+        filters,
+        marker,
+        limit,
+        sort_key,
+        sort_dir,
+        expand=False,
+        resource_url=None,
+    ):
+        additional_fields = [
+            "goal_uuid",
+            "goal_name",
+            "strategy_uuid",
+            "strategy_name",
+        ]
 
         api_utils.validate_sort_key(
-            sort_key, list(objects.AuditTemplate.fields) + additional_fields)
+            sort_key, list(objects.AuditTemplate.fields) + additional_fields
+        )
         api_utils.validate_search_filters(
-            filters, list(objects.AuditTemplate.fields) + additional_fields)
+            filters, list(objects.AuditTemplate.fields) + additional_fields
+        )
         limit = api_utils.validate_limit(limit)
         api_utils.validate_sort_dir(sort_dir)
 
         marker_obj = None
         if marker:
             marker_obj = objects.AuditTemplate.get_by_uuid(
-                pecan.request.context,
-                marker)
+                pecan.request.context, marker
+            )
 
-        need_api_sort = api_utils.check_need_api_sort(sort_key,
-                                                      additional_fields)
-        sort_db_key = (sort_key if not need_api_sort
-                       else None)
+        need_api_sort = api_utils.check_need_api_sort(
+            sort_key, additional_fields
+        )
+        sort_db_key = sort_key if not need_api_sort else None
 
         audit_templates = objects.AuditTemplate.list(
-            pecan.request.context, filters, limit, marker_obj,
-            sort_key=sort_db_key, sort_dir=sort_dir)
+            pecan.request.context,
+            filters,
+            limit,
+            marker_obj,
+            sort_key=sort_db_key,
+            sort_dir=sort_dir,
+        )
 
-        audit_templates_collection = \
+        audit_templates_collection = (
             AuditTemplateCollection.convert_with_links(
-                audit_templates, limit, url=resource_url, expand=expand,
-                sort_key=sort_key, sort_dir=sort_dir)
+                audit_templates,
+                limit,
+                url=resource_url,
+                expand=expand,
+                sort_key=sort_key,
+                sort_dir=sort_dir,
+            )
+        )
 
         if need_api_sort:
             api_utils.make_api_sort(
-                audit_templates_collection.audit_templates, sort_key,
-                sort_dir)
+                audit_templates_collection.audit_templates, sort_key, sort_dir
+            )
 
         return audit_templates_collection
 
-    @wsme_pecan.wsexpose(AuditTemplateCollection, wtypes.text, wtypes.text,
-                         types.uuid, int, wtypes.text, wtypes.text)
-    def get_all(self, goal=None, strategy=None, marker=None,
-                limit=None, sort_key='id', sort_dir='asc'):
+    @wsme_pecan.wsexpose(
+        AuditTemplateCollection,
+        wtypes.text,
+        wtypes.text,
+        types.uuid,
+        int,
+        wtypes.text,
+        wtypes.text,
+    )
+    def get_all(
+        self,
+        goal=None,
+        strategy=None,
+        marker=None,
+        limit=None,
+        sort_key='id',
+        sort_dir='asc',
+    ):
         """Retrieve a list of audit templates.
 
         :param goal: goal UUID or name to filter by
@@ -538,8 +610,9 @@ class AuditTemplatesController(rest.RestController):
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         """
         context = pecan.request.context
-        policy.enforce(context, 'audit_template:get_all',
-                       action='audit_template:get_all')
+        policy.enforce(
+            context, 'audit_template:get_all', action='audit_template:get_all'
+        )
         filters = {}
         if goal:
             if common_utils.is_uuid_like(goal):
@@ -554,12 +627,27 @@ class AuditTemplatesController(rest.RestController):
                 filters['strategy_name'] = strategy
 
         return self._get_audit_templates_collection(
-            filters, marker, limit, sort_key, sort_dir)
+            filters, marker, limit, sort_key, sort_dir
+        )
 
-    @wsme_pecan.wsexpose(AuditTemplateCollection, wtypes.text, wtypes.text,
-                         types.uuid, int, wtypes.text, wtypes.text)
-    def detail(self, goal=None, strategy=None, marker=None,
-               limit=None, sort_key='id', sort_dir='asc'):
+    @wsme_pecan.wsexpose(
+        AuditTemplateCollection,
+        wtypes.text,
+        wtypes.text,
+        types.uuid,
+        int,
+        wtypes.text,
+        wtypes.text,
+    )
+    def detail(
+        self,
+        goal=None,
+        strategy=None,
+        marker=None,
+        limit=None,
+        sort_key='id',
+        sort_dir='asc',
+    ):
         """Retrieve a list of audit templates with detail.
 
         :param goal: goal UUID or name to filter by
@@ -570,8 +658,9 @@ class AuditTemplatesController(rest.RestController):
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         """
         context = pecan.request.context
-        policy.enforce(context, 'audit_template:detail',
-                       action='audit_template:detail')
+        policy.enforce(
+            context, 'audit_template:detail', action='audit_template:detail'
+        )
 
         # NOTE(lucasagomes): /detail should only work against collections
         parent = pecan.request.path.split('/')[:-1][-1]
@@ -593,9 +682,9 @@ class AuditTemplatesController(rest.RestController):
 
         expand = True
         resource_url = '/'.join(['audit_templates', 'detail'])
-        return self._get_audit_templates_collection(filters, marker, limit,
-                                                    sort_key, sort_dir, expand,
-                                                    resource_url)
+        return self._get_audit_templates_collection(
+            filters, marker, limit, sort_key, sort_dir, expand, resource_url
+        )
 
     @wsme_pecan.wsexpose(AuditTemplate, wtypes.text)
     def get_one(self, audit_template):
@@ -604,16 +693,24 @@ class AuditTemplatesController(rest.RestController):
         :param audit_template: UUID or name of an audit template.
         """
         context = pecan.request.context
-        rpc_audit_template = api_utils.get_resource('AuditTemplate',
-                                                    audit_template)
-        policy.enforce(context, 'audit_template:get', rpc_audit_template,
-                       action='audit_template:get')
+        rpc_audit_template = api_utils.get_resource(
+            'AuditTemplate', audit_template
+        )
+        policy.enforce(
+            context,
+            'audit_template:get',
+            rpc_audit_template,
+            action='audit_template:get',
+        )
 
         return AuditTemplate.convert_with_links(rpc_audit_template)
 
     @wsme.validate(types.uuid, AuditTemplatePostType)
-    @wsme_pecan.wsexpose(AuditTemplate, body=AuditTemplatePostType,
-                         status_code=HTTPStatus.CREATED)
+    @wsme_pecan.wsexpose(
+        AuditTemplate,
+        body=AuditTemplatePostType,
+        status_code=HTTPStatus.CREATED,
+    )
     def post(self, audit_template_postdata):
         """Create a new audit template.
 
@@ -621,24 +718,28 @@ class AuditTemplatesController(rest.RestController):
                                         from the request body.
         """
         context = pecan.request.context
-        policy.enforce(context, 'audit_template:create',
-                       action='audit_template:create')
+        policy.enforce(
+            context, 'audit_template:create', action='audit_template:create'
+        )
 
         context = pecan.request.context
         audit_template = audit_template_postdata.as_audit_template()
         audit_template_dict = audit_template.as_dict()
-        new_audit_template = objects.AuditTemplate(context,
-                                                   **audit_template_dict)
+        new_audit_template = objects.AuditTemplate(
+            context, **audit_template_dict
+        )
         new_audit_template.create()
 
         # Set the HTTP Location Header
         pecan.response.location = link.build_url(
-            'audit_templates', new_audit_template.uuid)
+            'audit_templates', new_audit_template.uuid
+        )
         return AuditTemplate.convert_with_links(new_audit_template)
 
     @wsme.validate(types.uuid, [AuditTemplatePatchType])
-    @wsme_pecan.wsexpose(AuditTemplate, wtypes.text,
-                         body=[AuditTemplatePatchType])
+    @wsme_pecan.wsexpose(
+        AuditTemplate, wtypes.text, body=[AuditTemplatePatchType]
+    )
     def patch(self, audit_template, patch):
         """Update an existing audit template.
 
@@ -646,25 +747,30 @@ class AuditTemplatesController(rest.RestController):
         :param patch: a json PATCH document to apply to this audit template.
         """
         context = pecan.request.context
-        audit_template_to_update = api_utils.get_resource('AuditTemplate',
-                                                          audit_template)
-        policy.enforce(context, 'audit_template:update',
-                       audit_template_to_update,
-                       action='audit_template:update')
+        audit_template_to_update = api_utils.get_resource(
+            'AuditTemplate', audit_template
+        )
+        policy.enforce(
+            context,
+            'audit_template:update',
+            audit_template_to_update,
+            action='audit_template:update',
+        )
 
         if common_utils.is_uuid_like(audit_template):
             audit_template_to_update = objects.AuditTemplate.get_by_uuid(
-                pecan.request.context,
-                audit_template)
+                pecan.request.context, audit_template
+            )
         else:
             audit_template_to_update = objects.AuditTemplate.get_by_name(
-                pecan.request.context,
-                audit_template)
+                pecan.request.context, audit_template
+            )
 
         try:
             audit_template_dict = audit_template_to_update.as_dict()
-            audit_template = AuditTemplate(**api_utils.apply_jsonpatch(
-                audit_template_dict, patch))
+            audit_template = AuditTemplate(
+                **api_utils.apply_jsonpatch(audit_template_dict, patch)
+            )
         except api_utils.JSONPATCH_EXCEPTIONS as e:
             raise exception.PatchError(patch=patch, reason=e)
 
@@ -690,10 +796,14 @@ class AuditTemplatesController(rest.RestController):
         :param template_uuid: UUID or name of an audit template.
         """
         context = pecan.request.context
-        audit_template_to_delete = api_utils.get_resource('AuditTemplate',
-                                                          audit_template)
-        policy.enforce(context, 'audit_template:delete',
-                       audit_template_to_delete,
-                       action='audit_template:delete')
+        audit_template_to_delete = api_utils.get_resource(
+            'AuditTemplate', audit_template
+        )
+        policy.enforce(
+            context,
+            'audit_template:delete',
+            audit_template_to_delete,
+            action='audit_template:delete',
+        )
 
         audit_template_to_delete.soft_delete()

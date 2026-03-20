@@ -24,13 +24,8 @@ rules = [
         name=DATA_MODEL % 'get_all',
         check_str=base.RULE_ADMIN_API,
         description='List data model.',
-        operations=[
-            {
-                'path': '/v1/data_model',
-                'method': 'GET'
-            }
-        ]
-    ),
+        operations=[{'path': '/v1/data_model', 'method': 'GET'}],
+    )
 ]
 
 

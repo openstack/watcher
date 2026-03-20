@@ -22,46 +22,26 @@ rules = [
         name=ACTION % 'detail',
         check_str=base.RULE_ADMIN_API,
         description='Retrieve a list of actions with detail.',
-        operations=[
-            {
-                'path': '/v1/actions/detail',
-                'method': 'GET'
-            }
-        ]
+        operations=[{'path': '/v1/actions/detail', 'method': 'GET'}],
     ),
     policy.DocumentedRuleDefault(
         name=ACTION % 'get',
         check_str=base.RULE_ADMIN_API,
         description='Retrieve information about a given action.',
-        operations=[
-            {
-                'path': '/v1/actions/{action_id}',
-                'method': 'GET'
-            }
-        ]
+        operations=[{'path': '/v1/actions/{action_id}', 'method': 'GET'}],
     ),
     policy.DocumentedRuleDefault(
         name=ACTION % 'get_all',
         check_str=base.RULE_ADMIN_API,
         description='Retrieve a list of all actions.',
-        operations=[
-            {
-                'path': '/v1/actions',
-                'method': 'GET'
-            }
-        ]
+        operations=[{'path': '/v1/actions', 'method': 'GET'}],
     ),
     policy.DocumentedRuleDefault(
         name=ACTION % 'update',
         check_str=base.RULE_ADMIN_API,
         description='Update an action.',
-        operations=[
-            {
-                'path': '/v1/actions/{action_id}',
-                'method': 'PATCH'
-            }
-        ]
-    )
+        operations=[{'path': '/v1/actions/{action_id}', 'method': 'PATCH'}],
+    ),
 ]
 
 

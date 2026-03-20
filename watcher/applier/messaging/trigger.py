@@ -32,13 +32,14 @@ class TriggerActionPlan:
         self.applier_manager = applier_manager
         workers = CONF.watcher_applier.workers
         self.executor = executor.get_futurist_pool_executor(
-            max_workers=workers)
+            max_workers=workers
+        )
 
     def do_launch_action_plan(self, context, action_plan_uuid):
         try:
-            cmd = default.DefaultActionPlanHandler(context,
-                                                   self.applier_manager,
-                                                   action_plan_uuid)
+            cmd = default.DefaultActionPlanHandler(
+                context, self.applier_manager, action_plan_uuid
+            )
             cmd.execute()
         except Exception as e:
             LOG.exception(e)
@@ -46,12 +47,14 @@ class TriggerActionPlan:
     def launch_action_plan(self, context, action_plan_uuid):
         LOG.debug("Trigger ActionPlan %s", action_plan_uuid)
         action_plan = objects.ActionPlan.get_by_uuid(
-            context, action_plan_uuid, eager=True)
+            context, action_plan_uuid, eager=True
+        )
         action_plan.hostname = CONF.host
         action_plan.save()
 
         # submit
         executor.log_executor_stats(self.executor, name="action-plan-pool")
-        self.executor.submit(self.do_launch_action_plan, context,
-                             action_plan_uuid)
+        self.executor.submit(
+            self.do_launch_action_plan, context, action_plan_uuid
+        )
         return action_plan_uuid

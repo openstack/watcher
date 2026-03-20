@@ -43,13 +43,17 @@ from watcher.objects import fields as wfields
 
 
 NOTIFICATION_OPTS = [
-    cfg.StrOpt('notification_level',
-               choices=[''] + list(wfields.NotificationPriority.ALL),
-               default=wfields.NotificationPriority.INFO,
-               help=_('Specifies the minimum level for which to send '
-                      'notifications. If not set, no notifications will '
-                      'be sent. The default is for this option to be at the '
-                      '`INFO` level.'))
+    cfg.StrOpt(
+        'notification_level',
+        choices=[''] + list(wfields.NotificationPriority.ALL),
+        default=wfields.NotificationPriority.INFO,
+        help=_(
+            'Specifies the minimum level for which to send '
+            'notifications. If not set, no notifications will '
+            'be sent. The default is for this option to be at the '
+            '`INFO` level.'
+        ),
+    )
 ]
 cfg.CONF.register_opts(NOTIFICATION_OPTS)
 
@@ -57,12 +61,20 @@ cfg.CONF.register_opts(NOTIFICATION_OPTS)
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)
 
-_DEFAULT_LOG_LEVELS = ['amqp=WARN', 'amqplib=WARN', 'qpid.messaging=INFO',
-                       'oslo.messaging=INFO', 'sqlalchemy=WARN',
-                       'keystoneclient=INFO', 'stevedore=INFO',
-                       'eventlet.wsgi.server=WARN', 'iso8601=WARN',
-                       'requests=WARN', 'neutronclient=WARN',
-                       'apscheduler=WARN']
+_DEFAULT_LOG_LEVELS = [
+    'amqp=WARN',
+    'amqplib=WARN',
+    'qpid.messaging=INFO',
+    'oslo.messaging=INFO',
+    'sqlalchemy=WARN',
+    'keystoneclient=INFO',
+    'stevedore=INFO',
+    'eventlet.wsgi.server=WARN',
+    'iso8601=WARN',
+    'requests=WARN',
+    'neutronclient=WARN',
+    'apscheduler=WARN',
+]
 
 Singleton = service.Singleton
 
@@ -78,13 +90,16 @@ class WSGIService(service.ServiceBase):
         """
         self.service_name = service_name
         self.app = app.VersionSelectorApplication()
-        self.workers = (CONF.api.workers or
-                        processutils.get_worker_count())
-        self.server = wsgi.Server(CONF, self.service_name, self.app,
-                                  host=CONF.api.host,
-                                  port=CONF.api.port,
-                                  use_ssl=use_ssl,
-                                  logger_name=self.service_name)
+        self.workers = CONF.api.workers or processutils.get_worker_count()
+        self.server = wsgi.Server(
+            CONF,
+            self.service_name,
+            self.app,
+            host=CONF.api.host,
+            port=CONF.api.port,
+            use_ssl=use_ssl,
+            logger_name=self.service_name,
+        )
 
     def start(self):
         """Start serving this service using loaded configuration"""
@@ -104,7 +119,6 @@ class WSGIService(service.ServiceBase):
 
 
 class ServiceHeartbeat(scheduling.BackgroundSchedulerService):
-
     service_name = None
 
     def __init__(self, gconfig=None, service_name=None, **kwargs):
@@ -117,8 +131,9 @@ class ServiceHeartbeat(scheduling.BackgroundSchedulerService):
     def send_beat(self):
         host = CONF.host
         watcher_list = objects.Service.list(
-            self.context, filters={'name': ServiceHeartbeat.service_name,
-                                   'host': host})
+            self.context,
+            filters={'name': ServiceHeartbeat.service_name, 'host': host},
+        )
         if watcher_list:
             watcher_service = watcher_list[0]
             watcher_service.last_seen_up = timeutils.utcnow()
@@ -130,8 +145,12 @@ class ServiceHeartbeat(scheduling.BackgroundSchedulerService):
             watcher_service.create()
 
     def add_heartbeat_job(self):
-        self.add_job(self.send_beat, 'interval', seconds=60,
-                     next_run_time=datetime.datetime.now())
+        self.add_job(
+            self.send_beat,
+            'interval',
+            seconds=60,
+            next_run_time=datetime.datetime.now(),
+        )
 
     @classmethod
     def get_service_name(cls):
@@ -157,7 +176,6 @@ class ServiceHeartbeat(scheduling.BackgroundSchedulerService):
 
 
 class Service(service.ServiceBase):
-
     API_VERSION = '1.0'
 
     def __init__(self, manager_class):
@@ -175,7 +193,8 @@ class Service(service.ServiceBase):
         self.service_name = self.manager.service_name
         if self.service_name:
             self.heartbeat = ServiceHeartbeat(
-                service_name=self.manager.service_name)
+                service_name=self.manager.service_name
+            )
 
         self.conductor_endpoints = [
             ep(self) for ep in self.manager.conductor_endpoints
@@ -189,7 +208,8 @@ class Service(service.ServiceBase):
 
         if self.conductor_topic and self.conductor_endpoints:
             self.conductor_topic_handler = self.build_topic_handler(
-                self.conductor_topic, self.conductor_endpoints)
+                self.conductor_topic, self.conductor_endpoints
+            )
         if self.notification_topics and self.notification_endpoints:
             self.notification_handler = self.build_notification_handler(
                 self.notification_topics, self.notification_endpoints
@@ -199,12 +219,10 @@ class Service(service.ServiceBase):
     def conductor_client(self):
         if self._conductor_client is None:
             target = messaging.Target(
-                topic=self.conductor_topic,
-                version=self.API_VERSION,
+                topic=self.conductor_topic, version=self.API_VERSION
             )
             self._conductor_client = rpc.get_client(
-                target,
-                serializer=base.WatcherObjectSerializer()
+                target, serializer=base.WatcherObjectSerializer()
             )
         return self._conductor_client
 
@@ -220,8 +238,7 @@ class Service(service.ServiceBase):
             version=self.api_version,
         )
         return rpc.get_server(
-            target, endpoints,
-            serializer=rpc.JsonPayloadSerializer()
+            target, endpoints, serializer=rpc.JsonPayloadSerializer()
         )
 
     def build_notification_handler(self, topic_names, endpoints=()):
@@ -235,9 +252,10 @@ class Service(service.ServiceBase):
             targets.append(messaging.Target(**kwargs))
 
         return rpc.get_notification_listener(
-            targets, endpoints,
+            targets,
+            endpoints,
             serializer=rpc.JsonPayloadSerializer(),
-            pool=CONF.host
+            pool=CONF.host,
         )
 
     def start(self):
@@ -266,12 +284,14 @@ class Service(service.ServiceBase):
 
     def check_api_version(self, ctx):
         api_manager_version = self.conductor_client.call(
-            ctx, 'check_api_version', api_version=self.api_version)
+            ctx, 'check_api_version', api_version=self.api_version
+        )
         return api_manager_version
 
 
-class ServiceMonitoringBase(scheduling.BackgroundSchedulerService,
-                            metaclass=abc.ABCMeta):
+class ServiceMonitoringBase(
+    scheduling.BackgroundSchedulerService, metaclass=abc.ABCMeta
+):
     """Base Service to monitor the status of Watcher services.
 
     This class is intended to be used as a base class to monitore the
@@ -297,9 +317,15 @@ class ServiceMonitoringBase(scheduling.BackgroundSchedulerService,
 
     def _am_i_leader(self, services):
         active_hosts = sorted(
-            [s.host for s in services
-             if (s.state == objects.service.ServiceStatus.ACTIVE and
-                 s.name == self.service_name)])
+            [
+                s.host
+                for s in services
+                if (
+                    s.state == objects.service.ServiceStatus.ACTIVE
+                    and s.name == self.service_name
+                )
+            ]
+        )
         if not active_hosts:
             LOG.info("No active services found for %s", self.service_name)
             self.last_leader = None
@@ -309,10 +335,14 @@ class ServiceMonitoringBase(scheduling.BackgroundSchedulerService,
         if leader != self.last_leader:
             LOG.info(
                 "Leader election completed for %s: %s -> %s. "
-                "Selected as leader: %s", self.service_name, self.last_leader,
-                leader, CONF.host == leader)
+                "Selected as leader: %s",
+                self.service_name,
+                self.last_leader,
+                leader,
+                CONF.host == leader,
+            )
             self.last_leader = leader
-        return (CONF.host == leader)
+        return CONF.host == leader
 
     @abc.abstractmethod
     def monitor_services_status(self, context):
@@ -320,9 +350,11 @@ class ServiceMonitoringBase(scheduling.BackgroundSchedulerService,
 
     def get_service_status(self, context, service_id):
         watcher_service = objects.Service.get(context, service_id)
-        last_heartbeat = (watcher_service.last_seen_up or
-                          watcher_service.updated_at or
-                          watcher_service.created_at)
+        last_heartbeat = (
+            watcher_service.last_seen_up
+            or watcher_service.updated_at
+            or watcher_service.created_at
+        )
         if isinstance(last_heartbeat, str):
             # NOTE(russellb) If this service came in over rpc via
             # conductor, then the timestamp will be a string and needs to be
@@ -335,11 +367,16 @@ class ServiceMonitoringBase(scheduling.BackgroundSchedulerService,
         elapsed = timeutils.delta_seconds(last_heartbeat, timeutils.utcnow())
         is_up = abs(elapsed) <= CONF.service_down_time
         if not is_up:
-            LOG.warning('Seems service %(name)s on host %(host)s is down. '
-                        'Last heartbeat was %(lhb)s. Elapsed time is %(el)s',
-                        {'name': watcher_service.name,
-                         'host': watcher_service.host,
-                         'lhb': str(last_heartbeat), 'el': str(elapsed)})
+            LOG.warning(
+                'Seems service %(name)s on host %(host)s is down. '
+                'Last heartbeat was %(lhb)s. Elapsed time is %(el)s',
+                {
+                    'name': watcher_service.name,
+                    'host': watcher_service.host,
+                    'lhb': str(last_heartbeat),
+                    'el': str(elapsed),
+                },
+            )
             return objects.service.ServiceStatus.FAILED
 
         return objects.service.ServiceStatus.ACTIVE
@@ -347,13 +384,18 @@ class ServiceMonitoringBase(scheduling.BackgroundSchedulerService,
     def start(self):
         """Start service."""
         admin_context = context.make_context(is_admin=True)
-        LOG.info('Starting service monitoring service for %s',
-                 self.service_name)
-        self.add_job(self.monitor_services_status,
-                     name='service_status', trigger='interval',
-                     jobstore='default', args=[admin_context],
-                     next_run_time=datetime.datetime.now(),
-                     seconds=CONF.periodic_interval)
+        LOG.info(
+            'Starting service monitoring service for %s', self.service_name
+        )
+        self.add_job(
+            self.monitor_services_status,
+            name='service_status',
+            trigger='interval',
+            jobstore='default',
+            args=[admin_context],
+            next_run_time=datetime.datetime.now(),
+            seconds=CONF.periodic_interval,
+        )
         super().start()
 
     def stop(self):
@@ -379,13 +421,13 @@ def prepare_service(argv=(), conf=cfg.CONF):
     gmr_opts.set_defaults(conf)
 
     config.parse_args(argv)
-    cfg.set_defaults(_options.log_opts,
-                     default_log_levels=_DEFAULT_LOG_LEVELS)
+    cfg.set_defaults(_options.log_opts, default_log_levels=_DEFAULT_LOG_LEVELS)
     config.set_lib_defaults()
     log.setup(conf, 'python-watcher')
     conf.log_opt_values(LOG, log.DEBUG)
     objects.register_all()
 
     gmr.TextGuruMeditation.register_section(
-        _('Plugins'), plugins_conf.show_plugins)
+        _('Plugins'), plugins_conf.show_plugins
+    )
     gmr.TextGuruMeditation.setup_autorun(version, conf=conf)

@@ -19,7 +19,6 @@ from watcher.decision_engine.strategy.strategies import base as base_strategy
 
 
 class FakeStrategy(base_strategy.BaseStrategy):
-
     NAME = NotImplemented
     DISPLAY_NAME = NotImplemented
     GOAL_NAME = NotImplemented
@@ -61,9 +60,7 @@ class FakeDummy1Strategy1(FakeStrategy):
 
     @classmethod
     def get_config_opts(cls):
-        return [
-            cfg.StrOpt('test_opt', help="Option used for testing."),
-        ]
+        return [cfg.StrOpt('test_opt', help="Option used for testing.")]
 
 
 class FakeDummy1Strategy2(FakeStrategy):

@@ -30,7 +30,6 @@ class IndicatorsMap(utils.Struct):
 
 
 class Indicator(utils.Struct):
-
     def __init__(self, name, description, unit, value):
         super().__init__()
         self.name = name
@@ -38,7 +37,8 @@ class Indicator(utils.Struct):
         self.unit = unit
         if not isinstance(value, numbers.Number):
             raise exception.InvalidIndicatorValue(
-                _("An indicator value should be a number"))
+                _("An indicator value should be a number")
+            )
         self.value = value
 
 
@@ -77,15 +77,19 @@ class Efficacy:
 
     def compute_global_efficacy(self):
         self._efficacy_spec.validate_efficacy_indicators(
-            self._indicators_mapping)
+            self._indicators_mapping
+        )
         try:
             self.global_efficacy = (
                 self._efficacy_spec.get_global_efficacy_indicator(
-                    self._indicators_mapping))
+                    self._indicators_mapping
+                )
+            )
 
             indicators_specs_map = {
                 indicator_spec.name: indicator_spec
-                for indicator_spec in self._efficacy_spec.indicators_specs}
+                for indicator_spec in self._efficacy_spec.indicators_specs
+            }
 
             indicators = []
             for indicator_name, value in self._indicators_mapping.items():
@@ -95,11 +99,13 @@ class Efficacy:
                         name=related_indicator_spec.name,
                         description=related_indicator_spec.description,
                         unit=related_indicator_spec.unit,
-                        value=value))
+                        value=value,
+                    )
+                )
 
             self.indicators = indicators
         except Exception as exc:
             LOG.exception(exc)
             raise exception.GlobalEfficacyComputationError(
-                goal=self.goal.name,
-                strategy=self.strategy.name)
+                goal=self.goal.name, strategy=self.strategy.name
+            )

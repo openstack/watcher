@@ -18,9 +18,7 @@ from watcher.decision_engine.audit import base
 
 
 class OneShotAuditHandler(base.AuditHandler):
-
     def post_execute(self, audit, solution, request_context):
-        super().post_execute(audit, solution,
-                             request_context)
+        super().post_execute(audit, solution, request_context)
         # change state of the audit to SUCCEEDED
         self.update_audit_state(audit, objects.audit.State.SUCCEEDED)

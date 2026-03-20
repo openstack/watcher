@@ -32,30 +32,27 @@ class TestAetosHelper(base.BaseTestCase):
     def test_get_fqdn_label(self):
         fqdn = 'fqdn_label'
         cfg.CONF.aetos_client.fqdn_label = fqdn
-        self.assertEqual(
-            fqdn,
-            self.helper._get_fqdn_label()
-        )
+        self.assertEqual(fqdn, self.helper._get_fqdn_label())
 
     def test_get_instance_uuid_label(self):
         instance_uuid = 'instance_uuid_label'
         cfg.CONF.aetos_client.instance_uuid_label = instance_uuid
-        self.assertEqual(
-            instance_uuid,
-            self.helper._get_instance_uuid_label()
-        )
+        self.assertEqual(instance_uuid, self.helper._get_instance_uuid_label())
 
     @mock.patch.object(obs_client_utils, 'get_prom_client_from_keystone')
     def test_setup_prometheus_client(self, mock_get_prom_client):
         cfg.CONF.aetos_client.interface = 'internal'
         cfg.CONF.aetos_client.region_name = 'RegionTwo'
 
-        opts = {'interface': 'internal',
-                'region_name': 'RegionTwo',
-                'service_type': 'metric-storage'}
+        opts = {
+            'interface': 'internal',
+            'region_name': 'RegionTwo',
+            'service_type': 'metric-storage',
+        }
         osc = mock.Mock()
         osc.session = mock.Mock()
         aetos_helper.AetosHelper(osc)
 
         mock_get_prom_client.assert_called_once_with(
-            osc.session, adapter_options=opts)
+            osc.session, adapter_options=opts
+        )

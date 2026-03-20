@@ -19,8 +19,8 @@ down_revision = 'a86240e89a29'
 def upgrade():
     for table in ('audits', 'action_plans'):
         op.add_column(
-            table,
-            sa.Column('hostname', sa.String(length=255), nullable=True))
+            table, sa.Column('hostname', sa.String(length=255), nullable=True)
+        )
 
 
 def downgrade():

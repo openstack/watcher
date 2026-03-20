@@ -15,23 +15,23 @@ from unittest import mock
 import requests
 
 
-fakeAuthTokenHeaders = {'X-User-Id': '773a902f022949619b5c2f32cd89d419',
-                        'X-Roles': 'admin, ResellerAdmin, _member_',
-                        'X-Project-Id': '5588aebbcdc24e17a061595f80574376',
-                        'X-Project-Name': 'test',
-                        'X-User-Name': 'test',
-                        'X-Auth-Token': '5588aebbcdc24e17a061595f80574376',
-                        'X-Forwarded-For': '10.10.10.10, 11.11.11.11',
-                        'X-Service-Catalog': '{test: 12345}',
-                        'X-Identity-Status': 'Confirmed',
-                        'X-User-Domain-Name': 'domain',
-                        'X-Project-Domain-Id': 'project_domain_id',
-                        'X-User-Domain-Id': 'user_domain_id',
-                        }
+fakeAuthTokenHeaders = {
+    'X-User-Id': '773a902f022949619b5c2f32cd89d419',
+    'X-Roles': 'admin, ResellerAdmin, _member_',
+    'X-Project-Id': '5588aebbcdc24e17a061595f80574376',
+    'X-Project-Name': 'test',
+    'X-User-Name': 'test',
+    'X-Auth-Token': '5588aebbcdc24e17a061595f80574376',
+    'X-Forwarded-For': '10.10.10.10, 11.11.11.11',
+    'X-Service-Catalog': '{test: 12345}',
+    'X-Identity-Status': 'Confirmed',
+    'X-User-Domain-Name': 'domain',
+    'X-Project-Domain-Id': 'project_domain_id',
+    'X-User-Domain-Id': 'user_domain_id',
+}
 
 
 class FakePecanRequest(mock.Mock):
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.host_url = 'http://test_url:8080/test'
@@ -48,7 +48,6 @@ class FakePecanRequest(mock.Mock):
 
 
 class FakePecanResponse(mock.Mock):
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.status = None
@@ -74,19 +73,20 @@ class FakeService(mock.Mock):
         self.read_only = True
 
     def as_dict(self):
-        return dict(service_type=self.service_type,
-                    user_id=self.user_id,
-                    project_id=self.project_id,
-                    uuid=self.uuid,
-                    id=self.id,
-                    name=self.name,
-                    tags=self.tags,
-                    read_only=self.read_only,
-                    description=self.description)
+        return dict(
+            service_type=self.service_type,
+            user_id=self.user_id,
+            project_id=self.project_id,
+            uuid=self.uuid,
+            id=self.id,
+            name=self.name,
+            tags=self.tags,
+            read_only=self.read_only,
+            description=self.description,
+        )
 
 
 class FakeAuthProtocol(mock.Mock):
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.app = FakeApp()

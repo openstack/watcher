@@ -23,7 +23,6 @@ CONF = conf.CONF
 
 
 class TestUpgradeChecks(base.TestCase):
-
     def setUp(self):
         super().setUp()
         self.cmd = status.Checks()

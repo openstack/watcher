@@ -25,7 +25,6 @@ from watcher.tests.unit import base
 
 
 class TestDecisionEngineThreadPool(base.TestCase):
-
     def setUp(self):
         super().setUp()
 
@@ -39,15 +38,18 @@ class TestDecisionEngineThreadPool(base.TestCase):
         # is restored after these tests finish but the threadpool can still
         # be used as intended with its methods
         self.p_threadool = mock.patch.object(
-            threading, 'DecisionEngineThreadPool',
-            new=threading.DecisionEngineThreadPool)
+            threading,
+            'DecisionEngineThreadPool',
+            new=threading.DecisionEngineThreadPool,
+        )
         self.m_threadpool = self.p_threadool.start()
         self.addCleanup(self.p_threadool.stop)
 
         # bind unbound patched methods for python 2.7 compatibility
         # class methods can be used unbounded in Python 3.x
         self.m_threadpool.submit = self.m_threadpool.submit.__get__(
-            self.m_threadpool, threading.DecisionEngineThreadPool)
+            self.m_threadpool, threading.DecisionEngineThreadPool
+        )
 
         self.m_threadpool._threadpool = executor.get_futurist_pool_executor(1)
 
@@ -86,7 +88,8 @@ class TestDecisionEngineThreadPool(base.TestCase):
         # execute m_do_while_function for every future that completes
         # and block until all futures are completed
         self.m_threadpool.do_while_futures(
-            futures, self.m_do_while_function, 3, 4)
+            futures, self.m_do_while_function, 3, 4
+        )
 
         # assert that m_do_while_function was called
         self.m_do_while_function.assert_called_once_with(futures[0], 3, 4)
@@ -115,7 +118,8 @@ class TestDecisionEngineThreadPool(base.TestCase):
         # execute m_do_while_function for every future that completes
         # and block until all futures are completed
         self.m_threadpool.do_while_futures_modify(
-            futures, self.m_do_while_function, 3, 4)
+            futures, self.m_do_while_function, 3, 4
+        )
 
         # assert that m_do_while_function was called
         self.m_do_while_function.assert_called_once_with(future_ref, 3, 4)
@@ -127,8 +131,9 @@ class TestDecisionEngineThreadPool(base.TestCase):
         """Test that 10 tasks are all executed with the correct arguments"""
 
         # create a collection of 10 futures from submitted m_function tasks
-        futures = [self.m_threadpool.submit(
-            self.m_function, i, 2) for i in range(10)]
+        futures = [
+            self.m_threadpool.submit(self.m_function, i, 2) for i in range(10)
+        ]
 
         # assert that there are 10 submitted tasks
         self.assertEqual(10, len(futures))
@@ -136,15 +141,15 @@ class TestDecisionEngineThreadPool(base.TestCase):
         # execute m_do_while_function for every future that completes
         # and block until all futures are completed
         self.m_threadpool.do_while_futures(
-            futures, self.m_do_while_function, 3, 4)
+            futures, self.m_do_while_function, 3, 4
+        )
 
         # create list of 10 calls that should have occurred
         calls_submit = []
         for i in range(10):
             calls_submit.append(mock.call(i, 2))
         # test that the submit function has been called 10 times
-        self.m_function.assert_has_calls(
-            calls_submit, any_order=True)
+        self.m_function.assert_has_calls(calls_submit, any_order=True)
 
         # create list of 10 calls that should have occurred
         calls_do_while = []
@@ -152,17 +157,23 @@ class TestDecisionEngineThreadPool(base.TestCase):
             calls_do_while.append(mock.call(futures[i], 3, 4))
         # test that the passed do_while function has been called 10 times
         self.m_do_while_function.assert_has_calls(
-            calls_do_while, any_order=True)
+            calls_do_while, any_order=True
+        )
 
     def test_do_while_futures_modify_timeout(self):
         """Test the operation of the do_while_futures with a timeout"""
 
         # create a collection of futures from submitted m_function tasks
-        futures = [self.m_threadpool.submit(
-            TestDecisionEngineThreadPool.noop_function) for i in range(3)]
+        futures = [
+            self.m_threadpool.submit(
+                TestDecisionEngineThreadPool.noop_function
+            )
+            for i in range(3)
+        ]
 
         self.m_threadpool.do_while_futures_modify(
-            futures, self.m_do_while_function, futures_timeout=0)
+            futures, self.m_do_while_function, futures_timeout=0
+        )
 
         # At least one future should be running or cancelled
         self.assertGreater(len(futures), 0)

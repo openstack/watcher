@@ -23,55 +23,36 @@ rules = [
         check_str=base.RULE_ADMIN_API,
         description='Delete an action plan.',
         operations=[
-            {
-                'path': '/v1/action_plans/{action_plan_uuid}',
-                'method': 'DELETE'
-            }
-        ]
+            {'path': '/v1/action_plans/{action_plan_uuid}', 'method': 'DELETE'}
+        ],
     ),
     policy.DocumentedRuleDefault(
         name=ACTION_PLAN % 'detail',
         check_str=base.RULE_ADMIN_API,
         description='Retrieve a list of action plans with detail.',
-        operations=[
-            {
-                'path': '/v1/action_plans/detail',
-                'method': 'GET'
-            }
-        ]
+        operations=[{'path': '/v1/action_plans/detail', 'method': 'GET'}],
     ),
     policy.DocumentedRuleDefault(
         name=ACTION_PLAN % 'get',
         check_str=base.RULE_ADMIN_API,
         description='Get an action plan.',
         operations=[
-            {
-                'path': '/v1/action_plans/{action_plan_id}',
-                'method': 'GET'
-            }
-        ]
+            {'path': '/v1/action_plans/{action_plan_id}', 'method': 'GET'}
+        ],
     ),
     policy.DocumentedRuleDefault(
         name=ACTION_PLAN % 'get_all',
         check_str=base.RULE_ADMIN_API,
         description='Get all action plans.',
-        operations=[
-            {
-                'path': '/v1/action_plans',
-                'method': 'GET'
-            }
-        ]
+        operations=[{'path': '/v1/action_plans', 'method': 'GET'}],
     ),
     policy.DocumentedRuleDefault(
         name=ACTION_PLAN % 'update',
         check_str=base.RULE_ADMIN_API,
         description='Update an action plans.',
         operations=[
-            {
-                'path': '/v1/action_plans/{action_plan_uuid}',
-                'method': 'PATCH'
-            }
-        ]
+            {'path': '/v1/action_plans/{action_plan_uuid}', 'method': 'PATCH'}
+        ],
     ),
     policy.DocumentedRuleDefault(
         name=ACTION_PLAN % 'start',
@@ -80,10 +61,10 @@ rules = [
         operations=[
             {
                 'path': '/v1/action_plans/{action_plan_uuid}/start',
-                'method': 'POST'
+                'method': 'POST',
             }
-        ]
-    )
+        ],
+    ),
 ]
 
 

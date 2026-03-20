@@ -27,7 +27,6 @@ CONF = conf.CONF
 
 
 class ApplierAPI(service.Service):
-
     def __init__(self):
         super().__init__(ApplierAPIManager)
 
@@ -36,11 +35,11 @@ class ApplierAPI(service.Service):
             raise exception.InvalidUuidOrName(name=action_plan_uuid)
 
         self.conductor_client.cast(
-            context, 'launch_action_plan', action_plan_uuid=action_plan_uuid)
+            context, 'launch_action_plan', action_plan_uuid=action_plan_uuid
+        )
 
 
 class ApplierAPIManager(service_manager.ServiceManager):
-
     @property
     def service_name(self):
         return None

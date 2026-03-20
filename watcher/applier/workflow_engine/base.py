@@ -34,7 +34,6 @@ LOG = log.getLogger(__name__)
 
 
 class BaseWorkFlowEngine(loadable.Loadable, metaclass=abc.ABCMeta):
-
     def __init__(self, config, context=None, applier_manager=None):
         """Constructor
 
@@ -80,8 +79,9 @@ class BaseWorkFlowEngine(loadable.Loadable, metaclass=abc.ABCMeta):
         return self._action_factory
 
     def notify(self, action, state, status_message=None):
-        db_action = objects.Action.get_by_uuid(self.context, action.uuid,
-                                               eager=True)
+        db_action = objects.Action.get_by_uuid(
+            self.context, action.uuid, eager=True
+        )
         db_action.state = state
         if status_message:
             db_action.status_message = status_message
@@ -89,15 +89,17 @@ class BaseWorkFlowEngine(loadable.Loadable, metaclass=abc.ABCMeta):
         return db_action
 
     def notify_cancel_start(self, action_plan_uuid):
-        action_plan = objects.ActionPlan.get_by_uuid(self.context,
-                                                     action_plan_uuid,
-                                                     eager=True)
+        action_plan = objects.ActionPlan.get_by_uuid(
+            self.context, action_plan_uuid, eager=True
+        )
         if not self._is_notified:
             self._is_notified = True
             notifications.action_plan.send_cancel_notification(
-                self._context, action_plan,
+                self._context,
+                action_plan,
                 action=fields.NotificationAction.CANCEL,
-                phase=fields.NotificationPhase.START)
+                phase=fields.NotificationPhase.START,
+            )
 
     @abc.abstractmethod
     def execute(self, actions):
@@ -105,7 +107,6 @@ class BaseWorkFlowEngine(loadable.Loadable, metaclass=abc.ABCMeta):
 
 
 class BaseTaskFlowActionContainer(flow_task.Task):
-
     def __init__(self, name, db_action, engine, **kwargs):
         super().__init__(name=name)
         self._db_action = db_action
@@ -120,8 +121,8 @@ class BaseTaskFlowActionContainer(flow_task.Task):
     def action(self):
         if self.loaded_action is None:
             action = self.engine.action_factory.make_action(
-                self._db_action,
-                osc=self._engine.osc)
+                self._db_action, osc=self._engine.osc
+            )
             self.loaded_action = action
         return self.loaded_action
 
@@ -148,20 +149,25 @@ class BaseTaskFlowActionContainer(flow_task.Task):
     def _fail_action(self, phase, reason=None):
         # Fail action and send notification to the user.
         # If a reason is given, it will be used to set the status_message.
-        LOG.error('The workflow engine has failed '
-                  'to execute the action: %s', self._db_action.uuid)
+        LOG.error(
+            'The workflow engine has failed to execute the action: %s',
+            self._db_action.uuid,
+        )
         kwargs = {}
         if reason:
-            kwargs["status_message"] = (_(
-                "Action failed in %s: %s") % (phase, reason))
-        db_action = self.engine.notify(self._db_action,
-                                       objects.action.State.FAILED,
-                                       **kwargs)
+            kwargs["status_message"] = _(
+                "Action failed in %(phase)s: %(reason)s"
+            ) % {'phase': phase, 'reason': reason}
+        db_action = self.engine.notify(
+            self._db_action, objects.action.State.FAILED, **kwargs
+        )
         notifications.action.send_execution_notification(
-            self.engine.context, db_action,
+            self.engine.context,
+            db_action,
             fields.NotificationAction.EXECUTION,
             fields.NotificationPhase.ERROR,
-            priority=fields.NotificationPriority.ERROR)
+            priority=fields.NotificationPriority.ERROR,
+        )
 
     # NOTE(alexchadin): taskflow does 3 method calls (pre_execute, execute,
     # post_execute) independently. We want to support notifications in base
@@ -172,33 +178,43 @@ class BaseTaskFlowActionContainer(flow_task.Task):
             # next action, if action plan is cancelled raise the exceptions
             # so that taskflow does not schedule further actions.
             action_plan = objects.ActionPlan.get_by_id(
-                self.engine.context, self._db_action.action_plan_id)
+                self.engine.context, self._db_action.action_plan_id
+            )
             if action_plan.state in objects.action_plan.State.CANCEL_STATES:
                 raise exception.ActionPlanCancelled(uuid=action_plan.uuid)
             if self._db_action.state == objects.action.State.SKIPPED:
-                LOG.debug("Action %s is skipped manually",
-                          self._db_action.uuid)
+                LOG.debug(
+                    "Action %s is skipped manually", self._db_action.uuid
+                )
                 return
             db_action = self.do_pre_execute()
             notifications.action.send_execution_notification(
-                self.engine.context, db_action,
+                self.engine.context,
+                db_action,
                 fields.NotificationAction.EXECUTION,
-                fields.NotificationPhase.START)
+                fields.NotificationPhase.START,
+            )
         except exception.ActionPlanCancelled as e:
             LOG.exception(e)
             self.engine.notify_cancel_start(action_plan.uuid)
             raise
         except exception.ActionSkipped as e:
-            LOG.info("Action %s was skipped automatically: %s",
-                     self._db_action.uuid, str(e))
-            status_message = (_(
-                "Action was skipped automatically: %s") % str(e))
-            db_action = self.engine.notify(self._db_action,
-                                           objects.action.State.SKIPPED,
-                                           status_message=status_message)
+            LOG.info(
+                "Action %s was skipped automatically: %s",
+                self._db_action.uuid,
+                str(e),
+            )
+            status_message = _("Action was skipped automatically: %s") % str(e)
+            db_action = self.engine.notify(
+                self._db_action,
+                objects.action.State.SKIPPED,
+                status_message=status_message,
+            )
             notifications.action.send_update(
-                self.engine.context, db_action,
-                old_state=objects.action.State.PENDING)
+                self.engine.context,
+                db_action,
+                old_state=objects.action.State.PENDING,
+            )
         except exception.WatcherException as e:
             LOG.exception(e)
             self._fail_action("pre_condition", reason=str(e))
@@ -208,19 +224,25 @@ class BaseTaskFlowActionContainer(flow_task.Task):
 
     def execute(self, *args, **kwargs):
         action_object = objects.Action.get_by_uuid(
-            self.engine.context, self._db_action.uuid, eager=True)
-        if action_object.state in [objects.action.State.SKIPPED,
-                                   objects.action.State.FAILED]:
+            self.engine.context, self._db_action.uuid, eager=True
+        )
+        if action_object.state in [
+            objects.action.State.SKIPPED,
+            objects.action.State.FAILED,
+        ]:
             return True
 
         try:
             db_action = self.do_execute(*args, **kwargs)
             notifications.action.send_execution_notification(
-                self.engine.context, db_action,
+                self.engine.context,
+                db_action,
                 fields.NotificationAction.EXECUTION,
-                fields.NotificationPhase.END)
+                fields.NotificationPhase.END,
+            )
             action_object = objects.Action.get_by_uuid(
-                self.engine.context, self._db_action.uuid, eager=True)
+                self.engine.context, self._db_action.uuid, eager=True
+            )
             if action_object.state == objects.action.State.SUCCEEDED:
                 return True
             else:
@@ -236,7 +258,8 @@ class BaseTaskFlowActionContainer(flow_task.Task):
 
     def post_execute(self):
         action_object = objects.Action.get_by_uuid(
-            self.engine.context, self._db_action.uuid, eager=True)
+            self.engine.context, self._db_action.uuid, eager=True
+        )
         if action_object.state == objects.action.State.SKIPPED:
             return
         try:
@@ -264,18 +287,21 @@ class BaseTaskFlowActionContainer(flow_task.Task):
 
     def revert(self, *args, **kwargs):
         action_plan = objects.ActionPlan.get_by_id(
-            self.engine.context, self._db_action.action_plan_id, eager=True)
+            self.engine.context, self._db_action.action_plan_id, eager=True
+        )
         action_object = objects.Action.get_by_uuid(
-            self.engine.context, self._db_action.uuid, eager=True)
+            self.engine.context, self._db_action.uuid, eager=True
+        )
 
         # NOTE: check if revert cause by cancel action plan or
         # some other exception occurred during action plan execution
         # if due to some other exception keep the flow intact.
         # NOTE(dviroel): If the action was skipped, we should not
         # revert it.
-        if (action_plan.state not in
-                objects.action_plan.State.CANCEL_STATES and
-                action_object.state != objects.action.State.SKIPPED):
+        if (
+            action_plan.state not in objects.action_plan.State.CANCEL_STATES
+            and action_object.state != objects.action.State.SKIPPED
+        ):
             self.do_revert()
             return
 
@@ -284,37 +310,47 @@ class BaseTaskFlowActionContainer(flow_task.Task):
                 action_object.state = objects.action.State.CANCELLING
                 action_object.save()
                 notifications.action.send_cancel_notification(
-                    self.engine.context, action_object,
+                    self.engine.context,
+                    action_object,
                     fields.NotificationAction.CANCEL,
-                    fields.NotificationPhase.START)
+                    fields.NotificationPhase.START,
+                )
                 action_object = self.abort()
 
                 notifications.action.send_cancel_notification(
-                    self.engine.context, action_object,
+                    self.engine.context,
+                    action_object,
                     fields.NotificationAction.CANCEL,
-                    fields.NotificationPhase.END)
+                    fields.NotificationPhase.END,
+                )
 
             if action_object.state == objects.action.State.PENDING:
                 notifications.action.send_cancel_notification(
-                    self.engine.context, action_object,
+                    self.engine.context,
+                    action_object,
                     fields.NotificationAction.CANCEL,
-                    fields.NotificationPhase.START)
+                    fields.NotificationPhase.START,
+                )
                 action_object.state = objects.action.State.CANCELLED
                 action_object.save()
                 notifications.action.send_cancel_notification(
-                    self.engine.context, action_object,
+                    self.engine.context,
+                    action_object,
                     fields.NotificationAction.CANCEL,
-                    fields.NotificationPhase.END)
+                    fields.NotificationPhase.END,
+                )
 
         except Exception as e:
             LOG.exception(e)
             action_object.state = objects.action.State.FAILED
             action_object.save()
             notifications.action.send_cancel_notification(
-                self.engine.context, action_object,
+                self.engine.context,
+                action_object,
                 fields.NotificationAction.CANCEL,
                 fields.NotificationPhase.ERROR,
-                priority=fields.NotificationPriority.ERROR)
+                priority=fields.NotificationPriority.ERROR,
+            )
 
     def abort(self, *args, **kwargs):
         # NOTE(dviroel): only ONGOING actions are called

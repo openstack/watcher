@@ -27,7 +27,6 @@ from watcher.tests.unit import base
 
 
 class TestDataSourceManager(base.BaseTestCase):
-
     def _dsm_config(self, **kwargs):
         dss = ['gnocchi']
         opts = dict(datasources=dss, metric_map_path=None)
@@ -50,22 +49,23 @@ class TestDataSourceManager(base.BaseTestCase):
     def test_metric_file_metric_override_grafana(self, m_config):
         """Grafana requires a different structure in the metric map"""
 
-        m_config.grafana_client.token = \
+        m_config.grafana_client.token = (
             "eyJrIjoiT0tTcG1pUlY2RnVKZTFVaDFsNFZXdE9ZWmNrMkZYbk=="
+        )
         m_config.grafana_client.base_url = "https://grafana.proxy/api/"
 
-        path = 'watcher.decision_engine.datasources.manager.' \
-               'DataSourceManager.load_metric_map'
+        path = (
+            'watcher.decision_engine.datasources.manager.'
+            'DataSourceManager.load_metric_map'
+        )
         metric_map = {
             'db': 'production_cloud',
             'project': '7485',
             'attribute': 'hostname',
             'translator': 'influxdb',
-            'query': 'SHOW SERIES'
+            'query': 'SHOW SERIES',
         }
-        retval = {
-            grafana.GrafanaHelper.NAME: {"host_airflow": metric_map}
-        }
+        retval = {grafana.GrafanaHelper.NAME: {"host_airflow": metric_map}}
         with mock.patch(path, return_value=retval):
             dsmcfg = self._dsm_config(datasources=['grafana'])
             manager = self._dsm(config=dsmcfg)
@@ -80,9 +80,7 @@ class TestDataSourceManager(base.BaseTestCase):
 
     def test_get_backend(self):
         manager = self._dsm()
-        backend = manager.get_backend(
-            ['host_cpu_usage', 'instance_cpu_usage']
-        )
+        backend = manager.get_backend(['host_cpu_usage', 'instance_cpu_usage'])
         self.assertEqual(backend, manager.gnocchi)
 
     def test_get_backend_order(self):
@@ -98,7 +96,7 @@ class TestDataSourceManager(base.BaseTestCase):
         self.assertRaises(
             exception.MetricNotAvailable,
             manager.get_backend,
-            ['host_cpu', 'instance_cpu_usage']
+            ['host_cpu', 'instance_cpu_usage'],
         )
 
     @mock.patch.object(gnocchi, 'GnocchiHelper')
@@ -108,11 +106,12 @@ class TestDataSourceManager(base.BaseTestCase):
         self.assertRaises(
             exception.MetricNotAvailable,
             manager.get_backend,
-            ['host_cpu_usage', 'instance_cpu_usage']
+            ['host_cpu_usage', 'instance_cpu_usage'],
         )
 
-    @mock.patch.object(grafana.GrafanaHelper, 'METRIC_MAP',
-                       {'host_cpu_usage': 'test'})
+    @mock.patch.object(
+        grafana.GrafanaHelper, 'METRIC_MAP', {'host_cpu_usage': 'test'}
+    )
     def test_get_backend_grafana(self):
         dss = ['grafana', 'gnocchi']
         dsmcfg = self._dsm_config(datasources=dss)
@@ -122,16 +121,15 @@ class TestDataSourceManager(base.BaseTestCase):
 
     @mock.patch.object(grafana, 'CONF')
     def test_dynamic_metric_map_grafana(self, m_config):
-        m_config.grafana_client.token = \
+        m_config.grafana_client.token = (
             "eyJrIjoiT0tTcG1pUlY2RnVKZTFVaDFsNFZXdE9ZWmNrMkZYbk=="
+        )
         m_config.grafana_client.base_url = "https://grafana.proxy/api/"
         m_config.grafana_client.project_id_map = {'host_cpu_usage': 7221}
         m_config.grafana_client.attribute_map = {'host_cpu_usage': 'hostname'}
         m_config.grafana_client.database_map = {'host_cpu_usage': 'mock_db'}
         m_config.grafana_client.translator_map = {'host_cpu_usage': 'influxdb'}
-        m_config.grafana_client.query_map = {
-            'host_cpu_usage': 'SHOW SERIES'
-        }
+        m_config.grafana_client.query_map = {'host_cpu_usage': 'SHOW SERIES'}
         dss = ['grafana', 'gnocchi']
         dsmcfg = self._dsm_config(datasources=dss)
         manager = self._dsm(config=dsmcfg)
@@ -144,37 +142,33 @@ class TestDataSourceManager(base.BaseTestCase):
         self.assertRaises(
             exception.NoDatasourceAvailable,
             manager.get_backend,
-            ['host_cpu_usage', 'instance_cpu_usage']
+            ['host_cpu_usage', 'instance_cpu_usage'],
         )
         dsmcfg = self._dsm_config(datasources=None)
         manager = self._dsm(config=dsmcfg)
         self.assertRaises(
             exception.NoDatasourceAvailable,
             manager.get_backend,
-            ['host_cpu_usage', 'instance_cpu_usage']
+            ['host_cpu_usage', 'instance_cpu_usage'],
         )
 
     def test_get_backend_no_metrics(self):
         manager = self._dsm()
         self.assertRaises(exception.InvalidParameter, manager.get_backend, [])
         self.assertRaises(
-            exception.InvalidParameter,
-            manager.get_backend,
-            None
+            exception.InvalidParameter, manager.get_backend, None
         )
 
     def test_datasource_validation_prometheus_and_aetos_conflict(self):
         """Test having both prometheus and aetos datasources raises error"""
         conflicting_datasources = [
             prometheus.PrometheusHelper.NAME,
-            aetos.AetosHelper.NAME
+            aetos.AetosHelper.NAME,
         ]
         dsmcfg = self._dsm_config(datasources=conflicting_datasources)
 
         self.assertRaises(
-            exception.DataSourceConfigConflict,
-            self._dsm,
-            config=dsmcfg
+            exception.DataSourceConfigConflict, self._dsm, config=dsmcfg
         )
 
     def test_datasource_validation_single_prometheus_ok(self):

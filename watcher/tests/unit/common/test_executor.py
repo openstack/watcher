@@ -23,7 +23,6 @@ from watcher.tests.unit import base
 
 @mock.patch.object(eventlet_helper, 'is_patched')
 class TestFuturistPoolExecutor(base.TestCase):
-
     def test_get_futurist_pool_executor_eventlet(self, eventlet_patched_mock):
         eventlet_patched_mock.return_value = True
 
@@ -41,14 +40,14 @@ class TestFuturistPoolExecutor(base.TestCase):
 
 @mock.patch.object(executor.CONF, 'print_thread_pool_stats', True)
 class TestLogExecutorStats(base.TestCase):
-
     @mock.patch.object(executor.LOG, 'debug')
     def test_log_executor_stats_eventlet(self, m_log_debug):
         workers = 2
         pool_executor = futurist.GreenThreadPoolExecutor(workers)
 
-        executor.log_executor_stats(pool_executor,
-                                    name="test-threadpool-eventlet")
+        executor.log_executor_stats(
+            pool_executor, name="test-threadpool-eventlet"
+        )
 
         m_log_debug.assert_called_once_with(
             "State of %s GreenThreadPoolExecutor when submitting a "
@@ -58,15 +57,17 @@ class TestLogExecutorStats(base.TestCase):
             len(pool_executor._pool.coroutines_running),
             workers,
             pool_executor._delayed_work.unfinished_tasks,
-            pool_executor.statistics)
+            pool_executor.statistics,
+        )
 
     @mock.patch.object(executor.LOG, 'debug')
     def test_log_executor_stats_threading(self, m_log_debug):
         workers = 3
         pool_executor = futurist.ThreadPoolExecutor(workers)
 
-        executor.log_executor_stats(pool_executor,
-                                    name="test-threadpool-threading")
+        executor.log_executor_stats(
+            pool_executor, name="test-threadpool-threading"
+        )
 
         m_log_debug.assert_called_once_with(
             "State of %s ThreadPoolExecutor when submitting a new "
@@ -77,4 +78,5 @@ class TestLogExecutorStats(base.TestCase):
             len(pool_executor._workers),
             len([w for w in pool_executor._workers if w.idle]),
             pool_executor._work_queue.qsize(),
-            pool_executor.statistics)
+            pool_executor.statistics,
+        )

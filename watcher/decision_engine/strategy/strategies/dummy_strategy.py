@@ -54,18 +54,23 @@ class DummyStrategy(base.DummyBaseStrategy):
     def do_execute(self, audit=None):
         para1 = self.input_parameters.para1
         para2 = self.input_parameters.para2
-        LOG.debug("Executing Dummy strategy with para1=%(p1)f, para2=%(p2)s",
-                  {'p1': para1, 'p2': para2})
+        LOG.debug(
+            "Executing Dummy strategy with para1=%(p1)f, para2=%(p2)s",
+            {'p1': para1, 'p2': para2},
+        )
         parameters = {'message': 'hello World'}
-        self.solution.add_action(action_type=self.NOP,
-                                 input_parameters=parameters)
+        self.solution.add_action(
+            action_type=self.NOP, input_parameters=parameters
+        )
 
         parameters = {'message': para2}
-        self.solution.add_action(action_type=self.NOP,
-                                 input_parameters=parameters)
+        self.solution.add_action(
+            action_type=self.NOP, input_parameters=parameters
+        )
 
-        self.solution.add_action(action_type=self.SLEEP,
-                                 input_parameters={'duration': para1})
+        self.solution.add_action(
+            action_type=self.SLEEP, input_parameters={'duration': para1}
+        )
 
     def post_execute(self):
         pass
@@ -97,7 +102,7 @@ class DummyStrategy(base.DummyBaseStrategy):
                 "para2": {
                     "description": "string parameter example",
                     "type": "string",
-                    "default": "hello"
+                    "default": "hello",
                 },
-            },
+            }
         }

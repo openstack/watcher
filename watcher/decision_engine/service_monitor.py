@@ -44,20 +44,23 @@ class DecisionEngineMonitor(service.ServiceMonitoringBase):
             failed_host = audit.hostname
             audit.hostname = round_robin.__next__()
             audit.save()
-            LOG.info('Audit %(audit)s has been migrated to '
-                     '%(host)s since %(failed_host)s is in'
-                     ' %(state)s',
-                     {'audit': audit.uuid,
-                      'host': audit.hostname,
-                      'failed_host': failed_host,
-                      'state': objects.service.ServiceStatus.FAILED})
+            LOG.info(
+                'Audit %(audit)s has been migrated to '
+                '%(host)s since %(failed_host)s is in'
+                ' %(state)s',
+                {
+                    'audit': audit.uuid,
+                    'host': audit.hostname,
+                    'failed_host': failed_host,
+                    'state': objects.service.ServiceStatus.FAILED,
+                },
+            )
 
     def monitor_services_status(self, context):
         active_s = objects.service.ServiceStatus.ACTIVE
         failed_s = objects.service.ServiceStatus.FAILED
         services = self.get_services_status(context)
-        alive_services = [
-            s.host for s in services if s.state == active_s]
+        alive_services = [s.host for s in services if s.state == active_s]
         leader = self._am_i_leader(services)
         for watcher_service in services:
             result = watcher_service.state
@@ -76,7 +79,8 @@ class DecisionEngineMonitor(service.ServiceMonitoringBase):
                     continue
                 if changed:
                     notifications.service.send_service_update(
-                        context, watcher_service, state=result)
+                        context, watcher_service, state=result
+                    )
                 # Only execute the migration logic if there are alive
                 # services
                 if len(alive_services) == 0:
@@ -86,11 +90,11 @@ class DecisionEngineMonitor(service.ServiceMonitoringBase):
                     audit_filters = {
                         'audit_type': objects.audit.AuditType.CONTINUOUS.value,
                         'state': objects.audit.State.ONGOING,
-                        'hostname': watcher_service.host
+                        'hostname': watcher_service.host,
                     }
                     ongoing_audits = objects.Audit.list(
-                        context,
-                        filters=audit_filters,
-                        eager=True)
+                        context, filters=audit_filters, eager=True
+                    )
                     self._migrate_audits_to_new_host(
-                        ongoing_audits, alive_services)
+                        ongoing_audits, alive_services
+                    )

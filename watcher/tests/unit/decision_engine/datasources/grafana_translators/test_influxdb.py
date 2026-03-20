@@ -24,8 +24,9 @@ from oslo_log import log
 
 from watcher.common import exception
 from watcher.decision_engine.datasources.grafana_translator import influxdb
-from watcher.tests.unit.decision_engine.datasources. \
-    grafana_translators import test_base
+from watcher.tests.unit.decision_engine.datasources.grafana_translators import (  # noqa: E501
+    test_base,
+)
 
 
 CONF = cfg.CONF
@@ -44,14 +45,14 @@ class TestInfluxDBGrafanaTranslator(test_base.TestGrafanaTranslatorBase):
         super().setUp()
 
         self.p_conf = mock.patch.object(
-            influxdb, 'CONF',
-            new_callable=mock.PropertyMock)
+            influxdb, 'CONF', new_callable=mock.PropertyMock
+        )
         self.m_conf = self.p_conf.start()
         self.addCleanup(self.p_conf.stop)
 
         self.m_conf.grafana_translators.retention_periods = {
             'one_day': 86400,
-            'one_week': 604800
+            'one_week': 604800,
         }
 
     def test_retention_period_one_day(self):
@@ -60,8 +61,7 @@ class TestInfluxDBGrafanaTranslator(test_base.TestGrafanaTranslatorBase):
         data = copy.copy(self.reference_data)
         data['query'] = "{4}"
 
-        t_influx = influxdb.InfluxDBGrafanaTranslator(
-            data=data)
+        t_influx = influxdb.InfluxDBGrafanaTranslator(data=data)
         params = t_influx.build_params()
         self.assertEqual(params['q'], 'one_day')
 
@@ -72,8 +72,7 @@ class TestInfluxDBGrafanaTranslator(test_base.TestGrafanaTranslatorBase):
         data['query'] = "{4}"
 
         data['period'] = 90000
-        t_influx = influxdb.InfluxDBGrafanaTranslator(
-            data=data)
+        t_influx = influxdb.InfluxDBGrafanaTranslator(data=data)
         params = t_influx.build_params()
         self.assertEqual(params['q'], 'one_week')
 
@@ -85,12 +84,12 @@ class TestInfluxDBGrafanaTranslator(test_base.TestGrafanaTranslatorBase):
         data['query'] = "{4}"
 
         data['period'] = 650000
-        t_influx = influxdb.InfluxDBGrafanaTranslator(
-            data=data)
+        t_influx = influxdb.InfluxDBGrafanaTranslator(data=data)
         params = t_influx.build_params()
         self.assertEqual(params['q'], 'one_week')
         m_log.warning.assert_called_once_with(
-            "Longest retention period is to short for desired period")
+            "Longest retention period is to short for desired period"
+        )
 
     def test_build_params_granularity(self):
         """Validate build params granularity"""
@@ -99,14 +98,9 @@ class TestInfluxDBGrafanaTranslator(test_base.TestGrafanaTranslatorBase):
         data['granularity'] = None
         data['query'] = "{3}"
 
-        t_influx = influxdb.InfluxDBGrafanaTranslator(
-            data=data)
+        t_influx = influxdb.InfluxDBGrafanaTranslator(data=data)
 
-        raw_results = {
-            'db': 'production',
-            'epoch': 'ms',
-            'q': '1'
-        }
+        raw_results = {'db': 'production', 'epoch': 'ms', 'q': '1'}
 
         # InfluxDB build_params should replace granularity None optional with 1
         result = t_influx.build_params()
@@ -126,8 +120,7 @@ class TestInfluxDBGrafanaTranslator(test_base.TestGrafanaTranslatorBase):
         data['granularity'] = 4
         data['query'] = "{0}{1}{2}{3}{4}"
 
-        t_influx = influxdb.InfluxDBGrafanaTranslator(
-            data=data)
+        t_influx = influxdb.InfluxDBGrafanaTranslator(data=data)
 
         raw_results = "counthyperion34one_day"
 
@@ -138,13 +131,14 @@ class TestInfluxDBGrafanaTranslator(test_base.TestGrafanaTranslatorBase):
     def test_extract_results(self):
         """Validate proper result extraction"""
 
-        t_influx = influxdb.InfluxDBGrafanaTranslator(
-            data=self.reference_data)
+        t_influx = influxdb.InfluxDBGrafanaTranslator(data=self.reference_data)
 
-        raw_results = "{ \"results\": [{ \"series\": [{ " \
-                      "\"columns\": [\"time\",\"mean\"]," \
-                      "\"values\": [[1552500855000, " \
-                      "67.3550078657577]]}]}]}"
+        raw_results = (
+            "{ \"results\": [{ \"series\": [{ "
+            "\"columns\": [\"time\",\"mean\"],"
+            "\"values\": [[1552500855000, "
+            "67.3550078657577]]}]}]}"
+        )
 
         # Structure of InfluxDB time series data
         # { "results": [{
@@ -162,16 +156,17 @@ class TestInfluxDBGrafanaTranslator(test_base.TestGrafanaTranslatorBase):
         #                 }]
         # }]}
 
-        self.assertEqual(t_influx.extract_result(raw_results),
-                         67.3550078657577)
+        self.assertEqual(
+            t_influx.extract_result(raw_results), 67.3550078657577
+        )
 
     def test_extract_results_error(self):
         """Validate error on missing results"""
 
-        t_influx = influxdb.InfluxDBGrafanaTranslator(
-            data=self.reference_data)
+        t_influx = influxdb.InfluxDBGrafanaTranslator(data=self.reference_data)
 
         raw_results = "{}"
 
-        self.assertRaises(exception.NoSuchMetricForHost,
-                          t_influx.extract_result, raw_results)
+        self.assertRaises(
+            exception.NoSuchMetricForHost, t_influx.extract_result, raw_results
+        )

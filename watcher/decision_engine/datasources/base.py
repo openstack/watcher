@@ -43,18 +43,19 @@ class DataSourceBase:
     NAME = ''
 
     """Possible metrics a datasource can support and their internal name"""
-    METRIC_MAP = dict(host_cpu_usage=None,
-                      host_ram_usage=None,
-                      host_outlet_temp=None,
-                      host_inlet_temp=None,
-                      host_airflow=None,
-                      host_power=None,
-                      instance_cpu_usage=None,
-                      instance_ram_usage=None,
-                      instance_ram_allocated=None,
-                      instance_l3_cache_usage=None,
-                      instance_root_disk_size=None,
-                      )
+    METRIC_MAP = dict(
+        host_cpu_usage=None,
+        host_ram_usage=None,
+        host_outlet_temp=None,
+        host_inlet_temp=None,
+        host_airflow=None,
+        host_power=None,
+        instance_cpu_usage=None,
+        instance_ram_usage=None,
+        instance_ram_allocated=None,
+        instance_l3_cache_usage=None,
+        instance_root_disk_size=None,
+    )
 
     def _get_meter(self, meter_name):
         """Retrieve the meter from the metric map or raise error"""
@@ -85,14 +86,20 @@ class DataSourceBase:
             try:
                 return f(*args, **kwargs)
             except ignored_exc as e:
-                LOG.debug("Got an ignored exception (%s) while calling: %s ",
-                          e, f)
+                LOG.debug(
+                    "Got an ignored exception (%s) while calling: %s ", e, f
+                )
                 return
             except Exception as e:
                 LOG.exception(e)
                 self.query_retry_reset(e)
-                LOG.warning("Retry %d of %d while retrieving metrics retry "
-                            "in %d seconds", i+1, num_retries, interval)
+                LOG.warning(
+                    "Retry %d of %d while retrieving metrics retry "
+                    "in %d seconds",
+                    i + 1,
+                    num_retries,
+                    interval,
+                )
                 time.sleep(interval)
 
     @abc.abstractmethod
@@ -117,9 +124,15 @@ class DataSourceBase:
         pass
 
     @abc.abstractmethod
-    def statistic_aggregation(self, resource=None, resource_type=None,
-                              meter_name=None, period=300, aggregate='mean',
-                              granularity=300):
+    def statistic_aggregation(
+        self,
+        resource=None,
+        resource_type=None,
+        meter_name=None,
+        period=300,
+        aggregate='mean',
+        granularity=300,
+    ):
         """Retrieves and converts metrics based on the specified parameters
 
         :param resource: Resource object as defined in watcher models such as
@@ -140,9 +153,15 @@ class DataSourceBase:
         pass
 
     @abc.abstractmethod
-    def statistic_series(self, resource=None, resource_type=None,
-                         meter_name=None, start_time=None, end_time=None,
-                         granularity=300):
+    def statistic_series(
+        self,
+        resource=None,
+        resource_type=None,
+        meter_name=None,
+        start_time=None,
+        end_time=None,
+        granularity=300,
+    ):
         """Retrieves metrics based on the specified parameters over a period
 
         :param resource: Resource object as defined in watcher models such as
@@ -164,8 +183,9 @@ class DataSourceBase:
         pass
 
     @abc.abstractmethod
-    def get_host_cpu_usage(self, resource, period, aggregate,
-                           granularity=None):
+    def get_host_cpu_usage(
+        self, resource, period, aggregate, granularity=None
+    ):
         """Get the cpu usage for a host such as a compute_node
 
         :return: cpu usage as float ranging between 0 and 100 representing the
@@ -174,8 +194,9 @@ class DataSourceBase:
         pass
 
     @abc.abstractmethod
-    def get_host_ram_usage(self, resource, period, aggregate,
-                           granularity=None):
+    def get_host_ram_usage(
+        self, resource, period, aggregate, granularity=None
+    ):
         """Get the ram usage for a host such as a compute_node
 
         :return: ram usage as float in kibibytes
@@ -183,8 +204,9 @@ class DataSourceBase:
         pass
 
     @abc.abstractmethod
-    def get_host_outlet_temp(self, resource, period, aggregate,
-                             granularity=None):
+    def get_host_outlet_temp(
+        self, resource, period, aggregate, granularity=None
+    ):
         """Get the outlet temperature for a host such as compute_node
 
         :return: outlet temperature as float in degrees celsius
@@ -192,8 +214,9 @@ class DataSourceBase:
         pass
 
     @abc.abstractmethod
-    def get_host_inlet_temp(self, resource, period, aggregate,
-                            granularity=None):
+    def get_host_inlet_temp(
+        self, resource, period, aggregate, granularity=None
+    ):
         """Get the inlet temperature for a host such as compute_node
 
         :return: inlet temperature as float in degrees celsius
@@ -201,8 +224,7 @@ class DataSourceBase:
         pass
 
     @abc.abstractmethod
-    def get_host_airflow(self, resource, period, aggregate,
-                         granularity=None):
+    def get_host_airflow(self, resource, period, aggregate, granularity=None):
         """Get the airflow for a host such as compute_node
 
         :return: airflow as float in cfm
@@ -210,8 +232,7 @@ class DataSourceBase:
         pass
 
     @abc.abstractmethod
-    def get_host_power(self, resource, period, aggregate,
-                       granularity=None):
+    def get_host_power(self, resource, period, aggregate, granularity=None):
         """Get the power for a host such as compute_node
 
         :return: power as float in watts
@@ -219,8 +240,9 @@ class DataSourceBase:
         pass
 
     @abc.abstractmethod
-    def get_instance_cpu_usage(self, resource, period,
-                               aggregate, granularity=None):
+    def get_instance_cpu_usage(
+        self, resource, period, aggregate, granularity=None
+    ):
         """Get the cpu usage for an instance
 
         :return: cpu usage as float ranging between 0 and 100 representing the
@@ -229,8 +251,9 @@ class DataSourceBase:
         pass
 
     @abc.abstractmethod
-    def get_instance_ram_usage(self, resource, period,
-                               aggregate, granularity=None):
+    def get_instance_ram_usage(
+        self, resource, period, aggregate, granularity=None
+    ):
         """Get the ram usage for an instance
 
         :return: ram usage as float in megabytes
@@ -238,8 +261,9 @@ class DataSourceBase:
         pass
 
     @abc.abstractmethod
-    def get_instance_ram_allocated(self, resource, period,
-                                   aggregate, granularity=None):
+    def get_instance_ram_allocated(
+        self, resource, period, aggregate, granularity=None
+    ):
         """Get the ram allocated for an instance
 
         :return: total ram allocated as float in megabytes
@@ -247,8 +271,9 @@ class DataSourceBase:
         pass
 
     @abc.abstractmethod
-    def get_instance_l3_cache_usage(self, resource, period,
-                                    aggregate, granularity=None):
+    def get_instance_l3_cache_usage(
+        self, resource, period, aggregate, granularity=None
+    ):
         """Get the l3 cache usage for an instance
 
         :return: l3 cache usage as integer in bytes
@@ -256,8 +281,9 @@ class DataSourceBase:
         pass
 
     @abc.abstractmethod
-    def get_instance_root_disk_size(self, resource, period,
-                                    aggregate, granularity=None):
+    def get_instance_root_disk_size(
+        self, resource, period, aggregate, granularity=None
+    ):
         """Get the size of the root disk for an instance
 
         :return: root disk size as float in gigabytes

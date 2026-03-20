@@ -58,7 +58,8 @@ def get_test_audit_template(**kwargs):
     # ObjectField doesn't allow None nor dict, so if we want to simulate a
     # non-eager object loading, the field should not be referenced at all.
     audit_template_data.update(
-        _load_relationships(models.AuditTemplate, kwargs))
+        _load_relationships(models.AuditTemplate, kwargs)
+    )
 
     return audit_template_data
 
@@ -130,12 +131,14 @@ def get_test_action(**kwargs):
         'uuid': kwargs.get('uuid', '10a47dd1-4874-4298-91cf-eff046dbdb8d'),
         'action_plan_id': kwargs.get('action_plan_id', 1),
         'action_type': kwargs.get('action_type', 'nop'),
-        'input_parameters':
-            kwargs.get('input_parameters',
-                       {'key1': 'val1',
-                        'key2': 'val2',
-                        'resource_id':
-                        '10a47dd1-4874-4298-91cf-eff046dbdb8d'}),
+        'input_parameters': kwargs.get(
+            'input_parameters',
+            {
+                'key1': 'val1',
+                'key2': 'val2',
+                'resource_id': '10a47dd1-4874-4298-91cf-eff046dbdb8d',
+            },
+        ),
         'state': kwargs.get('state', objects.action_plan.State.PENDING),
         'parents': kwargs.get('parents', []),
         'created_at': kwargs.get('created_at'),
@@ -280,7 +283,9 @@ def get_test_service(**kwargs):
         'host': kwargs.get('host', 'controller'),
         'last_seen_up': kwargs.get(
             'last_seen_up',
-            timeutils.parse_isotime('2016-09-22T08:32:06').replace(tzinfo=None)
+            timeutils.parse_isotime('2016-09-22T08:32:06').replace(
+                tzinfo=None
+            ),
         ),
         'created_at': kwargs.get('created_at'),
         'updated_at': kwargs.get('updated_at'),

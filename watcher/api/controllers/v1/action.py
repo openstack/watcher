@@ -89,7 +89,6 @@ def hide_fields_in_newer_versions(obj):
 
 
 class ActionPatchType(types.JsonPatchType):
-
     @staticmethod
     def _validate_state(patch):
         serialized_patch = {'path': patch.path, 'op': patch.op}
@@ -100,7 +99,8 @@ class ActionPatchType(types.JsonPatchType):
         if state_value and not hasattr(objects.action.State, state_value):
             msg = _("Invalid state: %(state)s")
             raise exception.PatchError(
-                patch=serialized_patch, reason=msg % dict(state=state_value))
+                patch=serialized_patch, reason=msg % dict(state=state_value)
+            )
 
     @staticmethod
     def validate(patch):
@@ -126,6 +126,7 @@ class Action(base.APIBase):
     This class enforces type checking and value constraints, and converts
     between the internal object model and the API representation of a action.
     """
+
     _action_plan_uuid = None
 
     def _get_action_plan_uuid(self):
@@ -137,7 +138,8 @@ class Action(base.APIBase):
         elif value and self._action_plan_uuid != value:
             try:
                 action_plan = objects.ActionPlan.get(
-                    pecan.request.context, value)
+                    pecan.request.context, value
+                )
                 self._action_plan_uuid = action_plan.uuid
                 self.action_plan_id = action_plan.id
             except exception.ActionPlanNotFound:
@@ -146,9 +148,12 @@ class Action(base.APIBase):
     uuid = wtypes.wsattr(types.uuid, readonly=True)
     """Unique UUID for this action"""
 
-    action_plan_uuid = wtypes.wsproperty(types.uuid, _get_action_plan_uuid,
-                                         _set_action_plan_uuid,
-                                         mandatory=True)
+    action_plan_uuid = wtypes.wsproperty(
+        types.uuid,
+        _get_action_plan_uuid,
+        _set_action_plan_uuid,
+        mandatory=True,
+    )
     """The action plan this action belongs to """
 
     state = wtypes.text
@@ -187,22 +192,32 @@ class Action(base.APIBase):
 
         self.fields.append('action_plan_id')
         self.fields.append('description')
-        setattr(self, 'action_plan_uuid', kwargs.get('action_plan_id',
-                wtypes.Unset))
+        setattr(
+            self,
+            'action_plan_uuid',
+            kwargs.get('action_plan_id', wtypes.Unset),
+        )
 
     @staticmethod
     def _convert_with_links(action, url, expand=True):
         if not expand:
-            action.unset_fields_except(['uuid', 'state', 'action_plan_uuid',
-                                        'action_plan_id', 'action_type',
-                                        'parents'])
+            action.unset_fields_except(
+                [
+                    'uuid',
+                    'state',
+                    'action_plan_uuid',
+                    'action_plan_id',
+                    'action_type',
+                    'parents',
+                ]
+            )
 
-        action.links = [link.Link.make_link('self', url,
-                                            'actions', action.uuid),
-                        link.Link.make_link('bookmark', url,
-                                            'actions', action.uuid,
-                                            bookmark=True)
-                        ]
+        action.links = [
+            link.Link.make_link('self', url, 'actions', action.uuid),
+            link.Link.make_link(
+                'bookmark', url, 'actions', action.uuid, bookmark=True
+            ),
+        ]
         return action
 
     @classmethod
@@ -210,7 +225,8 @@ class Action(base.APIBase):
         action = Action(**action.as_dict())
         try:
             obj_action_desc = objects.ActionDescription.get_by_type(
-                pecan.request.context, action.action_type)
+                pecan.request.context, action.action_type
+            )
             description = obj_action_desc.description
         except exception.ActionDescriptionNotFound:
             description = ""
@@ -222,13 +238,15 @@ class Action(base.APIBase):
 
     @classmethod
     def sample(cls, expand=True):
-        sample = cls(uuid='27e3153e-d5bf-4b7e-b517-fb518e17f34c',
-                     description='action description',
-                     state='PENDING',
-                     created_at=timeutils.utcnow(),
-                     deleted_at=None,
-                     updated_at=timeutils.utcnow(),
-                     parents=[])
+        sample = cls(
+            uuid='27e3153e-d5bf-4b7e-b517-fb518e17f34c',
+            description='action description',
+            state='PENDING',
+            created_at=timeutils.utcnow(),
+            deleted_at=None,
+            updated_at=timeutils.utcnow(),
+            parents=[],
+        )
         sample._action_plan_uuid = '7ae81bb3-dec3-4289-8d6c-da80bd8001ae'
         return cls._convert_with_links(sample, 'http://localhost:9322', expand)
 
@@ -243,12 +261,11 @@ class ActionCollection(collection.Collection):
         self._type = 'actions'
 
     @staticmethod
-    def convert_with_links(actions, limit, url=None, expand=False,
-                           **kwargs):
-
+    def convert_with_links(actions, limit, url=None, expand=False, **kwargs):
         collection = ActionCollection()
-        collection.actions = [Action.convert_with_links(p, expand)
-                              for p in actions]
+        collection.actions = [
+            Action.convert_with_links(p, expand) for p in actions
+        ]
         collection.next = collection.get_next(limit, url=url, **kwargs)
         return collection
 
@@ -265,25 +282,32 @@ class ActionsController(rest.RestController):
     def __init__(self):
         super().__init__()
 
-    _custom_actions = {
-        'detail': ['GET'],
-    }
+    _custom_actions = {'detail': ['GET']}
 
-    def _get_actions_collection(self, marker, limit,
-                                sort_key, sort_dir, expand=False,
-                                resource_url=None,
-                                action_plan_uuid=None, audit_uuid=None):
+    def _get_actions_collection(
+        self,
+        marker,
+        limit,
+        sort_key,
+        sort_dir,
+        expand=False,
+        resource_url=None,
+        action_plan_uuid=None,
+        audit_uuid=None,
+    ):
         additional_fields = ['action_plan_uuid']
 
-        api_utils.validate_sort_key(sort_key, list(objects.Action.fields) +
-                                    additional_fields)
+        api_utils.validate_sort_key(
+            sort_key, list(objects.Action.fields) + additional_fields
+        )
         limit = api_utils.validate_limit(limit)
         api_utils.validate_sort_dir(sort_dir)
 
         marker_obj = None
         if marker:
-            marker_obj = objects.Action.get_by_uuid(pecan.request.context,
-                                                    marker)
+            marker_obj = objects.Action.get_by_uuid(
+                pecan.request.context, marker
+            )
 
         filters = {}
         if action_plan_uuid:
@@ -292,33 +316,54 @@ class ActionsController(rest.RestController):
         if audit_uuid:
             filters['audit_uuid'] = audit_uuid
 
-        need_api_sort = api_utils.check_need_api_sort(sort_key,
-                                                      additional_fields)
-        sort_db_key = (sort_key if not need_api_sort
-                       else None)
+        need_api_sort = api_utils.check_need_api_sort(
+            sort_key, additional_fields
+        )
+        sort_db_key = sort_key if not need_api_sort else None
 
-        actions = objects.Action.list(pecan.request.context,
-                                      limit,
-                                      marker_obj, sort_key=sort_db_key,
-                                      sort_dir=sort_dir,
-                                      filters=filters)
+        actions = objects.Action.list(
+            pecan.request.context,
+            limit,
+            marker_obj,
+            sort_key=sort_db_key,
+            sort_dir=sort_dir,
+            filters=filters,
+        )
 
         actions_collection = ActionCollection.convert_with_links(
-            actions, limit, url=resource_url, expand=expand,
-            sort_key=sort_key, sort_dir=sort_dir)
+            actions,
+            limit,
+            url=resource_url,
+            expand=expand,
+            sort_key=sort_key,
+            sort_dir=sort_dir,
+        )
 
         if need_api_sort:
-            api_utils.make_api_sort(actions_collection.actions,
-                                    sort_key, sort_dir)
+            api_utils.make_api_sort(
+                actions_collection.actions, sort_key, sort_dir
+            )
 
         return actions_collection
 
-    @wsme_pecan.wsexpose(ActionCollection, types.uuid, int,
-                         wtypes.text, wtypes.text, types.uuid,
-                         types.uuid)
-    def get_all(self, marker=None, limit=None,
-                sort_key='id', sort_dir='asc', action_plan_uuid=None,
-                audit_uuid=None):
+    @wsme_pecan.wsexpose(
+        ActionCollection,
+        types.uuid,
+        int,
+        wtypes.text,
+        wtypes.text,
+        types.uuid,
+        types.uuid,
+    )
+    def get_all(
+        self,
+        marker=None,
+        limit=None,
+        sort_key='id',
+        sort_dir='asc',
+        action_plan_uuid=None,
+        audit_uuid=None,
+    ):
         """Retrieve a list of actions.
 
         :param marker: pagination marker for large data sets.
@@ -331,22 +376,38 @@ class ActionsController(rest.RestController):
            to get only actions for that audit.
         """
         context = pecan.request.context
-        policy.enforce(context, 'action:get_all',
-                       action='action:get_all')
+        policy.enforce(context, 'action:get_all', action='action:get_all')
 
         if action_plan_uuid and audit_uuid:
             raise exception.ActionFilterCombinationProhibited
 
         return self._get_actions_collection(
-            marker, limit, sort_key, sort_dir,
-            action_plan_uuid=action_plan_uuid, audit_uuid=audit_uuid)
+            marker,
+            limit,
+            sort_key,
+            sort_dir,
+            action_plan_uuid=action_plan_uuid,
+            audit_uuid=audit_uuid,
+        )
 
-    @wsme_pecan.wsexpose(ActionCollection, types.uuid, int,
-                         wtypes.text, wtypes.text, types.uuid,
-                         types.uuid)
-    def detail(self, marker=None, limit=None,
-               sort_key='id', sort_dir='asc', action_plan_uuid=None,
-               audit_uuid=None):
+    @wsme_pecan.wsexpose(
+        ActionCollection,
+        types.uuid,
+        int,
+        wtypes.text,
+        wtypes.text,
+        types.uuid,
+        types.uuid,
+    )
+    def detail(
+        self,
+        marker=None,
+        limit=None,
+        sort_key='id',
+        sort_dir='asc',
+        action_plan_uuid=None,
+        audit_uuid=None,
+    ):
         """Retrieve a list of actions with detail.
 
         :param marker: pagination marker for large data sets.
@@ -359,8 +420,7 @@ class ActionsController(rest.RestController):
            to get only actions for that audit.
         """
         context = pecan.request.context
-        policy.enforce(context, 'action:detail',
-                       action='action:detail')
+        policy.enforce(context, 'action:detail', action='action:detail')
 
         # NOTE(lucasagomes): /detail should only work against collections
         parent = pecan.request.path.split('/')[:-1][-1]
@@ -373,8 +433,15 @@ class ActionsController(rest.RestController):
         expand = True
         resource_url = '/'.join(['actions', 'detail'])
         return self._get_actions_collection(
-            marker, limit, sort_key, sort_dir, expand, resource_url,
-            action_plan_uuid=action_plan_uuid, audit_uuid=audit_uuid)
+            marker,
+            limit,
+            sort_key,
+            sort_dir,
+            expand,
+            resource_url,
+            action_plan_uuid=action_plan_uuid,
+            audit_uuid=audit_uuid,
+        )
 
     @wsme_pecan.wsexpose(Action, types.uuid)
     def get_one(self, action_uuid):
@@ -398,13 +465,16 @@ class ActionsController(rest.RestController):
         """
         if not api_utils.allow_skipped_action():
             raise exception.Invalid(
-                _("API microversion 1.5 or higher is required."))
+                _("API microversion 1.5 or higher is required.")
+            )
 
         context = pecan.request.context
         action_to_update = api_utils.get_resource(
-            'Action', action_uuid, eager=True)
-        policy.enforce(context, 'action:update', action_to_update,
-                       action='action:update')
+            'Action', action_uuid, eager=True
+        )
+        policy.enforce(
+            context, 'action:update', action_to_update, action='action:update'
+        )
 
         try:
             action_dict = action_to_update.as_dict()
@@ -414,47 +484,59 @@ class ActionsController(rest.RestController):
 
         # Define allowed state transitions for actions
         allowed_patch_transitions = [
-            (objects.action.State.PENDING, objects.action.State.SKIPPED),
+            (objects.action.State.PENDING, objects.action.State.SKIPPED)
         ]
 
         # Validate state transitions if state is being modified
         if action.state != action_to_update.state:
             transition = (action_to_update.state, action.state)
             if transition not in allowed_patch_transitions:
-                error_message = _("State transition not allowed: "
-                                  "(%(initial_state)s -> %(new_state)s)")
+                error_message = _(
+                    "State transition not allowed: "
+                    "(%(initial_state)s -> %(new_state)s)"
+                )
                 raise exception.Conflict(
                     patch=patch,
-                    message=error_message % dict(
+                    message=error_message
+                    % dict(
                         initial_state=action_to_update.state,
-                        new_state=action.state))
+                        new_state=action.state,
+                    ),
+                )
             action_plan = action_to_update.action_plan
-            if action_plan.state not in [objects.action_plan.State.RECOMMENDED,
-                                         objects.action_plan.State.PENDING]:
-                error_message = _("State update not allowed for actionplan "
-                                  "state: %(ap_state)s")
+            if action_plan.state not in [
+                objects.action_plan.State.RECOMMENDED,
+                objects.action_plan.State.PENDING,
+            ]:
+                error_message = _(
+                    "State update not allowed for actionplan "
+                    "state: %(ap_state)s"
+                )
                 raise exception.Conflict(
                     patch=patch,
-                    message=error_message % dict(
-                        ap_state=action_plan.state))
+                    message=error_message % dict(ap_state=action_plan.state),
+                )
 
         status_message = _("Action skipped by user.")
         # status_message update only allowed with status update or when
         # already SKIPPED
         # NOTE(dviroel): status_message is an exposed field.
         if action.status_message != action_to_update.status_message:
-            if (action.state == action_to_update.state and
-                    action_to_update.state != objects.action.State.SKIPPED):
+            if (
+                action.state == action_to_update.state
+                and action_to_update.state != objects.action.State.SKIPPED
+            ):
                 error_message = _(
                     "status_message update only allowed when action state "
-                    "is SKIPPED")
-                raise exception.Conflict(
-                    patch=patch,
-                    message=error_message)
+                    "is SKIPPED"
+                )
+                raise exception.Conflict(patch=patch, message=error_message)
             else:
-                status_message = (_("%(status_message)s Reason: %(reason)s")
-                                  % dict(status_message=status_message,
-                                         reason=action.status_message))
+                status_message = _(
+                    "%(status_message)s Reason: %(reason)s"
+                ) % dict(
+                    status_message=status_message, reason=action.status_message
+                )
 
         action.status_message = status_message
 

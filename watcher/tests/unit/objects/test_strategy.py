@@ -24,19 +24,32 @@ from watcher.tests.unit.db import utils
 
 
 class TestStrategyObject(base.DbTestCase):
-
     goal_id = 2
 
     scenarios = [
-        ('non_eager', dict(
-            eager=False, fake_strategy=utils.get_test_strategy(
-                goal_id=goal_id))),
-        ('eager_with_non_eager_load', dict(
-            eager=True, fake_strategy=utils.get_test_strategy(
-                goal_id=goal_id))),
-        ('eager_with_eager_load', dict(
-            eager=True, fake_strategy=utils.get_test_strategy(
-                goal_id=goal_id, goal=utils.get_test_goal(id=goal_id)))),
+        (
+            'non_eager',
+            dict(
+                eager=False,
+                fake_strategy=utils.get_test_strategy(goal_id=goal_id),
+            ),
+        ),
+        (
+            'eager_with_non_eager_load',
+            dict(
+                eager=True,
+                fake_strategy=utils.get_test_strategy(goal_id=goal_id),
+            ),
+        ),
+        (
+            'eager_with_eager_load',
+            dict(
+                eager=True,
+                fake_strategy=utils.get_test_strategy(
+                    goal_id=goal_id, goal=utils.get_test_goal(id=goal_id)
+                ),
+            ),
+        ),
     ]
 
     def setUp(self):
@@ -50,11 +63,15 @@ class TestStrategyObject(base.DbTestCase):
                 super(objects.Goal, objects.Goal).fields
             ).symmetric_difference(objects.Goal.fields)
             db_data = {
-                k: v for k, v in self.fake_goal.as_dict().items()
-                if k in fields_to_check}
+                k: v
+                for k, v in self.fake_goal.as_dict().items()
+                if k in fields_to_check
+            }
             object_data = {
-                k: v for k, v in strategy.goal.as_dict().items()
-                if k in fields_to_check}
+                k: v
+                for k, v in strategy.goal.as_dict().items()
+                if k in fields_to_check
+            }
             self.assertEqual(db_data, object_data)
 
     @mock.patch.object(db_api.Connection, 'get_strategy_by_id')
@@ -62,9 +79,11 @@ class TestStrategyObject(base.DbTestCase):
         strategy_id = self.fake_strategy['id']
         mock_get_strategy.return_value = self.fake_strategy
         strategy = objects.Strategy.get(
-            self.context, strategy_id, eager=self.eager)
+            self.context, strategy_id, eager=self.eager
+        )
         mock_get_strategy.assert_called_once_with(
-            self.context, strategy_id, eager=self.eager)
+            self.context, strategy_id, eager=self.eager
+        )
         self.assertEqual(self.context, strategy._context)
         self.eager_load_strategy_assert(strategy)
 
@@ -74,13 +93,18 @@ class TestStrategyObject(base.DbTestCase):
         mock_get_strategy.return_value = self.fake_strategy
         strategy = objects.Strategy.get(self.context, uuid, eager=self.eager)
         mock_get_strategy.assert_called_once_with(
-            self.context, uuid, eager=self.eager)
+            self.context, uuid, eager=self.eager
+        )
         self.assertEqual(self.context, strategy._context)
         self.eager_load_strategy_assert(strategy)
 
     def test_get_bad_uuid(self):
-        self.assertRaises(exception.InvalidIdentity,
-                          objects.Strategy.get, self.context, 'not-a-uuid')
+        self.assertRaises(
+            exception.InvalidIdentity,
+            objects.Strategy.get,
+            self.context,
+            'not-a-uuid',
+        )
 
     @mock.patch.object(db_api.Connection, 'get_strategy_list')
     def test_list(self, mock_get_list):
@@ -99,25 +123,32 @@ class TestStrategyObject(base.DbTestCase):
         _id = self.fake_strategy['id']
         mock_get_strategy.return_value = self.fake_strategy
         strategy = objects.Strategy.get_by_id(
-            self.context, _id, eager=self.eager)
+            self.context, _id, eager=self.eager
+        )
         strategy.name = 'UPDATED NAME'
         strategy.save()
 
         mock_get_strategy.assert_called_once_with(
-            self.context, _id, eager=self.eager)
+            self.context, _id, eager=self.eager
+        )
         mock_update_strategy.assert_called_once_with(
-            _id, {'name': 'UPDATED NAME'})
+            _id, {'name': 'UPDATED NAME'}
+        )
         self.assertEqual(self.context, strategy._context)
         self.eager_load_strategy_assert(strategy)
 
     @mock.patch.object(db_api.Connection, 'get_strategy_by_id')
     def test_refresh(self, mock_get_strategy):
         _id = self.fake_strategy['id']
-        returns = [dict(self.fake_strategy, name="first name"),
-                   dict(self.fake_strategy, name="second name")]
+        returns = [
+            dict(self.fake_strategy, name="first name"),
+            dict(self.fake_strategy, name="second name"),
+        ]
         mock_get_strategy.side_effect = returns
-        expected = [mock.call(self.context, _id, eager=self.eager),
-                    mock.call(self.context, _id, eager=self.eager)]
+        expected = [
+            mock.call(self.context, _id, eager=self.eager),
+            mock.call(self.context, _id, eager=self.eager),
+        ]
         strategy = objects.Strategy.get(self.context, _id, eager=self.eager)
         self.assertEqual("first name", strategy.name)
         strategy.refresh(eager=self.eager)
@@ -128,7 +159,6 @@ class TestStrategyObject(base.DbTestCase):
 
 
 class TestCreateDeleteStrategyObject(base.DbTestCase):
-
     def setUp(self):
         super().setUp()
         self.fake_goal = utils.create_test_goal()
@@ -150,7 +180,8 @@ class TestCreateDeleteStrategyObject(base.DbTestCase):
         strategy = objects.Strategy.get_by_id(self.context, _id)
         strategy.soft_delete()
         mock_get_strategy.assert_called_once_with(
-            self.context, _id, eager=False)
+            self.context, _id, eager=False
+        )
         mock_soft_delete.assert_called_once_with(_id)
         self.assertEqual(self.context, strategy._context)
 
@@ -162,6 +193,7 @@ class TestCreateDeleteStrategyObject(base.DbTestCase):
         strategy = objects.Strategy.get_by_id(self.context, _id)
         strategy.destroy()
         mock_get_strategy.assert_called_once_with(
-            self.context, _id, eager=False)
+            self.context, _id, eager=False
+        )
         mock_destroy_strategy.assert_called_once_with(_id)
         self.assertEqual(self.context, strategy._context)

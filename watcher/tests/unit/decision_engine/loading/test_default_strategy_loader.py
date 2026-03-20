@@ -24,34 +24,36 @@ from watcher.tests.unit import base
 
 
 class TestDefaultStrategyLoader(base.TestCase):
-
     def setUp(self):
         super().setUp()
         self.strategy_loader = default_loading.DefaultStrategyLoader()
 
     def test_load_strategy_with_empty_model(self):
         self.assertRaises(
-            exception.LoadingError, self.strategy_loader.load, None)
+            exception.LoadingError, self.strategy_loader.load, None
+        )
 
     def test_strategy_loader(self):
         dummy_strategy_name = "dummy"
         # Set up the fake Stevedore extensions
         fake_extmanager_call = extension.ExtensionManager.make_test_instance(
-            extensions=[extension.Extension(
-                name=dummy_strategy_name,
-                entry_point=(
-                    f"{dummy_strategy.DummyStrategy.__module__}:"
-                    f"{dummy_strategy.DummyStrategy.__name__}"),
-                plugin=dummy_strategy.DummyStrategy,
-                obj=None,
-            )],
+            extensions=[
+                extension.Extension(
+                    name=dummy_strategy_name,
+                    entry_point=(
+                        f"{dummy_strategy.DummyStrategy.__module__}:"
+                        f"{dummy_strategy.DummyStrategy.__name__}"
+                    ),
+                    plugin=dummy_strategy.DummyStrategy,
+                    obj=None,
+                )
+            ],
             namespace="watcher_strategies",
         )
 
         with mock.patch.object(extension, "ExtensionManager") as m_ext_manager:
             m_ext_manager.return_value = fake_extmanager_call
-            loaded_strategy = self.strategy_loader.load(
-                "dummy")
+            loaded_strategy = self.strategy_loader.load("dummy")
 
         self.assertEqual("dummy", loaded_strategy.name)
         self.assertEqual("Dummy strategy", loaded_strategy.display_name)
@@ -63,14 +65,17 @@ class TestDefaultStrategyLoader(base.TestCase):
 
 
 class TestLoadStrategiesWithDefaultStrategyLoader(base.TestCase):
-
     strategy_loader = default_loading.DefaultStrategyLoader()
 
     scenarios = [
-        (strategy_name,
-         {"strategy_name": strategy_name, "strategy_cls": strategy_cls})
-        for strategy_name, strategy_cls
-        in strategy_loader.list_available().items()]
+        (
+            strategy_name,
+            {"strategy_name": strategy_name, "strategy_cls": strategy_cls},
+        )
+        for strategy_name, strategy_cls in (
+            strategy_loader.list_available().items()
+        )
+    ]
 
     def test_load_strategies(self):
         strategy = self.strategy_loader.load(self.strategy_name)

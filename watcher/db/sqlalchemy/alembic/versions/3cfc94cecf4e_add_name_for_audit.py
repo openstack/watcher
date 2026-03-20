@@ -17,7 +17,9 @@ down_revision = 'd09a5945e4a0'
 
 
 def upgrade():
-    op.add_column('audits', sa.Column('name', sa.String(length=63), nullable=True))
+    op.add_column(
+        'audits', sa.Column('name', sa.String(length=63), nullable=True)
+    )
 
 
 def downgrade():

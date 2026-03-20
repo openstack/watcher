@@ -47,20 +47,29 @@ from watcher.api.controllers.v1 import webhooks
 
 def min_version():
     return base.Version(
-        {base.Version.string: ' '.join([versions.service_type_string(),
-                                        versions.min_version_string()])},
-        versions.min_version_string(), versions.max_version_string())
+        {
+            base.Version.string: ' '.join(
+                [versions.service_type_string(), versions.min_version_string()]
+            )
+        },
+        versions.min_version_string(),
+        versions.max_version_string(),
+    )
 
 
 def max_version():
     return base.Version(
-        {base.Version.string: ' '.join([versions.service_type_string(),
-                                        versions.max_version_string()])},
-        versions.min_version_string(), versions.max_version_string())
+        {
+            base.Version.string: ' '.join(
+                [versions.service_type_string(), versions.max_version_string()]
+            )
+        },
+        versions.min_version_string(),
+        versions.max_version_string(),
+    )
 
 
 class APIBase(wtypes.Base):
-
     created_at = wsme.wsattr(datetime.datetime, readonly=True)
     """The time in UTC at which the object is created"""
 
@@ -72,10 +81,11 @@ class APIBase(wtypes.Base):
 
     def as_dict(self):
         """Render this object as a dict of its fields."""
-        return {k: getattr(self, k)
-                for k in self.fields
-                if hasattr(self, k) and
-                getattr(self, k) != wsme.Unset}
+        return {
+            k: getattr(self, k)
+            for k in self.fields
+            if hasattr(self, k) and getattr(self, k) != wsme.Unset
+        }
 
     def unset_fields_except(self, except_list=None):
         """Unset fields so they don't appear in the message body.
@@ -143,77 +153,74 @@ class V1(APIBase):
         v1 = V1()
         v1.id = "v1"
         base_url = pecan.request.application_url
-        v1.links = [link.Link.make_link('self', base_url,
-                                        'v1', '', bookmark=True),
-                    link.Link.make_link('describedby',
-                                        'http://docs.openstack.org',
-                                        'developer/watcher/dev',
-                                        'api-spec-v1.html',
-                                        bookmark=True, type='text/html')
-                    ]
-        v1.media_types = [MediaType('application/json',
-                          'application/vnd.openstack.watcher.v1+json')]
-        v1.audit_templates = [link.Link.make_link('self',
-                                                  base_url,
-                                                  'audit_templates', ''),
-                              link.Link.make_link('bookmark',
-                                                  base_url,
-                                                  'audit_templates', '',
-                                                  bookmark=True)
-                              ]
-        v1.audits = [link.Link.make_link('self', base_url,
-                                         'audits', ''),
-                     link.Link.make_link('bookmark',
-                                         base_url,
-                                         'audits', '',
-                                         bookmark=True)
-                     ]
+        v1.links = [
+            link.Link.make_link('self', base_url, 'v1', '', bookmark=True),
+            link.Link.make_link(
+                'describedby',
+                'http://docs.openstack.org',
+                'developer/watcher/dev',
+                'api-spec-v1.html',
+                bookmark=True,
+                type='text/html',
+            ),
+        ]
+        v1.media_types = [
+            MediaType(
+                'application/json', 'application/vnd.openstack.watcher.v1+json'
+            )
+        ]
+        v1.audit_templates = [
+            link.Link.make_link('self', base_url, 'audit_templates', ''),
+            link.Link.make_link(
+                'bookmark', base_url, 'audit_templates', '', bookmark=True
+            ),
+        ]
+        v1.audits = [
+            link.Link.make_link('self', base_url, 'audits', ''),
+            link.Link.make_link(
+                'bookmark', base_url, 'audits', '', bookmark=True
+            ),
+        ]
         if utils.allow_list_datamodel():
-            v1.data_model = [link.Link.make_link('self', base_url,
-                                                 'data_model', ''),
-                             link.Link.make_link('bookmark',
-                                                 base_url,
-                                                 'data_model', '',
-                                                 bookmark=True)
-                             ]
-        v1.actions = [link.Link.make_link('self', base_url,
-                                          'actions', ''),
-                      link.Link.make_link('bookmark',
-                                          base_url,
-                                          'actions', '',
-                                          bookmark=True)
-                      ]
-        v1.action_plans = [link.Link.make_link(
-            'self', base_url, 'action_plans', ''),
-            link.Link.make_link('bookmark',
-                                base_url,
-                                'action_plans', '',
-                                bookmark=True)
+            v1.data_model = [
+                link.Link.make_link('self', base_url, 'data_model', ''),
+                link.Link.make_link(
+                    'bookmark', base_url, 'data_model', '', bookmark=True
+                ),
             ]
+        v1.actions = [
+            link.Link.make_link('self', base_url, 'actions', ''),
+            link.Link.make_link(
+                'bookmark', base_url, 'actions', '', bookmark=True
+            ),
+        ]
+        v1.action_plans = [
+            link.Link.make_link('self', base_url, 'action_plans', ''),
+            link.Link.make_link(
+                'bookmark', base_url, 'action_plans', '', bookmark=True
+            ),
+        ]
 
-        v1.scoring_engines = [link.Link.make_link(
-            'self', base_url, 'scoring_engines', ''),
-            link.Link.make_link('bookmark',
-                                base_url,
-                                'scoring_engines', '',
-                                bookmark=True)
-            ]
+        v1.scoring_engines = [
+            link.Link.make_link('self', base_url, 'scoring_engines', ''),
+            link.Link.make_link(
+                'bookmark', base_url, 'scoring_engines', '', bookmark=True
+            ),
+        ]
 
-        v1.services = [link.Link.make_link(
-            'self', base_url, 'services', ''),
-            link.Link.make_link('bookmark',
-                                base_url,
-                                'services', '',
-                                bookmark=True)
-            ]
+        v1.services = [
+            link.Link.make_link('self', base_url, 'services', ''),
+            link.Link.make_link(
+                'bookmark', base_url, 'services', '', bookmark=True
+            ),
+        ]
         if utils.allow_webhook_api():
-            v1.webhooks = [link.Link.make_link(
-                'self', base_url, 'webhooks', ''),
-                link.Link.make_link('bookmark',
-                                    base_url,
-                                    'webhooks', '',
-                                    bookmark=True)
-                ]
+            v1.webhooks = [
+                link.Link.make_link('self', base_url, 'webhooks', ''),
+                link.Link.make_link(
+                    'bookmark', base_url, 'webhooks', '', bookmark=True
+                ),
+            ]
         return v1
 
 
@@ -249,7 +256,8 @@ class Controller(rest.RestController):
                 f"Mutually exclusive versions requested. Version {version} "
                 "requested but not supported by this service. The supported "
                 f"version range is: [{min_ver}, {max_ver}].",
-                headers=headers)
+                headers=headers,
+            )
         # ensure the minor version is within the supported range
         if version < min_version() or version > max_version():
             min_ver = versions.min_version_string()
@@ -259,12 +267,16 @@ class Controller(rest.RestController):
                 "not "
                 "supported by this service. The supported version range is: "
                 f"[{min_ver}, {max_ver}].",
-                headers=headers)
+                headers=headers,
+            )
 
     @pecan.expose()
     def _route(self, args, request=None):
-        v = base.Version(pecan.request.headers, versions.min_version_string(),
-                         versions.max_version_string())
+        v = base.Version(
+            pecan.request.headers,
+            versions.min_version_string(),
+            versions.max_version_string(),
+        )
 
         # The Vary header is used as a hint to caching proxies and user agents
         # that the response is also dependent on the OpenStack-API-Version and
@@ -273,17 +285,20 @@ class Controller(rest.RestController):
 
         # Always set the min and max headers
         pecan.response.headers[base.Version.min_string] = (
-            versions.min_version_string())
+            versions.min_version_string()
+        )
         pecan.response.headers[base.Version.max_string] = (
-            versions.max_version_string())
+            versions.max_version_string()
+        )
 
         # assert that requested version is supported
         self._check_version(v, pecan.response.headers)
-        pecan.response.headers[base.Version.string] = (
-            ' '.join([versions.service_type_string(), str(v)]))
+        pecan.response.headers[base.Version.string] = ' '.join(
+            [versions.service_type_string(), str(v)]
+        )
         pecan.request.version = v
 
         return super()._route(args, request)
 
 
-__all__ = ("Controller", )
+__all__ = ("Controller",)

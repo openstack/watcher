@@ -28,29 +28,30 @@ from watcher.tests.unit import base
 
 
 class TestUuidType(base.TestCase):
-
     def test_valid_uuid(self):
         test_uuid = '1a1a1a1a-2b2b-3c3c-4d4d-5e5e5e5e5e5e'
         self.assertEqual(test_uuid, types.UuidType.validate(test_uuid))
 
     def test_invalid_uuid(self):
-        self.assertRaises(exception.InvalidUUID,
-                          types.UuidType.validate, 'invalid-uuid')
+        self.assertRaises(
+            exception.InvalidUUID, types.UuidType.validate, 'invalid-uuid'
+        )
 
 
 class TestNameType(base.TestCase):
-
     def test_valid_name(self):
         test_name = 'hal-9000'
         self.assertEqual(test_name, types.NameType.validate(test_name))
 
     def test_invalid_name(self):
-        self.assertRaises(exception.InvalidName,
-                          types.NameType.validate, '-this is not valid-')
+        self.assertRaises(
+            exception.InvalidName,
+            types.NameType.validate,
+            '-this is not valid-',
+        )
 
 
 class TestUuidOrNameType(base.TestCase):
-
     @mock.patch.object(utils, 'is_uuid_like')
     @mock.patch.object(utils, 'is_hostname_safe')
     def test_valid_uuid(self, host_mock, uuid_mock):
@@ -70,8 +71,11 @@ class TestUuidOrNameType(base.TestCase):
         host_mock.assert_called_once_with(test_name)
 
     def test_invalid_uuid_or_name(self):
-        self.assertRaises(exception.InvalidUuidOrName,
-                          types.UuidOrNameType.validate, 'inval#uuid%or*name')
+        self.assertRaises(
+            exception.InvalidUuidOrName,
+            types.UuidOrNameType.validate,
+            'inval#uuid%or*name',
+        )
 
 
 class MyPatchType(types.JsonPatchType):
@@ -113,7 +117,6 @@ class MyRoot(wsme.WSRoot):
 
 
 class TestJsonPatchType(base.TestCase):
-
     def setUp(self):
         super().setUp()
         self.app = webtest.TestApp(MyRoot(['restjson']).wsgiapp())
@@ -123,22 +126,23 @@ class TestJsonPatchType(base.TestCase):
             '/test',
             params=params,
             headers={'Accept': 'application/json'},
-            expect_errors=expect_errors
+            expect_errors=expect_errors,
         )
 
     def test_valid_patches(self):
-        valid_patches = [{'path': '/extra/foo', 'op': 'remove'},
-                         {'path': '/extra/foo', 'op': 'add', 'value': 'bar'},
-                         {'path': '/str', 'op': 'replace', 'value': 'bar'},
-                         {'path': '/bool', 'op': 'add', 'value': True},
-                         {'path': '/int', 'op': 'add', 'value': 1},
-                         {'path': '/float', 'op': 'add', 'value': 0.123},
-                         {'path': '/list', 'op': 'add', 'value': [1, 2]},
-                         {'path': '/none', 'op': 'add', 'value': None},
-                         {'path': '/empty_dict', 'op': 'add', 'value': {}},
-                         {'path': '/empty_list', 'op': 'add', 'value': []},
-                         {'path': '/dict', 'op': 'add',
-                          'value': {'cat': 'meow'}}]
+        valid_patches = [
+            {'path': '/extra/foo', 'op': 'remove'},
+            {'path': '/extra/foo', 'op': 'add', 'value': 'bar'},
+            {'path': '/str', 'op': 'replace', 'value': 'bar'},
+            {'path': '/bool', 'op': 'add', 'value': True},
+            {'path': '/int', 'op': 'add', 'value': 1},
+            {'path': '/float', 'op': 'add', 'value': 0.123},
+            {'path': '/list', 'op': 'add', 'value': [1, 2]},
+            {'path': '/none', 'op': 'add', 'value': None},
+            {'path': '/empty_dict', 'op': 'add', 'value': {}},
+            {'path': '/empty_list', 'op': 'add', 'value': []},
+            {'path': '/dict', 'op': 'add', 'value': {'cat': 'meow'}},
+        ]
         ret = self._patch_json(valid_patches, False)
         self.assertEqual(HTTPStatus.OK, ret.status_int)
         self.assertEqual(valid_patches, ret.json)
@@ -150,8 +154,7 @@ class TestJsonPatchType(base.TestCase):
         self.assertTrue(ret.json['faultstring'])
 
     def test_cannot_update_internal_dict_attr(self):
-        patch = [{'path': '/internal', 'op': 'replace',
-                 'value': 'foo'}]
+        patch = [{'path': '/internal', 'op': 'replace', 'value': 'foo'}]
         ret = self._patch_json(patch, True)
         self.assertEqual(HTTPStatus.BAD_REQUEST, ret.status_int)
         self.assertTrue(ret.json['faultstring'])
@@ -215,7 +218,6 @@ class MyAllowedRoot(wsme.WSRoot):
 
 
 class TestAllowedJsonPatchType(base.TestCase):
-
     def setUp(self):
         super().setUp()
         self.app = webtest.TestApp(MyAllowedRoot(['restjson']).wsgiapp())
@@ -225,7 +227,7 @@ class TestAllowedJsonPatchType(base.TestCase):
             '/test',
             params=params,
             headers={'Accept': 'application/json'},
-            expect_errors=expect_errors
+            expect_errors=expect_errors,
         )
 
     def test_not_allowed_patches(self):
@@ -259,7 +261,6 @@ class TestAllowedJsonPatchType(base.TestCase):
 
 
 class TestBooleanType(base.TestCase):
-
     def test_valid_true_values(self):
         v = types.BooleanType()
         self.assertTrue(v.validate("true"))
@@ -289,7 +290,6 @@ class TestBooleanType(base.TestCase):
 
 
 class TestJsonType(base.TestCase):
-
     def test_valid_values(self):
         vt = types.jsontype
         value = vt.validate("hello")

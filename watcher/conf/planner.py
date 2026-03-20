@@ -18,17 +18,19 @@
 from oslo_config import cfg
 
 
-watcher_planner = cfg.OptGroup(name='watcher_planner',
-                               title='Defines the parameters of '
-                                     'the planner')
+watcher_planner = cfg.OptGroup(
+    name='watcher_planner', title='Defines the parameters of the planner'
+)
 
 default_planner = 'weight'
 
 WATCHER_PLANNER_OPTS = {
-    cfg.StrOpt('planner',
-               default=default_planner,
-               required=True,
-               help='The selected planner used to schedule the actions')
+    cfg.StrOpt(
+        'planner',
+        default=default_planner,
+        required=True,
+        help='The selected planner used to schedule the actions',
+    )
 }
 
 

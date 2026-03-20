@@ -29,11 +29,14 @@ from watcher.tests.unit.decision_engine.strategy.strategies.test_base import (
 
 
 class TestNoisyNeighbor(TestBaseStrategy):
-
     scenarios = [
-        ("Gnocchi",
-         {"datasource": "gnocchi",
-          "fake_datasource_cls": gnocchi_metrics.FakeGnocchiMetrics}),
+        (
+            "Gnocchi",
+            {
+                "datasource": "gnocchi",
+                "fake_datasource_cls": gnocchi_metrics.FakeGnocchiMetrics,
+            },
+        )
     ]
 
     def setUp(self):
@@ -42,13 +45,16 @@ class TestNoisyNeighbor(TestBaseStrategy):
         self.f_metrics = self.fake_datasource_cls()
 
         p_datasource = mock.patch.object(
-            strategies.NoisyNeighbor, "datasource_backend",
-            new_callable=mock.PropertyMock)
+            strategies.NoisyNeighbor,
+            "datasource_backend",
+            new_callable=mock.PropertyMock,
+        )
         self.m_datasource = p_datasource.start()
         self.addCleanup(p_datasource.stop)
 
         self.m_datasource.return_value = mock.Mock(
-            get_instance_l3_cache_usage=self.f_metrics.mock_get_statistics_nn)
+            get_instance_l3_cache_usage=self.f_metrics.mock_get_statistics_nn
+        )
         self.strategy = strategies.NoisyNeighbor(config=mock.Mock())
 
         self.strategy.input_parameters = utils.Struct()
@@ -93,11 +99,9 @@ class TestNoisyNeighbor(TestBaseStrategy):
         self.strategy.cache_threshold = 35
         self.strategy.period = 100
         n1, n2 = self.strategy.group_hosts()
-        mig_source_node = max(n1.keys(), key=lambda a:
-                              n1[a]['priority_vm'])
+        mig_source_node = max(n1.keys(), key=lambda a: n1[a]['priority_vm'])
         instance_to_mig = n1[mig_source_node]['noisy_vm']
-        dest_hosts = self.strategy.filter_dest_servers(
-            n2, instance_to_mig)
+        dest_hosts = self.strategy.filter_dest_servers(n2, instance_to_mig)
 
         self.assertEqual(1, len(dest_hosts))
         self.assertEqual('Node_0', dest_hosts[0].uuid)
@@ -105,8 +109,9 @@ class TestNoisyNeighbor(TestBaseStrategy):
     def test_execute_no_workload(self):
         self.strategy.cache_threshold = 35
         self.strategy.period = 100
-        model = self.fake_c_cluster.\
-            generate_scenario_4_with_1_node_no_instance()
+        model = (
+            self.fake_c_cluster.generate_scenario_4_with_1_node_no_instance()
+        )
         self.m_c_model.return_value = model
 
         solution = self.strategy.execute()
@@ -119,7 +124,8 @@ class TestNoisyNeighbor(TestBaseStrategy):
         self.m_c_model.return_value = model
         solution = self.strategy.execute()
         actions_counter = collections.Counter(
-            [action.get('action_type') for action in solution.actions])
+            [action.get('action_type') for action in solution.actions]
+        )
 
         num_migrations = actions_counter.get("migrate", 0)
         self.assertEqual(1, num_migrations)

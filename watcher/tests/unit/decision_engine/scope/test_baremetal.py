@@ -23,7 +23,6 @@ from watcher.tests.unit.decision_engine.scope import fake_scopes
 
 
 class TestBaremetalScope(base.TestCase):
-
     def setUp(self):
         super().setUp()
         self.fake_cluster = faker_cluster_state.FakerBaremetalModelCollector()
@@ -32,9 +31,8 @@ class TestBaremetalScope(base.TestCase):
     def test_exclude_all_ironic_nodes(self):
         cluster = self.fake_cluster.generate_scenario_1()
         baremetal.BaremetalScope(
-            self.audit_scope,
-            mock.Mock(),
-            osc=mock.Mock()).get_scoped_model(cluster)
+            self.audit_scope, mock.Mock(), osc=mock.Mock()
+        ).get_scoped_model(cluster)
 
         self.assertEqual({}, cluster.get_all_ironic_nodes())
 
@@ -42,20 +40,24 @@ class TestBaremetalScope(base.TestCase):
         nodes_to_exclude = []
         resources = fake_scopes.baremetal_scope[0]['baremetal'][0]['exclude']
         baremetal.BaremetalScope(
-            self.audit_scope, mock.Mock(), osc=mock.Mock()).exclude_resources(
-                resources,
-                nodes=nodes_to_exclude)
+            self.audit_scope, mock.Mock(), osc=mock.Mock()
+        ).exclude_resources(resources, nodes=nodes_to_exclude)
 
-        self.assertEqual(sorted(nodes_to_exclude),
-                         sorted(['c5941348-5a87-4016-94d4-4f9e0ce2b87a',
-                                 'c5941348-5a87-4016-94d4-4f9e0ce2b87c']))
+        self.assertEqual(
+            sorted(nodes_to_exclude),
+            sorted(
+                [
+                    'c5941348-5a87-4016-94d4-4f9e0ce2b87a',
+                    'c5941348-5a87-4016-94d4-4f9e0ce2b87c',
+                ]
+            ),
+        )
 
     def test_remove_nodes_from_model(self):
         cluster = self.fake_cluster.generate_scenario_1()
         baremetal.BaremetalScope(
-            self.audit_scope,
-            mock.Mock(),
-            osc=mock.Mock()).remove_nodes_from_model(
-                ['c5941348-5a87-4016-94d4-4f9e0ce2b87a'],
-                cluster)
+            self.audit_scope, mock.Mock(), osc=mock.Mock()
+        ).remove_nodes_from_model(
+            ['c5941348-5a87-4016-94d4-4f9e0ce2b87a'], cluster
+        )
         self.assertEqual(len(cluster.get_all_ironic_nodes()), 1)

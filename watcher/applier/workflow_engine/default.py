@@ -65,26 +65,29 @@ class DefaultWorkFlowEngine(base.BaseWorkFlowEngine):
                 min=1,
                 required=True,
                 help='Number of workers for taskflow engine '
-                     'to execute actions.'),
+                'to execute actions.',
+            ),
             cfg.DictOpt(
                 'action_execution_rule',
                 default={},
                 help='The execution rule for linked actions,'
-                     'the key is strategy name and '
-                     'value ALWAYS means all actions will be executed,'
-                     'value ANY means if previous action executes '
-                     'success, the next action will be ignored.'
-                     'None means ALWAYS.')
-            ]
+                'the key is strategy name and '
+                'value ALWAYS means all actions will be executed,'
+                'value ANY means if previous action executes '
+                'success, the next action will be ignored.'
+                'None means ALWAYS.',
+            ),
+        ]
 
     def get_execution_rule(self, actions):
         if actions:
             actionplan_object = objects.ActionPlan.get_by_id(
-                self.context, actions[0].action_plan_id)
+                self.context, actions[0].action_plan_id
+            )
             strategy_object = objects.Strategy.get_by_id(
-                self.context, actionplan_object.strategy_id)
-            return self.config.action_execution_rule.get(
-                strategy_object.name)
+                self.context, actionplan_object.strategy_id
+            )
+            return self.config.action_execution_rule.get(strategy_object.name)
 
     def execute(self, actions):
         try:
@@ -106,20 +109,28 @@ class DefaultWorkFlowEngine(base.BaseWorkFlowEngine):
 
             for a in actions:
                 for parent_id in a.parents:
-                    flow.link(actions_uuid[parent_id], actions_uuid[a.uuid],
-                              decider=self.decider)
+                    flow.link(
+                        actions_uuid[parent_id],
+                        actions_uuid[a.uuid],
+                        decider=self.decider,
+                    )
 
             e = None
             engine_type = "parallel"
             if eventlet_helper.is_patched():
                 executor_type = "greenthreaded"
             else:
-                LOG.info("Using Taskflow parallel engine when running "
-                         "in native threading mode.")
+                LOG.info(
+                    "Using Taskflow parallel engine when running "
+                    "in native threading mode."
+                )
                 executor_type = "threaded"
             e = engines.load(
-                flow, executor=executor_type, engine=engine_type,
-                max_workers=self.config.max_workers)
+                flow,
+                executor=executor_type,
+                engine=engine_type,
+                max_workers=self.config.max_workers,
+            )
 
             e.run()
 
@@ -131,23 +142,23 @@ class DefaultWorkFlowEngine(base.BaseWorkFlowEngine):
         except tf_exception.WrappedFailure as e:
             if e.check("watcher.common.exception.ActionPlanCancelled"):
                 raise exception.ActionPlanCancelled(
-                    uuid=actions[0].action_plan_id)
+                    uuid=actions[0].action_plan_id
+                )
             else:
                 raise exception.WorkflowExecutionException(
-                    error=type(e).__name__)
+                    error=type(e).__name__
+                )
 
         except Exception as e:
-            raise exception.WorkflowExecutionException(
-                error=type(e).__name__)
+            raise exception.WorkflowExecutionException(error=type(e).__name__)
 
 
 class TaskFlowActionContainer(base.BaseTaskFlowActionContainer):
     def __init__(self, db_action, engine):
-        self.name = (f"action_type:{db_action.action_type} "
-                     f"uuid:{db_action.uuid}")
-        super().__init__(self.name,
-                         db_action,
-                         engine)
+        self.name = (
+            f"action_type:{db_action.action_type} uuid:{db_action.uuid}"
+        )
+        super().__init__(self.name, db_action, engine)
 
     def do_pre_execute(self):
         LOG.debug("Pre-condition action: %s", self.name)
@@ -162,13 +173,14 @@ class TaskFlowActionContainer(base.BaseTaskFlowActionContainer):
         #      Only when True is returned, the action state is set to SUCCEEDED
         result = self.action.execute()
         if result is True:
-            return self.engine.notify(self._db_action,
-                                      objects.action.State.SUCCEEDED)
+            return self.engine.notify(
+                self._db_action, objects.action.State.SUCCEEDED
+            )
         else:
-            self.engine.notify(self._db_action,
-                               objects.action.State.FAILED)
+            self.engine.notify(self._db_action, objects.action.State.FAILED)
             raise exception.ActionExecutionFailure(
-                action_id=self._db_action.uuid)
+                action_id=self._db_action.uuid
+            )
 
     def do_post_execute(self):
         LOG.debug("Post-condition action: %s", self.name)
@@ -177,8 +189,11 @@ class TaskFlowActionContainer(base.BaseTaskFlowActionContainer):
     def do_revert(self, *args, **kwargs):
         # NOTE: Not rollback action plan
         if not CONF.watcher_applier.rollback_when_actionplan_failed:
-            LOG.info("Failed actionplan rollback option is turned off, and "
-                     "the following action will be skipped: %s", self.name)
+            LOG.info(
+                "Failed actionplan rollback option is turned off, and "
+                "the following action will be skipped: %s",
+                self.name,
+            )
             return
 
         LOG.warning("Revert action: %s", self.name)
@@ -195,15 +210,18 @@ class TaskFlowActionContainer(base.BaseTaskFlowActionContainer):
             result = self.action.abort()
             if result:
                 # Aborted the action.
-                return self.engine.notify(self._db_action,
-                                          objects.action.State.CANCELLED)
+                return self.engine.notify(
+                    self._db_action, objects.action.State.CANCELLED
+                )
             else:
-                return self.engine.notify(self._db_action,
-                                          objects.action.State.SUCCEEDED)
+                return self.engine.notify(
+                    self._db_action, objects.action.State.SUCCEEDED
+                )
         except Exception as e:
             LOG.exception(e)
-            return self.engine.notify(self._db_action,
-                                      objects.action.State.FAILED)
+            return self.engine.notify(
+                self._db_action, objects.action.State.FAILED
+            )
 
 
 class TaskFlowNop(flow_task.Task):

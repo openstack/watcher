@@ -26,7 +26,6 @@ from watcher.tests.unit import base
 
 
 class TestIronicHelper(base.TestCase):
-
     def setUp(self):
         super().setUp()
 
@@ -59,4 +58,6 @@ class TestIronicHelper(base.TestCase):
         self.assertRaisesRegex(
             exception.IronicNodeNotFound,
             "The ironic node node1 could not be found",
-            self.ironic_util.get_ironic_node_by_uuid, 'node1')
+            self.ironic_util.get_ironic_node_by_uuid,
+            'node1',
+        )

@@ -51,13 +51,15 @@ class DefaultApplier(base.BaseApplier):
             self._engine = self._loader.load(
                 name=selected_workflow_engine,
                 context=self.context,
-                applier_manager=self.applier_manager)
+                applier_manager=self.applier_manager,
+            )
         return self._engine
 
     def execute(self, action_plan_uuid):
         LOG.debug("Executing action plan %s ", action_plan_uuid)
 
         filters = {'action_plan_uuid': action_plan_uuid}
-        actions = objects.Action.list(self.context, filters=filters,
-                                      eager=True)
+        actions = objects.Action.list(
+            self.context, filters=filters, eager=True
+        )
         return self.engine.execute(actions)

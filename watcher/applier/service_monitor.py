@@ -44,12 +44,19 @@ class ApplierMonitor(service.ServiceMonitoringBase):
 
         pending_actionplans = objects.ActionPlan.list(
             context,
-            filters={'state': objects.action_plan.State.PENDING,
-                     'hostname': host},
-            eager=True)
+            filters={
+                'state': objects.action_plan.State.PENDING,
+                'hostname': host,
+            },
+            eager=True,
+        )
         for actionplan in pending_actionplans:
-            LOG.warning("Retriggering action plan %s in Pending state on "
-                        "failed host %s", actionplan.uuid, host)
+            LOG.warning(
+                "Retriggering action plan %s in Pending state on "
+                "failed host %s",
+                actionplan.uuid,
+                host,
+            )
             actionplan.hostname = None
             actionplan.save()
             self.applier_client.launch_action_plan(context, actionplan.uuid)
@@ -75,16 +82,18 @@ class ApplierMonitor(service.ServiceMonitoringBase):
                     # on services status changes
                     continue
                 if changed:
-                    notifications.service.send_service_update(context,
-                                                              watcher_service,
-                                                              state=result)
+                    notifications.service.send_service_update(
+                        context, watcher_service, state=result
+                    )
                 if result == failed_s:
                     # Cancel ongoing action plans on the failed service using
                     # the existing startup sync method
                     syncer = sync.Syncer()
-                    syncer._cancel_ongoing_actionplans(context,
-                                                       watcher_service.host)
+                    syncer._cancel_ongoing_actionplans(
+                        context, watcher_service.host
+                    )
                     # Pending action plans should be unassigned and
                     # re-triggered
-                    self._retrigger_pending_actionplans(context,
-                                                        watcher_service.host)
+                    self._retrigger_pending_actionplans(
+                        context, watcher_service.host
+                    )

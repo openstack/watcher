@@ -32,11 +32,9 @@ class ChangeNovaServiceState(base.BaseAction):
 
     The action schema is::
 
-        schema = Schema({
-         'resource_id': str,
-         'state': str,
-         'disabled_reason': str,
-        })
+        schema = Schema(
+            {'resource_id': str, 'state': str, 'disabled_reason': str}
+        )
 
     The `resource_id` references a nova-compute service name.
     The `state` value should either be `up` or `down`.
@@ -54,25 +52,18 @@ class ChangeNovaServiceState(base.BaseAction):
         return {
             'type': 'object',
             'properties': {
-                'resource_id': {
-                    'type': 'string',
-                    "minlength": 1
-                },
-                'resource_name': {
-                    'type': 'string',
-                    "minlength": 1
-                },
+                'resource_id': {'type': 'string', "minlength": 1},
+                'resource_name': {'type': 'string', "minlength": 1},
                 'state': {
                     'type': 'string',
-                    'enum': [element.ServiceState.ONLINE.value,
-                             element.ServiceState.OFFLINE.value,
-                             element.ServiceState.ENABLED.value,
-                             element.ServiceState.DISABLED.value]
+                    'enum': [
+                        element.ServiceState.ONLINE.value,
+                        element.ServiceState.OFFLINE.value,
+                        element.ServiceState.ENABLED.value,
+                        element.ServiceState.DISABLED.value,
+                    ],
                 },
-                'disabled_reason': {
-                    'type': 'string',
-                    "minlength": 1
-                }
+                'disabled_reason': {'type': 'string', "minlength": 1},
             },
             'required': ['resource_id', 'state'],
             'additionalProperties': False,
@@ -109,7 +100,8 @@ class ChangeNovaServiceState(base.BaseAction):
     def _nova_manage_service(self, state):
         if state is None:
             raise exception.IllegalArgumentException(
-                message=_("The target state is not defined"))
+                message=_("The target state is not defined")
+            )
 
         nova = nova_helper.NovaHelper(osc=self.osc)
         if state is True:
@@ -129,17 +121,24 @@ class ChangeNovaServiceState(base.BaseAction):
         service = next((s for s in services if s.host == self.host), None)
         if service is None:
             raise exception.ActionSkipped(
-                _("nova-compute service %s not found") % self.host)
+                _("nova-compute service %s not found") % self.host
+            )
         if service.status == self.state:
             raise exception.ActionSkipped(
-                _("nova-compute service %s is already in state %s") %
-                (self.host, self.state))
+                _(
+                    "nova-compute service %(service)s is already in "
+                    "state %(state)s"
+                )
+                % {'service': self.host, 'state': self.state}
+            )
 
     def post_condition(self):
         pass
 
     def get_description(self):
         """Description of the action"""
-        return ("Disables or enables the nova-compute service."
-                "A disabled nova-compute service can not be selected "
-                "by the nova for future deployment of new server.")
+        return (
+            "Disables or enables the nova-compute service."
+            "A disabled nova-compute service can not be selected "
+            "by the nova for future deployment of new server."
+        )

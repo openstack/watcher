@@ -56,8 +56,9 @@ class ContextHook(hooks.PecanHook):
         auth_token = headers.get('X-Auth-Token', auth_token)
         show_deleted = headers.get('X-Show-Deleted')
         auth_token_info = state.request.environ.get('keystone.token_info')
-        roles = (headers.get('X-Roles', None) and
-                 headers.get('X-Roles').split(','))
+        roles = headers.get('X-Roles', None) and headers.get('X-Roles').split(
+            ','
+        )
 
         state.request.context = context.make_context(
             auth_token=auth_token,
@@ -69,7 +70,8 @@ class ContextHook(hooks.PecanHook):
             domain_id=domain_id,
             domain_name=domain_name,
             show_deleted=show_deleted,
-            roles=roles)
+            roles=roles,
+        )
 
 
 class NoExceptionTracebackHook(hooks.PecanHook):
@@ -79,6 +81,7 @@ class NoExceptionTracebackHook(hooks.PecanHook):
     message which is then sent to the client. Such behavior is a security
     concern so this hook is aimed to cut-off traceback from the error message.
     """
+
     # NOTE(max_lobur): 'after' hook used instead of 'on_error' because
     # 'on_error' never fired for wsme+pecan pair. wsme @wsexpose decorator
     # catches and handles all the errors, so 'on_error' dedicated for unhandled
@@ -92,8 +95,7 @@ class NoExceptionTracebackHook(hooks.PecanHook):
         # Do nothing if there is no error.
         # Status codes in the range 200 (OK) to 399 (400 = BAD_REQUEST) are not
         # an error.
-        if (HTTPStatus.OK <= state.response.status_int <
-                HTTPStatus.BAD_REQUEST):
+        if HTTPStatus.OK <= state.response.status_int < HTTPStatus.BAD_REQUEST:
             return
 
         json_body = state.response.json

@@ -40,18 +40,24 @@ CONF = cfg.CONF
 
 def wrap_keystone_exception(func):
     """Wrap keystone exceptions and throw Watcher specific exceptions."""
+
     @functools.wraps(func)
     def wrapped(*args, **kw):
         try:
             return func(*args, **kw)
         except keystone_exceptions.AuthorizationFailure:
             raise AuthorizationFailure(
-                client=func.__name__, reason=sys.exc_info()[1])
+                client=func.__name__, reason=sys.exc_info()[1]
+            )
         except keystone_exceptions.ClientException:
             raise AuthorizationFailure(
                 client=func.__name__,
-                reason=(_('Unexpected keystone client error occurred: %s')
-                        % sys.exc_info()[1]))
+                reason=(
+                    _('Unexpected keystone client error occurred: %s')
+                    % sys.exc_info()[1]
+                ),
+            )
+
     return wrapped
 
 
@@ -63,6 +69,7 @@ class WatcherException(Exception):
     with the keyword arguments provided to the constructor.
 
     """
+
     msg_fmt = _("An unknown exception occurred")
     code = HTTPStatus.INTERNAL_SERVER_ERROR
     headers = {}
@@ -85,8 +92,9 @@ class WatcherException(Exception):
                 # log the issue and the kwargs
                 LOG.exception('Exception in string format operation')
                 for name, value in kwargs.items():
-                    LOG.error("%(name)s: %(value)s",
-                              {'name': name, 'value': value})
+                    LOG.error(
+                        "%(name)s: %(value)s", {'name': name, 'value': value}
+                    )
 
                 if CONF.fatal_exception_format_errors:
                     raise
@@ -160,8 +168,9 @@ class InvalidIdentity(Invalid):
 
 
 class InvalidOperator(Invalid):
-    msg_fmt = _("Filter operator is not valid: %(operator)s not "
-                "in %(valid_operators)s")
+    msg_fmt = _(
+        "Filter operator is not valid: %(operator)s not in %(valid_operators)s"
+    )
 
 
 class InvalidGoal(Invalid):
@@ -233,8 +242,9 @@ class AuditTemplateNotFound(ResourceNotFound):
 
 
 class AuditTemplateAlreadyExists(Conflict):
-    msg_fmt = _("An audit_template with UUID or name %(audit_template)s "
-                "already exists")
+    msg_fmt = _(
+        "An audit_template with UUID or name %(audit_template)s already exists"
+    )
 
 
 class AuditTypeNotFound(Invalid):
@@ -270,13 +280,15 @@ class AuditIntervalNotAllowed(Invalid):
 
 
 class AuditStartEndTimeNotAllowed(Invalid):
-    msg_fmt = _("Start or End time of audit must not be set for "
-                "%(audit_type)s.")
+    msg_fmt = _(
+        "Start or End time of audit must not be set for %(audit_type)s."
+    )
 
 
 class AuditReferenced(Invalid):
-    msg_fmt = _("Audit %(audit)s is referenced by one or multiple action "
-                "plans")
+    msg_fmt = _(
+        "Audit %(audit)s is referenced by one or multiple action plans"
+    )
 
 
 class AuditCancelled(WatcherException):
@@ -296,8 +308,9 @@ class ActionPlanAlreadyExists(Conflict):
 
 
 class ActionPlanReferenced(Invalid):
-    msg_fmt = _("Action Plan %(action_plan)s is referenced by one or "
-                "multiple actions")
+    msg_fmt = _(
+        "Action Plan %(action_plan)s is referenced by one or multiple actions"
+    )
 
 
 class ActionPlanCancelled(WatcherException):
@@ -317,13 +330,15 @@ class ActionAlreadyExists(Conflict):
 
 
 class ActionReferenced(Invalid):
-    msg_fmt = _("Action plan %(action_plan)s is referenced by one or "
-                "multiple goals")
+    msg_fmt = _(
+        "Action plan %(action_plan)s is referenced by one or multiple goals"
+    )
 
 
 class ActionFilterCombinationProhibited(Invalid):
-    msg_fmt = _("Filtering actions on both audit and action-plan is "
-                "prohibited")
+    msg_fmt = _(
+        "Filtering actions on both audit and action-plan is prohibited"
+    )
 
 
 class UnsupportedActionType(UnsupportedError):
@@ -364,6 +379,7 @@ class StartError(Invalid):
 
 # decision engine
 
+
 class WorkflowExecutionException(WatcherException):
     msg_fmt = _('Workflow execution error: %(error)s')
 
@@ -393,18 +409,23 @@ class NoAvailableStrategyForGoal(WatcherException):
 
 
 class InvalidIndicatorValue(WatcherException):
-    msg_fmt = _("The indicator '%(name)s' with value '%(value)s' "
-                "and spec type '%(spec_type)s' is invalid.")
+    msg_fmt = _(
+        "The indicator '%(name)s' with value '%(value)s' "
+        "and spec type '%(spec_type)s' is invalid."
+    )
 
 
 class GlobalEfficacyComputationError(WatcherException):
-    msg_fmt = _("Could not compute the global efficacy for the '%(goal)s' "
-                "goal using the '%(strategy)s' strategy.")
+    msg_fmt = _(
+        "Could not compute the global efficacy for the '%(goal)s' "
+        "goal using the '%(strategy)s' strategy."
+    )
 
 
 class UnsupportedDataSource(UnsupportedError):
-    msg_fmt = _("Datasource %(datasource)s is not supported "
-                "by strategy %(strategy)s")
+    msg_fmt = _(
+        "Datasource %(datasource)s is not supported by strategy %(strategy)s"
+    )
 
 
 class DataSourceNotAvailable(WatcherException):
@@ -413,11 +434,13 @@ class DataSourceNotAvailable(WatcherException):
 
 class MetricNotAvailable(WatcherException):
     """Indicate that a metric is not configured or does not exists"""
+
     msg_fmt = _('Metric: %(metric)s not available')
 
 
 class NoDatasourceAvailable(WatcherException):
     """No datasources have been configured"""
+
     msg_fmt = _('No datasources available')
 
 
@@ -434,8 +457,10 @@ class ServiceNotFound(ResourceNotFound):
 
 
 class WildcardCharacterIsUsed(WatcherException):
-    msg_fmt = _("You shouldn't use any other IDs of %(resource)s if you use "
-                "wildcard character.")
+    msg_fmt = _(
+        "You shouldn't use any other IDs of %(resource)s if you use "
+        "wildcard character."
+    )
 
 
 class CronFormatIsInvalid(WatcherException):
@@ -443,8 +468,9 @@ class CronFormatIsInvalid(WatcherException):
 
 
 class ActionDescriptionAlreadyExists(Conflict):
-    msg_fmt = _("An action description with type %(action_type)s is "
-                "already exist.")
+    msg_fmt = _(
+        "An action description with type %(action_type)s is already exist."
+    )
 
 
 class ActionDescriptionNotFound(ResourceNotFound):
@@ -457,6 +483,7 @@ class ActionExecutionFailure(WatcherException):
 
 # Model
 
+
 class ComputeResourceNotFound(WatcherException):
     msg_fmt = _("The compute resource '%(name)s' could not be found")
 
@@ -466,8 +493,9 @@ class InstanceNotFound(ComputeResourceNotFound):
 
 
 class InstanceNotMapped(ComputeResourceNotFound):
-    msg_fmt = _("The mapped compute node for instance '%(uuid)s' "
-                "could not be found.")
+    msg_fmt = _(
+        "The mapped compute node for instance '%(uuid)s' could not be found."
+    )
 
 
 class ComputeNodeNotFound(ComputeResourceNotFound):
@@ -519,8 +547,10 @@ class NegativeLimitError(WatcherException):
 
 
 class NotificationPayloadError(WatcherException):
-    msg_fmt = _("Payload not populated when trying to send notification "
-                "\"%(class_name)s\"")
+    msg_fmt = _(
+        "Payload not populated when trying to send notification "
+        "\"%(class_name)s\""
+    )
 
 
 class InvalidPoolAttributeValue(Invalid):
@@ -528,13 +558,17 @@ class InvalidPoolAttributeValue(Invalid):
 
 
 class DataSourceConfigConflict(UnsupportedError):
-    msg_fmt = _("Datasource %(datasource_one)s is not supported "
-                "when datasource %(datasource_two)s is also enabled.")
+    msg_fmt = _(
+        "Datasource %(datasource_one)s is not supported "
+        "when datasource %(datasource_two)s is also enabled."
+    )
 
 
 class LiveMigrationFailed(WatcherException):
-    msg_fmt = _("Live migration execution and abort both failed "
-                "for the instance %(name)s.")
+    msg_fmt = _(
+        "Live migration execution and abort both failed "
+        "for the instance %(name)s."
+    )
 
 
 class NovaClientError(WatcherException):

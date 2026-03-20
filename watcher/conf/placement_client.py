@@ -16,20 +16,27 @@ from oslo_config import cfg
 placement_group = cfg.OptGroup(
     'placement_client',
     title='Placement Service Options',
-    help="Configuration options for connecting to the placement API service")
+    help="Configuration options for connecting to the placement API service",
+)
 
 placement_opts = [
-    cfg.StrOpt('api_version',
-               default='1.29',
-               help='microversion of placement API when using '
-                    'placement service.'),
-    cfg.StrOpt('interface',
-               default='public',
-               choices=['internal', 'public', 'admin'],
-               help='Type of endpoint when using placement service.'),
-    cfg.StrOpt('region_name',
-               help='Region in Identity service catalog to use for '
-                    'communication with the OpenStack service.')]
+    cfg.StrOpt(
+        'api_version',
+        default='1.29',
+        help='microversion of placement API when using placement service.',
+    ),
+    cfg.StrOpt(
+        'interface',
+        default='public',
+        choices=['internal', 'public', 'admin'],
+        help='Type of endpoint when using placement service.',
+    ),
+    cfg.StrOpt(
+        'region_name',
+        help='Region in Identity service catalog to use for '
+        'communication with the OpenStack service.',
+    ),
+]
 
 
 def register_opts(conf):

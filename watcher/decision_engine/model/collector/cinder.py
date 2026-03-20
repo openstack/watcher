@@ -32,6 +32,7 @@ class CinderClusterDataModelCollector(base.BaseClusterDataModelCollector):
     The Cinder cluster data model collector creates an in-memory
     representation of the resources exposed by the storage service.
     """
+
     SCHEMA = {
         "$schema": "http://json-schema.org/draft-04/schema#",
         "type": "array",
@@ -42,25 +43,17 @@ class CinderClusterDataModelCollector(base.BaseClusterDataModelCollector):
                     "type": "array",
                     "items": {
                         "type": "object",
-                        "properties": {
-                            "name": {
-                                "type": "string"
-                            }
-                        },
-                        "additionalProperties": False
-                    }
+                        "properties": {"name": {"type": "string"}},
+                        "additionalProperties": False,
+                    },
                 },
                 "volume_types": {
                     "type": "array",
                     "items": {
                         "type": "object",
-                        "properties": {
-                            "name": {
-                                "type": "string"
-                            }
-                        },
-                        "additionalProperties": False
-                    }
+                        "properties": {"name": {"type": "string"}},
+                        "additionalProperties": False,
+                    },
                 },
                 "exclude": {
                     "type": "array",
@@ -71,45 +64,33 @@ class CinderClusterDataModelCollector(base.BaseClusterDataModelCollector):
                                 "type": "array",
                                 "items": {
                                     "type": "object",
-                                    "properties": {
-                                        "name": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "additionalProperties": False
-                                }
+                                    "properties": {"name": {"type": "string"}},
+                                    "additionalProperties": False,
+                                },
                             },
                             "volumes": {
                                 "type": "array",
                                 "items": {
                                     "type": "object",
-                                    "properties": {
-                                        "uuid": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "additionalProperties": False
-                                }
+                                    "properties": {"uuid": {"type": "string"}},
+                                    "additionalProperties": False,
+                                },
                             },
                             "projects": {
                                 "type": "array",
                                 "items": {
                                     "type": "object",
-                                    "properties": {
-                                        "uuid": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "additionalProperties": False
-                                }
+                                    "properties": {"uuid": {"type": "string"}},
+                                    "additionalProperties": False,
+                                },
                             },
-                            "additionalProperties": False
-                        }
-                    }
-                }
+                            "additionalProperties": False,
+                        },
+                    },
+                },
             },
-            "additionalProperties": False
-        }
+            "additionalProperties": False,
+        },
     }
 
     def __init__(self, config, osc=None):
@@ -129,15 +110,17 @@ class CinderClusterDataModelCollector(base.BaseClusterDataModelCollector):
             cinder.VolumeUpdateEnd(self),
             cinder.VolumeAttachEnd(self),
             cinder.VolumeDetachEnd(self),
-            cinder.VolumeResizeEnd(self)
+            cinder.VolumeResizeEnd(self),
         ]
 
     def get_audit_scope_handler(self, audit_scope):
         self._audit_scope_handler = storage_scope.StorageScope(
-            audit_scope, self.config)
+            audit_scope, self.config
+        )
         if self._data_model_scope is None or (
-            len(self._data_model_scope) > 0 and (
-                self._data_model_scope != audit_scope)):
+            len(self._data_model_scope) > 0
+            and (self._data_model_scope != audit_scope)
+        ):
             self._data_model_scope = audit_scope
             self._cluster_data_model = None
         LOG.debug("audit scope %s", audit_scope)
@@ -160,7 +143,8 @@ class CinderClusterDataModelCollector(base.BaseClusterDataModelCollector):
         except Exception as e:
             LOG.exception(e)
             raise exception.ClusterDataModelCollectionError(
-                cdm="storage") from e
+                cdm="storage"
+            ) from e
 
 
 class CinderModelBuilder(base.BaseModelBuilder):
@@ -183,16 +167,14 @@ class CinderModelBuilder(base.BaseModelBuilder):
         This includes components which represent actual infrastructure
         hardware.
         """
-        for snode in self.call_retry(
-                self.cinder_helper.get_storage_node_list):
+        for snode in self.call_retry(self.cinder_helper.get_storage_node_list):
             self.add_storage_node(snode)
         for pool in self.call_retry(self.cinder_helper.get_storage_pool_list):
             pool = self._build_storage_pool(pool)
             self.model.add_pool(pool)
             storage_name = getattr(pool, 'name')
             try:
-                storage_node = self.model.get_node_by_name(
-                    storage_name)
+                storage_node = self.model.get_node_by_name(storage_name)
                 # Connect the instance to its compute node
                 self.model.map_pool(pool, storage_node)
             except exception.StorageNodeNotFound:
@@ -222,7 +204,8 @@ class CinderModelBuilder(base.BaseModelBuilder):
             pass
 
         volume_type = self.call_retry(
-            self.cinder_helper.get_volume_type_by_backendname, backend)
+            self.cinder_helper.get_volume_type_by_backendname, backend
+        )
 
         # build up the storage node.
         node_attributes = {
@@ -230,7 +213,8 @@ class CinderModelBuilder(base.BaseModelBuilder):
             "zone": node.zone,
             "state": node.state,
             "status": node.status,
-            "volume_type": volume_type}
+            "volume_type": volume_type,
+        }
 
         storage_node = element.StorageNode(**node_attributes)
         return storage_node
@@ -244,20 +228,26 @@ class CinderModelBuilder(base.BaseModelBuilder):
         """
         # build up the storage pool.
 
-        attrs = ["total_volumes", "total_capacity_gb",
-                 "free_capacity_gb", "provisioned_capacity_gb",
-                 "allocated_capacity_gb"]
+        attrs = [
+            "total_volumes",
+            "total_capacity_gb",
+            "free_capacity_gb",
+            "provisioned_capacity_gb",
+            "allocated_capacity_gb",
+        ]
 
         node_attributes = {"name": pool.name}
         for attr in attrs:
             try:
                 node_attributes[attr] = int(getattr(pool, attr))
             except AttributeError:
-                LOG.debug("Attribute %s for pool %s is not provided",
-                          attr, pool.name)
+                LOG.debug(
+                    "Attribute %s for pool %s is not provided", attr, pool.name
+                )
             except ValueError:
                 raise exception.InvalidPoolAttributeValue(
-                    name=pool.name, attribute=attr)
+                    name=pool.name, attribute=attr
+                )
 
         storage_pool = element.Pool(**node_attributes)
         return storage_pool
@@ -279,8 +269,7 @@ class CinderModelBuilder(base.BaseModelBuilder):
                 # The volume is not attached to any pool
                 continue
             try:
-                pool = self.model.get_pool_by_pool_name(
-                    pool_name)
+                pool = self.model.get_pool_by_pool_name(pool_name)
                 self.model.map_volume(volume, pool)
             except exception.PoolNotFound:
                 continue
@@ -293,8 +282,14 @@ class CinderModelBuilder(base.BaseModelBuilder):
         :param instance: Cinder Volume object.
         :return: A volume node for the graph.
         """
-        attachments = [{k: v for k, v in iter(d.items()) if k in (
-            'server_id', 'attachment_id')} for d in volume.attachments]
+        attachments = [
+            {
+                k: v
+                for k, v in iter(d.items())
+                if k in ('server_id', 'attachment_id')
+            }
+            for d in volume.attachments
+        ]
 
         volume_attributes = {
             "uuid": volume.id,
@@ -306,7 +301,8 @@ class CinderModelBuilder(base.BaseModelBuilder):
             "snapshot_id": volume.snapshot_id or "",
             "project_id": getattr(volume, 'os-vol-tenant-attr:tenant_id'),
             "metadata": volume.metadata,
-            "bootable": volume.bootable}
+            "bootable": volume.bootable,
+        }
 
         return element.Volume(**volume_attributes)
 

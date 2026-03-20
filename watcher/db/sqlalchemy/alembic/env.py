@@ -40,8 +40,9 @@ def run_migrations_online():
     """
     engine = enginefacade.writer.get_engine()
     with engine.connect() as connection:
-        context.configure(connection=connection,
-                          target_metadata=target_metadata)
+        context.configure(
+            connection=connection, target_metadata=target_metadata
+        )
         with context.begin_transaction():
             context.run_migrations()
 

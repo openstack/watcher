@@ -60,6 +60,7 @@ class Strategy(base.APIBase):
     This class enforces type checking and value constraints, and converts
     between the internal object model and the API representation of a strategy.
     """
+
     _goal_uuid = None
     _goal_name = None
 
@@ -68,8 +69,9 @@ class Strategy(base.APIBase):
             return None
         goal = None
         try:
-            if (common_utils.is_uuid_like(value) or
-                    common_utils.is_int_like(value)):
+            if common_utils.is_uuid_like(value) or common_utils.is_int_like(
+                value
+            ):
                 goal = objects.Goal.get(pecan.request.context, value)
             else:
                 goal = objects.Goal.get_by_name(pecan.request.context, value)
@@ -111,12 +113,14 @@ class Strategy(base.APIBase):
     links = wtypes.wsattr([link.Link], readonly=True)
     """A list containing a self link and associated goal links"""
 
-    goal_uuid = wtypes.wsproperty(wtypes.text, _get_goal_uuid, _set_goal_uuid,
-                                  mandatory=True)
+    goal_uuid = wtypes.wsproperty(
+        wtypes.text, _get_goal_uuid, _set_goal_uuid, mandatory=True
+    )
     """The UUID of the goal this audit refers to"""
 
-    goal_name = wtypes.wsproperty(wtypes.text, _get_goal_name, _set_goal_name,
-                                  mandatory=False)
+    goal_name = wtypes.wsproperty(
+        wtypes.text, _get_goal_name, _set_goal_name, mandatory=False
+    )
     """The name of the goal this audit refers to"""
 
     parameters_spec = {wtypes.text: types.jsontype}
@@ -137,19 +141,25 @@ class Strategy(base.APIBase):
         setattr(self, 'display_name', kwargs.get('display_name', wtypes.Unset))
         setattr(self, 'goal_uuid', kwargs.get('goal_id', wtypes.Unset))
         setattr(self, 'goal_name', kwargs.get('goal_id', wtypes.Unset))
-        setattr(self, 'parameters_spec', kwargs.get('parameters_spec',
-                wtypes.Unset))
+        setattr(
+            self,
+            'parameters_spec',
+            kwargs.get('parameters_spec', wtypes.Unset),
+        )
 
     @staticmethod
     def _convert_with_links(strategy, url, expand=True):
         if not expand:
             strategy.unset_fields_except(
-                ['uuid', 'name', 'display_name', 'goal_uuid', 'goal_name'])
+                ['uuid', 'name', 'display_name', 'goal_uuid', 'goal_name']
+            )
 
         strategy.links = [
             link.Link.make_link('self', url, 'strategies', strategy.uuid),
-            link.Link.make_link('bookmark', url, 'strategies', strategy.uuid,
-                                bookmark=True)]
+            link.Link.make_link(
+                'bookmark', url, 'strategies', strategy.uuid, bookmark=True
+            ),
+        ]
         return strategy
 
     @classmethod
@@ -157,13 +167,16 @@ class Strategy(base.APIBase):
         strategy = Strategy(**strategy.as_dict())
         hide_fields_in_newer_versions(strategy)
         return cls._convert_with_links(
-            strategy, pecan.request.host_url, expand)
+            strategy, pecan.request.host_url, expand
+        )
 
     @classmethod
     def sample(cls, expand=True):
-        sample = cls(uuid='27e3153e-d5bf-4b7e-b517-fb518e17f34c',
-                     name='DUMMY',
-                     display_name='Dummy strategy')
+        sample = cls(
+            uuid='27e3153e-d5bf-4b7e-b517-fb518e17f34c',
+            name='DUMMY',
+            display_name='Dummy strategy',
+        )
         return cls._convert_with_links(sample, 'http://localhost:9322', expand)
 
 
@@ -178,13 +191,16 @@ class StrategyCollection(collection.Collection):
         self._type = 'strategies'
 
     @staticmethod
-    def convert_with_links(strategies, limit, url=None, expand=False,
-                           **kwargs):
+    def convert_with_links(
+        strategies, limit, url=None, expand=False, **kwargs
+    ):
         strategy_collection = StrategyCollection()
         strategy_collection.strategies = [
-            Strategy.convert_with_links(g, expand) for g in strategies]
+            Strategy.convert_with_links(g, expand) for g in strategies
+        ]
         strategy_collection.next = strategy_collection.get_next(
-            limit, url=url, **kwargs)
+            limit, url=url, **kwargs
+        )
         return strategy_collection
 
     @classmethod
@@ -200,50 +216,76 @@ class StrategiesController(rest.RestController):
     def __init__(self):
         super().__init__()
 
-    _custom_actions = {
-        'detail': ['GET'],
-        'state': ['GET'],
-    }
+    _custom_actions = {'detail': ['GET'], 'state': ['GET']}
 
-    def _get_strategies_collection(self, filters, marker, limit, sort_key,
-                                   sort_dir, expand=False, resource_url=None):
+    def _get_strategies_collection(
+        self,
+        filters,
+        marker,
+        limit,
+        sort_key,
+        sort_dir,
+        expand=False,
+        resource_url=None,
+    ):
         additional_fields = ["goal_uuid", "goal_name"]
 
         api_utils.validate_sort_key(
-            sort_key, list(objects.Strategy.fields) + additional_fields)
+            sort_key, list(objects.Strategy.fields) + additional_fields
+        )
         api_utils.validate_search_filters(
-            filters, list(objects.Strategy.fields) + additional_fields)
+            filters, list(objects.Strategy.fields) + additional_fields
+        )
         limit = api_utils.validate_limit(limit)
         api_utils.validate_sort_dir(sort_dir)
 
         marker_obj = None
         if marker:
             marker_obj = objects.Strategy.get_by_uuid(
-                pecan.request.context, marker)
+                pecan.request.context, marker
+            )
 
-        need_api_sort = api_utils.check_need_api_sort(sort_key,
-                                                      additional_fields)
-        sort_db_key = (sort_key if not need_api_sort
-                       else None)
+        need_api_sort = api_utils.check_need_api_sort(
+            sort_key, additional_fields
+        )
+        sort_db_key = sort_key if not need_api_sort else None
 
         strategies = objects.Strategy.list(
-            pecan.request.context, limit, marker_obj, filters=filters,
-            sort_key=sort_db_key, sort_dir=sort_dir)
+            pecan.request.context,
+            limit,
+            marker_obj,
+            filters=filters,
+            sort_key=sort_db_key,
+            sort_dir=sort_dir,
+        )
 
         strategies_collection = StrategyCollection.convert_with_links(
-            strategies, limit, url=resource_url, expand=expand,
-            sort_key=sort_key, sort_dir=sort_dir)
+            strategies,
+            limit,
+            url=resource_url,
+            expand=expand,
+            sort_key=sort_key,
+            sort_dir=sort_dir,
+        )
 
         if need_api_sort:
-            api_utils.make_api_sort(strategies_collection.strategies,
-                                    sort_key, sort_dir)
+            api_utils.make_api_sort(
+                strategies_collection.strategies, sort_key, sort_dir
+            )
 
         return strategies_collection
 
-    @wsme_pecan.wsexpose(StrategyCollection, wtypes.text, wtypes.text,
-                         int, wtypes.text, wtypes.text)
-    def get_all(self, goal=None, marker=None, limit=None,
-                sort_key='id', sort_dir='asc'):
+    @wsme_pecan.wsexpose(
+        StrategyCollection,
+        wtypes.text,
+        wtypes.text,
+        int,
+        wtypes.text,
+        wtypes.text,
+    )
+    def get_all(
+        self, goal=None, marker=None, limit=None, sort_key='id', sort_dir='asc'
+    ):
         """Retrieve a list of strategies.
 
         :param goal: goal UUID or name to filter by.
@@ -253,8 +295,7 @@ class StrategiesController(rest.RestController):
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         """
         context = pecan.request.context
-        policy.enforce(context, 'strategy:get_all',
-                       action='strategy:get_all')
+        policy.enforce(context, 'strategy:get_all', action='strategy:get_all')
         filters = {}
         if goal:
             if common_utils.is_uuid_like(goal):
@@ -263,12 +304,20 @@ class StrategiesController(rest.RestController):
                 filters['goal_name'] = goal
 
         return self._get_strategies_collection(
-            filters, marker, limit, sort_key, sort_dir)
+            filters, marker, limit, sort_key, sort_dir
+        )
 
-    @wsme_pecan.wsexpose(StrategyCollection, wtypes.text, wtypes.text, int,
-                         wtypes.text, wtypes.text)
-    def detail(self, goal=None, marker=None, limit=None,
-               sort_key='id', sort_dir='asc'):
+    @wsme_pecan.wsexpose(
+        StrategyCollection,
+        wtypes.text,
+        wtypes.text,
+        int,
+        wtypes.text,
+        wtypes.text,
+    )
+    def detail(
+        self, goal=None, marker=None, limit=None, sort_key='id', sort_dir='asc'
+    ):
         """Retrieve a list of strategies with detail.
 
         :param goal: goal UUID or name to filter by.
@@ -278,8 +327,7 @@ class StrategiesController(rest.RestController):
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         """
         context = pecan.request.context
-        policy.enforce(context, 'strategy:detail',
-                       action='strategy:detail')
+        policy.enforce(context, 'strategy:detail', action='strategy:detail')
         # NOTE(lucasagomes): /detail should only work against collections
         parent = pecan.request.path.split('/')[:-1][-1]
         if parent != "strategies":
@@ -295,7 +343,8 @@ class StrategiesController(rest.RestController):
                 filters['goal_name'] = goal
 
         return self._get_strategies_collection(
-            filters, marker, limit, sort_key, sort_dir, expand, resource_url)
+            filters, marker, limit, sort_key, sort_dir, expand, resource_url
+        )
 
     @wsme_pecan.wsexpose(wtypes.text, wtypes.text)
     def state(self, strategy):
@@ -310,11 +359,19 @@ class StrategiesController(rest.RestController):
             raise exception.HTTPNotFound
         rpc_strategy = api_utils.get_resource('Strategy', strategy)
         de_client = rpcapi.DecisionEngineAPI()
-        strategy_state = de_client.get_strategy_info(context,
-                                                     rpc_strategy.name)
-        strategy_state.extend([{
-            'type': 'Name', 'state': rpc_strategy.name,
-            'mandatory': '', 'comment': ''}])
+        strategy_state = de_client.get_strategy_info(
+            context, rpc_strategy.name
+        )
+        strategy_state.extend(
+            [
+                {
+                    'type': 'Name',
+                    'state': rpc_strategy.name,
+                    'mandatory': '',
+                    'comment': '',
+                }
+            ]
+        )
         return strategy_state
 
     @wsme_pecan.wsexpose(Strategy, wtypes.text)
@@ -325,7 +382,8 @@ class StrategiesController(rest.RestController):
         """
         context = pecan.request.context
         rpc_strategy = api_utils.get_resource('Strategy', strategy)
-        policy.enforce(context, 'strategy:get', rpc_strategy,
-                       action='strategy:get')
+        policy.enforce(
+            context, 'strategy:get', rpc_strategy, action='strategy:get'
+        )
 
         return Strategy.convert_with_links(rpc_strategy)

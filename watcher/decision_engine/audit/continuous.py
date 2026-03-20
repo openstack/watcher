@@ -44,8 +44,9 @@ class ContinuousAuditHandler(base.AuditHandler):
         self._audit_scheduler = None
         # scheduler for a periodic task to launch audit
         self._period_scheduler = None
-        self.context_show_deleted = context.RequestContext(is_admin=True,
-                                                           show_deleted=True)
+        self.context_show_deleted = context.RequestContext(
+            is_admin=True, show_deleted=True
+        )
 
     @property
     def scheduler(self):
@@ -53,7 +54,8 @@ class ContinuousAuditHandler(base.AuditHandler):
             self._audit_scheduler = scheduling.BackgroundSchedulerService(
                 jobstores={
                     'default': job_store.WatcherJobStore(
-                        engine=sq_api.enginefacade.writer.get_engine()),
+                        engine=sq_api.enginefacade.writer.get_engine()
+                    )
                 }
             )
         return self._audit_scheduler
@@ -66,15 +68,21 @@ class ContinuousAuditHandler(base.AuditHandler):
 
     def _is_audit_inactive(self, audit):
         audit = objects.Audit.get_by_uuid(
-            self.context_show_deleted, audit.uuid, eager=True)
-        if (objects.audit.AuditStateTransitionManager().is_inactive(audit) or
-                (audit.hostname != CONF.host) or
-                (self.check_audit_expired(audit))):
+            self.context_show_deleted, audit.uuid, eager=True
+        )
+        if (
+            objects.audit.AuditStateTransitionManager().is_inactive(audit)
+            or (audit.hostname != CONF.host)
+            or (self.check_audit_expired(audit))
+        ):
             # if audit isn't in active states, audit's job must be removed to
             # prevent using of inactive audit in future.
-            jobs = [job for job in self.scheduler.get_jobs()
-                    if job.name == 'execute_audit' and
-                    job.args[0].uuid == audit.uuid]
+            jobs = [
+                job
+                for job in self.scheduler.get_jobs()
+                if job.name == 'execute_audit'
+                and job.args[0].uuid == audit.uuid
+            ]
             if jobs:
                 jobs[0].remove()
             return True
@@ -82,14 +90,16 @@ class ContinuousAuditHandler(base.AuditHandler):
         return False
 
     def do_execute(self, audit, request_context):
-        solution = super()\
-            .do_execute(audit, request_context)
+        solution = super().do_execute(audit, request_context)
 
         if audit.audit_type == objects.audit.AuditType.CONTINUOUS.value:
-            a_plan_filters = {'audit_uuid': audit.uuid,
-                              'state': objects.action_plan.State.RECOMMENDED}
+            a_plan_filters = {
+                'audit_uuid': audit.uuid,
+                'state': objects.action_plan.State.RECOMMENDED,
+            }
             action_plans = objects.ActionPlan.list(
-                request_context, filters=a_plan_filters, eager=True)
+                request_context, filters=a_plan_filters, eager=True
+            )
             for plan in action_plans:
                 plan.state = objects.action_plan.State.CANCELLED
                 plan.save()
@@ -98,8 +108,9 @@ class ContinuousAuditHandler(base.AuditHandler):
     @staticmethod
     def _next_cron_time(audit):
         if utils.is_cron_like(audit.interval):
-            return croniter(audit.interval, timeutils.utcnow()
-                            ).get_next(datetime.datetime)
+            return croniter(audit.interval, timeutils.utcnow()).get_next(
+                datetime.datetime
+            )
 
     @classmethod
     def execute_audit(cls, audit, request_context):
@@ -112,22 +123,33 @@ class ContinuousAuditHandler(base.AuditHandler):
             finally:
                 if utils.is_int_like(audit.interval):
                     audit.next_run_time = (
-                        timeutils.utcnow() +
-                        datetime.timedelta(seconds=int(audit.interval)))
+                        timeutils.utcnow()
+                        + datetime.timedelta(seconds=int(audit.interval))
+                    )
                 else:
                     audit.next_run_time = self._next_cron_time(audit)
                 audit.save()
 
     def _add_job(self, trigger, audit, audit_context, **trigger_args):
-        time_var = 'next_run_time' if trigger_args.get(
-            'next_run_time') else 'run_date'
+        time_var = (
+            'next_run_time'
+            if trigger_args.get('next_run_time')
+            else 'run_date'
+        )
         # We should convert UTC time to local time without tzinfo
-        trigger_args[time_var] = trigger_args[time_var].replace(
-            tzinfo=timezone.utc).astimezone().replace(tzinfo=None)
-        self.scheduler.add_job(self.execute_audit, trigger,
-                               args=[audit, audit_context],
-                               name='execute_audit',
-                               **trigger_args)
+        trigger_args[time_var] = (
+            trigger_args[time_var]
+            .replace(tzinfo=timezone.utc)
+            .astimezone()
+            .replace(tzinfo=None)
+        )
+        self.scheduler.add_job(
+            self.execute_audit,
+            trigger,
+            args=[audit, audit_context],
+            name='execute_audit',
+            **trigger_args,
+        )
 
     def check_audit_expired(self, audit):
         current = timeutils.utcnow()
@@ -151,12 +173,15 @@ class ContinuousAuditHandler(base.AuditHandler):
         audit_context = context.RequestContext(is_admin=True)
         audit_filters = {
             'audit_type': objects.audit.AuditType.CONTINUOUS.value,
-            'state__in': (objects.audit.State.PENDING,
-                          objects.audit.State.ONGOING),
+            'state__in': (
+                objects.audit.State.PENDING,
+                objects.audit.State.ONGOING,
+            ),
         }
         audit_filters['hostname'] = None
         unscheduled_audits = objects.Audit.list(
-            audit_context, filters=audit_filters, eager=True)
+            audit_context, filters=audit_filters, eager=True
+        )
         for audit in unscheduled_audits:
             # If continuous audit doesn't have a hostname yet,
             # Watcher will set current CONF.host value.
@@ -164,9 +189,10 @@ class ContinuousAuditHandler(base.AuditHandler):
             audit.hostname = CONF.host
             audit.save()
         scheduler_job_args = [
-            (job.args[0].uuid, job) for job
-            in self.scheduler.get_jobs()
-            if job.name == 'execute_audit']
+            (job.args[0].uuid, job)
+            for job in self.scheduler.get_jobs()
+            if job.name == 'execute_audit'
+        ]
         scheduler_jobs = dict(scheduler_job_args)
         # if audit isn't in active states, audit's job should be removed
         jobs_to_remove = []
@@ -177,7 +203,8 @@ class ContinuousAuditHandler(base.AuditHandler):
             scheduler_jobs.pop(audit_uuid)
         audit_filters['hostname'] = CONF.host
         audits = objects.Audit.list(
-            audit_context, filters=audit_filters, eager=True)
+            audit_context, filters=audit_filters, eager=True
+        )
         for audit in audits:
             if self.check_audit_expired(audit):
                 continue
@@ -187,8 +214,9 @@ class ContinuousAuditHandler(base.AuditHandler):
             # if audit is already in the job queue, and interval has changed,
             # we need to remove the old job and add a new one.
             if (existing_job is None) or (
-                existing_job and
-                    audit.interval != existing_job.args[0].interval):
+                existing_job
+                and audit.interval != existing_job.args[0].interval
+            ):
                 if existing_job:
                     self.scheduler.remove_job(existing_job.id)
                 # if interval is provided with seconds
@@ -200,22 +228,33 @@ class ContinuousAuditHandler(base.AuditHandler):
                         current = timeutils.utcnow()
                         if old_run_time < current:
                             delta = datetime.timedelta(
-                                seconds=(int(audit.interval) - (
-                                    current - old_run_time).seconds %
-                                    int(audit.interval)))
+                                seconds=(
+                                    int(audit.interval)
+                                    - (current - old_run_time).seconds
+                                    % int(audit.interval)
+                                )
+                            )
                             audit.next_run_time = current + delta
                         next_run_time = audit.next_run_time
                     # if audit is new one
                     else:
                         next_run_time = timeutils.utcnow()
-                    self._add_job('interval', audit, audit_context,
-                                  seconds=int(audit.interval),
-                                  next_run_time=next_run_time)
+                    self._add_job(
+                        'interval',
+                        audit,
+                        audit_context,
+                        seconds=int(audit.interval),
+                        next_run_time=next_run_time,
+                    )
 
                 else:
                     audit.next_run_time = self._next_cron_time(audit)
-                    self._add_job('date', audit, audit_context,
-                                  run_date=audit.next_run_time)
+                    self._add_job(
+                        'date',
+                        audit,
+                        audit_context,
+                        run_date=audit.next_run_time,
+                    )
                 audit.hostname = CONF.host
                 audit.save()
 
@@ -224,7 +263,8 @@ class ContinuousAuditHandler(base.AuditHandler):
             self.launch_audits_periodically,
             'interval',
             seconds=CONF.watcher_decision_engine.continuous_audit_interval,
-            next_run_time=datetime.datetime.now())
+            next_run_time=datetime.datetime.now(),
+        )
         self.period_scheduler.start()
         # audit scheduler start
         self.scheduler.start()

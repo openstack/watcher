@@ -31,7 +31,8 @@ class TestIronicNode(base.TestCase):
         self._ironic_client = mock.Mock()
 
         self._node = ironic.IronicNode(
-            self._wrapped_node, self._nova_node, self._ironic_client)
+            self._wrapped_node, self._nova_node, self._ironic_client
+        )
 
     def test_get_power_state(self):
         states = (
@@ -40,9 +41,11 @@ class TestIronicNode(base.TestCase):
             "rebooting",
             "soft power off",
             "soft reboot",
-            'SomeOtherState')
+            'SomeOtherState',
+        )
         type(self._wrapped_node).power_state = mock.PropertyMock(
-            side_effect=states)
+            side_effect=states
+        )
 
         expected_states = (
             m_constants.PowerState.ON,
@@ -50,26 +53,27 @@ class TestIronicNode(base.TestCase):
             m_constants.PowerState.ON,
             m_constants.PowerState.OFF,
             m_constants.PowerState.ON,
-            m_constants.PowerState.UNKNOWN)
+            m_constants.PowerState.UNKNOWN,
+        )
 
         for expected_state in expected_states:
             actual_state = self._node.get_power_state()
             self.assertEqual(expected_state, actual_state)
 
     def test_get_id(self):
-        self.assertEqual(
-            self._wrapped_node.uuid,
-            self._node.get_id())
+        self.assertEqual(self._wrapped_node.uuid, self._node.get_id())
 
     def test_power_on(self):
         self._node.power_on()
         self._ironic_client.node.set_power_state.assert_called_once_with(
-            self._wrapped_node.uuid, "on")
+            self._wrapped_node.uuid, "on"
+        )
 
     def test_power_off(self):
         self._node.power_off()
         self._ironic_client.node.set_power_state.assert_called_once_with(
-            self._wrapped_node.uuid, "off")
+            self._wrapped_node.uuid, "off"
+        )
 
 
 class TestIronicHelper(base.TestCase):
@@ -86,18 +90,21 @@ class TestIronicHelper(base.TestCase):
     def test_list_compute_nodes(self):
         mock_machines = [
             mock.Mock(
-                extra=dict(compute_node_id=mock.sentinel.compute_node_id)),
+                extra=dict(compute_node_id=mock.sentinel.compute_node_id)
+            ),
             mock.Mock(
-                extra=dict(compute_node_id=mock.sentinel.compute_node_id2)),
-            mock.Mock(
-                extra=dict())
+                extra=dict(compute_node_id=mock.sentinel.compute_node_id2)
+            ),
+            mock.Mock(extra=dict()),
         ]
         mock_hypervisor = mock.Mock()
 
         self._mock_ironic_client.node.list.return_value = mock_machines
         self._mock_ironic_client.node.get.side_effect = mock_machines
         self._mock_nova_client.get_compute_node_by_uuid.side_effect = (
-            mock_hypervisor, None)
+            mock_hypervisor,
+            None,
+        )
 
         out_nodes = self._helper.list_compute_nodes()
         self.assertEqual(1, len(out_nodes))
@@ -110,16 +117,14 @@ class TestIronicHelper(base.TestCase):
 
     def test_get_node(self):
         mock_machine = mock.Mock(
-            extra=dict(compute_node_id=mock.sentinel.compute_node_id))
+            extra=dict(compute_node_id=mock.sentinel.compute_node_id)
+        )
         self._mock_ironic_client.node.get.return_value = mock_machine
 
         out_node = self._helper.get_node(mock.sentinel.id)
 
         get_compute_node = self._mock_nova_client.get_compute_node_by_uuid
-        self.assertEqual(
-            get_compute_node.return_value,
-            out_node._nova_node
-        )
+        self.assertEqual(get_compute_node.return_value, out_node._nova_node)
         get_compute_node.assert_called_once_with(mock.sentinel.compute_node_id)
         self.assertEqual(self._mock_ironic_client, out_node._ironic_client)
         self.assertEqual(mock_machine, out_node._ironic_node)

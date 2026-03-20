@@ -17,7 +17,6 @@ import abc
 
 
 class BaseLoader(metaclass=abc.ABCMeta):
-
     @abc.abstractmethod
     def list_available(self):
         raise NotImplementedError()

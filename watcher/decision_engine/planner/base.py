@@ -49,7 +49,6 @@ from watcher.common.loader import loadable
 
 
 class BasePlanner(loadable.Loadable, metaclass=abc.ABCMeta):
-
     @classmethod
     def get_config_opts(cls):
         """Defines the configuration options to be associated to this loadable

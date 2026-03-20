@@ -34,7 +34,6 @@ from watcher.tests.unit.db import utils
 
 
 class TestApplierMonitor(base.TestCase):
-
     @mock.patch.object(background.BackgroundScheduler, 'start', autospec=True)
     def test_start_service_monitoring_service(self, m_start):
         monitor = service_monitor.ApplierMonitor()
@@ -43,8 +42,9 @@ class TestApplierMonitor(base.TestCase):
         jobs = monitor.get_jobs()
         self.assertEqual(1, len(jobs))
 
-    @mock.patch.object(background.BackgroundScheduler, 'shutdown',
-                       autospec=True)
+    @mock.patch.object(
+        background.BackgroundScheduler, 'shutdown', autospec=True
+    )
     def test_stop_service_monitoring_service(self, m_shutdown):
         monitor = service_monitor.ApplierMonitor()
         monitor.stop()
@@ -62,39 +62,45 @@ class TestApplierMonitor(base.TestCase):
 
 
 class TestApplierMonitorFunctions(db_base.DbTestCase):
-
     def setUp(self):
         super().setUp()
-        fake_service = utils.get_test_service(
-            created_at=timeutils.utcnow())
+        fake_service = utils.get_test_service(created_at=timeutils.utcnow())
         self.fake_service = objects.Service(**fake_service)
 
-    @mock.patch.object(service_monitor.ApplierMonitor,
-                       'get_service_status', autospec=True)
+    @mock.patch.object(
+        service_monitor.ApplierMonitor, 'get_service_status', autospec=True
+    )
     @mock.patch.object(objects.Service, 'list', autospec=True)
     @mock.patch.object(service, 'send_service_update')
     @mock.patch.object(objects.ActionPlan, 'list', autospec=True)
-    def test_monitor_not_send_notification_on_active(self, m_actionplan_list,
-                                                     m_send_notif,
-                                                     m_service_list,
-                                                     m_get_service_status):
+    def test_monitor_not_send_notification_on_active(
+        self,
+        m_actionplan_list,
+        m_send_notif,
+        m_service_list,
+        m_get_service_status,
+    ):
         # Create two applier services
         fake_ap_service1 = utils.get_test_service(
-            id=1, name='watcher-applier', host='host1')
+            id=1, name='watcher-applier', host='host1'
+        )
         fake_ap_service2 = utils.get_test_service(
-            id=2, name='watcher-applier', host='host2')
+            id=2, name='watcher-applier', host='host2'
+        )
         fake_ap_service_obj1 = objects.Service(**fake_ap_service1)
         fake_ap_service_obj2 = objects.Service(**fake_ap_service2)
 
         m_service_list.return_value = [
-            fake_ap_service_obj1, fake_ap_service_obj2]
+            fake_ap_service_obj1,
+            fake_ap_service_obj2,
+        ]
 
         # First call: both ACTIVE in first and second call
         m_get_service_status.side_effect = [
             objects.service.ServiceStatus.ACTIVE,  # service1 first call
             objects.service.ServiceStatus.ACTIVE,  # service2 first call
             objects.service.ServiceStatus.ACTIVE,  # service1 second call
-            objects.service.ServiceStatus.ACTIVE   # service2 second call
+            objects.service.ServiceStatus.ACTIVE,  # service2 second call
         ]
 
         monitor = service_monitor.ApplierMonitor()
@@ -103,44 +109,61 @@ class TestApplierMonitorFunctions(db_base.DbTestCase):
         self.flags(host='host1')
         # First call: both ACTIVE
         monitor.monitor_services_status(self.context)
-        self.assertEqual(monitor.services_status, {
-            fake_ap_service_obj1.id: objects.service.ServiceStatus.ACTIVE,
-            fake_ap_service_obj2.id: objects.service.ServiceStatus.ACTIVE
-        })
+        self.assertEqual(
+            monitor.services_status,
+            {
+                fake_ap_service_obj1.id: objects.service.ServiceStatus.ACTIVE,
+                fake_ap_service_obj2.id: objects.service.ServiceStatus.ACTIVE,
+            },
+        )
         # Second call: both ACTIVE
         monitor.monitor_services_status(self.context)
-        self.assertEqual(monitor.services_status, {
-            fake_ap_service_obj1.id: objects.service.ServiceStatus.ACTIVE,
-            fake_ap_service_obj2.id: objects.service.ServiceStatus.ACTIVE
-        })
+        self.assertEqual(
+            monitor.services_status,
+            {
+                fake_ap_service_obj1.id: objects.service.ServiceStatus.ACTIVE,
+                fake_ap_service_obj2.id: objects.service.ServiceStatus.ACTIVE,
+            },
+        )
 
         m_send_notif.assert_not_called()
         m_actionplan_list.assert_not_called()
 
-    @mock.patch.object(service_monitor.ApplierMonitor,
-                       'get_service_status', autospec=True)
+    @mock.patch.object(
+        service_monitor.ApplierMonitor, 'get_service_status', autospec=True
+    )
     @mock.patch.object(objects.Service, 'list', autospec=True)
     @mock.patch.object(service, 'send_service_update', autospec=True)
     @mock.patch.object(
-        sync.Syncer,
-        '_cancel_ongoing_actionplans', autospec=True)
-    @mock.patch.object(service_monitor.ApplierMonitor,
-                       '_retrigger_pending_actionplans', autospec=True)
-    def test_monitor_failover_on_failure(self, m_retrigger,
-                                         m_sync_cancel,
-                                         m_send_notif,
-                                         m_service_list,
-                                         m_get_service_status):
+        sync.Syncer, '_cancel_ongoing_actionplans', autospec=True
+    )
+    @mock.patch.object(
+        service_monitor.ApplierMonitor,
+        '_retrigger_pending_actionplans',
+        autospec=True,
+    )
+    def test_monitor_failover_on_failure(
+        self,
+        m_retrigger,
+        m_sync_cancel,
+        m_send_notif,
+        m_service_list,
+        m_get_service_status,
+    ):
         # Create two applier services
         fake_ap_service1 = utils.get_test_service(
-            id=1, name='watcher-applier', host='host1')
+            id=1, name='watcher-applier', host='host1'
+        )
         fake_ap_service2 = utils.get_test_service(
-            id=2, name='watcher-applier', host='host2')
+            id=2, name='watcher-applier', host='host2'
+        )
         fake_ap_service_obj1 = objects.Service(**fake_ap_service1)
         fake_ap_service_obj2 = objects.Service(**fake_ap_service2)
 
         m_service_list.return_value = [
-            fake_ap_service_obj1, fake_ap_service_obj2]
+            fake_ap_service_obj1,
+            fake_ap_service_obj2,
+        ]
 
         # First call: both ACTIVE
         # Second call: service1 FAILED, service2 ACTIVE
@@ -148,7 +171,7 @@ class TestApplierMonitorFunctions(db_base.DbTestCase):
             objects.service.ServiceStatus.ACTIVE,  # service1 first call
             objects.service.ServiceStatus.ACTIVE,  # service2 first call
             objects.service.ServiceStatus.FAILED,  # service1 second call
-            objects.service.ServiceStatus.ACTIVE   # service2 second call
+            objects.service.ServiceStatus.ACTIVE,  # service2 second call
         ]
 
         monitor = service_monitor.ApplierMonitor()
@@ -158,20 +181,28 @@ class TestApplierMonitorFunctions(db_base.DbTestCase):
         self.flags(host='host2')
         # First call: both ACTIVE
         monitor.monitor_services_status(self.context)
-        self.assertEqual(monitor.services_status, {
-            fake_ap_service_obj1.id: objects.service.ServiceStatus.ACTIVE,
-            fake_ap_service_obj2.id: objects.service.ServiceStatus.ACTIVE
-        })
+        self.assertEqual(
+            monitor.services_status,
+            {
+                fake_ap_service_obj1.id: objects.service.ServiceStatus.ACTIVE,
+                fake_ap_service_obj2.id: objects.service.ServiceStatus.ACTIVE,
+            },
+        )
         # Second call: service1 FAILED, service2 ACTIVE
         monitor.monitor_services_status(self.context)
-        self.assertEqual(monitor.services_status, {
-            fake_ap_service_obj1.id: objects.service.ServiceStatus.FAILED,
-            fake_ap_service_obj2.id: objects.service.ServiceStatus.ACTIVE
-        })
+        self.assertEqual(
+            monitor.services_status,
+            {
+                fake_ap_service_obj1.id: objects.service.ServiceStatus.FAILED,
+                fake_ap_service_obj2.id: objects.service.ServiceStatus.ACTIVE,
+            },
+        )
 
         m_send_notif.assert_called_once_with(
-            self.context, fake_ap_service_obj1,
-            state=objects.service.ServiceStatus.FAILED)
+            self.context,
+            fake_ap_service_obj1,
+            state=objects.service.ServiceStatus.FAILED,
+        )
         # Verify ongoing action plan cancel is triggered for the failed
         # service
         m_sync_cancel.assert_called_once_with(mock.ANY, self.context, 'host1')
@@ -179,33 +210,46 @@ class TestApplierMonitorFunctions(db_base.DbTestCase):
         # service
         m_retrigger.assert_called_once_with(monitor, self.context, 'host1')
 
-    @mock.patch.object(service_monitor.ApplierMonitor,
-                       'get_service_status', autospec=True)
+    @mock.patch.object(
+        service_monitor.ApplierMonitor, 'get_service_status', autospec=True
+    )
     @mock.patch.object(objects.Service, 'list', autospec=True)
     @mock.patch.object(service, 'send_service_update', autospec=True)
     @mock.patch.object(
-        sync.Syncer,
-        '_cancel_ongoing_actionplans', autospec=True)
-    @mock.patch.object(service_monitor.ApplierMonitor,
-                       '_retrigger_pending_actionplans', autospec=True)
-    def test_nonleader_monitor_skips_on_failure(self, m_retrigger,
-                                                m_sync_cancel,
-                                                m_send_notif,
-                                                m_service_list,
-                                                m_get_service_status):
+        sync.Syncer, '_cancel_ongoing_actionplans', autospec=True
+    )
+    @mock.patch.object(
+        service_monitor.ApplierMonitor,
+        '_retrigger_pending_actionplans',
+        autospec=True,
+    )
+    def test_nonleader_monitor_skips_on_failure(
+        self,
+        m_retrigger,
+        m_sync_cancel,
+        m_send_notif,
+        m_service_list,
+        m_get_service_status,
+    ):
         # Create two applier services
         fake_ap_service1 = utils.get_test_service(
-            id=1, name='watcher-applier', host='host1')
+            id=1, name='watcher-applier', host='host1'
+        )
         fake_ap_service2 = utils.get_test_service(
-            id=2, name='watcher-applier', host='host2')
+            id=2, name='watcher-applier', host='host2'
+        )
         fake_ap_service3 = utils.get_test_service(
-            id=3, name='watcher-applier', host='host3')
+            id=3, name='watcher-applier', host='host3'
+        )
         fake_ap_service_obj1 = objects.Service(**fake_ap_service1)
         fake_ap_service_obj2 = objects.Service(**fake_ap_service2)
         fake_ap_service_obj3 = objects.Service(**fake_ap_service3)
 
         m_service_list.return_value = [
-            fake_ap_service_obj1, fake_ap_service_obj2, fake_ap_service_obj3]
+            fake_ap_service_obj1,
+            fake_ap_service_obj2,
+            fake_ap_service_obj3,
+        ]
 
         # First call: both ACTIVE
         # Second call: service1 FAILED, service2 ACTIVE
@@ -225,18 +269,24 @@ class TestApplierMonitorFunctions(db_base.DbTestCase):
         self.flags(host='host3')
         # First call: both ACTIVE
         monitor.monitor_services_status(self.context)
-        self.assertEqual(monitor.services_status, {
-            fake_ap_service_obj1.id: objects.service.ServiceStatus.ACTIVE,
-            fake_ap_service_obj2.id: objects.service.ServiceStatus.ACTIVE,
-            fake_ap_service_obj3.id: objects.service.ServiceStatus.ACTIVE
-        })
+        self.assertEqual(
+            monitor.services_status,
+            {
+                fake_ap_service_obj1.id: objects.service.ServiceStatus.ACTIVE,
+                fake_ap_service_obj2.id: objects.service.ServiceStatus.ACTIVE,
+                fake_ap_service_obj3.id: objects.service.ServiceStatus.ACTIVE,
+            },
+        )
         # Second call: service1 FAILED, service2 ACTIVE
         monitor.monitor_services_status(self.context)
-        self.assertEqual(monitor.services_status, {
-            fake_ap_service_obj1.id: objects.service.ServiceStatus.FAILED,
-            fake_ap_service_obj2.id: objects.service.ServiceStatus.ACTIVE,
-            fake_ap_service_obj3.id: objects.service.ServiceStatus.ACTIVE
-        })
+        self.assertEqual(
+            monitor.services_status,
+            {
+                fake_ap_service_obj1.id: objects.service.ServiceStatus.FAILED,
+                fake_ap_service_obj2.id: objects.service.ServiceStatus.ACTIVE,
+                fake_ap_service_obj3.id: objects.service.ServiceStatus.ACTIVE,
+            },
+        )
 
         # Only the leader should send notifications
         m_send_notif.assert_not_called()
@@ -248,14 +298,13 @@ class TestApplierMonitorFunctions(db_base.DbTestCase):
     @freezegun.freeze_time("2016-10-18T09:52:05.219414")
     def test_get_service_status_up(self):
         fake_service = utils.get_test_service(
-            created_at=timeutils.utcnow(),
-            last_seen_up=timeutils.utcnow())
+            created_at=timeutils.utcnow(), last_seen_up=timeutils.utcnow()
+        )
         test_service = objects.Service(self.context, **fake_service)
         test_service.create()
 
         monitor = service_monitor.ApplierMonitor()
-        status = monitor.get_service_status(self.context,
-                                            test_service.id)
+        status = monitor.get_service_status(self.context, test_service.id)
 
         self.assertEqual(objects.service.ServiceStatus.ACTIVE, status)
 
@@ -263,14 +312,13 @@ class TestApplierMonitorFunctions(db_base.DbTestCase):
     def test_get_service_status_down(self):
         past = timeutils.utcnow() - datetime.timedelta(seconds=120)
         fake_service = utils.get_test_service(
-            created_at=past,
-            last_seen_up=past)
+            created_at=past, last_seen_up=past
+        )
         test_service = objects.Service(self.context, **fake_service)
         test_service.create()
 
         monitor = service_monitor.ApplierMonitor()
-        status = monitor.get_service_status(self.context,
-                                            test_service.id)
+        status = monitor.get_service_status(self.context, test_service.id)
 
         self.assertEqual(objects.service.ServiceStatus.FAILED, status)
 
@@ -278,15 +326,13 @@ class TestApplierMonitorFunctions(db_base.DbTestCase):
     def test_get_service_status_down_last_seen_up_none(self):
         past = timeutils.utcnow() - datetime.timedelta(seconds=120)
         fake_service = utils.get_test_service(
-            created_at=past,
-            updated_at=past,
-            last_seen_up=None)
+            created_at=past, updated_at=past, last_seen_up=None
+        )
         test_service = objects.Service(self.context, **fake_service)
         test_service.create()
 
         monitor = service_monitor.ApplierMonitor()
-        status = monitor.get_service_status(self.context,
-                                            test_service.id)
+        status = monitor.get_service_status(self.context, test_service.id)
 
         self.assertEqual(objects.service.ServiceStatus.FAILED, status)
 
@@ -294,15 +340,13 @@ class TestApplierMonitorFunctions(db_base.DbTestCase):
     def test_get_service_status_down_updated_at_none(self):
         past = timeutils.utcnow() - datetime.timedelta(seconds=120)
         fake_service = utils.get_test_service(
-            created_at=past,
-            updated_at=None,
-            last_seen_up=None)
+            created_at=past, updated_at=None, last_seen_up=None
+        )
         test_service = objects.Service(self.context, **fake_service)
         test_service.create()
 
         monitor = service_monitor.ApplierMonitor()
-        status = monitor.get_service_status(self.context,
-                                            test_service.id)
+        status = monitor.get_service_status(self.context, test_service.id)
 
         self.assertEqual(objects.service.ServiceStatus.FAILED, status)
 
@@ -311,13 +355,13 @@ class TestApplierMonitorFunctions(db_base.DbTestCase):
         """Test that string timestamps are properly converted."""
         fake_service = utils.get_test_service(
             created_at=timeutils.utcnow(),
-            last_seen_up="2016-10-18T09:52:05.219414")
+            last_seen_up="2016-10-18T09:52:05.219414",
+        )
         test_service = objects.Service(self.context, **fake_service)
         test_service.create()
 
         monitor = service_monitor.ApplierMonitor()
-        status = monitor.get_service_status(self.context,
-                                            test_service.id)
+        status = monitor.get_service_status(self.context, test_service.id)
 
         self.assertEqual(objects.service.ServiceStatus.ACTIVE, status)
 
@@ -331,48 +375,51 @@ class TestApplierMonitorFunctions(db_base.DbTestCase):
         # Add a service status
         monitor.services_status[1] = objects.service.ServiceStatus.ACTIVE
         self.assertEqual(
-            {1: objects.service.ServiceStatus.ACTIVE},
-            monitor.services_status
+            {1: objects.service.ServiceStatus.ACTIVE}, monitor.services_status
         )
 
-    @mock.patch.object(service_monitor.ApplierMonitor,
-                       'get_service_status')
+    @mock.patch.object(service_monitor.ApplierMonitor, 'get_service_status')
     @mock.patch.object(objects.Service, 'list')
     def test_get_services_status_without_services_in_list(
-            self, mock_get_list, mock_service_status):
+        self, mock_get_list, mock_service_status
+    ):
         scheduler = service_monitor.ApplierMonitor()
         mock_get_list.return_value = []
         services_status = scheduler.get_services_status(mock.ANY)
         self.assertEqual([], services_status)
         mock_service_status.assert_not_called()
 
-    @mock.patch.object(service_monitor.ApplierMonitor,
-                       'get_service_status')
+    @mock.patch.object(service_monitor.ApplierMonitor, 'get_service_status')
     @mock.patch.object(objects.Service, 'list')
     def test_get_services_status_with_services_in_list(
-            self, m_service_list, m_get_service_status):
+        self, m_service_list, m_get_service_status
+    ):
         """Test that get_services_status returns only the applier services."""
         # Create various services
         de_service1 = utils.get_test_service(
-            id=1, name='watcher-applier', host='host1')
+            id=1, name='watcher-applier', host='host1'
+        )
         de_service2 = utils.get_test_service(
-            id=2, name='watcher-applier', host='host2')
+            id=2, name='watcher-applier', host='host2'
+        )
         api_service = utils.get_test_service(
-            id=3, name='watcher-api', host='host3')
+            id=3, name='watcher-api', host='host3'
+        )
         applier_service = utils.get_test_service(
-            id=4, name='watcher-decision-engine', host='host4')
+            id=4, name='watcher-decision-engine', host='host4'
+        )
 
         m_service_list.return_value = [
             objects.Service(**de_service1),
             objects.Service(**de_service2),
             objects.Service(**api_service),
-            objects.Service(**applier_service)
+            objects.Service(**applier_service),
         ]
         m_get_service_status.side_effect = [
             objects.service.ServiceStatus.ACTIVE,
             objects.service.ServiceStatus.FAILED,
             objects.service.ServiceStatus.ACTIVE,
-            objects.service.ServiceStatus.ACTIVE
+            objects.service.ServiceStatus.ACTIVE,
         ]
 
         monitor = service_monitor.ApplierMonitor()
@@ -385,19 +432,20 @@ class TestApplierMonitorFunctions(db_base.DbTestCase):
                 case 'host1':
                     self.assertEqual('watcher-applier', wservice.name)
                     self.assertEqual(
-                        objects.service.ServiceStatus.ACTIVE, wservice.state)
+                        objects.service.ServiceStatus.ACTIVE, wservice.state
+                    )
                 case 'host2':
                     self.assertEqual('watcher-applier', wservice.name)
                     self.assertEqual(
-                        objects.service.ServiceStatus.FAILED, wservice.state)
+                        objects.service.ServiceStatus.FAILED, wservice.state
+                    )
                 case _:
                     self.fail(f'Unexpected host: {wservice.host}')
 
     def test_am_i_leader_with_single_active_service(self):
         """Test leader election with single active service."""
         # Create service objects with state attribute
-        service1 = objects.Service(
-            id=1, name='watcher-applier', host='host1')
+        service1 = objects.Service(id=1, name='watcher-applier', host='host1')
         service1.state = objects.service.ServiceStatus.ACTIVE
 
         monitor = service_monitor.ApplierMonitor()
@@ -416,14 +464,11 @@ class TestApplierMonitorFunctions(db_base.DbTestCase):
         """Test leader election with multiple active services."""
         # Create service objects with state attribute
         # sorted order: host1, host2, host3
-        service1 = objects.Service(
-            id=1, name='watcher-applier', host='host2')
+        service1 = objects.Service(id=1, name='watcher-applier', host='host2')
         service1.state = objects.service.ServiceStatus.ACTIVE
-        service2 = objects.Service(
-            id=2, name='watcher-applier', host='host1')
+        service2 = objects.Service(id=2, name='watcher-applier', host='host1')
         service2.state = objects.service.ServiceStatus.ACTIVE
-        service3 = objects.Service(
-            id=3, name='watcher-applier', host='host3')
+        service3 = objects.Service(id=3, name='watcher-applier', host='host3')
         service3.state = objects.service.ServiceStatus.ACTIVE
 
         monitor = service_monitor.ApplierMonitor()
@@ -444,11 +489,9 @@ class TestApplierMonitorFunctions(db_base.DbTestCase):
     def test_am_i_leader_with_failed_services(self):
         """Test leader election ignores failed services."""
         # Create service objects with mixed states
-        service1 = objects.Service(
-            id=1, name='watcher-applier', host='host1')
+        service1 = objects.Service(id=1, name='watcher-applier', host='host1')
         service1.state = objects.service.ServiceStatus.FAILED
-        service2 = objects.Service(
-            id=2, name='watcher-applier', host='host2')
+        service2 = objects.Service(id=2, name='watcher-applier', host='host2')
         service2.state = objects.service.ServiceStatus.ACTIVE
 
         monitor = service_monitor.ApplierMonitor()
@@ -465,11 +508,9 @@ class TestApplierMonitorFunctions(db_base.DbTestCase):
     def test_am_i_leader_with_no_active_services(self):
         """Test leader election when no services are active."""
         # Create service objects with all failed states
-        service1 = objects.Service(
-            id=1, name='watcher-applier', host='host1')
+        service1 = objects.Service(id=1, name='watcher-applier', host='host1')
         service1.state = objects.service.ServiceStatus.FAILED
-        service2 = objects.Service(
-            id=2, name='watcher-applier', host='host2')
+        service2 = objects.Service(id=2, name='watcher-applier', host='host2')
         service2.state = objects.service.ServiceStatus.FAILED
 
         monitor = service_monitor.ApplierMonitor()

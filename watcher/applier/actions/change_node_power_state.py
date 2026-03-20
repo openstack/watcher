@@ -38,10 +38,7 @@ class ChangeNodePowerState(base.BaseAction):
 
     The action schema is::
 
-        schema = Schema({
-         'resource_id': str,
-         'state': str,
-        })
+        schema = Schema({'resource_id': str, 'state': str})
 
     The `resource_id` references a baremetal node id (list of available
     ironic nodes is returned by this command: ``ironic node-list``).
@@ -55,19 +52,15 @@ class ChangeNodePowerState(base.BaseAction):
         return {
             'type': 'object',
             'properties': {
-                'resource_id': {
-                    'type': 'string',
-                    "minlength": 1
-                },
-                'resource_name': {
-                    'type': 'string',
-                    "minlength": 1
-                },
+                'resource_id': {'type': 'string', "minlength": 1},
+                'resource_name': {'type': 'string', "minlength": 1},
                 'state': {
                     'type': 'string',
-                    'enum': [metal_constants.PowerState.ON.value,
-                             metal_constants.PowerState.OFF.value]
-                }
+                    'enum': [
+                        metal_constants.PowerState.ON.value,
+                        metal_constants.PowerState.OFF.value,
+                    ],
+                },
             },
             'required': ['resource_id', 'state'],
             'additionalProperties': False,
@@ -95,7 +88,8 @@ class ChangeNodePowerState(base.BaseAction):
     def _node_manage_power(self, state, retry=60):
         if state is None:
             raise exception.IllegalArgumentException(
-                message=_("The target state is not defined"))
+                message=_("The target state is not defined")
+            )
 
         metal_helper = metal_helper_factory.get_helper(self.osc)
         node = metal_helper.get_node(self.node_uuid)
@@ -106,14 +100,15 @@ class ChangeNodePowerState(base.BaseAction):
 
         if state == metal_constants.PowerState.OFF.value:
             compute_node = node.get_hypervisor_node().to_dict()
-            if (compute_node['running_vms'] == 0):
+            if compute_node['running_vms'] == 0:
                 node.set_power_state(state)
             else:
                 LOG.warning(
                     "Compute node %s has %s running vms and will "
                     "NOT be shut off.",
                     compute_node["hypervisor_hostname"],
-                    compute_node['running_vms'])
+                    compute_node['running_vms'],
+                )
                 return False
         else:
             node.set_power_state(state)
@@ -136,4 +131,4 @@ class ChangeNodePowerState(base.BaseAction):
 
     def get_description(self):
         """Description of the action"""
-        return ("Compute node power on/off through Ironic or MaaS.")
+        return "Compute node power on/off through Ironic or MaaS."

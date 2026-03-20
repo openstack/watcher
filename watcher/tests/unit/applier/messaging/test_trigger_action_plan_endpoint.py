@@ -44,12 +44,14 @@ class TestTriggerActionPlan(base.TestCase):
             context=self.context,
             uuid=action_plan_uuid,
             hostname=None,
-            state=objects.action_plan.State.PENDING)
+            state=objects.action_plan.State.PENDING,
+        )
         mock_get_by_uuid.return_value = action_plan
         CONF.set_default('host', 'applier1.example.com')
 
-        expected_uuid = self.endpoint.launch_action_plan(self.context,
-                                                         action_plan_uuid)
+        expected_uuid = self.endpoint.launch_action_plan(
+            self.context, action_plan_uuid
+        )
         self.assertEqual(expected_uuid, action_plan_uuid)
         self.assertEqual(action_plan.hostname, "applier1.example.com")
         mock_save.assert_called_once_with(action_plan)

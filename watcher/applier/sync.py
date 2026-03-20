@@ -39,7 +39,8 @@ class Syncer:
             load_description = load_action.get_description()
             try:
                 action_desc = objects.ActionDescription.get_by_type(
-                    ctx, action_type)
+                    ctx, action_type
+                )
                 if action_desc.description != load_description:
                     action_desc.description = load_description
                     action_desc.save()
@@ -54,28 +55,43 @@ class Syncer:
         hostname = host or CONF.host
         actions_plans = objects.ActionPlan.list(
             context,
-            filters={'state': objects.action_plan.State.ONGOING,
-                     'hostname': hostname},
-            eager=True)
+            filters={
+                'state': objects.action_plan.State.ONGOING,
+                'hostname': hostname,
+            },
+            eager=True,
+        )
         for ap in actions_plans:
             ap.state = objects.action_plan.State.CANCELLED
-            ap.status_message = ("Action plan was cancelled because Applier "
-                                 f"{hostname} was stopped while the action "
-                                 "plan was ongoing.")
+            ap.status_message = (
+                "Action plan was cancelled because Applier "
+                f"{hostname} was stopped while the action "
+                "plan was ongoing."
+            )
             ap.save()
-            filters = {'action_plan_uuid': ap.uuid,
-                       'state__in': (objects.action.State.PENDING,
-                                     objects.action.State.ONGOING)}
+            filters = {
+                'action_plan_uuid': ap.uuid,
+                'state__in': (
+                    objects.action.State.PENDING,
+                    objects.action.State.ONGOING,
+                ),
+            }
             actions = objects.Action.list(context, filters=filters, eager=True)
             for a in actions:
                 a.state = objects.action.State.CANCELLED
-                a.status_message = ("Action was cancelled because Applier "
-                                    f"{hostname} was stopped while the "
-                                    "action plan was ongoing.")
+                a.status_message = (
+                    "Action was cancelled because Applier "
+                    f"{hostname} was stopped while the "
+                    "action plan was ongoing."
+                )
                 a.save()
-            LOG.info("Action Plan %(uuid)s along with appropriate Actions "
-                     "has been cancelled because it was in %(state)s state "
-                     "when Applier had been stopped on %(hostname)s host.",
-                     {'uuid': ap.uuid,
-                      'state': objects.action_plan.State.ONGOING,
-                      'hostname': ap.hostname})
+            LOG.info(
+                "Action Plan %(uuid)s along with appropriate Actions "
+                "has been cancelled because it was in %(state)s state "
+                "when Applier had been stopped on %(hostname)s host.",
+                {
+                    'uuid': ap.uuid,
+                    'state': objects.action_plan.State.ONGOING,
+                    'hostname': ap.hostname,
+                },
+            )

@@ -27,18 +27,15 @@ CONF = cfg.CONF
 
 
 class TestBaseDatasourceHelper(base.BaseTestCase):
-
     def test_query_retry(self):
         exc = Exception()
         method = mock.Mock()
         # first call will fail but second will succeed
         method.side_effect = [exc, True]
         # Max 2 attempts
-        CONF.set_override("query_max_retries", 2,
-                          group='watcher_datasources')
+        CONF.set_override("query_max_retries", 2, group='watcher_datasources')
         # Reduce sleep time to 0
-        CONF.set_override("query_interval", 0,
-                          group='watcher_datasources')
+        CONF.set_override("query_interval", 0, group='watcher_datasources')
 
         helper = datasource.DataSourceBase()
         helper.query_retry_reset = mock.Mock()
@@ -52,11 +49,9 @@ class TestBaseDatasourceHelper(base.BaseTestCase):
         # only third call will succeed
         method.side_effect = [exc, exc, True]
         # Max 2 attempts
-        CONF.set_override("query_max_retries", 2,
-                          group='watcher_datasources')
+        CONF.set_override("query_max_retries", 2, group='watcher_datasources')
         # Reduce sleep time to 0
-        CONF.set_override("query_interval", 0,
-                          group='watcher_datasources')
+        CONF.set_override("query_interval", 0, group='watcher_datasources')
 
         helper = datasource.DataSourceBase()
         helper.query_retry_reset = mock.Mock()
@@ -65,4 +60,5 @@ class TestBaseDatasourceHelper(base.BaseTestCase):
         self.assertIsNone(helper.query_retry(f=method))
         # query_retry_reset should be called twice
         helper.query_retry_reset.assert_has_calls(
-            [mock.call(exc), mock.call(exc)])
+            [mock.call(exc), mock.call(exc)]
+        )

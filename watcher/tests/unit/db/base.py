@@ -14,6 +14,7 @@
 #    under the License.
 
 """Watcher DB test base class."""
+
 import os
 import sqlite3
 import tempfile
@@ -36,8 +37,9 @@ CONF = cfg.CONF
 CONF.import_opt('enable_authentication', 'watcher.api.acl')
 
 
-class SqliteDatabaseFixture(test_fixtures.GeneratesSchema,
-                            test_fixtures.AdHocDbFixture):
+class SqliteDatabaseFixture(
+    test_fixtures.GeneratesSchema, test_fixtures.AdHocDbFixture
+):
     """oslo_db-based fixture for SQLite-backed tests.
 
     This uses oslo_db's AdHocDbFixture to provision a per-test (or per-run)
@@ -56,7 +58,6 @@ class SqliteDatabaseFixture(test_fixtures.GeneratesSchema,
 
 
 class DbTestCase(base.TestCase):
-
     def get_next_id(self):
         return next(self._id_gen)
 
@@ -70,12 +71,14 @@ class DbTestCase(base.TestCase):
         # native thread, since each one can have its own connection to
         # the database. Files created by SQLite will be cleaned up
         # by the NestedTempfile fixture.
-        fd, dbfile_path = tempfile.mkstemp(prefix="watcher_test_",
-                                           suffix=".db")
+        fd, dbfile_path = tempfile.mkstemp(
+            prefix="watcher_test_", suffix=".db"
+        )
         # close the file descriptor before SQLite connects
         os.close(fd)
         CONF.set_override(
-            "connection", f"sqlite:///{dbfile_path}", group="database")
+            "connection", f"sqlite:///{dbfile_path}", group="database"
+        )
 
         # Enable WAL journaling mode: "WAL provides more concurrency as
         # readers do not block writers and a writer does not block readers."
@@ -95,11 +98,14 @@ class DbTestCase(base.TestCase):
         local_enginefacade = enginefacade.transaction_context()
         local_enginefacade.configure(
             connection=CONF.database.connection,
-            sqlite_synchronous=CONF.database.sqlite_synchronous)
+            sqlite_synchronous=CONF.database.sqlite_synchronous,
+        )
 
         self.useFixture(
             test_fixtures.ReplaceEngineFacadeFixture(
-                enginefacade._context_manager, local_enginefacade))
+                enginefacade._context_manager, local_enginefacade
+            )
+        )
 
         # Provision and configure a SQLite database for this test using
         # oslo_db's fixtures.
@@ -113,14 +119,12 @@ class DbTestCase(base.TestCase):
 
 
 class MySQLDbTestCase(test_fixtures.OpportunisticDBTestMixin, base.TestCase):
-
     FIXTURE = test_fixtures.MySQLOpportunisticFixture
 
     def setUp(self):
         conn_str = "mysql+pymysql://root:insecure_slave@127.0.0.1"
         # to use mysql db
-        cfg.CONF.set_override("connection", conn_str,
-                              group="database")
+        cfg.CONF.set_override("connection", conn_str, group="database")
         super().setUp()
         self.engine = enginefacade.writer.get_engine()
         self.dbapi = dbapi.get_instance()

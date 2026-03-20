@@ -17,7 +17,6 @@ import abc
 
 
 class ServiceManager(metaclass=abc.ABCMeta):
-
     @property
     @abc.abstractmethod
     def service_name(self):

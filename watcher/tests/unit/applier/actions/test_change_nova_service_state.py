@@ -28,7 +28,6 @@ from watcher.tests.unit.common import utils as test_utils
 
 
 class TestChangeNovaServiceState(test_utils.NovaResourcesMixin, base.TestCase):
-
     def setUp(self):
         super().setUp()
 
@@ -40,9 +39,11 @@ class TestChangeNovaServiceState(test_utils.NovaResourcesMixin, base.TestCase):
         self.m_osc_cls.return_value = self.m_osc
 
         m_openstack_clients = mock.patch.object(
-            clients, "OpenStackClients", self.m_osc_cls)
+            clients, "OpenStackClients", self.m_osc_cls
+        )
         m_nova_helper = mock.patch.object(
-            nova_helper, "NovaHelper", self.m_helper_cls)
+            nova_helper, "NovaHelper", self.m_helper_cls
+        )
 
         m_openstack_clients.start()
         m_nova_helper.start()
@@ -55,45 +56,52 @@ class TestChangeNovaServiceState(test_utils.NovaResourcesMixin, base.TestCase):
             "state": element.ServiceState.ENABLED.value,
         }
         self.action = change_nova_service_state.ChangeNovaServiceState(
-            mock.Mock())
+            mock.Mock()
+        )
         self.action.input_parameters = self.input_parameters
 
     def test_parameters_down(self):
         self.action.input_parameters = {
             baction.BaseAction.RESOURCE_ID: "compute-1",
-            self.action.STATE: element.ServiceState.DISABLED.value}
+            self.action.STATE: element.ServiceState.DISABLED.value,
+        }
         self.assertTrue(self.action.validate_parameters())
 
     def test_parameters_up(self):
         self.action.input_parameters = {
             baction.BaseAction.RESOURCE_ID: "compute-1",
-            self.action.STATE: element.ServiceState.ENABLED.value}
+            self.action.STATE: element.ServiceState.ENABLED.value,
+        }
         self.assertTrue(self.action.validate_parameters())
 
     def test_parameters_exception_wrong_state(self):
         self.action.input_parameters = {
             baction.BaseAction.RESOURCE_ID: "compute-1",
-            self.action.STATE: 'error'}
-        self.assertRaises(jsonschema.ValidationError,
-                          self.action.validate_parameters)
+            self.action.STATE: 'error',
+        }
+        self.assertRaises(
+            jsonschema.ValidationError, self.action.validate_parameters
+        )
 
     def test_parameters_resource_id_empty(self):
         self.action.input_parameters = {
-            self.action.STATE: element.ServiceState.ENABLED.value,
+            self.action.STATE: element.ServiceState.ENABLED.value
         }
-        self.assertRaises(jsonschema.ValidationError,
-                          self.action.validate_parameters)
+        self.assertRaises(
+            jsonschema.ValidationError, self.action.validate_parameters
+        )
 
     def test_parameters_applies_add_extra(self):
         self.action.input_parameters = {"extra": "failed"}
-        self.assertRaises(jsonschema.ValidationError,
-                          self.action.validate_parameters)
+        self.assertRaises(
+            jsonschema.ValidationError, self.action.validate_parameters
+        )
 
     def test_change_service_state_pre_condition_enable(self):
         svc1 = nova_helper.Service.from_openstacksdk(
             self.create_openstacksdk_service(
-                host='compute-1',
-                status=element.ServiceState.DISABLED.value)
+                host='compute-1', status=element.ServiceState.DISABLED.value
+            )
         )
         self.m_helper.get_service_list.return_value = [svc1]
         self.action.pre_condition()
@@ -101,11 +109,12 @@ class TestChangeNovaServiceState(test_utils.NovaResourcesMixin, base.TestCase):
 
     def test_change_service_state_pre_condition_disable(self):
         self.action.input_parameters["state"] = (
-            element.ServiceState.DISABLED.value)
+            element.ServiceState.DISABLED.value
+        )
         svc1 = nova_helper.Service.from_openstacksdk(
             self.create_openstacksdk_service(
-                host='compute-1',
-                status=element.ServiceState.ENABLED.value)
+                host='compute-1', status=element.ServiceState.ENABLED.value
+            )
         )
         self.m_helper.get_service_list.return_value = [svc1]
         self.action.pre_condition()
@@ -114,27 +123,29 @@ class TestChangeNovaServiceState(test_utils.NovaResourcesMixin, base.TestCase):
     def test_change_service_state_pre_condition_skipped_not_found(self):
         svc1 = nova_helper.Service.from_openstacksdk(
             self.create_openstacksdk_service(
-                host='compute-2',
-                status=element.ServiceState.DISABLED.value)
+                host='compute-2', status=element.ServiceState.DISABLED.value
+            )
         )
         self.m_helper.get_service_list.return_value = [svc1]
         self.assertRaisesRegex(
             exception.ActionSkipped,
             "nova-compute service compute-1 not found",
-            self.action.pre_condition)
+            self.action.pre_condition,
+        )
         self.m_helper.get_service_list.assert_called_once_with()
 
     def test_change_service_state_pre_condition_skipped_state(self):
         svc1 = nova_helper.Service.from_openstacksdk(
             self.create_openstacksdk_service(
-                host='compute-1',
-                status=element.ServiceState.ENABLED.value)
+                host='compute-1', status=element.ServiceState.ENABLED.value
+            )
         )
         self.m_helper.get_service_list.return_value = [svc1]
         self.assertRaisesRegex(
             exception.ActionSkipped,
             "nova-compute service compute-1 is already in state enabled",
-            self.action.pre_condition)
+            self.action.pre_condition,
+        )
         self.m_helper.get_service_list.assert_called_once_with()
 
     def test_change_service_state_post_condition(self):
@@ -148,33 +159,37 @@ class TestChangeNovaServiceState(test_utils.NovaResourcesMixin, base.TestCase):
 
         self.m_helper_cls.assert_called_once_with(osc=self.m_osc)
         self.m_helper.enable_service_nova_compute.assert_called_once_with(
-            "compute-1")
+            "compute-1"
+        )
 
     def test_execute_change_service_state_with_disable_target(self):
         self.action.input_parameters["state"] = (
-            element.ServiceState.DISABLED.value)
-        self.action.input_parameters["disabled_reason"] = (
-            "watcher_disabled")
+            element.ServiceState.DISABLED.value
+        )
+        self.action.input_parameters["disabled_reason"] = "watcher_disabled"
         self.action.execute()
 
         self.m_helper_cls.assert_called_once_with(osc=self.m_osc)
         self.m_helper.disable_service_nova_compute.assert_called_once_with(
-            "compute-1", "watcher_disabled")
+            "compute-1", "watcher_disabled"
+        )
 
     def test_revert_change_service_state_with_enable_target(self):
-        self.action.input_parameters["disabled_reason"] = (
-            "watcher_disabled")
+        self.action.input_parameters["disabled_reason"] = "watcher_disabled"
         self.action.revert()
 
         self.m_helper_cls.assert_called_once_with(osc=self.m_osc)
         self.m_helper.disable_service_nova_compute.assert_called_once_with(
-            "compute-1", "watcher_disabled")
+            "compute-1", "watcher_disabled"
+        )
 
     def test_revert_change_service_state_with_disable_target(self):
         self.action.input_parameters["state"] = (
-            element.ServiceState.DISABLED.value)
+            element.ServiceState.DISABLED.value
+        )
         self.action.revert()
 
         self.m_helper_cls.assert_called_once_with(osc=self.m_osc)
         self.m_helper.enable_service_nova_compute.assert_called_once_with(
-            "compute-1")
+            "compute-1"
+        )

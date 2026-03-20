@@ -20,7 +20,6 @@ from watcher.decision_engine.solution import efficacy
 
 
 class Unclassified(base.EfficacySpecification):
-
     def get_indicators_specifications(self):
         return ()
 
@@ -29,7 +28,6 @@ class Unclassified(base.EfficacySpecification):
 
 
 class ServerConsolidation(base.EfficacySpecification):
-
     def get_indicators_specifications(self):
         return [
             indicators.ComputeNodesCount(),
@@ -41,27 +39,32 @@ class ServerConsolidation(base.EfficacySpecification):
         value = 0
         global_efficacy = []
         if indicators_map and indicators_map.compute_nodes_count > 0:
-            value = (float(indicators_map.released_compute_nodes_count) /
-                     float(indicators_map.compute_nodes_count)) * 100
-        global_efficacy.append(efficacy.Indicator(
-            name="released_nodes_ratio",
-            description=_("Ratio of released compute nodes divided by the "
-                          "total number of enabled compute nodes."),
-            unit='%',
-            value=value,
-        ))
+            value = (
+                float(indicators_map.released_compute_nodes_count)
+                / float(indicators_map.compute_nodes_count)
+            ) * 100
+        global_efficacy.append(
+            efficacy.Indicator(
+                name="released_nodes_ratio",
+                description=_(
+                    "Ratio of released compute nodes divided by the "
+                    "total number of enabled compute nodes."
+                ),
+                unit='%',
+                value=value,
+            )
+        )
 
         return global_efficacy
 
 
 class WorkloadBalancing(base.EfficacySpecification):
-
     def get_indicators_specifications(self):
         return [
             indicators.InstanceMigrationsCount(),
             indicators.InstancesCount(),
             indicators.StandardDeviationValue(),
-            indicators.OriginalStandardDeviationValue()
+            indicators.OriginalStandardDeviationValue(),
         ]
 
     def get_global_efficacy_indicator(self, indicators_map=None):
@@ -69,19 +72,25 @@ class WorkloadBalancing(base.EfficacySpecification):
         mig_value = 0
         if indicators_map and indicators_map.instance_migrations_count > 0:
             mig_value = (
-                indicators_map.instance_migrations_count /
-                float(indicators_map.instances_count) * 100)
-        gl_indicators.append(efficacy.Indicator(
-            name="live_migrations_count",
-            description=_("Ratio of migrated virtual machines to audited "
-                          "virtual machines"),
-            unit='%',
-            value=mig_value))
+                indicators_map.instance_migrations_count
+                / float(indicators_map.instances_count)
+                * 100
+            )
+        gl_indicators.append(
+            efficacy.Indicator(
+                name="live_migrations_count",
+                description=_(
+                    "Ratio of migrated virtual machines to audited "
+                    "virtual machines"
+                ),
+                unit='%',
+                value=mig_value,
+            )
+        )
         return gl_indicators
 
 
 class HardwareMaintenance(base.EfficacySpecification):
-
     def get_indicators_specifications(self):
         return [
             indicators.LiveInstanceMigrateCount(),
@@ -91,73 +100,86 @@ class HardwareMaintenance(base.EfficacySpecification):
             indicators.VolumeMigrateCount(),
             indicators.PlannedVolumeMigrateCount(),
             indicators.VolumeUpdateCount(),
-            indicators.PlannedVolumeUpdateCount()
+            indicators.PlannedVolumeUpdateCount(),
         ]
 
     def get_global_efficacy_indicator(self, indicators_map=None):
         li_value = 0
-        if (indicators_map and
-                indicators_map.planned_live_migrate_instance_count > 0):
+        if (
+            indicators_map
+            and indicators_map.planned_live_migrate_instance_count > 0
+        ):
             li_value = (
-                float(indicators_map.planned_live_migrate_instance_count) /
-                float(indicators_map.live_migrate_instance_count) *
-                100
-                )
+                float(indicators_map.planned_live_migrate_instance_count)
+                / float(indicators_map.live_migrate_instance_count)
+                * 100
+            )
 
         li_indicator = efficacy.Indicator(
             name="live_instance_migrate_ratio",
-            description=_("Ratio of actual live migrated instances "
-                          "to planned live migrate instances."),
+            description=_(
+                "Ratio of actual live migrated instances "
+                "to planned live migrate instances."
+            ),
             unit='%',
-            value=li_value)
+            value=li_value,
+        )
 
         ci_value = 0
-        if (indicators_map and
-                indicators_map.planned_cold_migrate_instance_count > 0):
+        if (
+            indicators_map
+            and indicators_map.planned_cold_migrate_instance_count > 0
+        ):
             ci_value = (
-                float(indicators_map.planned_cold_migrate_instance_count) /
-                float(indicators_map.cold_migrate_instance_count) *
-                100
-                )
+                float(indicators_map.planned_cold_migrate_instance_count)
+                / float(indicators_map.cold_migrate_instance_count)
+                * 100
+            )
 
         ci_indicator = efficacy.Indicator(
             name="cold_instance_migrate_ratio",
-            description=_("Ratio of actual cold migrated instances "
-                          "to planned cold migrate instances."),
+            description=_(
+                "Ratio of actual cold migrated instances "
+                "to planned cold migrate instances."
+            ),
             unit='%',
-            value=ci_value)
+            value=ci_value,
+        )
 
         dv_value = 0
-        if (indicators_map and
-                indicators_map.planned_volume_migrate_count > 0):
-            dv_value = (float(indicators_map.planned_volume_migrate_count) /
-                        float(indicators_map.
-                              volume_migrate_count) *
-                        100)
+        if indicators_map and indicators_map.planned_volume_migrate_count > 0:
+            dv_value = (
+                float(indicators_map.planned_volume_migrate_count)
+                / float(indicators_map.volume_migrate_count)
+                * 100
+            )
 
         dv_indicator = efficacy.Indicator(
             name="volume_migrate_ratio",
-            description=_("Ratio of actual detached volumes migrated to"
-                          " planned detached volumes migrate."),
+            description=_(
+                "Ratio of actual detached volumes migrated to"
+                " planned detached volumes migrate."
+            ),
             unit='%',
-            value=dv_value)
+            value=dv_value,
+        )
 
         av_value = 0
-        if (indicators_map and
-                indicators_map.planned_volume_update_count > 0):
-            av_value = (float(indicators_map.planned_volume_update_count) /
-                        float(indicators_map.
-                              volume_update_count) *
-                        100)
+        if indicators_map and indicators_map.planned_volume_update_count > 0:
+            av_value = (
+                float(indicators_map.planned_volume_update_count)
+                / float(indicators_map.volume_update_count)
+                * 100
+            )
 
         av_indicator = efficacy.Indicator(
             name="volume_update_ratio",
-            description=_("Ratio of actual attached volumes migrated to"
-                          " planned attached volumes migrate."),
+            description=_(
+                "Ratio of actual attached volumes migrated to"
+                " planned attached volumes migrate."
+            ),
             unit='%',
-            value=av_value)
+            value=av_value,
+        )
 
-        return [li_indicator,
-                ci_indicator,
-                dv_indicator,
-                av_indicator]
+        return [li_indicator, ci_indicator, dv_indicator, av_indicator]

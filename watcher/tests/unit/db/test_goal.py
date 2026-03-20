@@ -24,7 +24,6 @@ from watcher.tests.unit.db import utils
 
 
 class TestDbGoalFilters(base.DbTestCase):
-
     FAKE_OLDER_DATE = '2014-01-01T09:52:05.219414'
     FAKE_OLD_DATE = '2015-01-01T09:52:05.219414'
     FAKE_TODAY = '2016-02-24T09:52:05.219414'
@@ -37,16 +36,25 @@ class TestDbGoalFilters(base.DbTestCase):
     def _data_setup(self):
         with freezegun.freeze_time(self.FAKE_TODAY):
             self.goal1 = utils.create_test_goal(
-                id=1, uuid=w_utils.generate_uuid(), name="GOAL_1",
-                display_name="Goal 1")
+                id=1,
+                uuid=w_utils.generate_uuid(),
+                name="GOAL_1",
+                display_name="Goal 1",
+            )
         with freezegun.freeze_time(self.FAKE_OLD_DATE):
             self.goal2 = utils.create_test_goal(
-                id=2, uuid=w_utils.generate_uuid(),
-                name="GOAL_2", display_name="Goal 2")
+                id=2,
+                uuid=w_utils.generate_uuid(),
+                name="GOAL_2",
+                display_name="Goal 2",
+            )
         with freezegun.freeze_time(self.FAKE_OLDER_DATE):
             self.goal3 = utils.create_test_goal(
-                id=3, uuid=w_utils.generate_uuid(),
-                name="GOAL_3", display_name="Goal 3")
+                id=3,
+                uuid=w_utils.generate_uuid(),
+                name="GOAL_3",
+                display_name="Goal 3",
+            )
 
     def _soft_delete_goals(self):
         with freezegun.freeze_time(self.FAKE_TODAY):
@@ -59,20 +67,22 @@ class TestDbGoalFilters(base.DbTestCase):
     def _update_goals(self):
         with freezegun.freeze_time(self.FAKE_TODAY):
             self.dbapi.update_goal(
-                self.goal1.uuid, values={"display_name": "goal1"})
+                self.goal1.uuid, values={"display_name": "goal1"}
+            )
         with freezegun.freeze_time(self.FAKE_OLD_DATE):
             self.dbapi.update_goal(
-                self.goal2.uuid, values={"display_name": "goal2"})
+                self.goal2.uuid, values={"display_name": "goal2"}
+            )
         with freezegun.freeze_time(self.FAKE_OLDER_DATE):
             self.dbapi.update_goal(
-                self.goal3.uuid, values={"display_name": "goal3"})
+                self.goal3.uuid, values={"display_name": "goal3"}
+            )
 
     def test_get_goal_list_filter_deleted_true(self):
         with freezegun.freeze_time(self.FAKE_TODAY):
             self.dbapi.soft_delete_goal(self.goal1.id)
 
-        res = self.dbapi.get_goal_list(
-            self.context, filters={'deleted': True})
+        res = self.dbapi.get_goal_list(self.context, filters={'deleted': True})
 
         self.assertEqual([self.goal1.uuid], [r.uuid for r in res])
 
@@ -81,17 +91,19 @@ class TestDbGoalFilters(base.DbTestCase):
             self.dbapi.soft_delete_goal(self.goal1.id)
 
         res = self.dbapi.get_goal_list(
-            self.context, filters={'deleted': False})
+            self.context, filters={'deleted': False}
+        )
 
         self.assertEqual(
-            {self.goal2.uuid, self.goal3.uuid},
-            {r.uuid for r in res})
+            {self.goal2.uuid, self.goal3.uuid}, {r.uuid for r in res}
+        )
 
     def test_get_goal_list_filter_deleted_at_eq(self):
         self._soft_delete_goals()
 
         res = self.dbapi.get_goal_list(
-            self.context, filters={'deleted_at__eq': self.FAKE_TODAY})
+            self.context, filters={'deleted_at__eq': self.FAKE_TODAY}
+        )
 
         self.assertEqual([self.goal1.uuid], [r.uuid for r in res])
 
@@ -99,27 +111,30 @@ class TestDbGoalFilters(base.DbTestCase):
         self._soft_delete_goals()
 
         res = self.dbapi.get_goal_list(
-            self.context, filters={'deleted_at__lt': self.FAKE_TODAY})
+            self.context, filters={'deleted_at__lt': self.FAKE_TODAY}
+        )
 
         self.assertEqual(
-            {self.goal2.uuid, self.goal3.uuid},
-            {r.uuid for r in res})
+            {self.goal2.uuid, self.goal3.uuid}, {r.uuid for r in res}
+        )
 
     def test_get_goal_list_filter_deleted_at_lte(self):
         self._soft_delete_goals()
 
         res = self.dbapi.get_goal_list(
-            self.context, filters={'deleted_at__lte': self.FAKE_OLD_DATE})
+            self.context, filters={'deleted_at__lte': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual(
-            {self.goal2.uuid, self.goal3.uuid},
-            {r.uuid for r in res})
+            {self.goal2.uuid, self.goal3.uuid}, {r.uuid for r in res}
+        )
 
     def test_get_goal_list_filter_deleted_at_gt(self):
         self._soft_delete_goals()
 
         res = self.dbapi.get_goal_list(
-            self.context, filters={'deleted_at__gt': self.FAKE_OLD_DATE})
+            self.context, filters={'deleted_at__gt': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual([self.goal1.uuid], [r.uuid for r in res])
 
@@ -127,49 +142,55 @@ class TestDbGoalFilters(base.DbTestCase):
         self._soft_delete_goals()
 
         res = self.dbapi.get_goal_list(
-            self.context, filters={'deleted_at__gte': self.FAKE_OLD_DATE})
+            self.context, filters={'deleted_at__gte': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual(
-            {self.goal1.uuid, self.goal2.uuid},
-            {r.uuid for r in res})
+            {self.goal1.uuid, self.goal2.uuid}, {r.uuid for r in res}
+        )
 
     # created_at #
 
     def test_get_goal_list_filter_created_at_eq(self):
         res = self.dbapi.get_goal_list(
-            self.context, filters={'created_at__eq': self.FAKE_TODAY})
+            self.context, filters={'created_at__eq': self.FAKE_TODAY}
+        )
 
         self.assertEqual([self.goal1.uuid], [r.uuid for r in res])
 
     def test_get_goal_list_filter_created_at_lt(self):
         res = self.dbapi.get_goal_list(
-            self.context, filters={'created_at__lt': self.FAKE_TODAY})
+            self.context, filters={'created_at__lt': self.FAKE_TODAY}
+        )
 
         self.assertEqual(
-            {self.goal2.uuid, self.goal3.uuid},
-            {r.uuid for r in res})
+            {self.goal2.uuid, self.goal3.uuid}, {r.uuid for r in res}
+        )
 
     def test_get_goal_list_filter_created_at_lte(self):
         res = self.dbapi.get_goal_list(
-            self.context, filters={'created_at__lte': self.FAKE_OLD_DATE})
+            self.context, filters={'created_at__lte': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual(
-            {self.goal2.uuid, self.goal3.uuid},
-            {r.uuid for r in res})
+            {self.goal2.uuid, self.goal3.uuid}, {r.uuid for r in res}
+        )
 
     def test_get_goal_list_filter_created_at_gt(self):
         res = self.dbapi.get_goal_list(
-            self.context, filters={'created_at__gt': self.FAKE_OLD_DATE})
+            self.context, filters={'created_at__gt': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual([self.goal1.uuid], [r.uuid for r in res])
 
     def test_get_goal_list_filter_created_at_gte(self):
         res = self.dbapi.get_goal_list(
-            self.context, filters={'created_at__gte': self.FAKE_OLD_DATE})
+            self.context, filters={'created_at__gte': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual(
-            {self.goal1.uuid, self.goal2.uuid},
-            {r.uuid for r in res})
+            {self.goal1.uuid, self.goal2.uuid}, {r.uuid for r in res}
+        )
 
     # updated_at #
 
@@ -177,7 +198,8 @@ class TestDbGoalFilters(base.DbTestCase):
         self._update_goals()
 
         res = self.dbapi.get_goal_list(
-            self.context, filters={'updated_at__eq': self.FAKE_TODAY})
+            self.context, filters={'updated_at__eq': self.FAKE_TODAY}
+        )
 
         self.assertEqual([self.goal1.uuid], [r.uuid for r in res])
 
@@ -185,27 +207,30 @@ class TestDbGoalFilters(base.DbTestCase):
         self._update_goals()
 
         res = self.dbapi.get_goal_list(
-            self.context, filters={'updated_at__lt': self.FAKE_TODAY})
+            self.context, filters={'updated_at__lt': self.FAKE_TODAY}
+        )
 
         self.assertEqual(
-            {self.goal2.uuid, self.goal3.uuid},
-            {r.uuid for r in res})
+            {self.goal2.uuid, self.goal3.uuid}, {r.uuid for r in res}
+        )
 
     def test_get_goal_list_filter_updated_at_lte(self):
         self._update_goals()
 
         res = self.dbapi.get_goal_list(
-            self.context, filters={'updated_at__lte': self.FAKE_OLD_DATE})
+            self.context, filters={'updated_at__lte': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual(
-            {self.goal2.uuid, self.goal3.uuid},
-            {r.uuid for r in res})
+            {self.goal2.uuid, self.goal3.uuid}, {r.uuid for r in res}
+        )
 
     def test_get_goal_list_filter_updated_at_gt(self):
         self._update_goals()
 
         res = self.dbapi.get_goal_list(
-            self.context, filters={'updated_at__gt': self.FAKE_OLD_DATE})
+            self.context, filters={'updated_at__gt': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual([self.goal1.uuid], [r.uuid for r in res])
 
@@ -213,15 +238,15 @@ class TestDbGoalFilters(base.DbTestCase):
         self._update_goals()
 
         res = self.dbapi.get_goal_list(
-            self.context, filters={'updated_at__gte': self.FAKE_OLD_DATE})
+            self.context, filters={'updated_at__gte': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual(
-            {self.goal1.uuid, self.goal2.uuid},
-            {r.uuid for r in res})
+            {self.goal1.uuid, self.goal2.uuid}, {r.uuid for r in res}
+        )
 
 
 class DbGoalTestCase(base.DbTestCase):
-
     def test_get_goal_list(self):
         uuids = []
         for i in range(1, 4):
@@ -229,7 +254,8 @@ class DbGoalTestCase(base.DbTestCase):
                 id=i,
                 uuid=w_utils.generate_uuid(),
                 name=f"GOAL_{i}",
-                display_name=f'My Goal {i}')
+                display_name=f'My Goal {i}',
+            )
             uuids.append(str(goal['uuid']))
         goals = self.dbapi.get_goal_list(self.context)
         goal_uuids = [g.uuid for g in goals]
@@ -258,75 +284,99 @@ class DbGoalTestCase(base.DbTestCase):
         self.dbapi.soft_delete_goal(goal3['uuid'])
 
         res = self.dbapi.get_goal_list(
-            self.context, filters={'display_name': 'Goal 1'})
+            self.context, filters={'display_name': 'Goal 1'}
+        )
         self.assertEqual([goal1['uuid']], [r.uuid for r in res])
 
         res = self.dbapi.get_goal_list(
-            self.context, filters={'display_name': 'Goal 3'})
+            self.context, filters={'display_name': 'Goal 3'}
+        )
         self.assertEqual([], [r.uuid for r in res])
 
         res = self.dbapi.get_goal_list(
-            self.context, filters={'name': 'GOAL_1'})
+            self.context, filters={'name': 'GOAL_1'}
+        )
         self.assertEqual([goal1['uuid']], [r.uuid for r in res])
 
         res = self.dbapi.get_goal_list(
-            self.context, filters={'display_name': 'Goal 2'})
+            self.context, filters={'display_name': 'Goal 2'}
+        )
         self.assertEqual([goal2['uuid']], [r.uuid for r in res])
 
         res = self.dbapi.get_goal_list(
-            self.context, filters={'uuid': goal3['uuid']})
+            self.context, filters={'uuid': goal3['uuid']}
+        )
         self.assertEqual([], [r.uuid for r in res])
 
     def test_get_goal_by_uuid(self):
-        efficacy_spec = [{"unit": "%", "name": "dummy",
-                          "schema": "Range(min=0, max=100, min_included=True, "
-                                    "max_included=True, msg=None)",
-                          "description": "Dummy indicator"}]
+        efficacy_spec = [
+            {
+                "unit": "%",
+                "name": "dummy",
+                "schema": "Range(min=0, max=100, min_included=True, "
+                "max_included=True, msg=None)",
+                "description": "Dummy indicator",
+            }
+        ]
         created_goal = utils.create_test_goal(
-            efficacy_specification=efficacy_spec)
+            efficacy_specification=efficacy_spec
+        )
         goal = self.dbapi.get_goal_by_uuid(self.context, created_goal['uuid'])
         self.assertEqual(goal.uuid, created_goal['uuid'])
 
     def test_get_goal_that_does_not_exist(self):
         random_uuid = w_utils.generate_uuid()
-        self.assertRaises(exception.GoalNotFound,
-                          self.dbapi.get_goal_by_uuid,
-                          self.context, random_uuid)
+        self.assertRaises(
+            exception.GoalNotFound,
+            self.dbapi.get_goal_by_uuid,
+            self.context,
+            random_uuid,
+        )
 
     def test_update_goal(self):
         goal = utils.create_test_goal()
-        res = self.dbapi.update_goal(goal['uuid'],
-                                     {'display_name': 'updated-model'})
+        res = self.dbapi.update_goal(
+            goal['uuid'], {'display_name': 'updated-model'}
+        )
         self.assertEqual('updated-model', res.display_name)
 
     def test_update_goal_id(self):
         goal = utils.create_test_goal()
-        self.assertRaises(exception.Invalid,
-                          self.dbapi.update_goal, goal['uuid'],
-                          {'uuid': 'NEW_GOAL'})
+        self.assertRaises(
+            exception.Invalid,
+            self.dbapi.update_goal,
+            goal['uuid'],
+            {'uuid': 'NEW_GOAL'},
+        )
 
     def test_update_goal_that_does_not_exist(self):
         random_uuid = w_utils.generate_uuid()
-        self.assertRaises(exception.GoalNotFound,
-                          self.dbapi.update_goal,
-                          random_uuid,
-                          {'display_name': ''})
+        self.assertRaises(
+            exception.GoalNotFound,
+            self.dbapi.update_goal,
+            random_uuid,
+            {'display_name': ''},
+        )
 
     def test_destroy_goal(self):
         goal = utils.create_test_goal()
         self.dbapi.destroy_goal(goal['uuid'])
-        self.assertRaises(exception.GoalNotFound,
-                          self.dbapi.get_goal_by_uuid,
-                          self.context, goal['uuid'])
+        self.assertRaises(
+            exception.GoalNotFound,
+            self.dbapi.get_goal_by_uuid,
+            self.context,
+            goal['uuid'],
+        )
 
     def test_destroy_goal_that_does_not_exist(self):
         random_uuid = w_utils.generate_uuid()
-        self.assertRaises(exception.GoalNotFound,
-                          self.dbapi.destroy_goal, random_uuid)
+        self.assertRaises(
+            exception.GoalNotFound, self.dbapi.destroy_goal, random_uuid
+        )
 
     def test_create_goal_already_exists(self):
         goal_uuid = w_utils.generate_uuid()
         utils.create_test_goal(uuid=goal_uuid)
-        self.assertRaises(exception.GoalAlreadyExists,
-                          utils.create_test_goal,
-                          uuid=goal_uuid)
+        self.assertRaises(
+            exception.GoalAlreadyExists, utils.create_test_goal, uuid=goal_uuid
+        )

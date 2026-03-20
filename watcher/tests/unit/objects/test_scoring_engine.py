@@ -26,20 +26,22 @@ from watcher.tests.unit.db import utils
 
 
 class TestScoringEngineObject(base.DbTestCase):
-
     def setUp(self):
         super().setUp()
         self.fake_scoring_engine = utils.get_test_scoring_engine(
-            created_at=timeutils.utcnow())
+            created_at=timeutils.utcnow()
+        )
 
     @mock.patch.object(db_api.Connection, 'get_scoring_engine_by_id')
     def test_get_by_id(self, mock_get_scoring_engine):
         scoring_engine_id = self.fake_scoring_engine['id']
         mock_get_scoring_engine.return_value = self.fake_scoring_engine
         scoring_engine = objects.ScoringEngine.get_by_id(
-            self.context, scoring_engine_id)
+            self.context, scoring_engine_id
+        )
         mock_get_scoring_engine.assert_called_once_with(
-            self.context, scoring_engine_id)
+            self.context, scoring_engine_id
+        )
         self.assertEqual(self.context, scoring_engine._context)
 
     @mock.patch.object(db_api.Connection, 'get_scoring_engine_by_uuid')
@@ -47,9 +49,9 @@ class TestScoringEngineObject(base.DbTestCase):
         se_uuid = self.fake_scoring_engine['uuid']
         mock_get_scoring_engine.return_value = self.fake_scoring_engine
         scoring_engine = objects.ScoringEngine.get_by_uuid(
-            self.context, se_uuid)
-        mock_get_scoring_engine.assert_called_once_with(
-            self.context, se_uuid)
+            self.context, se_uuid
+        )
+        mock_get_scoring_engine.assert_called_once_with(self.context, se_uuid)
         self.assertEqual(self.context, scoring_engine._context)
 
     @mock.patch.object(db_api.Connection, 'get_scoring_engine_by_uuid')
@@ -57,9 +59,11 @@ class TestScoringEngineObject(base.DbTestCase):
         scoring_engine_uuid = self.fake_scoring_engine['uuid']
         mock_get_scoring_engine.return_value = self.fake_scoring_engine
         scoring_engine = objects.ScoringEngine.get(
-            self.context, scoring_engine_uuid)
+            self.context, scoring_engine_uuid
+        )
         mock_get_scoring_engine.assert_called_once_with(
-            self.context, scoring_engine_uuid)
+            self.context, scoring_engine_uuid
+        )
         self.assertEqual(self.context, scoring_engine._context)
 
     @mock.patch.object(db_api.Connection, 'get_scoring_engine_list')
@@ -75,19 +79,23 @@ class TestScoringEngineObject(base.DbTestCase):
     def test_create(self, mock_create_scoring_engine):
         mock_create_scoring_engine.return_value = self.fake_scoring_engine
         scoring_engine = objects.ScoringEngine(
-            self.context, **self.fake_scoring_engine)
+            self.context, **self.fake_scoring_engine
+        )
         scoring_engine.create()
         expected_scoring_engine = self.fake_scoring_engine.copy()
         expected_scoring_engine['created_at'] = expected_scoring_engine[
-            'created_at'].replace(tzinfo=datetime.timezone.utc)
+            'created_at'
+        ].replace(tzinfo=datetime.timezone.utc)
         mock_create_scoring_engine.assert_called_once_with(
-            expected_scoring_engine)
+            expected_scoring_engine
+        )
         self.assertEqual(self.context, scoring_engine._context)
 
     @mock.patch.object(db_api.Connection, 'destroy_scoring_engine')
     @mock.patch.object(db_api.Connection, 'get_scoring_engine_by_id')
-    def test_destroy(self, mock_get_scoring_engine,
-                     mock_destroy_scoring_engine):
+    def test_destroy(
+        self, mock_get_scoring_engine, mock_destroy_scoring_engine
+    ):
         mock_get_scoring_engine.return_value = self.fake_scoring_engine
         _id = self.fake_scoring_engine['id']
         scoring_engine = objects.ScoringEngine.get_by_id(self.context, _id)
@@ -111,18 +119,19 @@ class TestScoringEngineObject(base.DbTestCase):
 
         mock_get_scoring_engine.assert_called_once_with(self.context, uuid)
         mock_update_scoring_engine.assert_called_once_with(
-            uuid, {'description': 'UPDATED DESCRIPTION'})
+            uuid, {'description': 'UPDATED DESCRIPTION'}
+        )
         self.assertEqual(self.context, scoring_engine._context)
 
     @mock.patch.object(db_api.Connection, 'get_scoring_engine_by_id')
     def test_refresh(self, mock_get_scoring_engine):
         returns = [
             dict(self.fake_scoring_engine, description="first description"),
-            dict(self.fake_scoring_engine, description="second description")]
+            dict(self.fake_scoring_engine, description="second description"),
+        ]
         mock_get_scoring_engine.side_effect = returns
         _id = self.fake_scoring_engine['id']
-        expected = [mock.call(self.context, _id),
-                    mock.call(self.context, _id)]
+        expected = [mock.call(self.context, _id), mock.call(self.context, _id)]
         scoring_engine = objects.ScoringEngine.get_by_id(self.context, _id)
         self.assertEqual("first description", scoring_engine.description)
         scoring_engine.refresh()
@@ -140,9 +149,11 @@ class TestScoringEngineObject(base.DbTestCase):
 
         expected_scoring_engine = fake_deleted_scoring_engine.copy()
         expected_scoring_engine['created_at'] = expected_scoring_engine[
-            'created_at'].replace(tzinfo=datetime.timezone.utc)
+            'created_at'
+        ].replace(tzinfo=datetime.timezone.utc)
         expected_scoring_engine['deleted_at'] = expected_scoring_engine[
-            'deleted_at'].replace(tzinfo=datetime.timezone.utc)
+            'deleted_at'
+        ].replace(tzinfo=datetime.timezone.utc)
 
         _id = self.fake_scoring_engine['id']
         scoring_engine = objects.ScoringEngine.get_by_id(self.context, _id)

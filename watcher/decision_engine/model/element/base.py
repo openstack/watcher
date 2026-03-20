@@ -28,9 +28,12 @@ from watcher.objects import fields as wfields
 LOG = log.getLogger(__name__)
 
 
-class Element(base.WatcherObject, base.WatcherObjectDictCompat,
-              base.WatcherComparableObject, metaclass=abc.ABCMeta):
-
+class Element(
+    base.WatcherObject,
+    base.WatcherObjectDictCompat,
+    base.WatcherComparableObject,
+    metaclass=abc.ABCMeta,
+):
     # Initial version
     VERSION = '1.0'
 
@@ -40,8 +43,11 @@ class Element(base.WatcherObject, base.WatcherObjectDictCompat,
         for name, field in self.fields.items():
             # The idea here is to force the initialization of unspecified
             # fields that have a default value
-            if (name not in kwargs and not field.nullable and
-                    field.default != wfields.UnspecifiedDefault):
+            if (
+                name not in kwargs
+                and not field.nullable
+                and field.default != wfields.UnspecifiedDefault
+            ):
                 kwargs[name] = field.default
         super().__init__(context, **kwargs)
 
@@ -57,8 +63,12 @@ class Element(base.WatcherObject, base.WatcherObjectDictCompat,
                 value = str(self[field])
                 sorted_fieldmap.append((field, value))
             except NotImplementedError:
-                LOG.debug("Attribute %s for object %s: %s is not provided",
-                          field, element_name, self)
+                LOG.debug(
+                    "Attribute %s for object %s: %s is not provided",
+                    field,
+                    element_name,
+                    self,
+                )
             except Exception as exc:
                 LOG.exception(exc)
 

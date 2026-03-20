@@ -27,14 +27,16 @@ def _monkey_patch():
     # patching. eventlet processes environment variables at import-time.
     # as such any eventlet configuration should happen here if needed.
     import eventlet
+
     eventlet.monkey_patch()
     global MONKEY_PATCHED
     MONKEY_PATCHED = True
 
 
 def _is_patching_enabled():
-    if (os.environ.get('OS_WATCHER_DISABLE_EVENTLET_PATCHING', '').lower()
-            not in ('1', 'true', 'yes', 'y')):
+    if os.environ.get(
+        'OS_WATCHER_DISABLE_EVENTLET_PATCHING', ''
+    ).lower() not in ('1', 'true', 'yes', 'y'):
         return True
     return False
 

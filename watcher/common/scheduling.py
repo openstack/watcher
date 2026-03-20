@@ -25,13 +25,12 @@ from watcher.common import executor
 
 job_events = events
 
-executors = {
-    'default': executor.APSchedulerThreadPoolExecutor(),
-}
+executors = {'default': executor.APSchedulerThreadPoolExecutor()}
 
 
 class BackgroundSchedulerService(
-        service.ServiceBase, background.BackgroundScheduler):
+    service.ServiceBase, background.BackgroundScheduler
+):
     def __init__(self, gconfig=None, **options):
         if options is None:
             options = {'executors': executors}
@@ -48,8 +47,9 @@ class BackgroundSchedulerService(
         super()._main_loop()
 
     def add_job(self, *args, **kwargs):
-        executor.log_executor_stats(executors['default'].executor,
-                                    name="background-scheduler-pool")
+        executor.log_executor_stats(
+            executors['default'].executor, name="background-scheduler-pool"
+        )
         return super().add_job(*args, **kwargs)
 
     def start(self):

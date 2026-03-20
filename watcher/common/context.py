@@ -23,11 +23,23 @@ LOG = log.getLogger(__name__)
 class RequestContext(context.RequestContext):
     """Extends security contexts from the OpenStack common library."""
 
-    def __init__(self, user_id=None, project_id=None, is_admin=None,
-                 roles=None, timestamp=None, request_id=None, auth_token=None,
-                 overwrite=True, user_name=None, project_name=None,
-                 domain_name=None, domain_id=None, auth_token_info=None,
-                 **kwargs):
+    def __init__(
+        self,
+        user_id=None,
+        project_id=None,
+        is_admin=None,
+        roles=None,
+        timestamp=None,
+        request_id=None,
+        auth_token=None,
+        overwrite=True,
+        user_name=None,
+        project_name=None,
+        domain_name=None,
+        domain_id=None,
+        auth_token_info=None,
+        **kwargs,
+    ):
         """Stores several additional request parameters:
 
         :param domain_id: The ID of the domain.
@@ -54,7 +66,8 @@ class RequestContext(context.RequestContext):
             overwrite=overwrite,
             roles=roles,
             global_request_id=kwargs.pop('global_request_id', None),
-            system_scope=kwargs.pop('system_scope', None))
+            system_scope=kwargs.pop('system_scope', None),
+        )
 
         # Note(sean-k-mooney): we should audit what we are using
         # this for and possibly remove it or document it.
@@ -68,10 +81,12 @@ class RequestContext(context.RequestContext):
 
     def to_dict(self):
         values = super().to_dict()
-        values.update({
-            'auth_token_info': getattr(self, 'auth_token_info', None),
-            'timestamp': self.timestamp.isoformat(),
-        })
+        values.update(
+            {
+                'auth_token_info': getattr(self, 'auth_token_info', None),
+                'timestamp': self.timestamp.isoformat(),
+            }
+        )
         return values
 
     def __str__(self):

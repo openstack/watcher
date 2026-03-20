@@ -41,8 +41,9 @@ class IronicNode(base.BaseMetalNode):
         self._ironic_node = ironic_node
 
     def get_power_state(self):
-        return POWER_STATES_MAP.get(self._ironic_node.power_state,
-                                    metal_constants.PowerState.UNKNOWN)
+        return POWER_STATES_MAP.get(
+            self._ironic_node.power_state, metal_constants.PowerState.UNKNOWN
+        )
 
     def get_id(self):
         return self._ironic_node.uuid
@@ -71,8 +72,10 @@ class IronicHelper(base.BaseMetalHelper):
             node_info = self._client.node.get(node.uuid)
             hypervisor_id = node_info.extra.get('compute_node_id', None)
             if hypervisor_id is None:
-                LOG.warning('Cannot find compute_node_id in extra '
-                            'of ironic node %s', node.uuid)
+                LOG.warning(
+                    'Cannot find compute_node_id in extra of ironic node %s',
+                    node.uuid,
+                )
                 continue
 
             hypervisor_node = self.nova_client.get_compute_node_by_uuid(

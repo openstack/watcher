@@ -27,7 +27,6 @@ class StrategyPayload(notificationbase.NotificationPayloadBase):
         'name': ('strategy', 'name'),
         'display_name': ('strategy', 'display_name'),
         'parameters_spec': ('strategy', 'parameters_spec'),
-
         'created_at': ('strategy', 'created_at'),
         'updated_at': ('strategy', 'updated_at'),
         'deleted_at': ('strategy', 'deleted_at'),
@@ -41,7 +40,6 @@ class StrategyPayload(notificationbase.NotificationPayloadBase):
         'name': wfields.StringField(),
         'display_name': wfields.StringField(),
         'parameters_spec': wfields.FlexibleDictField(nullable=True),
-
         'created_at': wfields.DateTimeField(nullable=True),
         'updated_at': wfields.DateTimeField(nullable=True),
         'deleted_at': wfields.DateTimeField(nullable=True),

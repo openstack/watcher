@@ -57,9 +57,11 @@ class AetosHelper(prometheus_base.PrometheusBase):
         # Get Keystone session from OpenStackClients
         session = self.osc.session
 
-        opts = {'interface': CONF.aetos_client.interface,
-                'region_name': CONF.aetos_client.region_name,
-                'service_type': 'metric-storage'}
+        opts = {
+            'interface': CONF.aetos_client.interface,
+            'region_name': CONF.aetos_client.region_name,
+            'service_type': 'metric-storage',
+        }
 
         the_client = obs_client_utils.get_prom_client_from_keystone(
             session, adapter_options=opts

@@ -52,13 +52,16 @@ class FunctionalTest(base.DbTestCase):
 
     def setUp(self):
         super().setUp()
-        cfg.CONF.set_override("auth_version", "v2.0",
-                              group='keystone_authtoken')
-        cfg.CONF.set_override("admin_user", "admin",
-                              group='keystone_authtoken')
+        cfg.CONF.set_override(
+            "auth_version", "v2.0", group='keystone_authtoken'
+        )
+        cfg.CONF.set_override(
+            "admin_user", "admin", group='keystone_authtoken'
+        )
 
-        p_services = mock.patch.object(n_service, "send_service_update",
-                                       new_callable=mock.PropertyMock)
+        p_services = mock.patch.object(
+            n_service, "send_service_update", new_callable=mock.PropertyMock
+        )
         self.m_services = p_services.start()
         self.addCleanup(p_services.stop)
 
@@ -79,19 +82,27 @@ class FunctionalTest(base.DbTestCase):
                 'modules': ['watcher.api'],
                 'hooks': [
                     hooks.ContextHook(),
-                    hooks.NoExceptionTracebackHook()
+                    hooks.NoExceptionTracebackHook(),
                 ],
                 'template_path': f'{root_dir}/api/templates',
                 'enable_acl': enable_acl,
                 'acl_public_routes': ['/', '/v1'],
-            },
+            }
         }
 
         return pecan.testing.load_test_app(self.config)
 
-    def _request_json(self, path, params, expect_errors=False, headers=None,
-                      method="post", extra_environ=None, status=None,
-                      path_prefix=PATH_PREFIX):
+    def _request_json(
+        self,
+        path,
+        params,
+        expect_errors=False,
+        headers=None,
+        method="post",
+        extra_environ=None,
+        status=None,
+        path_prefix=PATH_PREFIX,
+    ):
         """Sends simulated HTTP request to Pecan test app.
 
         :param path: url path of target service
@@ -114,12 +125,19 @@ class FunctionalTest(base.DbTestCase):
             headers=headers,
             status=status,
             extra_environ=extra_environ,
-            expect_errors=expect_errors
+            expect_errors=expect_errors,
         )
         return response
 
-    def put_json(self, path, params, expect_errors=False, headers=None,
-                 extra_environ=None, status=None):
+    def put_json(
+        self,
+        path,
+        params,
+        expect_errors=False,
+        headers=None,
+        extra_environ=None,
+        status=None,
+    ):
         """Sends simulated HTTP PUT request to Pecan test app.
 
         :param path: url path of target service
@@ -131,10 +149,15 @@ class FunctionalTest(base.DbTestCase):
                               with the request
         :param status: expected status code of response
         """
-        return self._request_json(path=path, params=params,
-                                  expect_errors=expect_errors,
-                                  headers=headers, extra_environ=extra_environ,
-                                  status=status, method="put")
+        return self._request_json(
+            path=path,
+            params=params,
+            expect_errors=expect_errors,
+            headers=headers,
+            extra_environ=extra_environ,
+            status=status,
+            method="put",
+        )
 
     def post(self, *args, **kwargs):
         headers = kwargs.pop('headers', {})
@@ -142,8 +165,15 @@ class FunctionalTest(base.DbTestCase):
         kwargs['headers'] = headers
         return self.app.post(*args, **kwargs)
 
-    def post_json(self, path, params, expect_errors=False, headers=None,
-                  extra_environ=None, status=None):
+    def post_json(
+        self,
+        path,
+        params,
+        expect_errors=False,
+        headers=None,
+        extra_environ=None,
+        status=None,
+    ):
         """Sends simulated HTTP POST request to Pecan test app.
 
         :param path: url path of target service
@@ -155,13 +185,25 @@ class FunctionalTest(base.DbTestCase):
                               with the request
         :param status: expected status code of response
         """
-        return self._request_json(path=path, params=params,
-                                  expect_errors=expect_errors,
-                                  headers=headers, extra_environ=extra_environ,
-                                  status=status, method="post")
+        return self._request_json(
+            path=path,
+            params=params,
+            expect_errors=expect_errors,
+            headers=headers,
+            extra_environ=extra_environ,
+            status=status,
+            method="post",
+        )
 
-    def patch_json(self, path, params, expect_errors=False, headers=None,
-                   extra_environ=None, status=None):
+    def patch_json(
+        self,
+        path,
+        params,
+        expect_errors=False,
+        headers=None,
+        extra_environ=None,
+        status=None,
+    ):
         """Sends simulated HTTP PATCH request to Pecan test app.
 
         :param path: url path of target service
@@ -173,13 +215,25 @@ class FunctionalTest(base.DbTestCase):
                               with the request
         :param status: expected status code of response
         """
-        return self._request_json(path=path, params=params,
-                                  expect_errors=expect_errors,
-                                  headers=headers, extra_environ=extra_environ,
-                                  status=status, method="patch")
+        return self._request_json(
+            path=path,
+            params=params,
+            expect_errors=expect_errors,
+            headers=headers,
+            extra_environ=extra_environ,
+            status=status,
+            method="patch",
+        )
 
-    def delete(self, path, expect_errors=False, headers=None,
-               extra_environ=None, status=None, path_prefix=PATH_PREFIX):
+    def delete(
+        self,
+        path,
+        expect_errors=False,
+        headers=None,
+        extra_environ=None,
+        status=None,
+        path_prefix=PATH_PREFIX,
+    ):
         """Sends simulated HTTP DELETE request to Pecan test app.
 
         :param path: url path of target service
@@ -192,16 +246,26 @@ class FunctionalTest(base.DbTestCase):
         :param path_prefix: prefix of the url path
         """
         full_path = path_prefix + path
-        response = self.app.delete(str(full_path),
-                                   headers=headers,
-                                   status=status,
-                                   extra_environ=extra_environ,
-                                   expect_errors=expect_errors)
+        response = self.app.delete(
+            str(full_path),
+            headers=headers,
+            status=status,
+            extra_environ=extra_environ,
+            expect_errors=expect_errors,
+        )
         return response
 
-    def get_json(self, path, expect_errors=False, headers=None,
-                 extra_environ=None, q=[], path_prefix=PATH_PREFIX,
-                 return_json=True, **params):
+    def get_json(
+        self,
+        path,
+        expect_errors=False,
+        headers=None,
+        extra_environ=None,
+        q=[],
+        path_prefix=PATH_PREFIX,
+        return_json=True,
+        **params,
+    ):
         """Sends simulated HTTP GET request to Pecan test app.
 
         :param path: url path of target service
@@ -216,10 +280,7 @@ class FunctionalTest(base.DbTestCase):
         :param params: content for wsgi.input of request
         """
         full_path = path_prefix + path
-        query_params = {'q.field': [],
-                        'q.value': [],
-                        'q.op': [],
-                        }
+        query_params = {'q.field': [], 'q.value': [], 'q.op': []}
         for query in q:
             for name in ['field', 'op', 'value']:
                 query_params[f'q.{name}'].append(query.get(name, ''))
@@ -228,11 +289,13 @@ class FunctionalTest(base.DbTestCase):
         if q:
             all_params.update(query_params)
 
-        response = self.app.get(full_path,
-                                params=all_params,
-                                headers=headers,
-                                extra_environ=extra_environ,
-                                expect_errors=expect_errors)
+        response = self.app.get(
+            full_path,
+            params=all_params,
+            headers=headers,
+            extra_environ=extra_environ,
+            expect_errors=expect_errors,
+        )
         if return_json and not expect_errors:
             response = response.json
         return response
@@ -259,19 +322,11 @@ class AdminRoleTest(base.DbTestCase):
     def setUp(self):
         super().setUp()
         token_info = {
-            'token': {
-                'project': {
-                    'id': 'admin'
-                },
-                'user': {
-                    'id': 'admin'
-                }
-            }
+            'token': {'project': {'id': 'admin'}, 'user': {'id': 'admin'}}
         }
         self.context = watcher_context.RequestContext(
-            auth_token_info=token_info,
-            project_id='admin',
-            user_id='admin')
+            auth_token_info=token_info, project_id='admin', user_id='admin'
+        )
 
         def make_context(*args, **kwargs):
             # If context hasn't been constructed with token_info
@@ -287,7 +342,8 @@ class AdminRoleTest(base.DbTestCase):
             context = watcher_context.RequestContext(*args, **kwargs)
             return watcher_context.RequestContext.from_dict(context.to_dict())
 
-        p = mock.patch.object(watcher_context, 'make_context',
-                              side_effect=make_context)
+        p = mock.patch.object(
+            watcher_context, 'make_context', side_effect=make_context
+        )
         self.mock_make_context = p.start()
         self.addCleanup(p.stop)

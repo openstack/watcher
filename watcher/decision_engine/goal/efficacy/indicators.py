@@ -30,7 +30,6 @@ LOG = log.getLogger(__name__)
 
 
 class IndicatorSpecification(metaclass=abc.ABCMeta):
-
     def __init__(self, name=None, description=None, unit=None, required=True):
         self.name = name
         self.description = description
@@ -63,7 +62,8 @@ class IndicatorSpecification(metaclass=abc.ABCMeta):
         except Exception as exc:
             LOG.exception(exc)
             raise exception.InvalidIndicatorValue(
-                name=indicator.name, value=value, spec_type=type(indicator))
+                name=indicator.name, value=value, spec_type=type(indicator)
+            )
 
     def to_dict(self):
         return {
@@ -87,10 +87,7 @@ class ComputeNodesCount(IndicatorSpecification):
 
     @property
     def schema(self):
-        return {
-            "type": "integer",
-            "minimum": 0
-        }
+        return {"type": "integer", "minimum": 0}
 
 
 class ReleasedComputeNodesCount(IndicatorSpecification):
@@ -103,28 +100,23 @@ class ReleasedComputeNodesCount(IndicatorSpecification):
 
     @property
     def schema(self):
-        return {
-            "type": "integer",
-            "minimum": 0
-        }
+        return {"type": "integer", "minimum": 0}
 
 
 class InstancesCount(IndicatorSpecification):
     def __init__(self):
         super().__init__(
             name="instances_count",
-            description=_("The total number of audited instances in "
-                          "strategy."),
+            description=_(
+                "The total number of audited instances in strategy."
+            ),
             unit=None,
             required=False,
         )
 
     @property
     def schema(self):
-        return {
-            "type": "integer",
-            "minimum": 0
-        }
+        return {"type": "integer", "minimum": 0}
 
 
 class InstanceMigrationsCount(IndicatorSpecification):
@@ -137,10 +129,7 @@ class InstanceMigrationsCount(IndicatorSpecification):
 
     @property
     def schema(self):
-        return {
-            "type": "integer",
-            "minimum": 0
-        }
+        return {"type": "integer", "minimum": 0}
 
 
 class LiveInstanceMigrateCount(IndicatorSpecification):
@@ -153,10 +142,7 @@ class LiveInstanceMigrateCount(IndicatorSpecification):
 
     @property
     def schema(self):
-        return {
-            "type": "integer",
-            "minimum": 0
-        }
+        return {"type": "integer", "minimum": 0}
 
 
 class PlannedLiveInstanceMigrateCount(IndicatorSpecification):
@@ -169,10 +155,7 @@ class PlannedLiveInstanceMigrateCount(IndicatorSpecification):
 
     @property
     def schema(self):
-        return {
-            "type": "integer",
-            "minimum": 0
-        }
+        return {"type": "integer", "minimum": 0}
 
 
 class ColdInstanceMigrateCount(IndicatorSpecification):
@@ -185,10 +168,7 @@ class ColdInstanceMigrateCount(IndicatorSpecification):
 
     @property
     def schema(self):
-        return {
-            "type": "integer",
-            "minimum": 0
-        }
+        return {"type": "integer", "minimum": 0}
 
 
 class PlannedColdInstanceMigrateCount(IndicatorSpecification):
@@ -201,10 +181,7 @@ class PlannedColdInstanceMigrateCount(IndicatorSpecification):
 
     @property
     def schema(self):
-        return {
-            "type": "integer",
-            "minimum": 0
-        }
+        return {"type": "integer", "minimum": 0}
 
 
 class VolumeMigrateCount(IndicatorSpecification):
@@ -217,61 +194,50 @@ class VolumeMigrateCount(IndicatorSpecification):
 
     @property
     def schema(self):
-        return {
-            "type": "integer",
-            "minimum": 0
-        }
+        return {"type": "integer", "minimum": 0}
 
 
 class PlannedVolumeMigrateCount(IndicatorSpecification):
     def __init__(self):
         super().__init__(
             name="planned_volume_migrate_count",
-            description=_("The number of detached volumes planned"
-                          " to migrate."),
+            description=_(
+                "The number of detached volumes planned to migrate."
+            ),
             unit=None,
         )
 
     @property
     def schema(self):
-        return {
-            "type": "integer",
-            "minimum": 0
-        }
+        return {"type": "integer", "minimum": 0}
 
 
 class VolumeUpdateCount(IndicatorSpecification):
     def __init__(self):
         super().__init__(
             name="volume_update_count",
-            description=_("The number of attached volumes actually"
-                          " migrated."),
+            description=_("The number of attached volumes actually migrated."),
             unit=None,
         )
 
     @property
     def schema(self):
-        return {
-            "type": "integer",
-            "minimum": 0
-        }
+        return {"type": "integer", "minimum": 0}
 
 
 class PlannedVolumeUpdateCount(IndicatorSpecification):
     def __init__(self):
         super().__init__(
             name="planned_volume_update_count",
-            description=_("The number of attached volumes planned to"
-                          " migrate."),
+            description=_(
+                "The number of attached volumes planned to migrate."
+            ),
             unit=None,
         )
 
     @property
     def schema(self):
-        return {
-            "type": "integer",
-            "minimum": 0
-        }
+        return {"type": "integer", "minimum": 0}
 
 
 class StandardDeviationValue(IndicatorSpecification):
@@ -285,10 +251,7 @@ class StandardDeviationValue(IndicatorSpecification):
 
     @property
     def schema(self):
-        return {
-            "type": "number",
-            "minimum": 0
-        }
+        return {"type": "number", "minimum": 0}
 
 
 class OriginalStandardDeviationValue(IndicatorSpecification):
@@ -302,7 +265,4 @@ class OriginalStandardDeviationValue(IndicatorSpecification):
 
     @property
     def schema(self):
-        return {
-            "type": "number",
-            "minimum": 0
-        }
+        return {"type": "number", "minimum": 0}

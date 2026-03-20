@@ -31,30 +31,37 @@ class TestKeystoneHelper(test.TestCase):
         self.keystone_helper = keystone_helper.KeystoneHelper()
 
     def test_is_service_enabled(self):
-        self.keystone_svs.list.return_value = [mock.MagicMock(
-            spec=ks_service.Service, enabled=True)]
+        self.keystone_svs.list.return_value = [
+            mock.MagicMock(spec=ks_service.Service, enabled=True)
+        ]
         self.assertTrue(
-            self.keystone_helper.is_service_enabled_by_type('block-storage'))
+            self.keystone_helper.is_service_enabled_by_type('block-storage')
+        )
         self.keystone_svs.list.assert_called_once_with(type='block-storage')
 
     def test_is_service_enabled_not_found(self):
         self.keystone_svs.list.return_value = []
         self.assertFalse(
-            self.keystone_helper.is_service_enabled_by_type('block-storage'))
+            self.keystone_helper.is_service_enabled_by_type('block-storage')
+        )
         self.keystone_svs.list.assert_called_once_with(type='block-storage')
 
     def test_is_service_enabled_with_multiple_services_one_enabled(self):
         self.keystone_svs.list.return_value = [
             mock.MagicMock(spec=ks_service.Service, enabled=True),
-            mock.MagicMock(spec=ks_service.Service, enabled=False)]
+            mock.MagicMock(spec=ks_service.Service, enabled=False),
+        ]
         self.assertTrue(
-            self.keystone_helper.is_service_enabled_by_type('block-storage'))
+            self.keystone_helper.is_service_enabled_by_type('block-storage')
+        )
         self.keystone_svs.list.assert_called_once_with(type='block-storage')
 
     def test_is_service_enabled_multiple_services_two_enabled(self):
         self.keystone_svs.list.return_value = [
             mock.MagicMock(spec=ks_service.Service, enabled=True),
-            mock.MagicMock(spec=ks_service.Service, enabled=True)]
+            mock.MagicMock(spec=ks_service.Service, enabled=True),
+        ]
         self.assertFalse(
-            self.keystone_helper.is_service_enabled_by_type('block-storage'))
+            self.keystone_helper.is_service_enabled_by_type('block-storage')
+        )
         self.keystone_svs.list.assert_called_once_with(type='block-storage')

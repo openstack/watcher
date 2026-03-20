@@ -55,8 +55,10 @@ def nova_retries(call):
                 else:
                     LOG.error(
                         'Failed to connect to Nova service after %d attempts',
-                        retries + 1)
+                        retries + 1,
+                    )
                     raise
+
     return wrapper
 
 
@@ -76,6 +78,7 @@ def handle_nova_error(resource_type, id_arg_index=1):
         (default 1, which is the first argument after self)
     :returns: Decorator function
     """
+
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -92,7 +95,9 @@ def handle_nova_error(resource_type, id_arg_index=1):
             except sdk_exc.SDKException as e:
                 LOG.error("Nova client error: %s", e)
                 raise exception.NovaClientError(reason=str(e))
+
         return wrapper
+
     return decorator
 
 
@@ -148,7 +153,7 @@ class Server:
             locked=nova_server.is_locked,
             metadata=nova_server.metadata,
             availability_zone=nova_server.availability_zone,
-            pinned_availability_zone=nova_server.pinned_availability_zone
+            pinned_availability_zone=nova_server.pinned_availability_zone,
         )
 
 
@@ -260,7 +265,7 @@ class Flavor:
             ephemeral=nova_flavor.ephemeral,
             swap=nova_flavor.swap,
             is_public=nova_flavor.is_public,
-            extra_specs=nova_flavor.extra_specs
+            extra_specs=nova_flavor.extra_specs,
         )
 
 
@@ -359,13 +364,10 @@ class ServerMigration:
         :param nova_migration: OpenStackSDK ServerMigration
         :returns: ServerMigration dataclass instance
         """
-        return cls(
-            id=nova_migration.id,
-        )
+        return cls(id=nova_migration.id)
 
 
 class NovaHelper:
-
     def __init__(self, osc=None, session=None, context=None):
         """Create and return a helper to call the nova service
 
@@ -380,9 +382,7 @@ class NovaHelper:
         clients.check_min_nova_api_version(CONF.nova.api_version)
         self.osc = osc if osc else clients.OpenStackClients()
         self.cinder = self.osc.cinder()
-        self._create_sdk_connection(
-            context=context, session=session
-        )
+        self._create_sdk_connection(context=context, session=session)
         self._is_pinned_az_available = None
 
     def _override_deprecated_configs(self):
@@ -413,14 +413,17 @@ class NovaHelper:
             # [nova], use [watcher_clients_auth] as fallback
             LOG.debug(
                 "could not load auth plugin from [nova] section, using %s "
-                "as fallback", clients_auth.WATCHER_CLIENTS_AUTH
+                "as fallback",
+                clients_auth.WATCHER_CLIENTS_AUTH,
             )
             auth_group = clients_auth.WATCHER_CLIENTS_AUTH
 
         self.connection = clients.get_sdk_connection(
-            auth_group, context=context, session=session,
+            auth_group,
+            context=context,
+            session=session,
             interface=CONF.nova.valid_interfaces,
-            region_name=CONF.nova.region_name
+            region_name=CONF.nova.region_name,
         )
 
     def is_pinned_az_available(self):
@@ -452,15 +455,17 @@ class NovaHelper:
         ]
         if filter_ironic_nodes:
             compute_nodes = [
-                node for node in compute_nodes
+                node
+                for node in compute_nodes
                 if node.hypervisor_type != 'ironic'
             ]
         return compute_nodes
 
     @nova_retries
     @handle_nova_error("Compute node")
-    def get_compute_node_by_name(self, node_name, servers=False,
-                                 detailed=False):
+    def get_compute_node_by_name(
+        self, node_name, servers=False, detailed=False
+    ):
         """Search for a hypervisor (compute node) by hypervisor_hostname
 
         :param node_name: The hypervisor_hostname to search
@@ -473,8 +478,10 @@ class NovaHelper:
         """
         # SDK hypervisors() method returns all hypervisors, filter by name
         hypervisors = self.connection.compute.hypervisors(
-            hypervisor_hostname_pattern=node_name, with_servers=servers,
-            details=detailed)
+            hypervisor_hostname_pattern=node_name,
+            with_servers=servers,
+            details=detailed,
+        )
         return [Hypervisor.from_openstacksdk(h) for h in hypervisors]
 
     def get_compute_node_by_hostname(self, node_hostname):
@@ -490,7 +497,8 @@ class NovaHelper:
             # more than one compute node. If so, match on the compute service
             # hostname.
             compute_nodes = self.get_compute_node_by_name(
-                node_hostname, detailed=True)
+                node_hostname, detailed=True
+            )
             if compute_nodes:
                 for cn in compute_nodes:
                     if cn.service_host == node_hostname:
@@ -528,9 +536,7 @@ class NovaHelper:
                       https://bugs.launchpad.net/watcher/+bug/1834679
         :returns: list of Server wrapper objects
         """
-        query_params = {
-            'all_projects': True, 'marker': marker
-        }
+        query_params = {'all_projects': True, 'marker': marker}
         if limit != -1:
             query_params['limit'] = limit
         if filters:
@@ -540,8 +546,7 @@ class NovaHelper:
                 # passing 'host' is simply ignored
                 filters['compute_host'] = filters.pop('host')
             query_params.update(filters)
-        servers = self.connection.compute.servers(details=True,
-                                                  **query_params)
+        servers = self.connection.compute.servers(details=True, **query_params)
         return [Server.from_openstacksdk(s) for s in servers]
 
     @nova_retries
@@ -553,9 +558,9 @@ class NovaHelper:
         :returns: Server wrapper object matching the UUID
         :raises: ComputeResourceNotFound if no instance was found
         """
-        servers = self.connection.compute.servers(details=True,
-                                                  all_projects=True,
-                                                  uuid=instance_uuid)
+        servers = self.connection.compute.servers(
+            details=True, all_projects=True, uuid=instance_uuid
+        )
         if servers:
             return Server.from_openstacksdk(servers[0])
         else:
@@ -586,8 +591,14 @@ class NovaHelper:
             flavor_obj = self._get_flavor(flavor)
             return flavor_obj.id
         except exception.ComputeResourceNotFound:
-            flavor_id = next((f.id for f in self.get_flavor_list() if
-                              f.flavor_name == flavor), None)
+            flavor_id = next(
+                (
+                    f.id
+                    for f in self.get_flavor_list()
+                    if f.flavor_name == flavor
+                ),
+                None,
+            )
             if flavor_id:
                 return flavor_id
 
@@ -732,7 +743,7 @@ class NovaHelper:
         except exception.ComputeResourceNotFound:
             LOG.debug(
                 "Instance %s was not found, could not confirm its resize",
-                instance_id
+                instance_id,
             )
             return False
 
@@ -742,7 +753,7 @@ class NovaHelper:
             except exception.ComputeResourceNotFound:
                 LOG.debug(
                     "Instance %s was not found, could not confirm its resize",
-                    instance_id
+                    instance_id,
                 )
                 return False
             retry -= 1
@@ -750,12 +761,12 @@ class NovaHelper:
         if instance.status == previous_status:
             return True
         else:
-            LOG.debug("confirm resize failed for the "
-                      "instance %s", instance_id)
+            LOG.debug("confirm resize failed for the instance %s", instance_id)
             return False
 
-    def watcher_non_live_migrate_instance(self, instance_id, dest_hostname,
-                                          retry=None, interval=None):
+    def watcher_non_live_migrate_instance(
+        self, instance_id, dest_hostname, retry=None, interval=None
+    ):
         """This method migrates a given instance
 
         This method uses the Nova built-in migrate()
@@ -775,8 +786,7 @@ class NovaHelper:
         :raises: NovaClientError if there is any problem while calling the Nova
         api
         """
-        LOG.debug(
-            "Trying a cold migrate of instance '%s' ", instance_id)
+        LOG.debug("Trying a cold migrate of instance '%s' ", instance_id)
 
         # Use config defaults if not provided in method parameters
         retry = retry or CONF.nova.migration_max_retries
@@ -790,8 +800,7 @@ class NovaHelper:
             )
             return False
         host_name = instance.host
-        LOG.debug(
-            {'instance': instance_id, 'host': host_name})
+        LOG.debug({'instance': instance_id, 'host': host_name})
 
         previous_status = instance.status
         self._instance_migrate(instance_id, dest_hostname)
@@ -803,32 +812,30 @@ class NovaHelper:
             )
             return False
 
-        while (instance.status not in
-                ["VERIFY_RESIZE", "ERROR"] and retry):
+        while instance.status not in ["VERIFY_RESIZE", "ERROR"] and retry:
             try:
                 instance = self.find_instance(instance_id)
             except exception.ComputeResourceNotFound:
                 LOG.debug(
                     "Instance %s not found, can't cold migrate it.",
-                    instance_id
+                    instance_id,
                 )
                 return False
             time.sleep(interval)
             retry -= 1
         new_hostname = instance.host
 
-        if (host_name != new_hostname and
-                instance.status == 'VERIFY_RESIZE'):
+        if host_name != new_hostname and instance.status == 'VERIFY_RESIZE':
             if not self.confirm_resize(instance, previous_status):
                 return False
             LOG.debug(
                 "cold migration succeeded : "
                 "instance %(instance)s is now on host '%(host)s'.",
-                {'instance': instance_id, 'host': new_hostname})
+                {'instance': instance_id, 'host': new_hostname},
+            )
             return True
         else:
-            LOG.debug(
-                "cold migration for instance %s failed", instance_id)
+            LOG.debug("cold migration for instance %s failed", instance_id)
             return False
 
     def resize_instance(self, instance_id, flavor, retry=None, interval=None):
@@ -848,9 +855,9 @@ class NovaHelper:
         api
         """
         LOG.debug(
-            "Trying a resize of instance %(instance)s to "
-            "flavor '%(flavor)s'",
-            {'instance': instance_id, 'flavor': flavor})
+            "Trying a resize of instance %(instance)s to flavor '%(flavor)s'",
+            {'instance': instance_id, 'flavor': flavor},
+        )
 
         # Use config defaults if not provided in method parameters
         retry = retry or CONF.nova.migration_max_retries
@@ -871,14 +878,19 @@ class NovaHelper:
             LOG.debug("Flavor not found: %s, could not resize", flavor)
             return False
         except exception.NovaClientError as e:
-            LOG.debug("Nova client exception occurred while resizing "
-                      "instance %s. Exception: %s", instance_id, e)
+            LOG.debug(
+                "Nova client exception occurred while resizing "
+                "instance %s. Exception: %s",
+                instance_id,
+                e,
+            )
             return False
 
         instance_status = instance.vm_state
         LOG.debug(
             "Instance %(id)s is in '%(status)s' status.",
-            {'id': instance_id, 'status': instance_status})
+            {'id': instance_id, 'status': instance_status},
+        )
 
         self._instance_resize(instance_id, flavor_id)
         while instance.vm_state != 'resized' and retry:
@@ -899,13 +911,17 @@ class NovaHelper:
 
         self._instance_confirm_resize(instance_id)
 
-        LOG.debug("Resizing succeeded : instance %s is now on flavor "
-                  "'%s'.", instance_id, flavor_id)
+        LOG.debug(
+            "Resizing succeeded : instance %s is now on flavor '%s'.",
+            instance_id,
+            flavor_id,
+        )
 
         return True
 
-    def live_migrate_instance(self, instance_id, dest_hostname, retry=None,
-                              interval=None):
+    def live_migrate_instance(
+        self, instance_id, dest_hostname, retry=None, interval=None
+    ):
         """This method does a live migration of a given instance
 
         This method uses the Nova built-in live_migrate()
@@ -925,7 +941,8 @@ class NovaHelper:
         """
         LOG.debug(
             "Trying a live migrate instance %(instance)s ",
-            {'instance': instance_id})
+            {'instance': instance_id},
+        )
 
         # Use config defaults if not provided in method parameters
         retry = retry or CONF.nova.migration_max_retries
@@ -940,7 +957,8 @@ class NovaHelper:
         host_name = instance.host
         LOG.debug(
             "Instance %(instance)s found on host '%(host)s'.",
-            {'instance': instance_id, 'host': host_name})
+            {'instance': instance_id, 'host': host_name},
+        )
 
         self._instance_live_migrate(instance_id, dest_hostname)
 
@@ -953,13 +971,13 @@ class NovaHelper:
         # NOTE: If destination host is not specified for live migration
         # let nova scheduler choose the destination host.
         if dest_hostname is None:
-            while (instance.status not in ['ACTIVE', 'ERROR'] and retry):
+            while instance.status not in ['ACTIVE', 'ERROR'] and retry:
                 try:
                     instance = self.find_instance(instance_id)
                 except exception.ComputeResourceNotFound:
                     LOG.debug(
                         "Instance %s not found, can't live migrate",
-                        instance_id
+                        instance_id,
                     )
                     return False
                 LOG.debug('Waiting the migration of %s', instance_id)
@@ -971,7 +989,8 @@ class NovaHelper:
                 LOG.debug(
                     "Live migration succeeded : "
                     "instance %(instance)s is now on host '%(host)s'.",
-                    {'instance': instance_id, 'host': new_hostname})
+                    {'instance': instance_id, 'host': new_hostname},
+                )
                 return True
             else:
                 return False
@@ -987,7 +1006,7 @@ class NovaHelper:
                 break
             LOG.debug(
                 'Waiting the migration of %s to %s', instance, instance.host
-                )
+            )
             time.sleep(interval)
             retry -= 1
 
@@ -998,7 +1017,8 @@ class NovaHelper:
         LOG.debug(
             "Live migration succeeded : "
             "instance %(instance)s is now on host '%(host)s'.",
-            {'instance': instance_id, 'host': host_name})
+            {'instance': instance_id, 'host': host_name},
+        )
 
         return True
 
@@ -1022,13 +1042,16 @@ class NovaHelper:
         except exception.ComputeResourceNotFound:
             # failed to abort the migration since the migration does not exist
             LOG.debug(
-                "No running migrations found for instance %s", instance_id)
+                "No running migrations found for instance %s", instance_id
+            )
         if migration:
             migration_id = migration[0].id
             try:
                 self._live_migration_abort(instance_id, migration_id)
-            except (exception.ComputeResourceNotFound,
-                    exception.NovaClientError) as e:
+            except (
+                exception.ComputeResourceNotFound,
+                exception.NovaClientError,
+            ) as e:
                 # Note: Does not return from here, as abort request can't be
                 # accepted but migration still going on.
                 LOG.exception(e)
@@ -1039,11 +1062,13 @@ class NovaHelper:
             except exception.ComputeResourceNotFound:
                 LOG.debug(
                     "Instance %s not found, can't abort live migrate",
-                    instance_id
+                    instance_id,
                 )
                 return False
-            if (instance.task_state is None and
-               instance.status in ['ACTIVE', 'ERROR']):
+            if instance.task_state is None and instance.status in [
+                'ACTIVE',
+                'ERROR',
+            ]:
                 break
             time.sleep(2)
             retry -= 1

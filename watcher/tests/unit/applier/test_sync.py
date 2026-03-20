@@ -29,21 +29,25 @@ from watcher.tests.unit.objects import utils as obj_utils
 
 
 class TestCancelOngoingActionPlans(db_base.DbTestCase):
-
     def setUp(self):
         super().setUp()
         p_audit_notifications = mock.patch.object(
-            notifications, 'audit', autospec=True)
+            notifications, 'audit', autospec=True
+        )
         self.m_audit_notifications = p_audit_notifications.start()
         self.addCleanup(p_audit_notifications.stop)
 
         self.goal = obj_utils.create_test_goal(
-            self.context, id=1, name=dummy_strategy.DummyStrategy.get_name())
+            self.context, id=1, name=dummy_strategy.DummyStrategy.get_name()
+        )
         self.strategy = obj_utils.create_test_strategy(
-            self.context, name=dummy_strategy.DummyStrategy.get_name(),
-            goal_id=self.goal.id)
+            self.context,
+            name=dummy_strategy.DummyStrategy.get_name(),
+            goal_id=self.goal.id,
+        )
         audit_template = obj_utils.create_test_audit_template(
-            self.context, strategy_id=self.strategy.id)
+            self.context, strategy_id=self.strategy.id
+        )
         self.audit = obj_utils.create_test_audit(
             self.context,
             id=999,
@@ -54,24 +58,26 @@ class TestCancelOngoingActionPlans(db_base.DbTestCase):
             audit_type=objects.audit.AuditType.ONESHOT.value,
             goal=self.goal,
             hostname='hostname1',
-            state=objects.audit.State.ONGOING)
+            state=objects.audit.State.ONGOING,
+        )
         self.actionplan = obj_utils.create_test_action_plan(
             self.context,
             state=objects.action_plan.State.ONGOING,
             audit_id=999,
-            hostname='hostname1')
+            hostname='hostname1',
+        )
         self.action = obj_utils.create_test_action(
-            self.context,
-            action_plan_id=1,
-            state=objects.action.State.PENDING)
+            self.context, action_plan_id=1, state=objects.action.State.PENDING
+        )
         cfg.CONF.set_override("host", "hostname1")
 
     @mock.patch.object(objects.action.Action, 'save')
     @mock.patch.object(objects.action_plan.ActionPlan, 'save')
     @mock.patch.object(objects.action.Action, 'list')
     @mock.patch.object(objects.action_plan.ActionPlan, 'list')
-    def test_cancel_ongoing_actionplans(self, m_plan_list, m_action_list,
-                                        m_plan_save, m_action_save):
+    def test_cancel_ongoing_actionplans(
+        self, m_plan_list, m_action_list, m_plan_save, m_action_save
+    ):
         m_plan_list.return_value = [self.actionplan]
         m_action_list.return_value = [self.action]
         cfg.CONF.set_override("host", "hostname1")
@@ -83,13 +89,16 @@ class TestCancelOngoingActionPlans(db_base.DbTestCase):
         m_plan_save.assert_called()
         m_action_save.assert_called()
         self.assertEqual(
-            self.actionplan.state, objects.action_plan.State.CANCELLED)
+            self.actionplan.state, objects.action_plan.State.CANCELLED
+        )
         self.assertEqual(
             self.actionplan.status_message,
             "Action plan was cancelled because Applier hostname1 was stopped "
-            "while the action plan was ongoing.")
+            "while the action plan was ongoing.",
+        )
         self.assertEqual(self.action.state, objects.action.State.CANCELLED)
         self.assertEqual(
             self.action.status_message,
             "Action was cancelled because Applier hostname1 was stopped "
-            "while the action plan was ongoing.")
+            "while the action plan was ongoing.",
+        )

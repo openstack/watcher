@@ -25,7 +25,6 @@ from watcher.tests.unit.db import utils
 
 
 class TestDbScoringEngineFilters(base.DbTestCase):
-
     FAKE_OLDER_DATE = '2014-01-01T09:52:05.219414'
     FAKE_OLD_DATE = '2015-01-01T09:52:05.219414'
     FAKE_TODAY = '2016-02-24T09:52:05.219414'
@@ -38,16 +37,28 @@ class TestDbScoringEngineFilters(base.DbTestCase):
     def _data_setup(self):
         with freezegun.freeze_time(self.FAKE_TODAY):
             self.scoring_engine1 = utils.create_test_scoring_engine(
-                id=1, uuid='e8370ede-4f39-11e6-9ffa-08002722cb22',
-                name="se-1", description="Scoring Engine 1", metainfo="a1=b1")
+                id=1,
+                uuid='e8370ede-4f39-11e6-9ffa-08002722cb22',
+                name="se-1",
+                description="Scoring Engine 1",
+                metainfo="a1=b1",
+            )
         with freezegun.freeze_time(self.FAKE_OLD_DATE):
             self.scoring_engine2 = utils.create_test_scoring_engine(
-                id=2, uuid='e8370ede-4f39-11e6-9ffa-08002722cb23',
-                name="se-2", description="Scoring Engine 2", metainfo="a2=b2")
+                id=2,
+                uuid='e8370ede-4f39-11e6-9ffa-08002722cb23',
+                name="se-2",
+                description="Scoring Engine 2",
+                metainfo="a2=b2",
+            )
         with freezegun.freeze_time(self.FAKE_OLDER_DATE):
             self.scoring_engine3 = utils.create_test_scoring_engine(
-                id=3, uuid='e8370ede-4f39-11e6-9ffa-08002722cb24',
-                name="se-3", description="Scoring Engine 3", metainfo="a3=b3")
+                id=3,
+                uuid='e8370ede-4f39-11e6-9ffa-08002722cb24',
+                name="se-3",
+                description="Scoring Engine 3",
+                metainfo="a3=b3",
+            )
 
     def _soft_delete_scoring_engines(self):
         with freezegun.freeze_time(self.FAKE_TODAY):
@@ -61,22 +72,26 @@ class TestDbScoringEngineFilters(base.DbTestCase):
         with freezegun.freeze_time(self.FAKE_TODAY):
             self.dbapi.update_scoring_engine(
                 self.scoring_engine1.id,
-                values={"description": "scoring_engine1"})
+                values={"description": "scoring_engine1"},
+            )
         with freezegun.freeze_time(self.FAKE_OLD_DATE):
             self.dbapi.update_scoring_engine(
                 self.scoring_engine2.id,
-                values={"description": "scoring_engine2"})
+                values={"description": "scoring_engine2"},
+            )
         with freezegun.freeze_time(self.FAKE_OLDER_DATE):
             self.dbapi.update_scoring_engine(
                 self.scoring_engine3.id,
-                values={"description": "scoring_engine3"})
+                values={"description": "scoring_engine3"},
+            )
 
     def test_get_scoring_engine_list_filter_deleted_true(self):
         with freezegun.freeze_time(self.FAKE_TODAY):
             self.dbapi.soft_delete_scoring_engine(self.scoring_engine1.id)
 
         res = self.dbapi.get_scoring_engine_list(
-            self.context, filters={'deleted': True})
+            self.context, filters={'deleted': True}
+        )
 
         self.assertEqual([self.scoring_engine1['id']], [r.id for r in res])
 
@@ -85,17 +100,20 @@ class TestDbScoringEngineFilters(base.DbTestCase):
             self.dbapi.soft_delete_scoring_engine(self.scoring_engine1.id)
 
         res = self.dbapi.get_scoring_engine_list(
-            self.context, filters={'deleted': False})
+            self.context, filters={'deleted': False}
+        )
 
         self.assertEqual(
             {self.scoring_engine2['id'], self.scoring_engine3['id']},
-            {r.id for r in res})
+            {r.id for r in res},
+        )
 
     def test_get_scoring_engine_list_filter_deleted_at_eq(self):
         self._soft_delete_scoring_engines()
 
         res = self.dbapi.get_scoring_engine_list(
-            self.context, filters={'deleted_at__eq': self.FAKE_TODAY})
+            self.context, filters={'deleted_at__eq': self.FAKE_TODAY}
+        )
 
         self.assertEqual([self.scoring_engine1['id']], [r.id for r in res])
 
@@ -103,27 +121,32 @@ class TestDbScoringEngineFilters(base.DbTestCase):
         self._soft_delete_scoring_engines()
 
         res = self.dbapi.get_scoring_engine_list(
-            self.context, filters={'deleted_at__lt': self.FAKE_TODAY})
+            self.context, filters={'deleted_at__lt': self.FAKE_TODAY}
+        )
 
         self.assertEqual(
             {self.scoring_engine2['id'], self.scoring_engine3['id']},
-            {r.id for r in res})
+            {r.id for r in res},
+        )
 
     def test_get_scoring_engine_list_filter_deleted_at_lte(self):
         self._soft_delete_scoring_engines()
 
         res = self.dbapi.get_scoring_engine_list(
-            self.context, filters={'deleted_at__lte': self.FAKE_OLD_DATE})
+            self.context, filters={'deleted_at__lte': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual(
             {self.scoring_engine2['id'], self.scoring_engine3['id']},
-            {r.id for r in res})
+            {r.id for r in res},
+        )
 
     def test_get_scoring_engine_list_filter_deleted_at_gt(self):
         self._soft_delete_scoring_engines()
 
         res = self.dbapi.get_scoring_engine_list(
-            self.context, filters={'deleted_at__gt': self.FAKE_OLD_DATE})
+            self.context, filters={'deleted_at__gt': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual([self.scoring_engine1['id']], [r.id for r in res])
 
@@ -131,49 +154,59 @@ class TestDbScoringEngineFilters(base.DbTestCase):
         self._soft_delete_scoring_engines()
 
         res = self.dbapi.get_scoring_engine_list(
-            self.context, filters={'deleted_at__gte': self.FAKE_OLD_DATE})
+            self.context, filters={'deleted_at__gte': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual(
             {self.scoring_engine1['id'], self.scoring_engine2['id']},
-            {r.id for r in res})
+            {r.id for r in res},
+        )
 
     # created_at #
 
     def test_get_scoring_engine_list_filter_created_at_eq(self):
         res = self.dbapi.get_scoring_engine_list(
-            self.context, filters={'created_at__eq': self.FAKE_TODAY})
+            self.context, filters={'created_at__eq': self.FAKE_TODAY}
+        )
 
         self.assertEqual([self.scoring_engine1['id']], [r.id for r in res])
 
     def test_get_scoring_engine_list_filter_created_at_lt(self):
         res = self.dbapi.get_scoring_engine_list(
-            self.context, filters={'created_at__lt': self.FAKE_TODAY})
+            self.context, filters={'created_at__lt': self.FAKE_TODAY}
+        )
 
         self.assertEqual(
             {self.scoring_engine2['id'], self.scoring_engine3['id']},
-            {r.id for r in res})
+            {r.id for r in res},
+        )
 
     def test_get_scoring_engine_list_filter_created_at_lte(self):
         res = self.dbapi.get_scoring_engine_list(
-            self.context, filters={'created_at__lte': self.FAKE_OLD_DATE})
+            self.context, filters={'created_at__lte': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual(
             {self.scoring_engine2['id'], self.scoring_engine3['id']},
-            {r.id for r in res})
+            {r.id for r in res},
+        )
 
     def test_get_scoring_engine_list_filter_created_at_gt(self):
         res = self.dbapi.get_scoring_engine_list(
-            self.context, filters={'created_at__gt': self.FAKE_OLD_DATE})
+            self.context, filters={'created_at__gt': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual([self.scoring_engine1['id']], [r.id for r in res])
 
     def test_get_scoring_engine_list_filter_created_at_gte(self):
         res = self.dbapi.get_scoring_engine_list(
-            self.context, filters={'created_at__gte': self.FAKE_OLD_DATE})
+            self.context, filters={'created_at__gte': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual(
             {self.scoring_engine1['id'], self.scoring_engine2['id']},
-            {r.id for r in res})
+            {r.id for r in res},
+        )
 
     # updated_at #
 
@@ -181,7 +214,8 @@ class TestDbScoringEngineFilters(base.DbTestCase):
         self._update_scoring_engines()
 
         res = self.dbapi.get_scoring_engine_list(
-            self.context, filters={'updated_at__eq': self.FAKE_TODAY})
+            self.context, filters={'updated_at__eq': self.FAKE_TODAY}
+        )
 
         self.assertEqual([self.scoring_engine1['id']], [r.id for r in res])
 
@@ -189,27 +223,32 @@ class TestDbScoringEngineFilters(base.DbTestCase):
         self._update_scoring_engines()
 
         res = self.dbapi.get_scoring_engine_list(
-            self.context, filters={'updated_at__lt': self.FAKE_TODAY})
+            self.context, filters={'updated_at__lt': self.FAKE_TODAY}
+        )
 
         self.assertEqual(
             {self.scoring_engine2['id'], self.scoring_engine3['id']},
-            {r.id for r in res})
+            {r.id for r in res},
+        )
 
     def test_get_scoring_engine_list_filter_updated_at_lte(self):
         self._update_scoring_engines()
 
         res = self.dbapi.get_scoring_engine_list(
-            self.context, filters={'updated_at__lte': self.FAKE_OLD_DATE})
+            self.context, filters={'updated_at__lte': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual(
             {self.scoring_engine2['id'], self.scoring_engine3['id']},
-            {r.id for r in res})
+            {r.id for r in res},
+        )
 
     def test_get_scoring_engine_list_filter_updated_at_gt(self):
         self._update_scoring_engines()
 
         res = self.dbapi.get_scoring_engine_list(
-            self.context, filters={'updated_at__gt': self.FAKE_OLD_DATE})
+            self.context, filters={'updated_at__gt': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual([self.scoring_engine1['id']], [r.id for r in res])
 
@@ -217,15 +256,16 @@ class TestDbScoringEngineFilters(base.DbTestCase):
         self._update_scoring_engines()
 
         res = self.dbapi.get_scoring_engine_list(
-            self.context, filters={'updated_at__gte': self.FAKE_OLD_DATE})
+            self.context, filters={'updated_at__gte': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual(
             {self.scoring_engine1['id'], self.scoring_engine2['id']},
-            {r.id for r in res})
+            {r.id for r in res},
+        )
 
 
 class DbScoringEngineTestCase(base.DbTestCase):
-
     def test_get_scoring_engine_list(self):
         names = []
         for i in range(1, 4):
@@ -234,7 +274,8 @@ class DbScoringEngineTestCase(base.DbTestCase):
                 uuid=w_utils.generate_uuid(),
                 name=f"SE_ID_{i}",
                 description=f'My ScoringEngine {i}',
-                metainfo=f'a{i}=b{i}')
+                metainfo=f'a{i}=b{i}',
+            )
             names.append(str(scoring_engine['name']))
         scoring_engines = self.dbapi.get_scoring_engine_list(self.context)
         scoring_engines_names = [se.name for se in scoring_engines]
@@ -266,73 +307,95 @@ class DbScoringEngineTestCase(base.DbTestCase):
         self.dbapi.soft_delete_scoring_engine(scoring_engine3['uuid'])
 
         res = self.dbapi.get_scoring_engine_list(
-            self.context, filters={'description': 'ScoringEngine 1'})
+            self.context, filters={'description': 'ScoringEngine 1'}
+        )
         self.assertEqual([scoring_engine1['name']], [r.name for r in res])
 
         res = self.dbapi.get_scoring_engine_list(
-            self.context, filters={'description': 'ScoringEngine 3'})
+            self.context, filters={'description': 'ScoringEngine 3'}
+        )
         self.assertEqual([], [r.name for r in res])
 
         res = self.dbapi.get_scoring_engine_list(
-            self.context, filters={'description': 'ScoringEngine 2'})
+            self.context, filters={'description': 'ScoringEngine 2'}
+        )
         self.assertEqual([scoring_engine2['name']], [r.name for r in res])
 
     def test_get_scoring_engine_by_id(self):
         created_scoring_engine = utils.create_test_scoring_engine()
         scoring_engine = self.dbapi.get_scoring_engine_by_id(
-            self.context, created_scoring_engine['id'])
+            self.context, created_scoring_engine['id']
+        )
         self.assertEqual(scoring_engine.id, created_scoring_engine['id'])
 
     def test_get_scoring_engine_by_uuid(self):
         created_scoring_engine = utils.create_test_scoring_engine()
         scoring_engine = self.dbapi.get_scoring_engine_by_uuid(
-            self.context, created_scoring_engine['uuid'])
+            self.context, created_scoring_engine['uuid']
+        )
         self.assertEqual(scoring_engine.uuid, created_scoring_engine['uuid'])
 
     def test_get_scoring_engine_by_name(self):
         created_scoring_engine = utils.create_test_scoring_engine()
         scoring_engine = self.dbapi.get_scoring_engine_by_name(
-            self.context, created_scoring_engine['name'])
+            self.context, created_scoring_engine['name']
+        )
         self.assertEqual(scoring_engine.name, created_scoring_engine['name'])
 
     def test_get_scoring_engine_that_does_not_exist(self):
-        self.assertRaises(exception.ScoringEngineNotFound,
-                          self.dbapi.get_scoring_engine_by_id,
-                          self.context, 404)
+        self.assertRaises(
+            exception.ScoringEngineNotFound,
+            self.dbapi.get_scoring_engine_by_id,
+            self.context,
+            404,
+        )
 
     def test_update_scoring_engine(self):
         scoring_engine = utils.create_test_scoring_engine()
         res = self.dbapi.update_scoring_engine(
-            scoring_engine['id'], {'description': 'updated-model'})
+            scoring_engine['id'], {'description': 'updated-model'}
+        )
         self.assertEqual('updated-model', res.description)
 
     def test_update_scoring_engine_id(self):
         scoring_engine = utils.create_test_scoring_engine()
-        self.assertRaises(exception.Invalid,
-                          self.dbapi.update_scoring_engine,
-                          scoring_engine['id'],
-                          {'uuid': w_utils.generate_uuid()})
+        self.assertRaises(
+            exception.Invalid,
+            self.dbapi.update_scoring_engine,
+            scoring_engine['id'],
+            {'uuid': w_utils.generate_uuid()},
+        )
 
     def test_update_scoring_engine_that_does_not_exist(self):
-        self.assertRaises(exception.ScoringEngineNotFound,
-                          self.dbapi.update_scoring_engine,
-                          404,
-                          {'description': ''})
+        self.assertRaises(
+            exception.ScoringEngineNotFound,
+            self.dbapi.update_scoring_engine,
+            404,
+            {'description': ''},
+        )
 
     def test_destroy_scoring_engine(self):
         scoring_engine = utils.create_test_scoring_engine()
         self.dbapi.destroy_scoring_engine(scoring_engine['id'])
-        self.assertRaises(exception.ScoringEngineNotFound,
-                          self.dbapi.get_scoring_engine_by_id,
-                          self.context, scoring_engine['id'])
+        self.assertRaises(
+            exception.ScoringEngineNotFound,
+            self.dbapi.get_scoring_engine_by_id,
+            self.context,
+            scoring_engine['id'],
+        )
 
     def test_destroy_scoring_engine_that_does_not_exist(self):
-        self.assertRaises(exception.ScoringEngineNotFound,
-                          self.dbapi.destroy_scoring_engine, 404)
+        self.assertRaises(
+            exception.ScoringEngineNotFound,
+            self.dbapi.destroy_scoring_engine,
+            404,
+        )
 
     def test_create_scoring_engine_already_exists(self):
         scoring_engine_id = "SE_ID"
         utils.create_test_scoring_engine(name=scoring_engine_id)
-        self.assertRaises(exception.ScoringEngineAlreadyExists,
-                          utils.create_test_scoring_engine,
-                          name=scoring_engine_id)
+        self.assertRaises(
+            exception.ScoringEngineAlreadyExists,
+            utils.create_test_scoring_engine,
+            name=scoring_engine_id,
+        )

@@ -35,8 +35,10 @@ def initialize_wsgi_app(show_deprecated=False):
     CONF.log_opt_values(LOG, log.DEBUG)
 
     if show_deprecated:
-        LOG.warning("Using watcher/api/app.wsgi is deprecated and it will "
-                    "be removed in U release. Please use automatically "
-                    "generated watcher-api-wsgi instead.")
+        LOG.warning(
+            "Using watcher/api/app.wsgi is deprecated and it will "
+            "be removed in U release. Please use automatically "
+            "generated watcher-api-wsgi instead."
+        )
 
     return app.VersionSelectorApplication()

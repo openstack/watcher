@@ -22,20 +22,23 @@ from watcher.tests.unit import base
 
 
 class TestApiUtilsValidScenarios(base.TestCase):
-
     scenarios = [
-        ("limit=None + max_limit=None",
-            {"limit": None, "max_limit": None, "expected": None}),
-        ("limit=None + max_limit=1",
-            {"limit": None, "max_limit": 1, "expected": 1}),
+        (
+            "limit=None + max_limit=None",
+            {"limit": None, "max_limit": None, "expected": None},
+        ),
+        (
+            "limit=None + max_limit=1",
+            {"limit": None, "max_limit": 1, "expected": 1},
+        ),
         # ("limit=0 + max_limit=None",
         #     {"limit": 0, "max_limit": None, "expected": 0}),
-        ("limit=1 + max_limit=None",
-            {"limit": 1, "max_limit": None, "expected": 1}),
-        ("limit=1 + max_limit=1",
-            {"limit": 1, "max_limit": 1, "expected": 1}),
-        ("limit=2 + max_limit=1",
-            {"limit": 2, "max_limit": 1, "expected": 1}),
+        (
+            "limit=1 + max_limit=None",
+            {"limit": 1, "max_limit": None, "expected": 1},
+        ),
+        ("limit=1 + max_limit=1", {"limit": 1, "max_limit": 1, "expected": 1}),
+        ("limit=2 + max_limit=1", {"limit": 2, "max_limit": 1, "expected": 1}),
     ]
 
     def test_validate_limit(self):
@@ -45,10 +48,7 @@ class TestApiUtilsValidScenarios(base.TestCase):
 
 
 class TestApiUtilsInvalidScenarios(base.TestCase):
-
-    scenarios = [
-        ("limit=0 + max_limit=None", {"limit": 0, "max_limit": None}),
-    ]
+    scenarios = [("limit=0 + max_limit=None", {"limit": 0, "max_limit": None})]
 
     def test_validate_limit_invalid_cases(self):
         cfg.CONF.set_override("max_limit", self.max_limit, group="api")

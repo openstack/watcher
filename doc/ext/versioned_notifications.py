@@ -28,7 +28,6 @@ from watcher.objects import base
 
 
 class VersionedNotificationDirective(Directive):
-
     SAMPLE_ROOT = 'doc/notification_samples/'
     TOGGLE_SCRIPT = """
 <script>
@@ -51,15 +50,16 @@ jQuery(document).ready(function(){
         ovos = base.WatcherObjectRegistry.obj_classes()
         for name, cls in ovos.items():
             cls = cls[0]
-            if (issubclass(cls, notification.NotificationBase) and
-                    cls != notification.NotificationBase):
-
+            if (
+                issubclass(cls, notification.NotificationBase)
+                and cls != notification.NotificationBase
+            ):
                 payload_name = cls.fields['payload'].objname
                 payload_cls = ovos[payload_name][0]
                 for sample in cls.samples:
-                    notifications.append((cls.__name__,
-                                          payload_cls.__name__,
-                                          sample))
+                    notifications.append(
+                        (cls.__name__, payload_cls.__name__, sample)
+                    )
         return sorted(notifications)
 
     def _build_markup(self, notifications):
@@ -90,7 +90,7 @@ jQuery(document).ready(function(){
 
         # fill the table content, one notification per row
         for name, payload, sample_file in notifications:
-            event_type = sample_file[0: -5].replace('-', '.')
+            event_type = sample_file[0:-5].replace('-', '.')
 
             row = nodes.row()
             body.append(row)
@@ -115,11 +115,15 @@ jQuery(document).ready(function(){
             with open(self.SAMPLE_ROOT + sample_file) as f:
                 sample_content = f.read()
 
-            event_type = sample_file[0: -5]
-            html_str = self.TOGGLE_SCRIPT % ((event_type, ) * 3)
-            html_str += (f"<input type='button' id='{event_type}-hideshow' "
-                         "value='hide/show sample'>")
-            html_str += (f"<div id='{event_type}-div'><pre>{sample_content}</pre></div>")
+            event_type = sample_file[0:-5]
+            html_str = self.TOGGLE_SCRIPT % ((event_type,) * 3)
+            html_str += (
+                f"<input type='button' id='{event_type}-hideshow' "
+                "value='hide/show sample'>"
+            )
+            html_str += (
+                f"<div id='{event_type}-div'><pre>{sample_content}</pre></div>"
+            )
 
             raw = nodes.raw('', html_str, format="html")
             col.append(raw)
@@ -128,5 +132,6 @@ jQuery(document).ready(function(){
 
 
 def setup(app):
-    app.add_directive('versioned_notifications',
-                      VersionedNotificationDirective)
+    app.add_directive(
+        'versioned_notifications', VersionedNotificationDirective
+    )

@@ -26,11 +26,11 @@ from watcher.tests.unit.db import utils
 
 
 class TestServiceObject(base.DbTestCase):
-
     def setUp(self):
         super().setUp()
         self.fake_service = utils.get_test_service(
-            created_at=timeutils.utcnow())
+            created_at=timeutils.utcnow()
+        )
 
     @mock.patch.object(db_api.Connection, 'get_service_by_id')
     def test_get_by_id(self, mock_get_service):
@@ -57,7 +57,8 @@ class TestServiceObject(base.DbTestCase):
         service.create()
         expected_service = self.fake_service.copy()
         expected_service['created_at'] = expected_service[
-            'created_at'].replace(tzinfo=datetime.timezone.utc)
+            'created_at'
+        ].replace(tzinfo=datetime.timezone.utc)
 
         mock_create_service.assert_called_once_with(expected_service)
         self.assertEqual(self.context, service._context)
@@ -76,17 +77,19 @@ class TestServiceObject(base.DbTestCase):
 
         mock_get_service.assert_called_once_with(self.context, _id)
         mock_update_service.assert_called_once_with(
-            _id, {'name': 'UPDATED NAME'})
+            _id, {'name': 'UPDATED NAME'}
+        )
         self.assertEqual(self.context, service._context)
 
     @mock.patch.object(db_api.Connection, 'get_service_by_id')
     def test_refresh(self, mock_get_service):
-        returns = [dict(self.fake_service, name="first name"),
-                   dict(self.fake_service, name="second name")]
+        returns = [
+            dict(self.fake_service, name="first name"),
+            dict(self.fake_service, name="second name"),
+        ]
         mock_get_service.side_effect = returns
         _id = self.fake_service['id']
-        expected = [mock.call(self.context, _id),
-                    mock.call(self.context, _id)]
+        expected = [mock.call(self.context, _id), mock.call(self.context, _id)]
         service = objects.Service.get(self.context, _id)
         self.assertEqual("first name", service.name)
         service.refresh()
@@ -104,9 +107,11 @@ class TestServiceObject(base.DbTestCase):
 
         expected_service = fake_deleted_service.copy()
         expected_service['created_at'] = expected_service[
-            'created_at'].replace(tzinfo=datetime.timezone.utc)
+            'created_at'
+        ].replace(tzinfo=datetime.timezone.utc)
         expected_service['deleted_at'] = expected_service[
-            'deleted_at'].replace(tzinfo=datetime.timezone.utc)
+            'deleted_at'
+        ].replace(tzinfo=datetime.timezone.utc)
 
         _id = self.fake_service['id']
         service = objects.Service.get(self.context, _id)

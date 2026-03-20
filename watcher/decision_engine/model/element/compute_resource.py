@@ -20,9 +20,6 @@ from watcher.objects import fields as wfields
 
 
 class ComputeResource(base.Element, metaclass=abc.ABCMeta):
-
     VERSION = '1.0'
 
-    fields = {
-        "uuid": wfields.StringField(),
-    }
+    fields = {"uuid": wfields.StringField()}

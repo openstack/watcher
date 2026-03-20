@@ -40,8 +40,8 @@ def flake8ext(f):
 
 _all_log_levels = {
     'reserved': '_',  # this should never be used with a log unless
-                      # it is a variable used for a log message and
-                      # a exception
+    # it is a variable used for a log message and
+    # a exception
     'error': '_LE',
     'info': '_LI',
     'warning': '_LW',
@@ -53,13 +53,11 @@ _all_hints = set(_all_log_levels.values())
 
 def _regex_for_level(level, hint):
     return r".*LOG\.{level}\(\s*(({wrong_hints})\(|'|\")".format(
-        level=level,
-        wrong_hints='|'.join(_all_hints - {hint}),
+        level=level, wrong_hints='|'.join(_all_hints - {hint})
     )
 
 
-log_warn = re.compile(
-    r"(.)*LOG\.(warn)\(\s*('|\"|_)")
+log_warn = re.compile(r"(.)*LOG\.(warn)\(\s*('|\"|_)")
 unittest_imports_dot = re.compile(r"\bimport[\s]+unittest\b")
 unittest_imports_from = re.compile(r"\bfrom[\s]+unittest\b")
 re_redundant_import_alias = re.compile(r".*import (.+) as \1$")
@@ -115,20 +113,24 @@ def check_assert_called_once_with(logical_line, filename):
 
         check_calls = ['.assertcalledonce', '.calledoncewith']
         if any(x for x in check_calls if x in uncased_line):
-            msg = ("N322: Possible use of no-op mock method. "
-                   "please use assert_called_once_with.")
+            msg = (
+                "N322: Possible use of no-op mock method. "
+                "please use assert_called_once_with."
+            )
             yield (0, msg)
 
         if '.asserthascalled' in uncased_line:
-            msg = ("N322: Possible use of no-op mock method. "
-                   "please use assert_has_calls.")
+            msg = (
+                "N322: Possible use of no-op mock method. "
+                "please use assert_has_calls."
+            )
             yield (0, msg)
 
 
 @flake8ext
 def check_python3_no_iteritems(logical_line):
     if re.search(r".*\.iteritems\(\)", logical_line):
-        msg = ("N327: Use dict.items() instead of dict.iteritems().")
+        msg = "N327: Use dict.items() instead of dict.iteritems()."
         yield (0, msg)
 
 
@@ -136,12 +138,16 @@ def check_python3_no_iteritems(logical_line):
 def check_asserttrue(logical_line, filename):
     if 'watcher/tests/' in filename:
         if re.search(r"assertEqual\(\s*True,[^,]*(,[^,]*)?\)", logical_line):
-            msg = ("N328: Use assertTrue(observed) instead of "
-                   "assertEqual(True, observed)")
+            msg = (
+                "N328: Use assertTrue(observed) instead of "
+                "assertEqual(True, observed)"
+            )
             yield (0, msg)
         if re.search(r"assertEqual\([^,]*,\s*True(,[^,]*)?\)", logical_line):
-            msg = ("N328: Use assertTrue(observed) instead of "
-                   "assertEqual(True, observed)")
+            msg = (
+                "N328: Use assertTrue(observed) instead of "
+                "assertEqual(True, observed)"
+            )
             yield (0, msg)
 
 
@@ -149,21 +155,27 @@ def check_asserttrue(logical_line, filename):
 def check_assertfalse(logical_line, filename):
     if 'watcher/tests/' in filename:
         if re.search(r"assertEqual\(\s*False,[^,]*(,[^,]*)?\)", logical_line):
-            msg = ("N329: Use assertFalse(observed) instead of "
-                   "assertEqual(False, observed)")
+            msg = (
+                "N329: Use assertFalse(observed) instead of "
+                "assertEqual(False, observed)"
+            )
             yield (0, msg)
         if re.search(r"assertEqual\([^,]*,\s*False(,[^,]*)?\)", logical_line):
-            msg = ("N329: Use assertFalse(observed) instead of "
-                   "assertEqual(False, observed)")
+            msg = (
+                "N329: Use assertFalse(observed) instead of "
+                "assertEqual(False, observed)"
+            )
             yield (0, msg)
 
 
 @flake8ext
 def check_assertempty(logical_line, filename):
     if 'watcher/tests/' in filename:
-        msg = ("N330: Use assertEqual(*empty*, observed) instead of "
-               "assertEqual(observed, *empty*). *empty* contains "
-               "{}, [], (), set(), '', \"\"")
+        msg = (
+            "N330: Use assertEqual(*empty*, observed) instead of "
+            "assertEqual(observed, *empty*). *empty* contains "
+            "{}, [], (), set(), '', \"\""
+        )
         empties = r"(\[\s*\]|\{\s*\}|\(\s*\)|set\(\s*\)|'\s*'|\"\s*\")"
         reg = rf"assertEqual\(([^,]*,\s*)+?{empties}\)\s*$"
         if re.search(reg, logical_line):
@@ -173,20 +185,26 @@ def check_assertempty(logical_line, filename):
 @flake8ext
 def check_assertisinstance(logical_line, filename):
     if 'watcher/tests/' in filename:
-        if re.search(r"assertTrue\(\s*isinstance\(\s*[^,]*,\s*[^,]*\)\)",
-                     logical_line):
-            msg = ("N331: Use assertIsInstance(observed, type) instead "
-                   "of assertTrue(isinstance(observed, type))")
+        if re.search(
+            r"assertTrue\(\s*isinstance\(\s*[^,]*,\s*[^,]*\)\)", logical_line
+        ):
+            msg = (
+                "N331: Use assertIsInstance(observed, type) instead "
+                "of assertTrue(isinstance(observed, type))"
+            )
             yield (0, msg)
 
 
 @flake8ext
 def check_assertequal_for_httpcode(logical_line, filename):
-    msg = ("N332: Use assertEqual(expected_http_code, observed_http_code) "
-           "instead of assertEqual(observed_http_code, expected_http_code)")
+    msg = (
+        "N332: Use assertEqual(expected_http_code, observed_http_code) "
+        "instead of assertEqual(observed_http_code, expected_http_code)"
+    )
     if 'watcher/tests/' in filename:
-        if re.search(r"assertEqual\(\s*[^,]*,[^,]*HTTP[^\.]*\.code\s*\)",
-                     logical_line):
+        if re.search(
+            r"assertEqual\(\s*[^,]*,[^,]*HTTP[^\.]*\.code\s*\)", logical_line
+        ):
             yield (0, msg)
 
 
@@ -212,12 +230,16 @@ def check_oslo_i18n_wrapper(logical_line, filename, noqa):
     modulename = os.path.normpath(filename).split('/')[0]
     bad_i18n_module = f'{modulename}.i18n'
 
-    if (len(split_line) > 1 and split_line[0] in ('import', 'from')):
-        if (split_line[1] == bad_i18n_module or
-            modulename != 'watcher' and split_line[1] in ('watcher.i18n',
-                                                          'watcher._i18n')):
-            msg = (f"N340: {split_line[1]} is found. Use "
-                   f"{modulename}._i18n instead.")
+    if len(split_line) > 1 and split_line[0] in ('import', 'from'):
+        if (
+            split_line[1] == bad_i18n_module
+            or modulename != 'watcher'
+            and split_line[1] in ('watcher.i18n', 'watcher._i18n')
+        ):
+            msg = (
+                f"N340: {split_line[1]} is found. Use "
+                f"{modulename}._i18n instead."
+            )
             yield (0, msg)
 
 
@@ -249,14 +271,19 @@ def check_builtins_gettext(logical_line, tokens, filename, lines, noqa):
         i18n_import_line_found = False
         for line in lines:
             split_line = [elm.rstrip(',') for elm in line.split()]
-            if (len(split_line) > 1 and split_line[0] == 'from' and
-                    split_line[1] == i18n_wrapper and
-                    '_' in split_line):
+            if (
+                len(split_line) > 1
+                and split_line[0] == 'from'
+                and split_line[1] == i18n_wrapper
+                and '_' in split_line
+            ):
                 i18n_import_line_found = True
                 break
         if not i18n_import_line_found:
-            msg = ("N341: _ from python builtins module is used. "
-                   f"Use _ from {i18n_wrapper} instead.")
+            msg = (
+                "N341: _ from python builtins module is used. "
+                f"Use _ from {i18n_wrapper} instead."
+            )
             yield (0, msg)
 
 

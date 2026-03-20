@@ -29,7 +29,6 @@ LOG = log.getLogger(__name__)
 
 
 class CollectorManager:
-
     def __init__(self, osc=None):
         self.collector_loader = default.ClusterDataModelCollectorLoader()
         self._collectors = None
@@ -83,5 +82,4 @@ class CollectorManager:
         :returns: cluster data model collector plugin
         :rtype: :py:class:`~.BaseClusterDataModelCollector`
         """
-        return self.collector_loader.load(
-            name, osc=osc)
+        return self.collector_loader.load(name, osc=osc)

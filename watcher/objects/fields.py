@@ -120,11 +120,11 @@ class Json(fields.FieldType):
 class JsonField(fields.AutoTypedField):
     AUTO_TYPE = Json()
 
+
 # ### Notification fields ### #
 
 
 class BaseWatcherEnum(Enum):
-
     ALL = ()
 
     def __init__(self, **kwargs):
@@ -161,8 +161,16 @@ class NotificationAction(BaseWatcherEnum):
 
     CANCEL = 'cancel'
 
-    ALL = (CREATE, UPDATE, EXCEPTION, DELETE, STRATEGY, PLANNER, EXECUTION,
-           CANCEL)
+    ALL = (
+        CREATE,
+        UPDATE,
+        EXCEPTION,
+        DELETE,
+        STRATEGY,
+        PLANNER,
+        EXECUTION,
+        CANCEL,
+    )
 
 
 class NotificationPriorityField(BaseEnumField):

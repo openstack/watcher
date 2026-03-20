@@ -34,8 +34,9 @@ class DecisionEngineThreadPool(metaclass=service.Singleton):
 
     def __init__(self):
         self.amount_workers = CONF.watcher_decision_engine.max_general_workers
-        self._threadpool = (
-            executor.get_futurist_pool_executor(self.amount_workers))
+        self._threadpool = executor.get_futurist_pool_executor(
+            self.amount_workers
+        )
 
     def submit(self, fn, *args, **kwargs):
         """Will submit the job to the underlying threadpool
@@ -47,8 +48,9 @@ class DecisionEngineThreadPool(metaclass=service.Singleton):
         :rtype: :py:class"`futurist.GreenFuture`
         """
         # Statistics from the threadpool
-        executor.log_executor_stats(self._threadpool,
-                                    name="decision-engine-pool")
+        executor.log_executor_stats(
+            self._threadpool, name="decision-engine-pool"
+        )
         return self._threadpool.submit(fn, *args, **kwargs)
 
     @staticmethod
@@ -74,11 +76,13 @@ class DecisionEngineThreadPool(metaclass=service.Singleton):
         futures = copy.copy(futures)
 
         DecisionEngineThreadPool.do_while_futures_modify(
-            futures, fn, *args, futures_timeout=futures_timeout, **kwargs)
+            futures, fn, *args, futures_timeout=futures_timeout, **kwargs
+        )
 
     @staticmethod
-    def do_while_futures_modify(futures, fn, *args,
-                                futures_timeout=None, **kwargs):
+    def do_while_futures_modify(
+        futures, fn, *args, futures_timeout=None, **kwargs
+    ):
         """Do while to execute a function upon completion from a collection
 
         Will execute the specified function with its arguments when one of the
@@ -101,8 +105,10 @@ class DecisionEngineThreadPool(metaclass=service.Singleton):
             # In this scenario, we cancel the remaining pending futures and
             # break the loop, otherwise it may stay in the loop indefinitely.
             if not len(waits[0]):
-                LOG.warning("No futures finished during the timeout period, "
-                            "aborting remaining pending futures")
+                LOG.warning(
+                    "No futures finished during the timeout period, "
+                    "aborting remaining pending futures"
+                )
                 for future in waits[1]:
                     future.cancel()
                 break

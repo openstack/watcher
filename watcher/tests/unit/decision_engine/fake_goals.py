@@ -20,7 +20,6 @@ from watcher.decision_engine.goal.efficacy import specs
 
 
 class FakeGoal(base_goal.Goal):
-
     NAME = NotImplemented
     DISPLAY_NAME = NotImplemented
 
@@ -44,22 +43,14 @@ class FakeGoal(base_goal.Goal):
 
 class DummyIndicator(indicators.IndicatorSpecification):
     def __init__(self):
-        super().__init__(
-            name="dummy",
-            description="Dummy indicator",
-            unit="%",
-        )
+        super().__init__(name="dummy", description="Dummy indicator", unit="%")
 
     @property
     def schema(self):
-        return {
-            "type": "integer",
-            "minimum": 0
-            }
+        return {"type": "integer", "minimum": 0}
 
 
 class DummySpec1(efficacy_base.EfficacySpecification):
-
     def get_indicators_specifications(self):
         return [DummyIndicator()]
 

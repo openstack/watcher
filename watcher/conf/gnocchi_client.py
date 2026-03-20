@@ -18,21 +18,34 @@
 from oslo_config import cfg
 
 
-gnocchi_client = cfg.OptGroup(name='gnocchi_client',
-                              title='Configuration Options for Gnocchi')
+gnocchi_client = cfg.OptGroup(
+    name='gnocchi_client', title='Configuration Options for Gnocchi'
+)
 
 GNOCCHI_CLIENT_OPTS = [
-    cfg.StrOpt('api_version',
-               default='1',
-               help='Version of Gnocchi API to use in gnocchiclient.'),
-    cfg.StrOpt('endpoint_type',
-               default='public',
-               choices=['public', 'internal', 'admin',
-                        'publicURL', 'internalURL', 'adminURL'],
-               help='Type of endpoint to use in gnocchi client.'),
-    cfg.StrOpt('region_name',
-               help='Region in Identity service catalog to use for '
-                    'communication with the OpenStack service.')
+    cfg.StrOpt(
+        'api_version',
+        default='1',
+        help='Version of Gnocchi API to use in gnocchiclient.',
+    ),
+    cfg.StrOpt(
+        'endpoint_type',
+        default='public',
+        choices=[
+            'public',
+            'internal',
+            'admin',
+            'publicURL',
+            'internalURL',
+            'adminURL',
+        ],
+        help='Type of endpoint to use in gnocchi client.',
+    ),
+    cfg.StrOpt(
+        'region_name',
+        help='Region in Identity service catalog to use for '
+        'communication with the OpenStack service.',
+    ),
 ]
 
 

@@ -28,8 +28,9 @@ class ActionFactory:
 
     def make_action(self, object_action, osc=None):
         LOG.debug("Creating instance of %s", object_action.action_type)
-        loaded_action = self.action_loader.load(name=object_action.action_type,
-                                                osc=osc)
+        loaded_action = self.action_loader.load(
+            name=object_action.action_type, osc=osc
+        )
         loaded_action.input_parameters = object_action.input_parameters
         LOG.debug("Checking the input parameters")
         # NOTE(jed) if we change the schema of an action and we try to reload

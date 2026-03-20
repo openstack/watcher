@@ -33,7 +33,6 @@ LOG = log.getLogger(__name__)
 
 
 class NovaNotification(base.NotificationEndpoint):
-
     def __init__(self, collector):
         super().__init__(collector)
         self._nova = None
@@ -57,12 +56,15 @@ class NovaNotification(base.NotificationEndpoint):
             if node_name:
                 node = self.get_or_create_node(node_name)
         except exception.ComputeNodeNotFound:
-            LOG.warning("Could not find compute node %(node)s for "
-                        "instance %(instance)s",
-                        dict(node=node_name, instance=instance_uuid))
+            LOG.warning(
+                "Could not find compute node %(node)s for "
+                "instance %(instance)s",
+                dict(node=node_name, instance=instance_uuid),
+            )
         try:
             instance = self.cluster_data_model.get_instance_by_uuid(
-                instance_uuid)
+                instance_uuid
+            )
         except exception.InstanceNotFound:
             # The instance didn't exist yet so we create a new instance object
             LOG.debug("New instance created: %s", instance_uuid)
@@ -86,18 +88,20 @@ class NovaNotification(base.NotificationEndpoint):
         disk_gb = instance_flavor_data['root_gb']
         instance_metadata = data['nova_object.data']['metadata']
 
-        instance.update({
-            'state': instance_data['state'],
-            'hostname': instance_data['host_name'],
-            # this is the user-provided display name of the server which is not
-            # guaranteed to be unique nor is it immutable.
-            'name': instance_data['display_name'],
-            'memory': memory_mb,
-            'vcpus': num_cores,
-            'disk': disk_gb,
-            'metadata': instance_metadata,
-            'project_id': instance_data['tenant_id'],
-        })
+        instance.update(
+            {
+                'state': instance_data['state'],
+                'hostname': instance_data['host_name'],
+                # this is the user-provided display name of the server
+                # which is not guaranteed to be unique nor is it immutable.
+                'name': instance_data['display_name'],
+                'memory': memory_mb,
+                'vcpus': num_cores,
+                'disk': disk_gb,
+                'metadata': instance_metadata,
+                'project_id': instance_data['tenant_id'],
+            }
+        )
 
         # locked was added in nova notification payload version 1.1
         if n_version > microversion_parse.parse_version_string('1.0'):
@@ -105,8 +109,10 @@ class NovaNotification(base.NotificationEndpoint):
 
         # NOTE(dviroel): extra_specs can change due to a resize operation.
         # 'extra_specs' was added in nova notification payload version 1.2
-        if (n_version > microversion_parse.parse_version_string('1.1') and
-                self.cluster_data_model.extended_attributes_enabled):
+        if (
+            n_version > microversion_parse.parse_version_string('1.1')
+            and self.cluster_data_model.extended_attributes_enabled
+        ):
             extra_specs = instance_flavor_data.get("extra_specs", {})
             instance.update({'flavor_extra_specs': extra_specs})
 
@@ -124,20 +130,26 @@ class NovaNotification(base.NotificationEndpoint):
         node_data = data['nova_object.data']
         node_state = (
             element.ServiceState.OFFLINE.value
-            if node_data['forced_down'] else element.ServiceState.ONLINE.value)
+            if node_data['forced_down']
+            else element.ServiceState.ONLINE.value
+        )
         node_status = (
             element.ServiceState.DISABLED.value
-            if node_data['disabled'] else element.ServiceState.ENABLED.value)
+            if node_data['disabled']
+            else element.ServiceState.ENABLED.value
+        )
         disabled_reason = (
-            node_data['disabled_reason']
-            if node_data['disabled'] else None)
+            node_data['disabled_reason'] if node_data['disabled'] else None
+        )
 
-        node.update({
-            'hostname': node_data['host'],
-            'state': node_state,
-            'status': node_status,
-            'disabled_reason': disabled_reason,
-        })
+        node.update(
+            {
+                'hostname': node_data['host'],
+                'state': node_state,
+                'status': node_status,
+                'disabled_reason': disabled_reason,
+            }
+        )
 
     def create_compute_node(self, uuid_or_name):
         """Create the computeNode node."""
@@ -193,7 +205,8 @@ class NovaNotification(base.NotificationEndpoint):
                 "vcpu_ratio": vcpu_ratio,
                 "state": _node.state,
                 "status": _node.status,
-                "disabled_reason": _node.service_disabled_reason}
+                "disabled_reason": _node.service_disabled_reason,
+            }
 
             node = element.ComputeNode(**node_attributes)
             self.cluster_data_model.add_node(node)
@@ -222,14 +235,18 @@ class NovaNotification(base.NotificationEndpoint):
     def update_instance_mapping(self, instance, node):
         if node is None:
             self.cluster_data_model.add_instance(instance)
-            LOG.debug("Instance %s not yet attached to any node: skipping",
-                      instance.uuid)
+            LOG.debug(
+                "Instance %s not yet attached to any node: skipping",
+                instance.uuid,
+            )
             return
         try:
             try:
                 current_node = (
                     self.cluster_data_model.get_node_by_instance_uuid(
-                        instance.uuid))
+                        instance.uuid
+                    )
+                )
             except exception.ComputeResourceNotFound as exc:
                 LOG.exception(exc)
                 # If we can't create the node,
@@ -238,8 +255,9 @@ class NovaNotification(base.NotificationEndpoint):
 
             LOG.debug("Mapped node %s found", node.uuid)
             if current_node and node != current_node:
-                LOG.debug("Unmapping instance %s from %s",
-                          instance.uuid, node.uuid)
+                LOG.debug(
+                    "Unmapping instance %s from %s", instance.uuid, node.uuid
+                )
                 self.cluster_data_model.unmap_instance(instance, current_node)
         except exception.InstanceNotFound:
             # The instance didn't exist yet so we map it for the first time
@@ -350,21 +368,21 @@ class VersionedNotification(NovaNotification):
         'service.create': service_updated,
         'service.delete': service_deleted,
         'service.update': service_updated,
-        }
+    }
 
     @property
     def filter_rule(self):
         """Nova notification filter"""
         return filtering.NotificationFilter(
-            publisher_id=self.publisher_id_regex,
+            publisher_id=self.publisher_id_regex
         )
 
     def info(self, ctxt, publisher_id, event_type, payload, metadata):
-        LOG.info("Event '%(event)s' received from %(publisher)s "
-                 "with metadata %(metadata)s",
-                 dict(event=event_type,
-                      publisher=publisher_id,
-                      metadata=metadata))
+        LOG.info(
+            "Event '%(event)s' received from %(publisher)s "
+            "with metadata %(metadata)s",
+            dict(event=event_type, publisher=publisher_id, metadata=metadata),
+        )
         func = self.notification_mapping.get(event_type)
         if func:
             # The nova CDM is not built until an audit is performed.
@@ -372,5 +390,7 @@ class VersionedNotification(NovaNotification):
                 LOG.debug(payload)
                 func(self, payload)
             else:
-                LOG.debug('Nova CDM has not yet been built; ignoring '
-                          'notifications until an audit is performed.')
+                LOG.debug(
+                    'Nova CDM has not yet been built; ignoring '
+                    'notifications until an audit is performed.'
+                )

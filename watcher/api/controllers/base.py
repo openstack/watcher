@@ -23,7 +23,6 @@ from wsme import types as wtypes
 
 
 class APIBase(wtypes.Base):
-
     created_at = wsme.wsattr(datetime.datetime, readonly=True)
     """The time in UTC at which the object is created"""
 
@@ -35,10 +34,11 @@ class APIBase(wtypes.Base):
 
     def as_dict(self):
         """Render this object as a dict of its fields."""
-        return {k: getattr(self, k)
-                for k in self.fields
-                if hasattr(self, k) and
-                getattr(self, k) != wsme.Unset}
+        return {
+            k: getattr(self, k)
+            for k in self.fields
+            if hasattr(self, k) and getattr(self, k) != wsme.Unset
+        }
 
     def unset_fields_except(self, except_list=None):
         """Unset fields so they don't appear in the message body.
@@ -77,7 +77,8 @@ class Version:
 
         """
         (self.major, self.minor) = Version.parse_headers(
-            headers, default_version, latest_version)
+            headers, default_version, latest_version
+        )
 
     def __repr__(self):
         return f'{self.major}.{self.minor}'
@@ -94,8 +95,8 @@ class Version:
 
         """
         version_str = microversion_parse.get_version(
-            headers,
-            service_type='infra-optim')
+            headers, service_type='infra-optim'
+        )
 
         minimal_version = (1, 0)
 
@@ -122,7 +123,8 @@ class Version:
 
         if len(version) != 2:
             raise exc.HTTPNotAcceptable(
-                f"Invalid value for {Version.string} header")
+                f"Invalid value for {Version.string} header"
+            )
         return version
 
     def __gt__(self, other):

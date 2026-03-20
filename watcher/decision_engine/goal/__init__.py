@@ -26,7 +26,13 @@ SavingEnergy = goals.SavingEnergy
 HardwareMaintenance = goals.HardwareMaintenance
 
 
-__all__ = ("Dummy", "ServerConsolidation", "ThermalOptimization",
-           "Unclassified", "WorkloadBalancing",
-           "NoisyNeighborOptimization", "SavingEnergy",
-           "HardwareMaintenance")
+__all__ = (
+    "Dummy",
+    "ServerConsolidation",
+    "ThermalOptimization",
+    "Unclassified",
+    "WorkloadBalancing",
+    "NoisyNeighborOptimization",
+    "SavingEnergy",
+    "HardwareMaintenance",
+)

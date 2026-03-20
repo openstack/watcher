@@ -46,7 +46,6 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
     """
 
     def __init__(self, config, osc=None):
-
         super().__init__(config, osc)
         self._nova = None
         self._cinder = None
@@ -94,18 +93,18 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
                         "properties": {
                             "src_node": {
                                 "description": "Compute node from which"
-                                               " instances migrate",
-                                "type": "string"
+                                " instances migrate",
+                                "type": "string",
                             },
                             "dst_node": {
                                 "description": "Compute node to which "
-                                               "instances migrate",
-                                "type": "string"
-                            }
+                                "instances migrate",
+                                "type": "string",
+                            },
                         },
                         "required": ["src_node"],
-                        "additionalProperties": False
-                    }
+                        "additionalProperties": False,
+                    },
                 },
                 "storage_pools": {
                     "type": "array",
@@ -114,83 +113,95 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
                         "properties": {
                             "src_pool": {
                                 "description": "Storage pool from which"
-                                               " volumes migrate",
-                                "type": "string"
+                                " volumes migrate",
+                                "type": "string",
                             },
                             "dst_pool": {
                                 "description": "Storage pool to which"
-                                               " volumes migrate",
-                                "type": "string"
+                                " volumes migrate",
+                                "type": "string",
                             },
                             "src_type": {
                                 "description": "Volume type from which"
-                                               " volumes migrate",
-                                "type": "string"
+                                " volumes migrate",
+                                "type": "string",
                             },
                             "dst_type": {
                                 "description": "Volume type to which"
-                                               " volumes migrate",
-                                "type": "string"
-                            }
+                                " volumes migrate",
+                                "type": "string",
+                            },
                         },
                         "oneOf": [
                             {
                                 "required": ["src_pool", "dst_pool"],
-                                "not": {"required": ["dst_type"]}
+                                "not": {"required": ["dst_type"]},
                             },
                             {
                                 "required": ["src_pool", "dst_type"],
-                                "not": {"required": ["dst_pool"]}
-                            }
+                                "not": {"required": ["dst_pool"]},
+                            },
                         ],
-                        "additionalProperties": False
-                    }
+                        "additionalProperties": False,
+                    },
                 },
                 "parallel_total": {
                     "description": "The number of actions to be run in"
-                                   " parallel in total",
-                    "type": "integer", "minimum": 0, "default": 6
+                    " parallel in total",
+                    "type": "integer",
+                    "minimum": 0,
+                    "default": 6,
                 },
                 "parallel_per_node": {
                     "description": "The number of actions to be run in"
-                                   " parallel per compute node",
-                    "type": "integer", "minimum": 0, "default": 2
+                    " parallel per compute node",
+                    "type": "integer",
+                    "minimum": 0,
+                    "default": 2,
                 },
                 "parallel_per_pool": {
                     "description": "The number of actions to be run in"
-                                   " parallel per storage host",
-                    "type": "integer", "minimum": 0, "default": 2
+                    " parallel per storage host",
+                    "type": "integer",
+                    "minimum": 0,
+                    "default": 2,
                 },
                 "priority": {
                     "description": "List prioritizes instances and volumes",
                     "type": "object",
                     "properties": {
                         "project": {
-                            "type": "array", "items": {"type": "string"}
+                            "type": "array",
+                            "items": {"type": "string"},
                         },
                         "compute_node": {
-                            "type": "array", "items": {"type": "string"}
+                            "type": "array",
+                            "items": {"type": "string"},
                         },
                         "storage_pool": {
-                            "type": "array", "items": {"type": "string"}
+                            "type": "array",
+                            "items": {"type": "string"},
                         },
                         "compute": {
-                            "enum": ["vcpu_num", "mem_size", "disk_size",
-                                     "created_at"]
+                            "enum": [
+                                "vcpu_num",
+                                "mem_size",
+                                "disk_size",
+                                "created_at",
+                            ]
                         },
-                        "storage": {
-                            "enum": ["size", "created_at"]
-                        }
+                        "storage": {"enum": ["size", "created_at"]},
                     },
-                    "additionalProperties": False
+                    "additionalProperties": False,
                 },
                 "with_attached_volume": {
                     "description": "instance migrates just after attached"
-                                   " volumes or not",
-                    "type": "boolean", "default": False
+                    " volumes or not",
+                    "type": "boolean",
+                    "default": False,
                 },
             },
-            "additionalProperties": False
+            "additionalProperties": False,
         }
 
     @property
@@ -269,50 +280,59 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
         return self._cinder
 
     def get_available_compute_nodes(self):
-        default_node_scope = [element.ServiceState.ENABLED.value,
-                              element.ServiceState.DISABLED.value]
-        return {uuid: cn for uuid, cn in
-                self.compute_model.get_all_compute_nodes().items()
-                if cn.state == element.ServiceState.ONLINE.value and
-                cn.status in default_node_scope}
+        default_node_scope = [
+            element.ServiceState.ENABLED.value,
+            element.ServiceState.DISABLED.value,
+        ]
+        return {
+            uuid: cn
+            for uuid, cn in self.compute_model.get_all_compute_nodes().items()
+            if cn.state == element.ServiceState.ONLINE.value
+            and cn.status in default_node_scope
+        }
 
     def get_available_storage_nodes(self):
-        default_node_scope = [element.ServiceState.ENABLED.value,
-                              element.ServiceState.DISABLED.value]
-        return {uuid: cn for uuid, cn in
-                self.storage_model.get_all_storage_nodes().items()
-                if cn.state == element.ServiceState.ONLINE.value and
-                cn.status in default_node_scope}
+        default_node_scope = [
+            element.ServiceState.ENABLED.value,
+            element.ServiceState.DISABLED.value,
+        ]
+        return {
+            uuid: cn
+            for uuid, cn in self.storage_model.get_all_storage_nodes().items()
+            if cn.state == element.ServiceState.ONLINE.value
+            and cn.status in default_node_scope
+        }
 
     def pre_execute(self):
         self._pre_execute()
         LOG.debug(self.storage_model.to_string())
 
     def do_execute(self, audit=None):
-        """Strategy execution phase
-
-        """
+        """Strategy execution phase"""
         filtered_targets = self.filtered_targets()
         self.set_migration_count(filtered_targets)
 
         total_limit = self.parallel_total
         per_node_limit = self.parallel_per_node
         per_pool_limit = self.parallel_per_pool
-        action_counter = ActionCounter(total_limit,
-                                       per_pool_limit, per_node_limit)
+        action_counter = ActionCounter(
+            total_limit, per_pool_limit, per_node_limit
+        )
 
         instance_targets = filtered_targets.get(INSTANCE, [])
         if VOLUME in filtered_targets:
-            self.volumes_migration(filtered_targets[VOLUME], action_counter,
-                                   instance_targets)
+            self.volumes_migration(
+                filtered_targets[VOLUME], action_counter, instance_targets
+            )
         if INSTANCE in filtered_targets:
-            self.instances_migration(instance_targets,
-                                     action_counter)
+            self.instances_migration(instance_targets, action_counter)
 
-        LOG.debug("action total: %s, pools: %s, nodes %s ",
-                  action_counter.total_count,
-                  action_counter.per_pool_count,
-                  action_counter.per_node_count)
+        LOG.debug(
+            "action total: %s, pools: %s, nodes %s ",
+            action_counter.total_count,
+            action_counter.per_pool_count,
+            action_counter.per_node_count,
+        )
 
     def post_execute(self):
         """Post-execution phase
@@ -327,7 +347,7 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
             volume_migrate_count=self.volume_count,
             planned_volume_migrate_count=self.planned_volume_count,
             volume_update_count=self.volume_count,
-            planned_volume_update_count=self.planned_volume_count
+            planned_volume_update_count=self.planned_volume_count,
         )
 
     def set_migration_count(self, targets):
@@ -347,8 +367,9 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
     def is_live(self, instance):
         status = instance.status
         state = instance.vm_state
-        return (status == status_ACTIVE and state == ACTIVE
-                ) or (status == status_PAUSED and state == PAUSED)
+        return (status == status_ACTIVE and state == ACTIVE) or (
+            status == status_PAUSED and state == PAUSED
+        )
 
     def is_cold(self, instance):
         status = instance.status
@@ -422,8 +443,11 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
 
             pool = getattr(volume, 'os-vol-host-attr:host')
             if action_counter.is_pool_max(pool):
-                LOG.debug("%s has objects to be migrated, but it has"
-                          " reached the limit of parallelization.", pool)
+                LOG.debug(
+                    "%s has objects to be migrated, but it has"
+                    " reached the limit of parallelization.",
+                    pool,
+                )
                 continue
 
             src_type = volume.volume_type
@@ -434,12 +458,16 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
             if dst_type is None or src_type == dst_type:
                 if dst_pool is None:
                     type_msg = (
-                        "" if dst_type is None else
-                        f"it already has type {dst_type} and ")
+                        ""
+                        if dst_type is None
+                        else f"it already has type {dst_type} and "
+                    )
                     LOG.info(
                         "volume %s will not be migrated because %s'dst_pool' "
                         "was not specified for src_pool %s",
-                        volume.name, type_msg, pool
+                        volume.name,
+                        type_msg,
+                        pool,
                     )
                     continue
                 self._volume_migrate(volume, dst_pool)
@@ -460,7 +488,8 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
                         # of it
                         LOG.debug(
                             "Could not find instance %s it will not be "
-                            "considered for migration", instance_id
+                            "considered for migration",
+                            instance_id,
                         )
                         continue
                     if instance_id in instance_target_ids:
@@ -470,11 +499,12 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
             action_counter.add_pool(pool)
 
     def instances_migration(self, instances, action_counter):
-
         for instance in instances:
             if self._instance_migration_exists(instance.uuid):
-                LOG.debug("A migration action for instance %s already exist",
-                          instance.uuid)
+                LOG.debug(
+                    "A migration action for instance %s already exist",
+                    instance.uuid,
+                )
                 continue
             src_node = instance.host
 
@@ -483,8 +513,11 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
                 break
 
             if action_counter.is_node_max(src_node):
-                LOG.debug("%s has objects to be migrated, but it has"
-                          " reached the limit of parallelization.", src_node)
+                LOG.debug(
+                    "%s has objects to be migrated, but it has"
+                    " reached the limit of parallelization.",
+                    src_node,
+                )
                 continue
 
             dst_node = self.get_dst_node(src_node)
@@ -496,9 +529,11 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
             action_counter.add_node(src_node)
 
     def _live_migration(self, instance, src_node, dst_node):
-        parameters = {"migration_type": "live",
-                      "source_node": src_node,
-                      "resource_name": instance.name}
+        parameters = {
+            "migration_type": "live",
+            "source_node": src_node,
+            "resource_name": instance.name,
+        }
         if dst_node:
             # if dst_node is None, do not add it to the parameters for the
             # migration action, and let Nova figure out the destination node
@@ -506,13 +541,16 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
         self.solution.add_action(
             action_type="migrate",
             resource_id=instance.uuid,
-            input_parameters=parameters)
+            input_parameters=parameters,
+        )
         self.planned_live_count += 1
 
     def _cold_migration(self, instance, src_node, dst_node):
-        parameters = {"migration_type": "cold",
-                      "source_node": src_node,
-                      "resource_name": instance.name}
+        parameters = {
+            "migration_type": "cold",
+            "source_node": src_node,
+            "resource_name": instance.name,
+        }
         if dst_node:
             # if dst_node is None, do not add it to the parameters for the
             # migration action, and let Nova figure out the destination node
@@ -520,35 +558,44 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
         self.solution.add_action(
             action_type="migrate",
             resource_id=instance.uuid,
-            input_parameters=parameters)
+            input_parameters=parameters,
+        )
         self.planned_cold_count += 1
 
     def _instance_migration_exists(self, instance_id):
         for action in self.solution.actions:
             resource_id = action['input_parameters'].get('resource_id', None)
-            if (action['action_type'] == 'migrate' and
-                    resource_id == instance_id):
+            if (
+                action['action_type'] == 'migrate'
+                and resource_id == instance_id
+            ):
                 return True
         return False
 
     def _volume_migrate(self, volume, dst_pool):
-        parameters = {"migration_type": "migrate",
-                      "destination_node": dst_pool,
-                      "resource_name": volume.name}
+        parameters = {
+            "migration_type": "migrate",
+            "destination_node": dst_pool,
+            "resource_name": volume.name,
+        }
         self.solution.add_action(
             action_type="volume_migrate",
             resource_id=volume.id,
-            input_parameters=parameters)
+            input_parameters=parameters,
+        )
         self.planned_volume_count += 1
 
     def _volume_retype(self, volume, dst_type):
-        parameters = {"migration_type": "retype",
-                      "destination_type": dst_type,
-                      "resource_name": volume.name}
+        parameters = {
+            "migration_type": "retype",
+            "destination_type": dst_type,
+            "resource_name": volume.name,
+        }
         self.solution.add_action(
             action_type="volume_migrate",
             resource_id=volume.id,
-            input_parameters=parameters)
+            input_parameters=parameters,
+        )
         self.planned_volume_count += 1
 
     def get_src_node_list(self):
@@ -559,8 +606,12 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
         if not self.migrate_compute_nodes:
             return None
 
-        return [v for dic in self.migrate_compute_nodes
-                for k, v in dic.items() if k == "src_node"]
+        return [
+            v
+            for dic in self.migrate_compute_nodes
+            for k, v in dic.items()
+            if k == "src_node"
+        ]
 
     def get_src_pool_list(self):
         """Get src pools from migrate_storage_pools
@@ -568,8 +619,12 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
         :returns: src pool name list
         """
 
-        return [v for dic in self.migrate_storage_pools
-                for k, v in dic.items() if k == "src_pool"]
+        return [
+            v
+            for dic in self.migrate_storage_pools
+            for k, v in dic.items()
+            if k == "src_pool"
+        ]
 
     def get_instances(self):
         """Get migrate target instances
@@ -582,18 +637,22 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
         if not src_node_list:
             return None
 
-        return [i for i in self.nova.get_instance_list()
-                if i.host in src_node_list and
-                self.compute_model.has_node(i.uuid)]
+        return [
+            i
+            for i in self.nova.get_instance_list()
+            if i.host in src_node_list and self.compute_model.has_node(i.uuid)
+        ]
 
     def get_volumes(self):
         """Get migrate target volumes
 
         :returns: volume list on src pools and storage scope
         """
+
         def _is_src_type(volume, src_type):
-            return (src_type is None or
-                    (src_type is not None and volume.volume_type == src_type))
+            return src_type is None or (
+                src_type is not None and volume.volume_type == src_type
+            )
 
         target_volumes = []
         for volume in self.cinder.get_volume_list():
@@ -604,8 +663,9 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
             for migrate_input in self.migrate_storage_pools:
                 src_pool = migrate_input["src_pool"]
                 src_type = migrate_input.get("src_type")
-                if (getattr(volume, 'os-vol-host-attr:host') == src_pool and
-                        _is_src_type(volume, src_type)):
+                if getattr(
+                    volume, 'os-vol-host-attr:host'
+                ) == src_pool and _is_src_type(volume, src_type):
                     target_volumes.append(volume)
                     # once the volume satisfies one the storage_pools
                     # inputs, we don't need to check the rest
@@ -703,8 +763,11 @@ class ActionCounter:
         if not self.is_total_max() and not self.is_pool_max(pool):
             self.per_pool_count[pool] += 1
             self.total_count += 1
-            LOG.debug("total: %s, per_pool: %s",
-                      self.total_count, self.per_pool_count)
+            LOG.debug(
+                "total: %s, per_pool: %s",
+                self.total_count,
+                self.per_pool_count,
+            )
             return True
         return False
 
@@ -720,8 +783,11 @@ class ActionCounter:
         if not self.is_total_max() and not self.is_node_max(node):
             self.per_node_count[node] += 1
             self.total_count += 1
-            LOG.debug("total: %s, per_node: %s",
-                      self.total_count, self.per_node_count)
+            LOG.debug(
+                "total: %s, per_node: %s",
+                self.total_count,
+                self.per_node_count,
+            )
             return True
         return False
 
@@ -739,8 +805,11 @@ class ActionCounter:
         """
         if pool not in self.per_pool_count:
             self.per_pool_count[pool] = 0
-        LOG.debug("the number of parallel per pool %s is %s ",
-                  pool, self.per_pool_count[pool])
+        LOG.debug(
+            "the number of parallel per pool %s is %s ",
+            pool,
+            self.per_pool_count[pool],
+        )
         LOG.debug("per pool limit is %s", self.per_pool_limit)
         return self.per_pool_count[pool] >= self.per_pool_limit
 
@@ -802,9 +871,7 @@ class SortMovingToFrontFilter(BaseFilter):
     """This is to move to front if a condition is True"""
 
     def exec_filter(self, items, sort_key):
-        return self.sort_moving_to_front(items,
-                                         sort_key,
-                                         self.compare_func)
+        return self.sort_moving_to_front(items, sort_key, self.compare_func)
 
     def sort_moving_to_front(self, items, sort_key=None, compare_func=None):
         if not compare_func or not sort_key:
@@ -945,22 +1012,29 @@ class ComputeSpecSortFilter(BaseFilter):
         flavors = self.nova.get_flavor_list()
 
         if sort_key == 'mem_size':
-            result = sorted(items,
-                            key=lambda x: float(self.get_mem_size(x, flavors)),
-                            reverse=True)
+            result = sorted(
+                items,
+                key=lambda x: float(self.get_mem_size(x, flavors)),
+                reverse=True,
+            )
         elif sort_key == 'vcpu_num':
-            result = sorted(items,
-                            key=lambda x: float(self.get_vcpu_num(x, flavors)),
-                            reverse=True)
+            result = sorted(
+                items,
+                key=lambda x: float(self.get_vcpu_num(x, flavors)),
+                reverse=True,
+            )
         elif sort_key == 'disk_size':
-            result = sorted(items,
-                            key=lambda x: float(
-                                self.get_disk_size(x, flavors)),
-                            reverse=True)
+            result = sorted(
+                items,
+                key=lambda x: float(self.get_disk_size(x, flavors)),
+                reverse=True,
+            )
         elif sort_key == 'created_at':
-            result = sorted(items,
-                            key=lambda x: timeutils.parse_isotime(x.created),
-                            reverse=False)
+            result = sorted(
+                items,
+                key=lambda x: timeutils.parse_isotime(x.created),
+                reverse=False,
+            )
 
         return result
 
@@ -1024,13 +1098,14 @@ class StorageSpecSortFilter(BaseFilter):
             return result
 
         if sort_key == 'created_at':
-            result = sorted(items,
-                            key=lambda x: timeutils.parse_isotime(
-                                getattr(x, sort_key)),
-                            reverse=False)
+            result = sorted(
+                items,
+                key=lambda x: timeutils.parse_isotime(getattr(x, sort_key)),
+                reverse=False,
+            )
         else:
-            result = sorted(items,
-                            key=lambda x: float(getattr(x, sort_key)),
-                            reverse=True)
+            result = sorted(
+                items, key=lambda x: float(getattr(x, sort_key)), reverse=True
+            )
         LOG.debug(result)
         return result

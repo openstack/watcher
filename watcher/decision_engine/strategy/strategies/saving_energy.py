@@ -81,7 +81,6 @@ class SavingEnergy(base.SavingEnergyBaseStrategy):
     """
 
     def __init__(self, config, osc=None):
-
         super().__init__(config, osc)
         self._metal_helper = None
 
@@ -119,21 +118,25 @@ class SavingEnergy(base.SavingEnergyBaseStrategy):
         return {
             "properties": {
                 "free_used_percent": {
-                    "description": ("a rational number, which describes the"
-                                    " quotient of"
-                                    " min_free_hosts_num/nodes_with_VMs_num"
-                                    " where nodes_with_VMs_num is the number"
-                                    " of nodes with VMs"),
+                    "description": (
+                        "a rational number, which describes the"
+                        " quotient of"
+                        " min_free_hosts_num/nodes_with_VMs_num"
+                        " where nodes_with_VMs_num is the number"
+                        " of nodes with VMs"
+                    ),
                     "type": "number",
-                    "default": 10.0
+                    "default": 10.0,
                 },
                 "min_free_hosts_num": {
-                    "description": ("minimum number of hosts without VMs"
-                                    " but still powered on"),
+                    "description": (
+                        "minimum number of hosts without VMs"
+                        " but still powered on"
+                    ),
                     "type": "number",
-                    "default": 1
+                    "default": 1,
                 },
-            },
+            }
         }
 
     def add_action_poweronoff_node(self, node, state):
@@ -143,12 +146,15 @@ class SavingEnergy(base.SavingEnergyBaseStrategy):
         :param state: node power state, power on or power off
         :return: None
         """
-        params = {'state': state,
-                  'resource_name': node.get_hypervisor_hostname()}
+        params = {
+            'state': state,
+            'resource_name': node.get_hypervisor_hostname(),
+        }
         self.solution.add_action(
             action_type='change_node_power_state',
             resource_id=node.get_id(),
-            input_parameters=params)
+            input_parameters=params,
+        )
 
     def get_hosts_pool(self):
         """Get three pools, with_vms_node_pool, free_poweron_node_pool,
@@ -167,50 +173,68 @@ class SavingEnergy(base.SavingEnergyBaseStrategy):
             try:
                 self.compute_model.get_node_by_name(host_name)
             except exception.ComputeNodeNotFound:
-                LOG.info("The compute model does not contain the host: %s",
-                         host_name)
+                LOG.info(
+                    "The compute model does not contain the host: %s",
+                    host_name,
+                )
                 continue
 
-            if (node.hv_up_when_powered_off and
-                    hypervisor_node.get('state') != 'up'):
+            if (
+                node.hv_up_when_powered_off
+                and hypervisor_node.get('state') != 'up'
+            ):
                 # filter nodes that are not in 'up' state
-                LOG.info("Ignoring node that isn't in 'up' state: %s",
-                         host_name)
+                LOG.info(
+                    "Ignoring node that isn't in 'up' state: %s", host_name
+                )
                 continue
             else:
-                if (hypervisor_node['running_vms'] == 0):
+                if hypervisor_node['running_vms'] == 0:
                     power_state = node.get_power_state()
                     if power_state == metal_constants.PowerState.ON:
                         self.free_poweron_node_pool.append(node)
                     elif power_state == metal_constants.PowerState.OFF:
                         self.free_poweroff_node_pool.append(node)
                     else:
-                        LOG.info("Ignoring node %s, unknown state: %s",
-                                 node, power_state)
+                        LOG.info(
+                            "Ignoring node %s, unknown state: %s",
+                            node,
+                            power_state,
+                        )
                 else:
                     self.with_vms_node_pool.append(node)
 
     def save_energy(self):
-
-        need_poweron = int(max(
-            (len(self.with_vms_node_pool) * self.free_used_percent / 100), (
-                self.min_free_hosts_num)))
+        need_poweron = int(
+            max(
+                (len(self.with_vms_node_pool) * self.free_used_percent / 100),
+                (self.min_free_hosts_num),
+            )
+        )
         len_poweron = len(self.free_poweron_node_pool)
         len_poweroff = len(self.free_poweroff_node_pool)
-        LOG.debug("need_poweron: %s, len_poweron: %s, len_poweroff: %s",
-                  need_poweron, len_poweron, len_poweroff)
+        LOG.debug(
+            "need_poweron: %s, len_poweron: %s, len_poweroff: %s",
+            need_poweron,
+            len_poweron,
+            len_poweroff,
+        )
         if len_poweron > need_poweron:
-            for node in random.sample(self.free_poweron_node_pool,
-                                      (len_poweron - need_poweron)):
-                self.add_action_poweronoff_node(node,
-                                                metal_constants.PowerState.OFF)
+            for node in random.sample(
+                self.free_poweron_node_pool, (len_poweron - need_poweron)
+            ):
+                self.add_action_poweronoff_node(
+                    node, metal_constants.PowerState.OFF
+                )
                 LOG.info("power off %s", node.get_id())
         elif len_poweron < need_poweron:
             diff = need_poweron - len_poweron
-            for node in random.sample(self.free_poweroff_node_pool,
-                                      min(len_poweroff, diff)):
-                self.add_action_poweronoff_node(node,
-                                                metal_constants.PowerState.ON)
+            for node in random.sample(
+                self.free_poweroff_node_pool, min(len_poweroff, diff)
+            ):
+                self.add_action_poweronoff_node(
+                    node, metal_constants.PowerState.ON
+                )
                 LOG.info("power on %s", node.get_id())
 
     def pre_execute(self):

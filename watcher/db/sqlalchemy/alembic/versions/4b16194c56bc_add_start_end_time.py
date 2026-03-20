@@ -17,8 +17,12 @@ down_revision = '52804f2498c4'
 
 
 def upgrade():
-    op.add_column('audits', sa.Column('start_time', sa.DateTime(), nullable=True))
-    op.add_column('audits', sa.Column('end_time', sa.DateTime(), nullable=True))
+    op.add_column(
+        'audits', sa.Column('start_time', sa.DateTime(), nullable=True)
+    )
+    op.add_column(
+        'audits', sa.Column('end_time', sa.DateTime(), nullable=True)
+    )
 
 
 def downgrade():

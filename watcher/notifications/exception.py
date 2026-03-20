@@ -26,7 +26,7 @@ class ExceptionPayload(notificationbase.NotificationPayloadBase):
         'module_name': wfields.StringField(),
         'function_name': wfields.StringField(),
         'exception': wfields.StringField(),
-        'exception_message': wfields.StringField()
+        'exception_message': wfields.StringField(),
     }
 
     @classmethod
@@ -40,7 +40,8 @@ class ExceptionPayload(notificationbase.NotificationPayloadBase):
             function_name=trace[3],
             module_name=inspect.getmodule(trace[0]).__name__,
             exception=fault.__class__.__name__,
-            exception_message=str(fault))
+            exception_message=str(fault),
+        )
 
 
 @notificationbase.notification_sample('infra-optim-exception.json')
@@ -48,6 +49,4 @@ class ExceptionPayload(notificationbase.NotificationPayloadBase):
 class ExceptionNotification(notificationbase.NotificationBase):
     # Version 1.0: Initial version
     VERSION = '1.0'
-    fields = {
-        'payload': wfields.ObjectField('ExceptionPayload')
-    }
+    fields = {'payload': wfields.ObjectField('ExceptionPayload')}

@@ -82,26 +82,26 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
             "properties": {
                 "maintenance_node": {
                     "description": "The name of the compute node which "
-                                   "need maintenance",
+                    "need maintenance",
                     "type": "string",
                 },
                 "backup_node": {
                     "description": "The name of the compute node which "
-                                   "will backup the maintenance node.",
+                    "will backup the maintenance node.",
                     "type": "string",
                 },
                 "disable_live_migration": {
                     "description": "Disable live migration in maintenance. "
-                                   "If True, active instances will be cold "
-                                   "migrated if `disable_cold_migration` is "
-                                   "not set, otherwise they will be stopped.",
+                    "If True, active instances will be cold "
+                    "migrated if `disable_cold_migration` is "
+                    "not set, otherwise they will be stopped.",
                     "type": "boolean",
                     "default": False,
                 },
                 "disable_cold_migration": {
                     "description": "Disable cold migration in maintenance. "
-                                   "If True, non-active instances will not be "
-                                   "cold migrated.",
+                    "If True, non-active instances will not be "
+                    "cold migrated.",
                     "type": "boolean",
                     "default": False,
                 },
@@ -116,10 +116,11 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
         elif isinstance(instance.state, element.InstanceState):
             return instance.state.value
         else:
-            LOG.error('Unexpected instance state type, '
-                      'state=%(state)s, state_type=%(st)s.',
-                      dict(state=instance.state,
-                           st=type(instance.state)))
+            LOG.error(
+                'Unexpected instance state type, '
+                'state=%(state)s, state_type=%(st)s.',
+                dict(state=instance.state, st=type(instance.state)),
+            )
             raise exception.WatcherException
 
     def get_node_status_str(self, node):
@@ -129,10 +130,11 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
         elif isinstance(node.status, element.ServiceState):
             return node.status.value
         else:
-            LOG.error('Unexpected node status type, '
-                      'status=%(status)s, status_type=%(st)s.',
-                      dict(status=node.status,
-                           st=type(node.status)))
+            LOG.error(
+                'Unexpected node status type, '
+                'status=%(status)s, status_type=%(st)s.',
+                dict(status=node.status, st=type(node.status)),
+            )
             raise exception.WatcherException
 
     def get_node_capacity(self, node):
@@ -141,9 +143,11 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
         :param node: node object
         :return: dict(cpu(cores), ram(MB), disk(B))
         """
-        return dict(cpu=node.vcpu_capacity,
-                    ram=node.memory_mb_capacity,
-                    disk=node.disk_gb_capacity)
+        return dict(
+            cpu=node.vcpu_capacity,
+            ram=node.memory_mb_capacity,
+            disk=node.disk_gb_capacity,
+        )
 
     def host_fits(self, source_node, destination_node):
         """check host fits
@@ -153,9 +157,11 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
         """
 
         source_node_used = self.compute_model.get_node_used_resources(
-            source_node)
+            source_node
+        )
         destination_node_free = self.compute_model.get_node_free_resources(
-            destination_node)
+            destination_node
+        )
         metrics = ['vcpu', 'memory']
         for m in metrics:
             if source_node_used[m] > destination_node_free[m]:
@@ -164,22 +170,28 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
 
     def add_action_enable_compute_node(self, node):
         """Add an action for node enabler into the solution."""
-        params = {'state': element.ServiceState.ENABLED.value,
-                  'resource_name': node.hostname}
+        params = {
+            'state': element.ServiceState.ENABLED.value,
+            'resource_name': node.hostname,
+        }
         self.solution.add_action(
             action_type=self.CHANGE_NOVA_SERVICE_STATE,
             resource_id=node.uuid,
-            input_parameters=params)
+            input_parameters=params,
+        )
 
     def add_action_maintain_compute_node(self, node):
         """Add an action for node maintenance into the solution."""
-        params = {'state': element.ServiceState.DISABLED.value,
-                  'disabled_reason': self.REASON_FOR_MAINTAINING,
-                  'resource_name': node.hostname}
+        params = {
+            'state': element.ServiceState.DISABLED.value,
+            'disabled_reason': self.REASON_FOR_MAINTAINING,
+            'resource_name': node.hostname,
+        }
         self.solution.add_action(
             action_type=self.CHANGE_NOVA_SERVICE_STATE,
             resource_id=node.uuid,
-            input_parameters=params)
+            input_parameters=params,
+        )
 
     def enable_compute_node_if_disabled(self, node):
         node_status_str = self.get_node_status_str(node)
@@ -189,8 +201,8 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
     def add_action_stop_instance(self, instance):
         """Add an action for instance stop into the solution."""
         self.solution.add_action(
-            action_type=self.INSTANCE_STOP,
-            resource_id=instance.uuid)
+            action_type=self.INSTANCE_STOP, resource_id=instance.uuid
+        )
 
     def instance_handle(self, instance, src_node, des_node=None):
         """Add an action for instance handling into the solution.
@@ -206,9 +218,11 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
         """
         instance_state_str = self.get_instance_state_str(instance)
         disable_live_migration = self.input_parameters.get(
-            'disable_live_migration', False)
+            'disable_live_migration', False
+        )
         disable_cold_migration = self.input_parameters.get(
-            'disable_cold_migration', False)
+            'disable_cold_migration', False
+        )
 
         # Case 1: Both migrations disabled -> only stop active instance
         if disable_live_migration and disable_cold_migration:
@@ -233,14 +247,18 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
             # Cold migrate non-active instance
             migration_type = 'cold'
 
-        params = {'migration_type': migration_type,
-                  'source_node': src_node.hostname,
-                  'resource_name': instance.name}
+        params = {
+            'migration_type': migration_type,
+            'source_node': src_node.hostname,
+            'resource_name': instance.name,
+        }
         if des_node:
             params['destination_node'] = des_node.hostname
-        self.solution.add_action(action_type=self.INSTANCE_MIGRATION,
-                                 resource_id=instance.uuid,
-                                 input_parameters=params)
+        self.solution.add_action(
+            action_type=self.INSTANCE_MIGRATION,
+            resource_id=instance.uuid,
+            input_parameters=params,
+        )
 
     def host_migration(self, source_node, destination_node):
         """host migration
@@ -300,8 +318,7 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
         # if no VMs in the maintenance_node, just maintain the compute node
         src_node = self.compute_model.get_node_by_name(maintenance_node)
         if len(self.compute_model.get_node_instances(src_node)) == 0:
-            if (src_node.disabled_reason !=
-                    self.REASON_FOR_MAINTAINING):
+            if src_node.disabled_reason != self.REASON_FOR_MAINTAINING:
                 self.add_action_maintain_compute_node(src_node)
                 return
 

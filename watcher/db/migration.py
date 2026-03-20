@@ -27,8 +27,9 @@ def get_backend():
     global _IMPL
     if not _IMPL:
         cfg.CONF.import_opt('backend', 'oslo_db.options', group='database')
-        _IMPL = driver.DriverManager("watcher.database.migration_backend",
-                                     cfg.CONF.database.backend).driver
+        _IMPL = driver.DriverManager(
+            "watcher.database.migration_backend", cfg.CONF.database.backend
+        ).driver
     return _IMPL
 
 

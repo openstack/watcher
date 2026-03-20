@@ -54,19 +54,15 @@ class NovaClusterDataModelCollector(base.BaseClusterDataModelCollector):
                             {"$ref": HOST_AGGREGATES + "host_aggr_id"},
                             {"$ref": HOST_AGGREGATES + "name"},
                         ]
-                    }
+                    },
                 },
                 "availability_zones": {
                     "type": "array",
                     "items": {
                         "type": "object",
-                        "properties": {
-                            "name": {
-                                "type": "string"
-                            }
-                        },
-                        "additionalProperties": False
-                    }
+                        "properties": {"name": {"type": "string"}},
+                        "additionalProperties": False,
+                    },
                 },
                 "exclude": {
                     "type": "array",
@@ -77,83 +73,62 @@ class NovaClusterDataModelCollector(base.BaseClusterDataModelCollector):
                                 "type": "array",
                                 "items": {
                                     "type": "object",
-                                    "properties": {
-                                        "uuid": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "additionalProperties": False
-                                }
+                                    "properties": {"uuid": {"type": "string"}},
+                                    "additionalProperties": False,
+                                },
                             },
                             "compute_nodes": {
                                 "type": "array",
                                 "items": {
                                     "type": "object",
-                                    "properties": {
-                                        "name": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "additionalProperties": False
-                                }
+                                    "properties": {"name": {"type": "string"}},
+                                    "additionalProperties": False,
+                                },
                             },
                             "host_aggregates": {
                                 "type": "array",
                                 "items": {
                                     "anyOf": [
-                                        {"$ref":
-                                            HOST_AGGREGATES + "host_aggr_id"},
+                                        {
+                                            "$ref": HOST_AGGREGATES
+                                            + "host_aggr_id"
+                                        },
                                         {"$ref": HOST_AGGREGATES + "name"},
                                     ]
-                                }
+                                },
                             },
                             "instance_metadata": {
                                 "type": "array",
-                                "items": {
-                                    "type": "object"
-                                }
+                                "items": {"type": "object"},
                             },
                             "projects": {
                                 "type": "array",
                                 "items": {
                                     "type": "object",
-                                    "properties": {
-                                        "uuid": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "additionalProperties": False
-                                }
-                            }
+                                    "properties": {"uuid": {"type": "string"}},
+                                    "additionalProperties": False,
+                                },
+                            },
                         },
-                        "additionalProperties": False
-                    }
-                }
+                        "additionalProperties": False,
+                    },
+                },
             },
-            "additionalProperties": False
+            "additionalProperties": False,
         },
         "host_aggregates": {
             "host_aggr_id": {
                 "properties": {
-                    "id": {
-                        "oneOf": [
-                            {"type": "integer"},
-                            {"enum": ["*"]}
-                        ]
-                    }
+                    "id": {"oneOf": [{"type": "integer"}, {"enum": ["*"]}]}
                 },
-                "additionalProperties": False
+                "additionalProperties": False,
             },
             "name": {
-                "properties": {
-                    "name": {
-                        "type": "string"
-                    }
-                },
-                "additionalProperties": False
-            }
+                "properties": {"name": {"type": "string"}},
+                "additionalProperties": False,
+            },
         },
-        "additionalProperties": False
+        "additionalProperties": False,
     }
 
     def __init__(self, config, osc=None):
@@ -166,16 +141,16 @@ class NovaClusterDataModelCollector(base.BaseClusterDataModelCollector):
         :return: Associated notification endpoints
         :rtype: List of :py:class:`~.EventsNotificationEndpoint` instances
         """
-        return [
-            nova.VersionedNotification(self),
-        ]
+        return [nova.VersionedNotification(self)]
 
     def get_audit_scope_handler(self, audit_scope):
         self._audit_scope_handler = compute_scope.ComputeScope(
-            audit_scope, self.config)
+            audit_scope, self.config
+        )
         if self._data_model_scope is None or (
-            len(self._data_model_scope) > 0 and (
-                self._data_model_scope != audit_scope)):
+            len(self._data_model_scope) > 0
+            and (self._data_model_scope != audit_scope)
+        ):
             self._data_model_scope = audit_scope
             self._cluster_data_model = None
         LOG.debug("audit scope %s", audit_scope)
@@ -198,7 +173,8 @@ class NovaClusterDataModelCollector(base.BaseClusterDataModelCollector):
         except Exception as e:
             LOG.exception(e)
             raise exception.ClusterDataModelCollectionError(
-                cdm="compute") from e
+                cdm="compute"
+            ) from e
 
 
 class NovaModelBuilder(base.BaseModelBuilder):
@@ -228,24 +204,34 @@ class NovaModelBuilder(base.BaseModelBuilder):
         self.placement_helper = placement_helper.PlacementHelper(osc=self.osc)
         self.executor = threading.DecisionEngineThreadPool()
         self.collector_timeout = (
-            CONF.collector.compute_resources_collector_timeout)
+            CONF.collector.compute_resources_collector_timeout
+        )
 
     def _collect_aggregates(self, host_aggregates, _nodes):
         if not host_aggregates:
             return
 
         aggregate_list = self.call_retry(f=self.nova_helper.get_aggregate_list)
-        aggregate_ids = [aggregate['id'] for aggregate
-                         in host_aggregates if 'id' in aggregate]
-        aggregate_names = [aggregate['name'] for aggregate
-                           in host_aggregates if 'name' in aggregate]
-        include_all_nodes = any('*' in field
-                                for field in (aggregate_ids, aggregate_names))
+        aggregate_ids = [
+            aggregate['id']
+            for aggregate in host_aggregates
+            if 'id' in aggregate
+        ]
+        aggregate_names = [
+            aggregate['name']
+            for aggregate in host_aggregates
+            if 'name' in aggregate
+        ]
+        include_all_nodes = any(
+            '*' in field for field in (aggregate_ids, aggregate_names)
+        )
 
         for aggregate in aggregate_list:
-            if (aggregate.id in aggregate_ids or
-                aggregate.name in aggregate_names or
-                    include_all_nodes):
+            if (
+                aggregate.id in aggregate_ids
+                or aggregate.name in aggregate_names
+                or include_all_nodes
+            ):
                 _nodes.update(aggregate.hosts)
 
     def _collect_zones(self, availability_zones, _nodes):
@@ -253,8 +239,7 @@ class NovaModelBuilder(base.BaseModelBuilder):
             return
 
         service_list = self.call_retry(f=self.nova_helper.get_service_list)
-        zone_names = [zone['name'] for zone
-                      in availability_zones]
+        zone_names = [zone['name'] for zone in availability_zones]
         include_all_nodes = False
         if '*' in zone_names:
             include_all_nodes = True
@@ -284,11 +269,14 @@ class NovaModelBuilder(base.BaseModelBuilder):
                 return
             future_instances.append(
                 self.executor.submit(
-                    self.add_instance_node, node_info, instances)
+                    self.add_instance_node, node_info, instances
+                )
             )
         except Exception:
-            LOG.error("compute node from aggregate / "
-                      "availability_zone could not be found")
+            LOG.error(
+                "compute node from aggregate / "
+                "availability_zone could not be found"
+            )
 
     def _add_physical_layer(self):
         """Collects all information on compute nodes and instances
@@ -317,18 +305,22 @@ class NovaModelBuilder(base.BaseModelBuilder):
         enabled."""
         zone_aggregate_futures = {
             self.executor.submit(
-                self._collect_aggregates, host_aggregates, compute_nodes),
+                self._collect_aggregates, host_aggregates, compute_nodes
+            ),
             self.executor.submit(
-                self._collect_zones, availability_zones, compute_nodes)
+                self._collect_zones, availability_zones, compute_nodes
+            ),
         }
         _done, zone_aggregate_not_done = waiters.wait_for_all(
-            zone_aggregate_futures,
-            timeout=self.collector_timeout)
+            zone_aggregate_futures, timeout=self.collector_timeout
+        )
 
         if len(zone_aggregate_not_done) > 0:
-            LOG.warning("Timed out waiting to collect compute nodes "
-                        "from availability zones and host aggregates. "
-                        "Aborting collection of compute nodes information")
+            LOG.warning(
+                "Timed out waiting to collect compute nodes "
+                "from availability zones and host aggregates. "
+                "Aborting collection of compute nodes information"
+            )
             for future in zone_aggregate_not_done:
                 future.cancel()
             # Return and don't continue with the collection
@@ -338,32 +330,41 @@ class NovaModelBuilder(base.BaseModelBuilder):
         if not compute_nodes:
             self.no_model_scope_flag = True
             all_nodes = self.call_retry(
-                f=self.nova_helper.get_compute_node_list)
-            compute_nodes = {
-                node.hypervisor_hostname for node in all_nodes}
+                f=self.nova_helper.get_compute_node_list
+            )
+            compute_nodes = {node.hypervisor_hostname for node in all_nodes}
         LOG.debug("compute nodes: %s", compute_nodes)
 
-        node_futures = [self.executor.submit(
-            self.nova_helper.get_compute_node_by_name,
-            node, servers=True, detailed=True)
-            for node in compute_nodes]
+        node_futures = [
+            self.executor.submit(
+                self.nova_helper.get_compute_node_by_name,
+                node,
+                servers=True,
+                detailed=True,
+            )
+            for node in compute_nodes
+        ]
         LOG.debug("submitted %d jobs", len(compute_nodes))
 
         # Futures will concurrently be added, only safe with CPython GIL
         future_instances = []
         self.executor.do_while_futures_modify(
             node_futures,
-            self._compute_node_future, future_instances,
-            futures_timeout=self.collector_timeout)
+            self._compute_node_future,
+            future_instances,
+            futures_timeout=self.collector_timeout,
+        )
 
         # Wait for all instance jobs to finish
         _done, instances_not_done = waiters.wait_for_all(
-            future_instances,
-            timeout=self.collector_timeout)
+            future_instances, timeout=self.collector_timeout
+        )
         if len(instances_not_done) > 0:
-            LOG.warning("Timed out waiting to collect instances "
-                        "information for compute nodes. "
-                        "Aborting collection of instances information.")
+            LOG.warning(
+                "Timed out waiting to collect instances "
+                "information for compute nodes. "
+                "Aborting collection of instances information."
+            )
             for future in instances_not_done:
                 future.cancel()
             # Return and don't continue with the collection
@@ -447,7 +448,8 @@ class NovaModelBuilder(base.BaseModelBuilder):
             "vcpu_ratio": vcpu_ratio,
             "state": node.state,
             "status": node.status,
-            "disabled_reason": node.service_disabled_reason}
+            "disabled_reason": node.service_disabled_reason,
+        }
 
         compute_node = element.ComputeNode(**node_attributes)
         # compute_node = self._build_node("physical", "compute", "hypervisor",
@@ -469,12 +471,12 @@ class NovaModelBuilder(base.BaseModelBuilder):
         # compute API. If we need to request more than 1000 servers,
         # we can set limit=-1. For details, please see:
         # https://bugs.launchpad.net/watcher/+bug/1834679
-        instances = self.call_retry(f=self.nova_helper.get_instance_list,
-                                    filters=filters, limit=limit)
+        instances = self.call_retry(
+            f=self.nova_helper.get_instance_list, filters=filters, limit=limit
+        )
         for inst in instances:
             # skip deleted instance
-            if inst.vm_state == (
-                    element.InstanceState.DELETED.value):
+            if inst.vm_state == (element.InstanceState.DELETED.value):
                 continue
             # Add Node
             instance = self._build_instance_node(inst)
@@ -508,9 +510,9 @@ class NovaModelBuilder(base.BaseModelBuilder):
         }
 
         if self.model.extended_attributes_enabled:
-            instance_attributes.update({
-                "flavor_extra_specs": flavor["extra_specs"],
-            })
+            instance_attributes.update(
+                {"flavor_extra_specs": flavor["extra_specs"]}
+            )
             if self.nova_helper.is_pinned_az_available():
                 instance_attributes["pinned_az"] = (
                     instance.pinned_availability_zone

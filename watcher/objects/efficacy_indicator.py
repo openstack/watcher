@@ -21,8 +21,11 @@ from watcher.objects import fields as wfields
 
 
 @base.WatcherObjectRegistry.register
-class EfficacyIndicator(base.WatcherPersistentObject, base.WatcherObject,
-                        base.WatcherObjectDictCompat):
+class EfficacyIndicator(
+    base.WatcherPersistentObject,
+    base.WatcherObject,
+    base.WatcherObjectDictCompat,
+):
     # Version 1.0: Initial version
     VERSION = '1.0'
 
@@ -60,9 +63,11 @@ class EfficacyIndicator(base.WatcherPersistentObject, base.WatcherObject,
         :returns: a :class:`EfficacyIndicator` object.
         """
         db_efficacy_indicator = cls.dbapi.get_efficacy_indicator_by_id(
-            context, efficacy_indicator_id)
+            context, efficacy_indicator_id
+        )
         efficacy_indicator = EfficacyIndicator._from_db_object(
-            cls(context), db_efficacy_indicator)
+            cls(context), db_efficacy_indicator
+        )
         return efficacy_indicator
 
     @base.remotable_classmethod
@@ -74,14 +79,23 @@ class EfficacyIndicator(base.WatcherPersistentObject, base.WatcherObject,
         :returns: a :class:`EfficacyIndicator` object.
         """
         db_efficacy_indicator = cls.dbapi.get_efficacy_indicator_by_uuid(
-            context, uuid)
+            context, uuid
+        )
         efficacy_indicator = EfficacyIndicator._from_db_object(
-            cls(context), db_efficacy_indicator)
+            cls(context), db_efficacy_indicator
+        )
         return efficacy_indicator
 
     @base.remotable_classmethod
-    def list(cls, context, limit=None, marker=None, filters=None,
-             sort_key=None, sort_dir=None):
+    def list(
+        cls,
+        context,
+        limit=None,
+        marker=None,
+        filters=None,
+        sort_key=None,
+        sort_dir=None,
+    ):
         """Return a list of EfficacyIndicator objects.
 
         :param context: Security context.
@@ -99,10 +113,13 @@ class EfficacyIndicator(base.WatcherPersistentObject, base.WatcherObject,
             marker=marker,
             filters=filters,
             sort_key=sort_key,
-            sort_dir=sort_dir)
+            sort_dir=sort_dir,
+        )
 
-        return [cls._from_db_object(cls(context), obj)
-                for obj in db_efficacy_indicators]
+        return [
+            cls._from_db_object(cls(context), obj)
+            for obj in db_efficacy_indicators
+        ]
 
     @base.remotable
     def create(self, context=None):

@@ -38,7 +38,6 @@ class VolumeState(enum.Enum):
 
 @base.WatcherObjectRegistry.register_if(False)
 class Volume(storage_resource.StorageResource):
-
     fields = {
         "size": wfields.NonNegativeIntegerField(),
         "status": wfields.StringField(default=VolumeState.AVAILABLE.value),
@@ -48,7 +47,7 @@ class Volume(storage_resource.StorageResource):
         "snapshot_id": wfields.UUIDField(nullable=True),
         "project_id": wfields.UUIDField(),
         "metadata": wfields.JsonField(),
-        "bootable": wfields.BooleanField()
+        "bootable": wfields.BooleanField(),
     }
 
     def accept(self, visitor):

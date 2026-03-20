@@ -50,12 +50,14 @@ class FakeRequestState:
             'auth_token': headers.get('X-Auth-Token'),
             'roles': headers.get('X-Roles', '').split(','),
         }
-        is_admin = ('admin' in creds['roles'] or
-                    'administrator' in creds['roles'])
+        is_admin = (
+            'admin' in creds['roles'] or 'administrator' in creds['roles']
+        )
         is_public_api = self.request.environ.get('is_public_api', False)
 
         self.request.context = context.RequestContext(
-            is_admin=is_admin, is_public_api=is_public_api, **creds)
+            is_admin=is_admin, is_public_api=is_public_api, **creds
+        )
 
 
 def fake_headers(admin=False):
@@ -77,38 +79,43 @@ def fake_headers(admin=False):
         'X-User-Name': 'foo',
     }
     if admin:
-        headers.update({
-            'X-Project-Name': 'admin',
-            'X-Role': '_member_,admin',
-            'X-Roles': '_member_,admin',
-            'X-Tenant': 'admin',
-            # 'X-Tenant-Name': 'admin',
-            # 'X-Tenant': 'admin'
-            'X-Tenant-Name': 'admin',
-            'X-Tenant-Id': 'c2a3a69d456a412376efdd9dac38',
-            'X-Project-Id': 'c2a3a69d456a412376efdd9dac38',
-        })
+        headers.update(
+            {
+                'X-Project-Name': 'admin',
+                'X-Role': '_member_,admin',
+                'X-Roles': '_member_,admin',
+                'X-Tenant': 'admin',
+                # 'X-Tenant-Name': 'admin',
+                # 'X-Tenant': 'admin'
+                'X-Tenant-Name': 'admin',
+                'X-Tenant-Id': 'c2a3a69d456a412376efdd9dac38',
+                'X-Project-Id': 'c2a3a69d456a412376efdd9dac38',
+            }
+        )
     else:
-        headers.update({
-            'X-Role': '_member_',
-            'X-Roles': '_member_',
-            'X-Tenant': 'foo',
-            'X-Tenant-Name': 'foo',
-            'X-Tenant-Id': 'b4efa69d,4ffa4973863f2eefc094f7f8',
-            'X-Project-Name': 'foo',
-            'X-Project-Id': 'b4efa69d4ffa4973863f2eefc094f7f8',
-        })
+        headers.update(
+            {
+                'X-Role': '_member_',
+                'X-Roles': '_member_',
+                'X-Tenant': 'foo',
+                'X-Tenant-Name': 'foo',
+                'X-Tenant-Id': 'b4efa69d,4ffa4973863f2eefc094f7f8',
+                'X-Project-Name': 'foo',
+                'X-Project-Id': 'b4efa69d4ffa4973863f2eefc094f7f8',
+            }
+        )
     return headers
 
 
 class TestNoExceptionTracebackHook(base.FunctionalTest):
-
-    TRACE = ['Traceback (most recent call last):',
-             '  File "/opt/stack/watcher/watcher/common/rpc/amqp.py",'
-             ' line 434, in _process_data\\n   **args)',
-             '  File "/opt/stack/watcher/watcher/common/rpc/'
-             'dispatcher.py", line 172, in dispatch\\n   result ='
-             ' getattr(proxyobj, method)(ctxt, **kwargs)']
+    TRACE = [
+        'Traceback (most recent call last):',
+        '  File "/opt/stack/watcher/watcher/common/rpc/amqp.py",'
+        ' line 434, in _process_data\\n   **args)',
+        '  File "/opt/stack/watcher/watcher/common/rpc/'
+        'dispatcher.py", line 172, in dispatch\\n   result ='
+        ' getattr(proxyobj, method)(ctxt, **kwargs)',
+    ]
     MSG_WITHOUT_TRACE = "Test exception message."
     MSG_WITH_TRACE = MSG_WITHOUT_TRACE + "\n" + "\n".join(TRACE)
 
@@ -124,14 +131,16 @@ class TestNoExceptionTracebackHook(base.FunctionalTest):
 
         response = self.get_json('/', path_prefix='', expect_errors=True)
 
-        actual_msg = jsonutils.loads(
-            response.json['error_message'])['faultstring']
+        actual_msg = jsonutils.loads(response.json['error_message'])[
+            'faultstring'
+        ]
         self.assertEqual(self.MSG_WITHOUT_TRACE, actual_msg)
 
     def test_hook_remote_error_success(self):
         test_exc_type = 'TestException'
         self.root_convert_mock.side_effect = messaging.rpc.RemoteError(
-            test_exc_type, self.MSG_WITHOUT_TRACE, self.TRACE)
+            test_exc_type, self.MSG_WITHOUT_TRACE, self.TRACE
+        )
 
         response = self.get_json('/', path_prefix='', expect_errors=True)
 
@@ -140,10 +149,12 @@ class TestNoExceptionTracebackHook(base.FunctionalTest):
         # instead of'\n'.join(trace). But since RemoteError is kind of very
         # rare thing (happens due to wrong deserialization settings etc.)
         # we don't care about this garbage.
-        expected_msg = (f"Remote error: {test_exc_type} "
-                        f"{self.MSG_WITHOUT_TRACE}\n['")
-        actual_msg = jsonutils.loads(
-            response.json['error_message'])['faultstring']
+        expected_msg = (
+            f"Remote error: {test_exc_type} {self.MSG_WITHOUT_TRACE}\n['"
+        )
+        actual_msg = jsonutils.loads(response.json['error_message'])[
+            'faultstring'
+        ]
         self.assertEqual(expected_msg, actual_msg)
 
     def _test_hook_without_traceback(self):
@@ -152,8 +163,9 @@ class TestNoExceptionTracebackHook(base.FunctionalTest):
 
         response = self.get_json('/', path_prefix='', expect_errors=True)
 
-        actual_msg = jsonutils.loads(
-            response.json['error_message'])['faultstring']
+        actual_msg = jsonutils.loads(response.json['error_message'])[
+            'faultstring'
+        ]
         self.assertEqual(msg, actual_msg)
 
     def test_hook_without_traceback(self):
@@ -168,8 +180,9 @@ class TestNoExceptionTracebackHook(base.FunctionalTest):
 
         response = self.get_json('/', path_prefix='', expect_errors=True)
 
-        actual_msg = jsonutils.loads(
-            response.json['error_message'])['faultstring']
+        actual_msg = jsonutils.loads(response.json['error_message'])[
+            'faultstring'
+        ]
         return actual_msg
 
     def test_hook_on_serverfault(self):
@@ -189,8 +202,9 @@ class TestNoExceptionTracebackHook(base.FunctionalTest):
 
         response = self.get_json('/', path_prefix='', expect_errors=True)
 
-        actual_msg = jsonutils.loads(
-            response.json['error_message'])['faultstring']
+        actual_msg = jsonutils.loads(response.json['error_message'])[
+            'faultstring'
+        ]
         return actual_msg
 
     def test_hook_on_clientfault(self):
@@ -207,7 +221,8 @@ class TestContextHook(base.FunctionalTest):
     @mock.patch.object(context, 'RequestContext')
     def test_context_hook_not_admin(self, mock_ctx):
         cfg.CONF.set_override(
-            'auth_type', 'password', group='watcher_clients_auth')
+            'auth_type', 'password', group='watcher_clients_auth'
+        )
         headers = fake_headers(admin=False)
         reqstate = FakeRequestState(headers=headers)
         context_hook = hooks.ContextHook()
@@ -222,12 +237,14 @@ class TestContextHook(base.FunctionalTest):
             project_id=headers['X-Project-Id'],
             show_deleted=None,
             auth_token_info=self.token_info,
-            roles=headers['X-Roles'].split(','))
+            roles=headers['X-Roles'].split(','),
+        )
 
     @mock.patch.object(context, 'RequestContext')
     def test_context_hook_admin(self, mock_ctx):
         cfg.CONF.set_override(
-            'auth_type', 'password', group='watcher_clients_auth')
+            'auth_type', 'password', group='watcher_clients_auth'
+        )
         headers = fake_headers(admin=True)
         reqstate = FakeRequestState(headers=headers)
         context_hook = hooks.ContextHook()
@@ -242,12 +259,14 @@ class TestContextHook(base.FunctionalTest):
             project_id=headers['X-Project-Id'],
             show_deleted=None,
             auth_token_info=self.token_info,
-            roles=headers['X-Roles'].split(','))
+            roles=headers['X-Roles'].split(','),
+        )
 
     @mock.patch.object(context, 'RequestContext')
     def test_context_hook_public_api(self, mock_ctx):
         cfg.CONF.set_override(
-            'auth_type', 'password', group='watcher_clients_auth')
+            'auth_type', 'password', group='watcher_clients_auth'
+        )
         headers = fake_headers(admin=True)
         env = {'is_public_api': True}
         reqstate = FakeRequestState(headers=headers, environ=env)
@@ -263,4 +282,5 @@ class TestContextHook(base.FunctionalTest):
             project_id=headers['X-Project-Id'],
             show_deleted=None,
             auth_token_info=self.token_info,
-            roles=headers['X-Roles'].split(','))
+            roles=headers['X-Roles'].split(','),
+        )

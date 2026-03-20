@@ -101,38 +101,40 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
             "properties": {
                 "metrics": {
                     "description": "Workload balance based on metrics: "
-                                   "cpu or ram utilization",
+                    "cpu or ram utilization",
                     "type": "string",
                     "choice": ["instance_cpu_usage", "instance_ram_usage"],
-                    "default": "instance_cpu_usage"
+                    "default": "instance_cpu_usage",
                 },
                 "threshold": {
                     "description": "Workload threshold for migration - "
-                                   "used for source and destination hosts. "
-                                   "It is always a percentage value.",
+                    "used for source and destination hosts. "
+                    "It is always a percentage value.",
                     "type": "number",
-                    "default": 25.0
+                    "default": 25.0,
                 },
                 "period": {
                     "description": "aggregate time period of ceilometer",
                     "type": "number",
-                    "default": 300
+                    "default": 300,
                 },
                 "granularity": {
                     "description": "The time between two measures in an "
-                                   "aggregated timeseries of a metric.",
+                    "aggregated timeseries of a metric.",
                     "type": "number",
-                    "default": 300
+                    "default": 300,
                 },
-            },
+            }
         }
 
     def get_available_compute_nodes(self):
         default_node_scope = [element.ServiceState.ENABLED.value]
-        return {uuid: cn for uuid, cn in
-                self.compute_model.get_all_compute_nodes().items()
-                if cn.state == element.ServiceState.ONLINE.value and
-                cn.status in default_node_scope}
+        return {
+            uuid: cn
+            for uuid, cn in self.compute_model.get_all_compute_nodes().items()
+            if cn.state == element.ServiceState.ONLINE.value
+            and cn.status in default_node_scope
+        }
 
     def choose_instance_to_migrate(self, hosts, avg_workload, workload_cache):
         """Pick up an active instance to migrate from provided hosts
@@ -144,7 +146,8 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         for instance_data in hosts:
             source_node = instance_data['compute_node']
             source_instances = self.compute_model.get_node_instances(
-                source_node)
+                source_node
+            )
             if source_instances:
                 delta_workload = instance_data['workload'] - avg_workload
                 min_delta = 1000000
@@ -153,33 +156,42 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                     try:
                         # NOTE: skip exclude instance when migrating
                         if instance.watcher_exclude:
-                            LOG.debug("Instance is excluded by scope, "
-                                      "skipped: %s", instance.uuid)
+                            LOG.debug(
+                                "Instance is excluded by scope, skipped: %s",
+                                instance.uuid,
+                            )
                             continue
                         # select the first active VM to migrate
-                        if (instance.state !=
-                                element.InstanceState.ACTIVE.value):
-                            LOG.debug("Instance not active, skipped: %s",
-                                      instance.uuid)
+                        if (
+                            instance.state
+                            != element.InstanceState.ACTIVE.value
+                        ):
+                            LOG.debug(
+                                "Instance not active, skipped: %s",
+                                instance.uuid,
+                            )
                             continue
                         current_delta = (
-                            delta_workload - workload_cache[instance.uuid])
+                            delta_workload - workload_cache[instance.uuid]
+                        )
                         if 0 <= current_delta < min_delta:
                             min_delta = current_delta
                             instance_id = instance.uuid
                     except exception.InstanceNotFound:
-                        LOG.error("Instance not found; error: %s",
-                                  instance_id)
+                        LOG.error("Instance not found; error: %s", instance_id)
                 if instance_id:
-                    return (source_node,
-                            self.compute_model.get_instance_by_uuid(
-                                instance_id))
+                    return (
+                        source_node,
+                        self.compute_model.get_instance_by_uuid(instance_id),
+                    )
             else:
-                LOG.info("VM not found from compute_node: %s",
-                         source_node.uuid)
+                LOG.info(
+                    "VM not found from compute_node: %s", source_node.uuid
+                )
 
-    def filter_destination_hosts(self, hosts, instance_to_migrate,
-                                 avg_workload, workload_cache):
+    def filter_destination_hosts(
+        self, hosts, instance_to_migrate, avg_workload, workload_cache
+    ):
         """Only return hosts with sufficient available resources"""
         required_cores = instance_to_migrate.vcpus
         required_disk = instance_to_migrate.disk
@@ -193,9 +205,11 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
             workload = instance_data['workload']
             # calculate the available resources
             free_res = self.compute_model.get_node_free_resources(host)
-            if (free_res['vcpu'] >= required_cores and
-                    free_res['memory'] >= required_mem and
-                    free_res['disk'] >= required_disk):
+            if (
+                free_res['vcpu'] >= required_cores
+                and free_res['memory'] >= required_mem
+                and free_res['disk'] >= required_disk
+            ):
                 if self._meter == 'instance_cpu_usage':
                     usage = src_instance_workload + workload
                     usage_percent = usage / host.vcpus * 100
@@ -206,8 +220,12 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                         "Host %s evaluated as destination for %s. "
                         "Host usage for cpu would be %s."
                         "The threshold is: %s. selected: %s",
-                        host.hostname, instance_to_migrate.uuid,
-                        usage_percent, self.threshold, usage < limit)
+                        host.hostname,
+                        instance_to_migrate.uuid,
+                        usage_percent,
+                        self.threshold,
+                        usage < limit,
+                    )
                 if self._meter == 'instance_ram_usage':
                     usage = src_instance_workload + workload
                     usage_percent = usage / host.memory * 100
@@ -218,8 +236,12 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                         "Host %s evaluated as destination for %s. "
                         "Host usage for ram would be %s."
                         "The threshold is: %s. selected: %s",
-                        host.hostname, instance_to_migrate.uuid,
-                        usage_percent, self.threshold, usage < limit)
+                        host.hostname,
+                        instance_to_migrate.uuid,
+                        usage_percent,
+                        self.threshold,
+                        usage < limit,
+                    )
         return destination_hosts
 
     def group_hosts_by_cpu_or_ram_util(self):
@@ -247,25 +269,32 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                 util = None
                 try:
                     util = self.datasource_backend.statistic_aggregation(
-                        instance, 'instance', self._meter, self._period,
-                        'mean', self._granularity)
+                        instance,
+                        'instance',
+                        self._meter,
+                        self._period,
+                        'mean',
+                        self._granularity,
+                    )
                 except Exception as exc:
                     LOG.exception(exc)
-                    LOG.error("Can not get %s from %s", self._meter,
-                              self.datasource_backend.NAME)
+                    LOG.error(
+                        "Can not get %s from %s",
+                        self._meter,
+                        self.datasource_backend.NAME,
+                    )
                     continue
                 if util is None:
-                    LOG.debug("Instance (%s): %s is None",
-                              instance.uuid, self._meter)
+                    LOG.debug(
+                        "Instance (%s): %s is None", instance.uuid, self._meter
+                    )
                     continue
                 if self._meter == 'instance_cpu_usage':
-                    workload_cache[instance.uuid] = (util *
-                                                     instance.vcpus / 100)
+                    workload_cache[instance.uuid] = util * instance.vcpus / 100
                 else:
                     workload_cache[instance.uuid] = util
                 node_workload += workload_cache[instance.uuid]
-                LOG.debug("VM (%s): %s %f", instance.uuid, self._meter,
-                          util)
+                LOG.debug("VM (%s): %s %f", instance.uuid, self._meter, util)
 
             cluster_workload += node_workload
             if self._meter == 'instance_cpu_usage':
@@ -276,18 +305,23 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                 host_metric = 'host_ram_usage_percent'
 
             instance_data = {
-                'compute_node': node, self._meter: node_util,
-                'workload': node_workload}
+                'compute_node': node,
+                self._meter: node_util,
+                'workload': node_workload,
+            }
             if node_util >= self.threshold:
                 # mark the node to release resources
                 overload_hosts.append(instance_data)
             else:
                 nonoverload_hosts.append(instance_data)
             LOG.debug(
-                "Host usage for %s: %s is %s. "
-                "Higher than threshold %s: %s",
-                node_id, host_metric, node_util,
-                self.threshold, node_util >= self.threshold)
+                "Host usage for %s: %s is %s. Higher than threshold %s: %s",
+                node_id,
+                host_metric,
+                node_util,
+                self.threshold,
+                node_util >= self.threshold,
+            )
 
         avg_workload = 0
         if cluster_size != 0:
@@ -308,51 +342,58 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         This phase is where you should put the main logic of your strategy.
         """
         source_nodes, target_nodes, avg_workload, workload_cache = (
-            self.group_hosts_by_cpu_or_ram_util())
+            self.group_hosts_by_cpu_or_ram_util()
+        )
 
         if not source_nodes:
             LOG.debug("No hosts require optimization")
             return self.solution
 
         if not target_nodes:
-            LOG.warning("No hosts current have CPU utilization under %s "
-                        "percent, therefore there are no possible target "
-                        "hosts for any migration",
-                        self.threshold)
+            LOG.warning(
+                "No hosts current have CPU utilization under %s "
+                "percent, therefore there are no possible target "
+                "hosts for any migration",
+                self.threshold,
+            )
             return self.solution
 
         # choose the server with largest cpu usage
-        source_nodes = sorted(source_nodes,
-                              reverse=True,
-                              key=lambda x: (x[self._meter]))
+        source_nodes = sorted(
+            source_nodes, reverse=True, key=lambda x: (x[self._meter])
+        )
 
         instance_to_migrate = self.choose_instance_to_migrate(
-            source_nodes, avg_workload, workload_cache)
+            source_nodes, avg_workload, workload_cache
+        )
         if not instance_to_migrate:
             return self.solution
         source_node, instance_src = instance_to_migrate
         # find the hosts that have enough resource for the VM to be migrated
         destination_hosts = self.filter_destination_hosts(
-            target_nodes, instance_src, avg_workload, workload_cache)
+            target_nodes, instance_src, avg_workload, workload_cache
+        )
         # sort the filtered result by workload
         # pick up the lowest one as dest server
         if not destination_hosts:
             # for instance.
-            LOG.warning("No proper target host could be found, it might "
-                        "be because of there's no enough CPU/Memory/DISK")
+            LOG.warning(
+                "No proper target host could be found, it might "
+                "be because of there's no enough CPU/Memory/DISK"
+            )
             return self.solution
-        destination_hosts = sorted(destination_hosts,
-                                   key=lambda x: (x[self._meter]))
+        destination_hosts = sorted(
+            destination_hosts, key=lambda x: (x[self._meter])
+        )
         # always use the host with lowerest CPU utilization
         mig_destination_node = destination_hosts[0]['compute_node']
         # generate solution to migrate the instance to the dest server,
         if self.compute_model.migrate_instance(
-                instance_src, source_node, mig_destination_node):
+            instance_src, source_node, mig_destination_node
+        ):
             self.add_action_migrate(
-                instance_src,
-                'live',
-                source_node,
-                mig_destination_node)
+                instance_src, 'live', source_node, mig_destination_node
+            )
             self.instance_migrations_count += 1
 
     def post_execute(self):
@@ -363,7 +404,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         self.solution.model = self.compute_model
         self.solution.set_efficacy_indicators(
             instance_migrations_count=self.instance_migrations_count,
-            instances_count=len(self.compute_model.get_all_instances())
+            instances_count=len(self.compute_model.get_all_instances()),
         )
 
         LOG.debug(self.compute_model.to_string())

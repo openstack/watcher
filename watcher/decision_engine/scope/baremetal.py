@@ -28,8 +28,8 @@ class BaremetalScope(base.BaseScope):
         for resource in resources:
             if 'ironic_nodes' in resource:
                 nodes_to_exclude.extend(
-                    [node['uuid'] for node
-                     in resource['ironic_nodes']])
+                    [node['uuid'] for node in resource['ironic_nodes']]
+                )
 
     def remove_nodes_from_model(self, nodes_to_exclude, cluster_model):
         for node_uuid in nodes_to_exclude:
@@ -57,8 +57,7 @@ class BaremetalScope(base.BaseScope):
 
         for rule in baremetal_scope:
             if 'exclude' in rule:
-                self.exclude_resources(
-                    rule['exclude'], nodes=nodes_to_exclude)
+                self.exclude_resources(rule['exclude'], nodes=nodes_to_exclude)
 
         self.remove_nodes_from_model(nodes_to_exclude, cluster_model)
 

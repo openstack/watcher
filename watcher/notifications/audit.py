@@ -41,11 +41,9 @@ class TerseAuditPayload(notificationbase.NotificationPayloadBase):
         'scope': ('audit', 'scope'),
         'auto_trigger': ('audit', 'auto_trigger'),
         'next_run_time': ('audit', 'next_run_time'),
-
         'created_at': ('audit', 'created_at'),
         'updated_at': ('audit', 'updated_at'),
         'deleted_at': ('audit', 'deleted_at'),
-
         'status_message': ('audit', 'status_message'),
     }
 
@@ -69,17 +67,16 @@ class TerseAuditPayload(notificationbase.NotificationPayloadBase):
         'strategy_uuid': wfields.UUIDField(nullable=True),
         'auto_trigger': wfields.BooleanField(),
         'next_run_time': wfields.DateTimeField(nullable=True),
-
         'created_at': wfields.DateTimeField(nullable=True),
         'updated_at': wfields.DateTimeField(nullable=True),
         'deleted_at': wfields.DateTimeField(nullable=True),
-
         'status_message': wfields.StringField(nullable=True),
     }
 
     def __init__(self, audit, goal_uuid, strategy_uuid=None, **kwargs):
         super().__init__(
-            goal_uuid=goal_uuid, strategy_uuid=strategy_uuid, **kwargs)
+            goal_uuid=goal_uuid, strategy_uuid=strategy_uuid, **kwargs
+        )
         self.populate_schema(audit=audit)
 
 
@@ -95,11 +92,9 @@ class AuditPayload(TerseAuditPayload):
         'scope': ('audit', 'scope'),
         'auto_trigger': ('audit', 'auto_trigger'),
         'next_run_time': ('audit', 'next_run_time'),
-
         'created_at': ('audit', 'created_at'),
         'updated_at': ('audit', 'updated_at'),
         'deleted_at': ('audit', 'deleted_at'),
-
         'status_message': ('audit', 'status_message'),
     }
 
@@ -122,9 +117,7 @@ class AuditPayload(TerseAuditPayload):
         if strategy and not kwargs.get('strategy_uuid'):
             kwargs['strategy_uuid'] = strategy.uuid
 
-        super().__init__(
-            audit=audit, goal=goal,
-            strategy=strategy, **kwargs)
+        super().__init__(audit=audit, goal=goal, strategy=strategy, **kwargs)
 
 
 @base.WatcherObjectRegistry.register_notification
@@ -151,10 +144,8 @@ class AuditCreatePayload(AuditPayload):
 
     def __init__(self, audit, goal, strategy):
         super().__init__(
-            audit=audit,
-            goal=goal,
-            goal_uuid=goal.uuid,
-            strategy=strategy)
+            audit=audit, goal=goal, goal_uuid=goal.uuid, strategy=strategy
+        )
 
 
 @base.WatcherObjectRegistry.register_notification
@@ -164,9 +155,7 @@ class AuditUpdatePayload(AuditPayload):
     #              Added 'next_run_time' field
     # Version 1.2: Added 'status_message' string field
     VERSION = '1.2'
-    fields = {
-        'state_update': wfields.ObjectField('AuditStateUpdatePayload'),
-    }
+    fields = {'state_update': wfields.ObjectField('AuditStateUpdatePayload')}
 
     def __init__(self, audit, state_update, goal, strategy):
         super().__init__(
@@ -174,7 +163,8 @@ class AuditUpdatePayload(AuditPayload):
             state_update=state_update,
             goal=goal,
             goal_uuid=goal.uuid,
-            strategy=strategy)
+            strategy=strategy,
+        )
 
 
 @base.WatcherObjectRegistry.register_notification
@@ -184,9 +174,7 @@ class AuditActionPayload(AuditPayload):
     #              Added 'next_run_time' field
     # Version 1.2: Added 'status_message' string field
     VERSION = '1.2'
-    fields = {
-        'fault': wfields.ObjectField('ExceptionPayload', nullable=True),
-    }
+    fields = {'fault': wfields.ObjectField('ExceptionPayload', nullable=True)}
 
     def __init__(self, audit, goal, strategy, **kwargs):
         super().__init__(
@@ -194,7 +182,8 @@ class AuditActionPayload(AuditPayload):
             goal=goal,
             goal_uuid=goal.uuid,
             strategy=strategy,
-            **kwargs)
+            **kwargs,
+        )
 
 
 @base.WatcherObjectRegistry.register_notification
@@ -208,10 +197,8 @@ class AuditDeletePayload(AuditPayload):
 
     def __init__(self, audit, goal, strategy):
         super().__init__(
-            audit=audit,
-            goal=goal,
-            goal_uuid=goal.uuid,
-            strategy=strategy)
+            audit=audit, goal=goal, goal_uuid=goal.uuid, strategy=strategy
+        )
 
 
 @notificationbase.notification_sample('audit-strategy-error.json')
@@ -222,9 +209,7 @@ class AuditActionNotification(notificationbase.NotificationBase):
     # Version 1.0: Initial version
     VERSION = '1.0'
 
-    fields = {
-        'payload': wfields.ObjectField('AuditActionPayload')
-    }
+    fields = {'payload': wfields.ObjectField('AuditActionPayload')}
 
 
 @notificationbase.notification_sample('audit-create.json')
@@ -233,9 +218,7 @@ class AuditCreateNotification(notificationbase.NotificationBase):
     # Version 1.0: Initial version
     VERSION = '1.0'
 
-    fields = {
-        'payload': wfields.ObjectField('AuditCreatePayload')
-    }
+    fields = {'payload': wfields.ObjectField('AuditCreatePayload')}
 
 
 @notificationbase.notification_sample('audit-update.json')
@@ -244,9 +227,7 @@ class AuditUpdateNotification(notificationbase.NotificationBase):
     # Version 1.0: Initial version
     VERSION = '1.0'
 
-    fields = {
-        'payload': wfields.ObjectField('AuditUpdatePayload')
-    }
+    fields = {'payload': wfields.ObjectField('AuditUpdatePayload')}
 
 
 @notificationbase.notification_sample('audit-delete.json')
@@ -255,9 +236,7 @@ class AuditDeleteNotification(notificationbase.NotificationBase):
     # Version 1.0: Initial version
     VERSION = '1.0'
 
-    fields = {
-        'payload': wfields.ObjectField('AuditDeletePayload')
-    }
+    fields = {'payload': wfields.ObjectField('AuditDeletePayload')}
 
 
 def _get_common_payload(audit):
@@ -275,7 +254,8 @@ def _get_common_payload(audit):
     strategy_payload = None
     if strategy:
         strategy_payload = strategy_notifications.StrategyPayload(
-            strategy=strategy)
+            strategy=strategy
+        )
 
     return goal_payload, strategy_payload
 
@@ -285,26 +265,26 @@ def send_create(context, audit, service='infra-optim', host=None):
     goal_payload, strategy_payload = _get_common_payload(audit)
 
     versioned_payload = AuditCreatePayload(
-        audit=audit,
-        goal=goal_payload,
-        strategy=strategy_payload,
+        audit=audit, goal=goal_payload, strategy=strategy_payload
     )
 
     notification = AuditCreateNotification(
         priority=wfields.NotificationPriority.INFO,
         event_type=notificationbase.EventType(
-            object='audit',
-            action=wfields.NotificationAction.CREATE),
+            object='audit', action=wfields.NotificationAction.CREATE
+        ),
         publisher=notificationbase.NotificationPublisher(
-            host=host or CONF.host,
-            binary=service),
-        payload=versioned_payload)
+            host=host or CONF.host, binary=service
+        ),
+        payload=versioned_payload,
+    )
 
     notification.emit(context)
 
 
-def send_update(context, audit, service='infra-optim',
-                host=None, old_state=None):
+def send_update(
+    context, audit, service='infra-optim', host=None, old_state=None
+):
     """Emit an audit.update notification."""
     goal_payload, strategy_payload = _get_common_payload(audit)
 
@@ -312,8 +292,11 @@ def send_update(context, audit, service='infra-optim',
         old_state=old_state,
         state=audit.state if old_state else None,
         status_message=(
-            audit.status_message if old_state and
-            audit.status_message else None))
+            audit.status_message
+            if old_state and audit.status_message
+            else None
+        ),
+    )
 
     versioned_payload = AuditUpdatePayload(
         audit=audit,
@@ -325,12 +308,13 @@ def send_update(context, audit, service='infra-optim',
     notification = AuditUpdateNotification(
         priority=wfields.NotificationPriority.INFO,
         event_type=notificationbase.EventType(
-            object='audit',
-            action=wfields.NotificationAction.UPDATE),
+            object='audit', action=wfields.NotificationAction.UPDATE
+        ),
         publisher=notificationbase.NotificationPublisher(
-            host=host or CONF.host,
-            binary=service),
-        payload=versioned_payload)
+            host=host or CONF.host, binary=service
+        ),
+        payload=versioned_payload,
+    )
 
     notification.emit(context)
 
@@ -339,27 +323,32 @@ def send_delete(context, audit, service='infra-optim', host=None):
     goal_payload, strategy_payload = _get_common_payload(audit)
 
     versioned_payload = AuditDeletePayload(
-        audit=audit,
-        goal=goal_payload,
-        strategy=strategy_payload,
+        audit=audit, goal=goal_payload, strategy=strategy_payload
     )
 
     notification = AuditDeleteNotification(
         priority=wfields.NotificationPriority.INFO,
         event_type=notificationbase.EventType(
-            object='audit',
-            action=wfields.NotificationAction.DELETE),
+            object='audit', action=wfields.NotificationAction.DELETE
+        ),
         publisher=notificationbase.NotificationPublisher(
-            host=host or CONF.host,
-            binary=service),
-        payload=versioned_payload)
+            host=host or CONF.host, binary=service
+        ),
+        payload=versioned_payload,
+    )
 
     notification.emit(context)
 
 
-def send_action_notification(context, audit, action, phase=None,
-                             priority=wfields.NotificationPriority.INFO,
-                             service='infra-optim', host=None):
+def send_action_notification(
+    context,
+    audit,
+    action,
+    phase=None,
+    priority=wfields.NotificationPriority.INFO,
+    service='infra-optim',
+    host=None,
+):
     """Emit an audit action notification."""
     goal_payload, strategy_payload = _get_common_payload(audit)
 
@@ -368,21 +357,18 @@ def send_action_notification(context, audit, action, phase=None,
         fault = exception_notifications.ExceptionPayload.from_exception()
 
     versioned_payload = AuditActionPayload(
-        audit=audit,
-        goal=goal_payload,
-        strategy=strategy_payload,
-        fault=fault,
+        audit=audit, goal=goal_payload, strategy=strategy_payload, fault=fault
     )
 
     notification = AuditActionNotification(
         priority=priority,
         event_type=notificationbase.EventType(
-            object='audit',
-            action=action,
-            phase=phase),
+            object='audit', action=action, phase=phase
+        ),
         publisher=notificationbase.NotificationPublisher(
-            host=host or CONF.host,
-            binary=service),
-        payload=versioned_payload)
+            host=host or CONF.host, binary=service
+        ),
+        payload=versioned_payload,
+    )
 
     notification.emit(context)

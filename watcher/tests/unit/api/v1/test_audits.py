@@ -42,9 +42,10 @@ def post_get_test_audit(**kw):
     goal = db_utils.get_test_goal()
     del_keys = ['goal_id', 'strategy_id']
     del_keys.extend(kw.get('params_to_exclude', []))
-    add_keys = {'audit_template_uuid': audit_template['uuid'],
-                'goal': goal['uuid'],
-                }
+    add_keys = {
+        'audit_template_uuid': audit_template['uuid'],
+        'goal': goal['uuid'],
+    }
     if kw.get('use_named_goal'):
         add_keys['goal'] = 'TEST'
     for k in add_keys:
@@ -60,10 +61,10 @@ def post_get_test_audit_with_predefined_strategy(**kw):
     strategy = db_utils.get_test_strategy(parameters_spec=spec, id=strategy_id)
     audit = api_utils.audit_post_data(**kw)
     audit_template = db_utils.get_test_audit_template(
-        strategy_id=strategy['id'])
+        strategy_id=strategy['id']
+    )
     del_keys = ['goal_id', 'strategy_id']
-    add_keys = {'audit_template_uuid': audit_template['uuid'],
-                }
+    add_keys = {'audit_template_uuid': audit_template['uuid']}
     for k in del_keys:
         del audit[k]
     for k in add_keys:
@@ -72,18 +73,16 @@ def post_get_test_audit_with_predefined_strategy(**kw):
 
 
 class TestAuditObject(base.TestCase):
-
     def test_audit_init(self):
-        audit_dict = api_utils.audit_post_data(audit_template_id=None,
-                                               goal_id=None,
-                                               strategy_id=None)
+        audit_dict = api_utils.audit_post_data(
+            audit_template_id=None, goal_id=None, strategy_id=None
+        )
         del audit_dict['state']
         audit = api_audit.Audit(**audit_dict)
         self.assertEqual(wtypes.Unset, audit.state)
 
 
 class TestListAudit(api_base.FunctionalTest):
-
     def setUp(self):
         super().setUp()
         obj_utils.create_test_goal(self.context)
@@ -95,8 +94,13 @@ class TestListAudit(api_base.FunctionalTest):
         self.assertEqual([], response['audits'])
 
     def _assert_audit_fields(self, audit):
-        audit_fields = ['audit_type', 'scope', 'state', 'goal_uuid',
-                        'strategy_uuid']
+        audit_fields = [
+            'audit_type',
+            'scope',
+            'state',
+            'goal_uuid',
+            'strategy_uuid',
+        ]
         for field in audit_fields:
             self.assertIn(field, audit)
 
@@ -108,9 +112,11 @@ class TestListAudit(api_base.FunctionalTest):
 
     def test_list_with_status_message(self):
         audit = obj_utils.create_test_audit(
-            self.context, status_message='Fake message')
+            self.context, status_message='Fake message'
+        )
         response = self.get_json(
-            '/audits', headers={'OpenStack-API-Version': 'infra-optim 1.5'})
+            '/audits', headers={'OpenStack-API-Version': 'infra-optim 1.5'}
+        )
         self.assertEqual(audit.uuid, response['audits'][0]["uuid"])
         self._assert_audit_fields(response['audits'][0])
         # status_message is not in the basic actions list
@@ -119,8 +125,7 @@ class TestListAudit(api_base.FunctionalTest):
     def test_one_soft_deleted(self):
         audit = obj_utils.create_test_audit(self.context)
         audit.soft_delete()
-        response = self.get_json('/audits',
-                                 headers={'X-Show-Deleted': 'True'})
+        response = self.get_json('/audits', headers={'X-Show-Deleted': 'True'})
         self.assertEqual(audit.uuid, response['audits'][0]["uuid"])
         self._assert_audit_fields(response['audits'][0])
 
@@ -136,43 +141,50 @@ class TestListAudit(api_base.FunctionalTest):
 
     def test_get_one_with_status_message(self):
         audit = obj_utils.create_test_audit(
-            self.context, status_message='Fake message')
+            self.context, status_message='Fake message'
+        )
         response = self.get_json(
             '/audits/{}'.format(audit['uuid']),
-            headers={'OpenStack-API-Version': 'infra-optim 1.5'})
+            headers={'OpenStack-API-Version': 'infra-optim 1.5'},
+        )
         self.assertEqual(audit.uuid, response['uuid'])
         self._assert_audit_fields(response)
         self.assertEqual('Fake message', response['status_message'])
 
     def test_get_one_with_hidden_status_message(self):
         audit = obj_utils.create_test_audit(
-            self.context, status_message='Fake message')
+            self.context, status_message='Fake message'
+        )
         response = self.get_json(
             '/audits/{}'.format(audit['uuid']),
-            headers={'OpenStack-API-Version': 'infra-optim 1.4'})
+            headers={'OpenStack-API-Version': 'infra-optim 1.4'},
+        )
         self.assertEqual(audit.uuid, response['uuid'])
         self._assert_audit_fields(response)
         self.assertNotIn('status_message', response)
 
     def test_get_one_with_empty_status_message(self):
-        audit = obj_utils.create_test_audit(
-            self.context)
+        audit = obj_utils.create_test_audit(self.context)
         response = self.get_json(
             '/audits/{}'.format(audit['uuid']),
-            headers={'OpenStack-API-Version': 'infra-optim 1.5'})
+            headers={'OpenStack-API-Version': 'infra-optim 1.5'},
+        )
         self.assertEqual(audit.uuid, response['uuid'])
         self.assertIsNone(response['status_message'])
 
     def test_get_one_soft_deleted(self):
         audit = obj_utils.create_test_audit(self.context)
         audit.soft_delete()
-        response = self.get_json('/audits/{}'.format(audit['uuid']),
-                                 headers={'X-Show-Deleted': 'True'})
+        response = self.get_json(
+            '/audits/{}'.format(audit['uuid']),
+            headers={'X-Show-Deleted': 'True'},
+        )
         self.assertEqual(audit.uuid, response['uuid'])
         self._assert_audit_fields(response)
 
-        response = self.get_json('/audits/{}'.format(audit['uuid']),
-                                 expect_errors=True)
+        response = self.get_json(
+            '/audits/{}'.format(audit['uuid']), expect_errors=True
+        )
         self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
 
     def test_detail(self):
@@ -184,20 +196,24 @@ class TestListAudit(api_base.FunctionalTest):
 
     def test_detail_with_status_message(self):
         audit = obj_utils.create_test_audit(
-            self.context, status_message='Fake message')
+            self.context, status_message='Fake message'
+        )
         response = self.get_json(
             '/audits/detail',
-            headers={'OpenStack-API-Version': 'infra-optim 1.5'})
+            headers={'OpenStack-API-Version': 'infra-optim 1.5'},
+        )
         self.assertEqual(audit.uuid, response['audits'][0]["uuid"])
         self._assert_audit_fields(response['audits'][0])
         self.assertEqual(
-            'Fake message', response['audits'][0]['status_message'])
+            'Fake message', response['audits'][0]['status_message']
+        )
 
     def test_detail_soft_deleted(self):
         audit = obj_utils.create_test_audit(self.context)
         audit.soft_delete()
-        response = self.get_json('/audits/detail',
-                                 headers={'X-Show-Deleted': 'True'})
+        response = self.get_json(
+            '/audits/detail', headers={'X-Show-Deleted': 'True'}
+        )
         self.assertEqual(audit.uuid, response['audits'][0]["uuid"])
         self._assert_audit_fields(response['audits'][0])
 
@@ -206,16 +222,20 @@ class TestListAudit(api_base.FunctionalTest):
 
     def test_detail_against_single(self):
         audit = obj_utils.create_test_audit(self.context)
-        response = self.get_json('/audits/{}/detail'.format(audit['uuid']),
-                                 expect_errors=True)
+        response = self.get_json(
+            '/audits/{}/detail'.format(audit['uuid']), expect_errors=True
+        )
         self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
 
     def test_many(self):
         audit_list = []
         for id_ in range(5):
             audit = obj_utils.create_test_audit(
-                self.context, id=id_,
-                uuid=utils.generate_uuid(), name=f'My Audit {id_}')
+                self.context,
+                id=id_,
+                uuid=utils.generate_uuid(),
+                name=f'My Audit {id_}',
+            )
             audit_list.append(audit.uuid)
         response = self.get_json('/audits')
         self.assertEqual(len(audit_list), len(response['audits']))
@@ -226,13 +246,19 @@ class TestListAudit(api_base.FunctionalTest):
         audit_list = []
         for id_ in [1, 2, 3]:
             audit = obj_utils.create_test_audit(
-                self.context, id=id_,
-                uuid=utils.generate_uuid(), name=f'My Audit {id_}')
+                self.context,
+                id=id_,
+                uuid=utils.generate_uuid(),
+                name=f'My Audit {id_}',
+            )
             audit_list.append(audit.uuid)
         for id_ in [4, 5]:
             audit = obj_utils.create_test_audit(
-                self.context, id=id_,
-                uuid=utils.generate_uuid(), name=f'My Audit {id_}')
+                self.context,
+                id=id_,
+                uuid=utils.generate_uuid(),
+                name=f'My Audit {id_}',
+            )
             audit.soft_delete()
         response = self.get_json('/audits')
         self.assertEqual(3, len(response['audits']))
@@ -243,17 +269,22 @@ class TestListAudit(api_base.FunctionalTest):
         audit_list = []
         for id_ in [1, 2, 3]:
             audit = obj_utils.create_test_audit(
-                self.context, id=id_,
-                uuid=utils.generate_uuid(), name=f'My Audit {id_}')
+                self.context,
+                id=id_,
+                uuid=utils.generate_uuid(),
+                name=f'My Audit {id_}',
+            )
             audit_list.append(audit.uuid)
         for id_ in [4, 5]:
             audit = obj_utils.create_test_audit(
-                self.context, id=id_,
-                uuid=utils.generate_uuid(), name=f'My Audit {id_}')
+                self.context,
+                id=id_,
+                uuid=utils.generate_uuid(),
+                name=f'My Audit {id_}',
+            )
             audit.soft_delete()
             audit_list.append(audit.uuid)
-        response = self.get_json('/audits',
-                                 headers={'X-Show-Deleted': 'True'})
+        response = self.get_json('/audits', headers={'X-Show-Deleted': 'True'})
         self.assertEqual(5, len(response['audits']))
         uuids = [s['uuid'] for s in response['audits']]
         self.assertEqual(sorted(audit_list), sorted(uuids))
@@ -262,12 +293,15 @@ class TestListAudit(api_base.FunctionalTest):
         goal_list = []
         for id_ in range(5):
             goal = obj_utils.create_test_goal(
-                self.context,
-                name=f'gl{id_}',
-                uuid=utils.generate_uuid())
+                self.context, name=f'gl{id_}', uuid=utils.generate_uuid()
+            )
             obj_utils.create_test_audit(
-                self.context, id=id_, uuid=utils.generate_uuid(),
-                goal_id=goal.id, name=f'My Audit {id_}')
+                self.context,
+                id=id_,
+                uuid=utils.generate_uuid(),
+                goal_id=goal.id,
+                name=f'My Audit {id_}',
+            )
             goal_list.append(goal.uuid)
 
         response = self.get_json('/audits/?sort_key=goal_uuid')
@@ -278,15 +312,15 @@ class TestListAudit(api_base.FunctionalTest):
 
     def test_sort_key_validation(self):
         response = self.get_json(
-            '/audits?sort_key={}'.format('bad_name'),
-            expect_errors=True)
+            '/audits?sort_key={}'.format('bad_name'), expect_errors=True
+        )
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
 
     def test_links(self):
         uuid = utils.generate_uuid()
         obj_utils.create_test_audit(
-            self.context, id=1, uuid=uuid,
-            name=f'My Audit {1}')
+            self.context, id=1, uuid=uuid, name=f'My Audit {1}'
+        )
         response = self.get_json(f'/audits/{uuid}')
         self.assertIn('links', response.keys())
         self.assertEqual(2, len(response['links']))
@@ -294,13 +328,17 @@ class TestListAudit(api_base.FunctionalTest):
         for link in response['links']:
             bookmark = link['rel'] == 'bookmark'
             self.assertTrue(
-                self.validate_link(link['href'], bookmark=bookmark))
+                self.validate_link(link['href'], bookmark=bookmark)
+            )
 
     def test_collection_links(self):
         for id_ in range(5):
             obj_utils.create_test_audit(
-                self.context, id=id_,
-                uuid=utils.generate_uuid(), name=f'My Audit {id_}')
+                self.context,
+                id=id_,
+                uuid=utils.generate_uuid(),
+                name=f'My Audit {id_}',
+            )
         response = self.get_json('/audits/?limit=3')
         self.assertEqual(3, len(response['audits']))
 
@@ -311,8 +349,11 @@ class TestListAudit(api_base.FunctionalTest):
         cfg.CONF.set_override('max_limit', 3, 'api')
         for id_ in range(5):
             obj_utils.create_test_audit(
-                self.context, id=id_,
-                uuid=utils.generate_uuid(), name=f'My Audit {id_}')
+                self.context,
+                id=id_,
+                uuid=utils.generate_uuid(),
+                name=f'My Audit {id_}',
+            )
         response = self.get_json('/audits')
         self.assertEqual(3, len(response['audits']))
 
@@ -321,7 +362,6 @@ class TestListAudit(api_base.FunctionalTest):
 
 
 class TestPatch(api_base.FunctionalTest):
-
     def setUp(self):
         super().setUp()
         obj_utils.create_test_goal(self.context)
@@ -348,22 +388,30 @@ class TestPatch(api_base.FunctionalTest):
 
         response = self.patch_json(
             f'/audits/{self.audit.uuid}',
-            [{'path': '/state', 'value': new_state,
-             'op': 'replace'}])
+            [{'path': '/state', 'value': new_state, 'op': 'replace'}],
+        )
         self.assertEqual('application/json', response.content_type)
         self.assertEqual(HTTPStatus.OK, response.status_code)
 
         response = self.get_json(f'/audits/{self.audit.uuid}')
         self.assertEqual(new_state, response['state'])
         return_updated_at = timeutils.parse_isotime(
-            response['updated_at']).replace(tzinfo=None)
+            response['updated_at']
+        ).replace(tzinfo=None)
         self.assertEqual(test_time, return_updated_at)
 
     def test_replace_non_existent_audit(self):
         response = self.patch_json(
             f'/audits/{utils.generate_uuid()}',
-            [{'path': '/state', 'value': objects.audit.State.SUCCEEDED,
-              'op': 'replace'}], expect_errors=True)
+            [
+                {
+                    'path': '/state',
+                    'value': objects.audit.State.SUCCEEDED,
+                    'op': 'replace',
+                }
+            ],
+            expect_errors=True,
+        )
         self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])
@@ -372,7 +420,8 @@ class TestPatch(api_base.FunctionalTest):
         response = self.patch_json(
             f'/audits/{utils.generate_uuid()}',
             [{'path': '/status_message', 'value': 'test', 'op': 'replace'}],
-            expect_errors=True)
+            expect_errors=True,
+        )
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_code)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])
@@ -381,7 +430,8 @@ class TestPatch(api_base.FunctionalTest):
         new_state = objects.audit.State.SUCCEEDED
         response = self.patch_json(
             f'/audits/{self.audit.uuid}',
-            [{'path': '/state', 'value': new_state, 'op': 'add'}])
+            [{'path': '/state', 'value': new_state, 'op': 'add'}],
+        )
         self.assertEqual('application/json', response.content_type)
         self.assertEqual(HTTPStatus.OK, response.status_int)
 
@@ -392,7 +442,8 @@ class TestPatch(api_base.FunctionalTest):
         response = self.patch_json(
             f'/audits/{self.audit.uuid}',
             [{'path': '/foo', 'value': 'bar', 'op': 'add'}],
-            expect_errors=True)
+            expect_errors=True,
+        )
         self.assertEqual('application/json', response.content_type)
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
         self.assertTrue(response.json['error_message'])
@@ -401,8 +452,10 @@ class TestPatch(api_base.FunctionalTest):
         response = self.get_json(f'/audits/{self.audit.uuid}')
         self.assertIsNotNone(response['interval'])
 
-        response = self.patch_json(f'/audits/{self.audit.uuid}',
-                                   [{'path': '/interval', 'op': 'remove'}])
+        response = self.patch_json(
+            f'/audits/{self.audit.uuid}',
+            [{'path': '/interval', 'op': 'remove'}],
+        )
         self.assertEqual('application/json', response.content_type)
         self.assertEqual(HTTPStatus.OK, response.status_code)
 
@@ -410,9 +463,11 @@ class TestPatch(api_base.FunctionalTest):
         self.assertIsNone(response['interval'])
 
     def test_remove_uuid(self):
-        response = self.patch_json(f'/audits/{self.audit.uuid}',
-                                   [{'path': '/uuid', 'op': 'remove'}],
-                                   expect_errors=True)
+        response = self.patch_json(
+            f'/audits/{self.audit.uuid}',
+            [{'path': '/uuid', 'op': 'remove'}],
+            expect_errors=True,
+        )
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])
@@ -421,7 +476,8 @@ class TestPatch(api_base.FunctionalTest):
         response = self.patch_json(
             f'/audits/{self.audit.uuid}',
             [{'path': '/non-existent', 'op': 'remove'}],
-            expect_errors=True)
+            expect_errors=True,
+        )
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_code)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])
@@ -430,28 +486,30 @@ class TestPatch(api_base.FunctionalTest):
 ALLOWED_TRANSITIONS = [
     {"original_state": key, "new_state": value}
     for key, values in (
-        objects.audit.AuditStateTransitionManager.TRANSITIONS.items())
-    for value in values]
+        objects.audit.AuditStateTransitionManager.TRANSITIONS.items()
+    )
+    for value in values
+]
 
 
 class TestPatchStateTransitionDenied(api_base.FunctionalTest):
-
     STATES = [
-        ap_state for ap_state in objects.audit.State.__dict__
+        ap_state
+        for ap_state in objects.audit.State.__dict__
         if not ap_state.startswith("_")
     ]
 
     scenarios = [
         (
             f"{original_state} -> {new_state}",
-            {"original_state": original_state,
-             "new_state": new_state},
+            {"original_state": original_state, "new_state": new_state},
         )
-        for original_state, new_state
-        in list(itertools.product(STATES, STATES))
-        if original_state != new_state and
-        {"original_state": original_state,
-         "new_state": new_state} not in ALLOWED_TRANSITIONS
+        for original_state, new_state in list(
+            itertools.product(STATES, STATES)
+        )
+        if original_state != new_state
+        and {"original_state": original_state, "new_state": new_state}
+        not in ALLOWED_TRANSITIONS
     ]
 
     def setUp(self):
@@ -459,8 +517,9 @@ class TestPatchStateTransitionDenied(api_base.FunctionalTest):
         obj_utils.create_test_goal(self.context)
         obj_utils.create_test_strategy(self.context)
         obj_utils.create_test_audit_template(self.context)
-        self.audit = obj_utils.create_test_audit(self.context,
-                                                 state=self.original_state)
+        self.audit = obj_utils.create_test_audit(
+            self.context, state=self.original_state
+        )
         p = mock.patch.object(db_api.BaseConnection, 'update_audit')
         self.mock_audit_update = p.start()
         self.mock_audit_update.side_effect = self._simulate_rpc_audit_update
@@ -476,9 +535,9 @@ class TestPatchStateTransitionDenied(api_base.FunctionalTest):
 
         response = self.patch_json(
             f'/audits/{self.audit.uuid}',
-            [{'path': '/state', 'value': self.new_state,
-              'op': 'replace'}],
-            expect_errors=True)
+            [{'path': '/state', 'value': self.new_state, 'op': 'replace'}],
+            expect_errors=True,
+        )
         self.assertEqual('application/json', response.content_type)
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_code)
         self.assertTrue(response.json['error_message'])
@@ -488,12 +547,12 @@ class TestPatchStateTransitionDenied(api_base.FunctionalTest):
 
 
 class TestPatchStateTransitionOk(api_base.FunctionalTest):
-
     scenarios = [
         (
-            "{} -> {}".format(transition["original_state"],
-                              transition["new_state"]),
-            transition
+            "{} -> {}".format(
+                transition["original_state"], transition["new_state"]
+            ),
+            transition,
         )
         for transition in ALLOWED_TRANSITIONS
     ]
@@ -503,8 +562,9 @@ class TestPatchStateTransitionOk(api_base.FunctionalTest):
         obj_utils.create_test_goal(self.context)
         obj_utils.create_test_strategy(self.context)
         obj_utils.create_test_audit_template(self.context)
-        self.audit = obj_utils.create_test_audit(self.context,
-                                                 state=self.original_state)
+        self.audit = obj_utils.create_test_audit(
+            self.context, state=self.original_state
+        )
         p = mock.patch.object(db_api.BaseConnection, 'update_audit')
         self.mock_audit_update = p.start()
         self.mock_audit_update.side_effect = self._simulate_rpc_audit_update
@@ -524,20 +584,20 @@ class TestPatchStateTransitionOk(api_base.FunctionalTest):
 
         response = self.patch_json(
             f'/audits/{self.audit.uuid}',
-            [{'path': '/state', 'value': self.new_state,
-             'op': 'replace'}])
+            [{'path': '/state', 'value': self.new_state, 'op': 'replace'}],
+        )
         self.assertEqual('application/json', response.content_type)
         self.assertEqual(HTTPStatus.OK, response.status_code)
 
         response = self.get_json(f'/audits/{self.audit.uuid}')
         self.assertEqual(self.new_state, response['state'])
         return_updated_at = timeutils.parse_isotime(
-            response['updated_at']).replace(tzinfo=None)
+            response['updated_at']
+        ).replace(tzinfo=None)
         self.assertEqual(test_time, return_updated_at)
 
 
 class TestPostBase(api_base.FunctionalTest):
-
     def _simulate_rpc_audit_create(self, audit):
         audit.create()
         return audit
@@ -549,8 +609,7 @@ class TestPostBase(api_base.FunctionalTest):
         obj_utils.create_test_audit_template(self.context)
         p = mock.patch.object(db_api.BaseConnection, 'create_audit')
         self.mock_create_audit = p.start()
-        self.mock_create_audit.side_effect = (
-            self._simulate_rpc_audit_create)
+        self.mock_create_audit.side_effect = self._simulate_rpc_audit_create
         self.addCleanup(p.stop)
 
     def prepare_audit_template_strategy_with_parameter(self, fake_spec=None):
@@ -564,33 +623,39 @@ class TestPostBase(api_base.FunctionalTest):
                         "maximum": 10.2,
                     }
                 },
-                'required': ['fake1']
+                'required': ['fake1'],
             }
         template_uuid = 'e74c40e0-d825-11e2-a28f-0800200c9a67'
         strategy_uuid = 'e74c40e0-d825-11e2-a28f-0800200c9a68'
         template_name = 'my template'
         strategy_name = 'my strategy'
         strategy_id = 3
-        strategy = db_utils.get_test_strategy(parameters_spec=fake_spec,
-                                              id=strategy_id,
-                                              uuid=strategy_uuid,
-                                              name=strategy_name)
-        obj_utils.create_test_strategy(self.context,
-                                       parameters_spec=fake_spec,
-                                       id=strategy_id,
-                                       uuid=strategy_uuid,
-                                       name=strategy_name)
-        obj_utils.create_test_audit_template(self.context,
-                                             strategy_id=strategy_id,
-                                             uuid=template_uuid,
-                                             name='name')
+        strategy = db_utils.get_test_strategy(
+            parameters_spec=fake_spec,
+            id=strategy_id,
+            uuid=strategy_uuid,
+            name=strategy_name,
+        )
+        obj_utils.create_test_strategy(
+            self.context,
+            parameters_spec=fake_spec,
+            id=strategy_id,
+            uuid=strategy_uuid,
+            name=strategy_name,
+        )
+        obj_utils.create_test_audit_template(
+            self.context,
+            strategy_id=strategy_id,
+            uuid=template_uuid,
+            name='name',
+        )
         audit_template = db_utils.get_test_audit_template(
-            strategy_id=strategy['id'], uuid=template_uuid, name=template_name)
+            strategy_id=strategy['id'], uuid=template_uuid, name=template_name
+        )
         return audit_template
 
 
 class TestPost(TestPostBase):
-
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
     @mock.patch('oslo_utils.timeutils.utcnow')
     def test_create_audit(self, mock_utcnow, mock_trigger_audit):
@@ -600,8 +665,16 @@ class TestPost(TestPostBase):
 
         audit_dict = post_get_test_audit(
             state=objects.audit.State.PENDING,
-            params_to_exclude=['uuid', 'state', 'interval', 'scope',
-                               'next_run_time', 'hostname', 'goal'])
+            params_to_exclude=[
+                'uuid',
+                'state',
+                'interval',
+                'scope',
+                'next_run_time',
+                'hostname',
+                'goal',
+            ],
+        )
 
         response = self.post_json('/audits', audit_dict)
         self.assertEqual('application/json', response.content_type)
@@ -609,20 +682,22 @@ class TestPost(TestPostBase):
         # Check location header
         self.assertIsNotNone(response.location)
         expected_location = '/v1/audits/{}'.format(response.json['uuid'])
-        self.assertEqual(urlparse.urlparse(response.location).path,
-                         expected_location)
-        self.assertEqual(objects.audit.State.PENDING,
-                         response.json['state'])
+        self.assertEqual(
+            urlparse.urlparse(response.location).path, expected_location
+        )
+        self.assertEqual(objects.audit.State.PENDING, response.json['state'])
         self.assertNotIn('updated_at', response.json.keys)
         self.assertNotIn('deleted_at', response.json.keys)
         return_created_at = timeutils.parse_isotime(
-            response.json['created_at']).replace(tzinfo=None)
+            response.json['created_at']
+        ).replace(tzinfo=None)
         self.assertEqual(test_time, return_created_at)
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
     @mock.patch('oslo_utils.timeutils.utcnow')
-    def test_create_audit_with_state_not_allowed(self, mock_utcnow,
-                                                 mock_trigger_audit):
+    def test_create_audit_with_state_not_allowed(
+        self, mock_utcnow, mock_trigger_audit
+    ):
         mock_trigger_audit.return_value = mock.ANY
         test_time = datetime.datetime(2000, 1, 1, 0, 0)
         mock_utcnow.return_value = test_time
@@ -641,8 +716,15 @@ class TestPost(TestPostBase):
 
         audit_dict = post_get_test_audit(
             state=objects.audit.State.PENDING,
-            params_to_exclude=['uuid', 'state', 'interval', 'scope',
-                               'next_run_time', 'hostname'])
+            params_to_exclude=[
+                'uuid',
+                'state',
+                'interval',
+                'scope',
+                'next_run_time',
+                'hostname',
+            ],
+        )
 
         response = self.post_json('/audits', audit_dict, expect_errors=True)
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
@@ -654,15 +736,21 @@ class TestPost(TestPostBase):
         mock_trigger_audit.return_value = mock.ANY
 
         audit_dict = post_get_test_audit(
-            params_to_exclude=['uuid', 'state', 'interval', 'scope',
-                               'next_run_time', 'hostname',
-                               'audit_template_uuid'])
+            params_to_exclude=[
+                'uuid',
+                'state',
+                'interval',
+                'scope',
+                'next_run_time',
+                'hostname',
+                'audit_template_uuid',
+            ]
+        )
 
         response = self.post_json('/audits', audit_dict)
         self.assertEqual('application/json', response.content_type)
         self.assertEqual(HTTPStatus.CREATED, response.status_int)
-        self.assertEqual(objects.audit.State.PENDING,
-                         response.json['state'])
+        self.assertEqual(objects.audit.State.PENDING, response.json['state'])
         self.assertTrue(utils.is_uuid_like(response.json['uuid']))
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
@@ -670,15 +758,22 @@ class TestPost(TestPostBase):
         mock_trigger_audit.return_value = mock.ANY
 
         audit_dict = post_get_test_audit(
-            params_to_exclude=['uuid', 'state', 'interval', 'scope',
-                               'next_run_time', 'hostname',
-                               'audit_template_uuid', 'strategy'])
+            params_to_exclude=[
+                'uuid',
+                'state',
+                'interval',
+                'scope',
+                'next_run_time',
+                'hostname',
+                'audit_template_uuid',
+                'strategy',
+            ]
+        )
 
         response = self.post_json('/audits', audit_dict)
         self.assertEqual('application/json', response.content_type)
         self.assertEqual(HTTPStatus.CREATED, response.status_int)
-        self.assertEqual(objects.audit.State.PENDING,
-                         response.json['state'])
+        self.assertEqual(objects.audit.State.PENDING, response.json['state'])
         self.assertTrue(utils.is_uuid_like(response.json['uuid']))
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
@@ -686,16 +781,22 @@ class TestPost(TestPostBase):
         mock_trigger_audit.return_value = mock.ANY
 
         audit_dict = post_get_test_audit(
-            params_to_exclude=['uuid', 'state', 'interval', 'scope',
-                               'next_run_time', 'hostname',
-                               'audit_template_uuid'],
-            use_named_goal=True)
+            params_to_exclude=[
+                'uuid',
+                'state',
+                'interval',
+                'scope',
+                'next_run_time',
+                'hostname',
+                'audit_template_uuid',
+            ],
+            use_named_goal=True,
+        )
 
         response = self.post_json('/audits', audit_dict)
         self.assertEqual('application/json', response.content_type)
         self.assertEqual(HTTPStatus.CREATED, response.status_int)
-        self.assertEqual(objects.audit.State.PENDING,
-                         response.json['state'])
+        self.assertEqual(objects.audit.State.PENDING, response.json['state'])
         self.assertTrue(utils.is_uuid_like(response.json['uuid']))
 
     @mock.patch('oslo_utils.timeutils.utcnow')
@@ -704,17 +805,27 @@ class TestPost(TestPostBase):
         mock_utcnow.return_value = test_time
 
         audit_dict = post_get_test_audit(
-            params_to_exclude=['uuid', 'state', 'interval', 'scope',
-                               'next_run_time', 'hostname', 'goal'])
+            params_to_exclude=[
+                'uuid',
+                'state',
+                'interval',
+                'scope',
+                'next_run_time',
+                'hostname',
+                'goal',
+            ]
+        )
         # Make the audit template UUID some garbage value
         audit_dict['audit_template_uuid'] = (
-            '01234567-8910-1112-1314-151617181920')
+            '01234567-8910-1112-1314-151617181920'
+        )
 
         response = self.post_json('/audits', audit_dict, expect_errors=True)
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
         self.assertEqual("application/json", response.content_type)
-        expected_error_msg = ('The audit template UUID or name specified is '
-                              'invalid')
+        expected_error_msg = (
+            'The audit template UUID or name specified is invalid'
+        )
         self.assertTrue(response.json['error_message'])
         self.assertIn(expected_error_msg, response.json['error_message'])
 
@@ -724,12 +835,20 @@ class TestPost(TestPostBase):
 
         audit_dict = post_get_test_audit(
             state=objects.audit.State.PENDING,
-            params_to_exclude=['uuid', 'interval', 'scope',
-                               'next_run_time', 'hostname', 'goal'])
+            params_to_exclude=[
+                'uuid',
+                'interval',
+                'scope',
+                'next_run_time',
+                'hostname',
+                'goal',
+            ],
+        )
         state = audit_dict['state']
         del audit_dict['state']
-        with mock.patch.object(self.dbapi, 'create_audit',
-                               wraps=self.dbapi.create_audit) as cn_mock:
+        with mock.patch.object(
+            self.dbapi, 'create_audit', wraps=self.dbapi.create_audit
+        ) as cn_mock:
             response = self.post_json('/audits', audit_dict)
             self.assertEqual(state, response.json['state'])
             cn_mock.assert_called_once_with(mock.ANY)
@@ -741,14 +860,21 @@ class TestPost(TestPostBase):
         mock_trigger_audit.return_value = mock.ANY
 
         audit_dict = post_get_test_audit(
-            params_to_exclude=['uuid', 'state', 'interval', 'scope',
-                               'next_run_time', 'hostname', 'goal'])
+            params_to_exclude=[
+                'uuid',
+                'state',
+                'interval',
+                'scope',
+                'next_run_time',
+                'hostname',
+                'goal',
+            ]
+        )
 
         response = self.post_json('/audits', audit_dict)
         self.assertEqual('application/json', response.content_type)
         self.assertEqual(HTTPStatus.CREATED, response.status_int)
-        self.assertEqual(objects.audit.State.PENDING,
-                         response.json['state'])
+        self.assertEqual(objects.audit.State.PENDING, response.json['state'])
         self.assertTrue(utils.is_uuid_like(response.json['uuid']))
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
@@ -756,46 +882,67 @@ class TestPost(TestPostBase):
         mock_trigger_audit.return_value = mock.ANY
 
         audit_dict = post_get_test_audit(
-            params_to_exclude=['uuid', 'state', 'scope',
-                               'next_run_time', 'hostname', 'goal'])
+            params_to_exclude=[
+                'uuid',
+                'state',
+                'scope',
+                'next_run_time',
+                'hostname',
+                'goal',
+            ]
+        )
         audit_dict['audit_type'] = objects.audit.AuditType.CONTINUOUS.value
         audit_dict['interval'] = '1200'
 
         response = self.post_json('/audits', audit_dict)
         self.assertEqual('application/json', response.content_type)
         self.assertEqual(HTTPStatus.CREATED, response.status_int)
-        self.assertEqual(objects.audit.State.PENDING,
-                         response.json['state'])
+        self.assertEqual(objects.audit.State.PENDING, response.json['state'])
         self.assertEqual(audit_dict['interval'], response.json['interval'])
         self.assertTrue(utils.is_uuid_like(response.json['uuid']))
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
-    def test_create_continuous_audit_with_cron_interval(self,
-                                                        mock_trigger_audit):
+    def test_create_continuous_audit_with_cron_interval(
+        self, mock_trigger_audit
+    ):
         mock_trigger_audit.return_value = mock.ANY
 
         audit_dict = post_get_test_audit(
-            params_to_exclude=['uuid', 'state', 'scope',
-                               'next_run_time', 'hostname', 'goal'])
+            params_to_exclude=[
+                'uuid',
+                'state',
+                'scope',
+                'next_run_time',
+                'hostname',
+                'goal',
+            ]
+        )
         audit_dict['audit_type'] = objects.audit.AuditType.CONTINUOUS.value
         audit_dict['interval'] = '* * * * *'
 
         response = self.post_json('/audits', audit_dict)
         self.assertEqual('application/json', response.content_type)
         self.assertEqual(HTTPStatus.CREATED, response.status_int)
-        self.assertEqual(objects.audit.State.PENDING,
-                         response.json['state'])
+        self.assertEqual(objects.audit.State.PENDING, response.json['state'])
         self.assertEqual(audit_dict['interval'], response.json['interval'])
         self.assertTrue(utils.is_uuid_like(response.json['uuid']))
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
-    def test_create_continuous_audit_with_wrong_interval(self,
-                                                         mock_trigger_audit):
+    def test_create_continuous_audit_with_wrong_interval(
+        self, mock_trigger_audit
+    ):
         mock_trigger_audit.return_value = mock.ANY
 
         audit_dict = post_get_test_audit(
-            params_to_exclude=['uuid', 'state', 'scope',
-                               'next_run_time', 'hostname', 'goal'])
+            params_to_exclude=[
+                'uuid',
+                'state',
+                'scope',
+                'next_run_time',
+                'hostname',
+                'goal',
+            ]
+        )
         audit_dict['audit_type'] = objects.audit.AuditType.CONTINUOUS.value
         audit_dict['interval'] = 'zxc'
 
@@ -804,8 +951,9 @@ class TestPost(TestPostBase):
         self.assertEqual(HTTPStatus.INTERNAL_SERVER_ERROR, response.status_int)
         # NOTE(dviroel): this error message check was shortened to try avoid
         # future breakages. See bug #2089866 for more details.
-        expected_error_msg = ('columns has to be specified for iterator '
-                              'expression.')
+        expected_error_msg = (
+            'columns has to be specified for iterator expression.'
+        )
         self.assertTrue(response.json['error_message'])
         self.assertIn(expected_error_msg, response.json['error_message'])
 
@@ -814,15 +962,24 @@ class TestPost(TestPostBase):
         mock_trigger_audit.return_value = mock.ANY
 
         audit_dict = post_get_test_audit(
-            params_to_exclude=['uuid', 'state', 'interval', 'scope',
-                               'next_run_time', 'hostname', 'goal'])
+            params_to_exclude=[
+                'uuid',
+                'state',
+                'interval',
+                'scope',
+                'next_run_time',
+                'hostname',
+                'goal',
+            ]
+        )
         audit_dict['audit_type'] = objects.audit.AuditType.CONTINUOUS.value
 
         response = self.post_json('/audits', audit_dict, expect_errors=True)
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
         self.assertEqual('application/json', response.content_type)
-        expected_error_msg = ('Interval of audit must be specified '
-                              'for CONTINUOUS.')
+        expected_error_msg = (
+            'Interval of audit must be specified for CONTINUOUS.'
+        )
         self.assertTrue(response.json['error_message'])
         self.assertIn(expected_error_msg, response.json['error_message'])
 
@@ -831,8 +988,15 @@ class TestPost(TestPostBase):
         mock_trigger_audit.return_value = mock.ANY
 
         audit_dict = post_get_test_audit(
-            params_to_exclude=['uuid', 'state', 'scope',
-                               'next_run_time', 'hostname', 'goal'])
+            params_to_exclude=[
+                'uuid',
+                'state',
+                'scope',
+                'next_run_time',
+                'hostname',
+                'goal',
+            ]
+        )
         audit_dict['audit_type'] = objects.audit.AuditType.ONESHOT.value
 
         response = self.post_json('/audits', audit_dict, expect_errors=True)
@@ -843,12 +1007,21 @@ class TestPost(TestPostBase):
         self.assertIn(expected_error_msg, response.json['error_message'])
 
     def test_create_audit_trigger_decision_engine(self):
-        with mock.patch.object(deapi.DecisionEngineAPI,
-                               'trigger_audit') as de_mock:
+        with mock.patch.object(
+            deapi.DecisionEngineAPI, 'trigger_audit'
+        ) as de_mock:
             audit_dict = post_get_test_audit(
                 state=objects.audit.State.PENDING,
-                params_to_exclude=['uuid', 'state', 'interval', 'scope',
-                                   'next_run_time', 'hostname', 'goal'])
+                params_to_exclude=[
+                    'uuid',
+                    'state',
+                    'interval',
+                    'scope',
+                    'next_run_time',
+                    'hostname',
+                    'goal',
+                ],
+            )
             response = self.post_json('/audits', audit_dict)
             de_mock.assert_called_once_with(mock.ANY, response.json['uuid'])
 
@@ -865,29 +1038,40 @@ class TestPost(TestPostBase):
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
     def test_create_audit_parameters_no_predefined_strategy(
-            self, mock_trigger_audit):
+        self, mock_trigger_audit
+    ):
         mock_trigger_audit.return_value = mock.ANY
         audit_dict = post_get_test_audit(
             parameters={'name': 'Tom'},
-            params_to_exclude=['uuid', 'state', 'interval', 'scope',
-                               'next_run_time', 'hostname', 'goal'])
+            params_to_exclude=[
+                'uuid',
+                'state',
+                'interval',
+                'scope',
+                'next_run_time',
+                'hostname',
+                'goal',
+            ],
+        )
 
         response = self.post_json('/audits', audit_dict, expect_errors=True)
         self.assertEqual('application/json', response.content_type)
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
-        expected_error_msg = ('Specify parameters but no predefined '
-                              'strategy for audit, or no '
-                              'parameter spec in predefined strategy')
+        expected_error_msg = (
+            'Specify parameters but no predefined '
+            'strategy for audit, or no '
+            'parameter spec in predefined strategy'
+        )
         self.assertTrue(response.json['error_message'])
         self.assertIn(expected_error_msg, response.json['error_message'])
         mock_trigger_audit.assert_not_called()
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
-    def test_create_audit_parameters_no_schema(
-            self, mock_trigger_audit):
+    def test_create_audit_parameters_no_schema(self, mock_trigger_audit):
         mock_trigger_audit.return_value = mock.ANY
         audit_dict = post_get_test_audit_with_predefined_strategy(
-            parameters={'name': 'Tom'})
+            parameters={'name': 'Tom'}
+        )
         del audit_dict['uuid']
         del audit_dict['state']
         del audit_dict['interval']
@@ -898,25 +1082,35 @@ class TestPost(TestPostBase):
         response = self.post_json('/audits', audit_dict, expect_errors=True)
         self.assertEqual('application/json', response.content_type)
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
-        expected_error_msg = ('Specify parameters but no predefined '
-                              'strategy for audit, or no '
-                              'parameter spec in predefined strategy')
+        expected_error_msg = (
+            'Specify parameters but no predefined '
+            'strategy for audit, or no '
+            'parameter spec in predefined strategy'
+        )
         self.assertTrue(response.json['error_message'])
         self.assertIn(expected_error_msg, response.json['error_message'])
         mock_trigger_audit.assert_not_called()
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
-    def test_create_audit_with_parameter_not_allowed(
-            self, mock_trigger_audit):
+    def test_create_audit_with_parameter_not_allowed(self, mock_trigger_audit):
         mock_trigger_audit.return_value = mock.ANY
         audit_template = self.prepare_audit_template_strategy_with_parameter()
 
         audit_dict = api_utils.audit_post_data(
-            parameters={'fake1': 1, 'fake2': "hello"})
+            parameters={'fake1': 1, 'fake2': "hello"}
+        )
 
         audit_dict['audit_template_uuid'] = audit_template['uuid']
-        del_keys = ['uuid', 'goal_id', 'strategy_id', 'state', 'interval',
-                    'scope', 'next_run_time', 'hostname']
+        del_keys = [
+            'uuid',
+            'goal_id',
+            'strategy_id',
+            'state',
+            'interval',
+            'scope',
+            'next_run_time',
+            'hostname',
+        ]
         for k in del_keys:
             del audit_dict[k]
 
@@ -929,17 +1123,23 @@ class TestPost(TestPostBase):
         mock_trigger_audit.assert_not_called()
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
-    def test_create_audit_with_missing_parameter(
-            self, mock_trigger_audit):
+    def test_create_audit_with_missing_parameter(self, mock_trigger_audit):
         mock_trigger_audit.return_value = mock.ANY
         audit_template = self.prepare_audit_template_strategy_with_parameter()
 
-        audit_dict = api_utils.audit_post_data(
-            parameters={})
+        audit_dict = api_utils.audit_post_data(parameters={})
 
         audit_dict['audit_template_uuid'] = audit_template['uuid']
-        del_keys = ['uuid', 'goal_id', 'strategy_id', 'state', 'interval',
-                    'scope', 'next_run_time', 'hostname']
+        del_keys = [
+            'uuid',
+            'goal_id',
+            'strategy_id',
+            'state',
+            'interval',
+            'scope',
+            'next_run_time',
+            'hostname',
+        ]
         for k in del_keys:
             del audit_dict[k]
 
@@ -947,7 +1147,8 @@ class TestPost(TestPostBase):
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
         self.assertEqual("application/json", response.content_type)
         expected_error_msg = (
-            "Invalid parameters for strategy: 'fake1' is a required property")
+            "Invalid parameters for strategy: 'fake1' is a required property"
+        )
         self.assertTrue(response.json['error_message'])
         self.assertIn(expected_error_msg, response.json['error_message'])
         mock_trigger_audit.assert_not_called()
@@ -960,8 +1161,15 @@ class TestPost(TestPostBase):
         mock_utcnow.return_value = test_time
 
         audit_dict = post_get_test_audit(
-            params_to_exclude=['state', 'interval', 'scope',
-                               'next_run_time', 'hostname', 'goal'])
+            params_to_exclude=[
+                'state',
+                'interval',
+                'scope',
+                'next_run_time',
+                'hostname',
+                'goal',
+            ]
+        )
         normal_name = 'this audit name is just for test'
         # long_name length exceeds 63 characters
         long_name = normal_name + audit_dict['uuid']
@@ -981,14 +1189,21 @@ class TestPost(TestPostBase):
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
     def test_create_continuous_audit_with_start_end_time(
-            self, mock_trigger_audit):
+        self, mock_trigger_audit
+    ):
         mock_trigger_audit.return_value = mock.ANY
         start_time = datetime.datetime(2018, 3, 1, 0, 0)
         end_time = datetime.datetime(2018, 4, 1, 0, 0)
 
         audit_dict = post_get_test_audit(
-            params_to_exclude=['uuid', 'state', 'scope',
-                               'next_run_time', 'hostname', 'goal']
+            params_to_exclude=[
+                'uuid',
+                'state',
+                'scope',
+                'next_run_time',
+                'hostname',
+                'goal',
+            ]
         )
         audit_dict['audit_type'] = objects.audit.AuditType.CONTINUOUS.value
         audit_dict['interval'] = '1200'
@@ -998,17 +1213,17 @@ class TestPost(TestPostBase):
         response = self.post_json(
             '/audits',
             audit_dict,
-            headers={'OpenStack-API-Version': 'infra-optim 1.1'})
+            headers={'OpenStack-API-Version': 'infra-optim 1.1'},
+        )
         self.assertEqual('application/json', response.content_type)
         self.assertEqual(HTTPStatus.CREATED, response.status_int)
-        self.assertEqual(objects.audit.State.PENDING,
-                         response.json['state'])
+        self.assertEqual(objects.audit.State.PENDING, response.json['state'])
         self.assertEqual(audit_dict['interval'], response.json['interval'])
         self.assertTrue(utils.is_uuid_like(response.json['uuid']))
         return_start_time = timeutils.parse_isotime(
-            response.json['start_time'])
-        return_end_time = timeutils.parse_isotime(
-            response.json['end_time'])
+            response.json['start_time']
+        )
+        return_end_time = timeutils.parse_isotime(response.json['end_time'])
         iso_start_time = start_time.astimezone(timezone.utc)
         iso_end_time = end_time.astimezone(timezone.utc)
 
@@ -1017,14 +1232,21 @@ class TestPost(TestPostBase):
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
     def test_create_continuous_audit_with_start_end_time_incompatible_version(
-            self, mock_trigger_audit):
+        self, mock_trigger_audit
+    ):
         mock_trigger_audit.return_value = mock.ANY
         start_time = datetime.datetime(2018, 3, 1, 0, 0)
         end_time = datetime.datetime(2018, 4, 1, 0, 0)
 
         audit_dict = post_get_test_audit(
-            params_to_exclude=['uuid', 'state', 'scope',
-                               'next_run_time', 'hostname', 'goal']
+            params_to_exclude=[
+                'uuid',
+                'state',
+                'scope',
+                'next_run_time',
+                'hostname',
+                'goal',
+            ]
         )
         audit_dict['audit_type'] = objects.audit.AuditType.CONTINUOUS.value
         audit_dict['interval'] = '1200'
@@ -1035,7 +1257,8 @@ class TestPost(TestPostBase):
             '/audits',
             audit_dict,
             headers={'OpenStack-API-Version': 'infra-optim 1.0'},
-            expect_errors=True)
+            expect_errors=True,
+        )
         self.assertEqual('application/json', response.content_type)
         self.assertEqual(HTTPStatus.NOT_ACCEPTABLE, response.status_int)
         expected_error_msg = 'Request not acceptable.'
@@ -1048,13 +1271,22 @@ class TestPost(TestPostBase):
         mock_trigger_audit.return_value = mock.ANY
 
         audit_dict = post_get_test_audit(
-            params_to_exclude=['uuid', 'state', 'interval', 'scope',
-                               'next_run_time', 'hostname', 'goal'])
+            params_to_exclude=[
+                'uuid',
+                'state',
+                'interval',
+                'scope',
+                'next_run_time',
+                'hostname',
+                'goal',
+            ]
+        )
 
         response = self.post_json(
             '/audits',
             audit_dict,
-            headers={'OpenStack-API-Version': 'infra-optim 1.2'})
+            headers={'OpenStack-API-Version': 'infra-optim 1.2'},
+        )
         self.assertEqual('application/json', response.content_type)
         self.assertEqual(HTTPStatus.CREATED, response.status_int)
         self.assertFalse(response.json['force'])
@@ -1064,14 +1296,23 @@ class TestPost(TestPostBase):
         mock_trigger_audit.return_value = mock.ANY
 
         audit_dict = post_get_test_audit(
-            params_to_exclude=['uuid', 'state', 'interval', 'scope',
-                               'next_run_time', 'hostname', 'goal'])
+            params_to_exclude=[
+                'uuid',
+                'state',
+                'interval',
+                'scope',
+                'next_run_time',
+                'hostname',
+                'goal',
+            ]
+        )
 
         audit_dict['force'] = True
         response = self.post_json(
             '/audits',
             audit_dict,
-            headers={'OpenStack-API-Version': 'infra-optim 1.2'})
+            headers={'OpenStack-API-Version': 'infra-optim 1.2'},
+        )
         self.assertEqual('application/json', response.content_type)
         self.assertEqual(HTTPStatus.CREATED, response.status_int)
         self.assertTrue(response.json['force'])
@@ -1081,15 +1322,25 @@ class TestPost(TestPostBase):
         mock_trigger_audit.return_value = mock.ANY
 
         audit_dict = post_get_test_audit(
-            params_to_exclude=['uuid', 'state', 'interval', 'scope',
-                               'next_run_time', 'hostname', 'goal',
-                               'audit_template_uuid', 'name'])
+            params_to_exclude=[
+                'uuid',
+                'state',
+                'interval',
+                'scope',
+                'next_run_time',
+                'hostname',
+                'goal',
+                'audit_template_uuid',
+                'name',
+            ]
+        )
 
         response = self.post_json(
             '/audits',
             audit_dict,
             expect_errors=True,
-            headers={'OpenStack-API-Version': 'infra-optim 1.2'})
+            headers={'OpenStack-API-Version': 'infra-optim 1.2'},
+        )
         self.assertEqual('application/json', response.content_type)
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
         expected_msg = 'A valid goal or audit_template_id must be provided'
@@ -1099,7 +1350,6 @@ class TestPost(TestPostBase):
 
 
 class TestDelete(api_base.FunctionalTest):
-
     def setUp(self):
         super().setUp()
         obj_utils.create_test_goal(self.context)
@@ -1123,10 +1373,11 @@ class TestDelete(api_base.FunctionalTest):
         new_state = objects.audit.State.ONGOING
         self.patch_json(
             f'/audits/{self.audit.uuid}',
-            [{'path': '/state', 'value': new_state,
-             'op': 'replace'}])
-        response = self.delete(f'/audits/{self.audit.uuid}',
-                               expect_errors=True)
+            [{'path': '/state', 'value': new_state, 'op': 'replace'}],
+        )
+        response = self.delete(
+            f'/audits/{self.audit.uuid}', expect_errors=True
+        )
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])
@@ -1134,11 +1385,12 @@ class TestDelete(api_base.FunctionalTest):
         new_state = objects.audit.State.CANCELLED
         self.patch_json(
             f'/audits/{self.audit.uuid}',
-            [{'path': '/state', 'value': new_state,
-             'op': 'replace'}])
+            [{'path': '/state', 'value': new_state, 'op': 'replace'}],
+        )
         self.delete(f'/audits/{self.audit.uuid}')
-        response = self.get_json(f'/audits/{self.audit.uuid}',
-                                 expect_errors=True)
+        response = self.get_json(
+            f'/audits/{self.audit.uuid}', expect_errors=True
+        )
         self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])
@@ -1146,10 +1398,12 @@ class TestDelete(api_base.FunctionalTest):
         self.context.show_deleted = True
         audit = objects.Audit.get_by_uuid(self.context, self.audit.uuid)
 
-        return_deleted_at = \
-            audit['deleted_at'].strftime('%Y-%m-%dT%H:%M:%S.%f')
-        self.assertEqual(test_time.strftime('%Y-%m-%dT%H:%M:%S.%f'),
-                         return_deleted_at)
+        return_deleted_at = audit['deleted_at'].strftime(
+            '%Y-%m-%dT%H:%M:%S.%f'
+        )
+        self.assertEqual(
+            test_time.strftime('%Y-%m-%dT%H:%M:%S.%f'), return_deleted_at
+        )
         self.assertEqual(objects.audit.State.DELETED, audit['state'])
 
     def test_delete_audit_not_found(self):
@@ -1161,79 +1415,108 @@ class TestDelete(api_base.FunctionalTest):
 
 
 class TestAuditPolicyEnforcement(api_base.FunctionalTest):
-
     def setUp(self):
         super().setUp()
         obj_utils.create_test_goal(self.context)
 
     def _common_policy_check(self, rule, func, *arg, **kwarg):
-        self.policy.set_rules({
-            "admin_api": "(role:admin or role:administrator)",
-            "default": "rule:admin_api",
-            rule: "rule:default"})
+        self.policy.set_rules(
+            {
+                "admin_api": "(role:admin or role:administrator)",
+                "default": "rule:admin_api",
+                rule: "rule:default",
+            }
+        )
         response = func(*arg, **kwarg)
         self.assertEqual(HTTPStatus.FORBIDDEN, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(
             f"Policy doesn't allow {rule} to be performed.",
-            jsonutils.loads(response.json['error_message'])['faultstring'])
+            jsonutils.loads(response.json['error_message'])['faultstring'],
+        )
 
     def test_policy_disallow_get_all(self):
         self._common_policy_check(
-            "audit:get_all", self.get_json, '/audits',
-            expect_errors=True)
+            "audit:get_all", self.get_json, '/audits', expect_errors=True
+        )
 
     def test_policy_disallow_get_one(self):
         audit = obj_utils.create_test_audit(self.context)
         self._common_policy_check(
-            "audit:get", self.get_json,
+            "audit:get",
+            self.get_json,
             f'/audits/{audit.uuid}',
-            expect_errors=True)
+            expect_errors=True,
+        )
 
     def test_policy_disallow_detail(self):
         self._common_policy_check(
-            "audit:detail", self.get_json,
-            '/audits/detail',
-            expect_errors=True)
+            "audit:detail", self.get_json, '/audits/detail', expect_errors=True
+        )
 
     def test_policy_disallow_update(self):
         audit = obj_utils.create_test_audit(self.context)
         self._common_policy_check(
-            "audit:update", self.patch_json,
+            "audit:update",
+            self.patch_json,
             f'/audits/{audit.uuid}',
-            [{'path': '/state', 'value': objects.audit.State.SUCCEEDED,
-             'op': 'replace'}], expect_errors=True)
+            [
+                {
+                    'path': '/state',
+                    'value': objects.audit.State.SUCCEEDED,
+                    'op': 'replace',
+                }
+            ],
+            expect_errors=True,
+        )
 
     def test_policy_disallow_create(self):
         audit_dict = post_get_test_audit(
             state=objects.audit.State.PENDING,
-            params_to_exclude=['uuid', 'state', 'scope',
-                               'next_run_time', 'hostname', 'goal'])
+            params_to_exclude=[
+                'uuid',
+                'state',
+                'scope',
+                'next_run_time',
+                'hostname',
+                'goal',
+            ],
+        )
         self._common_policy_check(
-            "audit:create", self.post_json, '/audits', audit_dict,
-            expect_errors=True)
+            "audit:create",
+            self.post_json,
+            '/audits',
+            audit_dict,
+            expect_errors=True,
+        )
 
     def test_policy_disallow_delete(self):
         audit = obj_utils.create_test_audit(self.context)
         self._common_policy_check(
-            "audit:delete", self.delete,
-            f'/audits/{audit.uuid}', expect_errors=True)
+            "audit:delete",
+            self.delete,
+            f'/audits/{audit.uuid}',
+            expect_errors=True,
+        )
 
 
-class TestAuditEnforcementWithAdminContext(TestListAudit,
-                                           api_base.AdminRoleTest):
-
+class TestAuditEnforcementWithAdminContext(
+    TestListAudit, api_base.AdminRoleTest
+):
     def setUp(self):
         super().setUp()
-        self.policy.set_rules({
-            "admin_api": "(role:admin or role:administrator)",
-            "default": "rule:admin_api",
-            "audit:create": "rule:default",
-            "audit:delete": "rule:default",
-            "audit:detail": "rule:default",
-            "audit:get": "rule:default",
-            "audit:get_all": "rule:default",
-            "audit:update": "rule:default"})
+        self.policy.set_rules(
+            {
+                "admin_api": "(role:admin or role:administrator)",
+                "default": "rule:admin_api",
+                "audit:create": "rule:default",
+                "audit:delete": "rule:default",
+                "audit:detail": "rule:default",
+                "audit:get": "rule:default",
+                "audit:get_all": "rule:default",
+                "audit:update": "rule:default",
+            }
+        )
 
 
 class TestAuditZoneMigration(TestPostBase):
@@ -1246,18 +1529,27 @@ class TestAuditZoneMigration(TestPostBase):
     def _prepare_audit_params(self, parameters):
         audit_templ = self.prepare_audit_template_strategy_with_parameter(
             fake_spec=self.zm_spec
-            )
+        )
         audit_dict = api_utils.audit_post_data(parameters=parameters)
         audit_dict['audit_template_uuid'] = audit_templ['uuid']
-        del_keys = ['uuid', 'goal_id', 'strategy_id', 'state',
-                    'interval', 'scope', 'next_run_time', 'hostname']
+        del_keys = [
+            'uuid',
+            'goal_id',
+            'strategy_id',
+            'state',
+            'interval',
+            'scope',
+            'next_run_time',
+            'hostname',
+        ]
         for k in del_keys:
             del audit_dict[k]
         return audit_dict
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
-    def test_create_audit_zone_migration_without_dst_pool(self,
-                                                          mock_trigger_audit):
+    def test_create_audit_zone_migration_without_dst_pool(
+        self, mock_trigger_audit
+    ):
         """Verify zone migration audit with dst_type instead of dst_pool.
 
         Tests that an audit can be created with storage pool parameters
@@ -1268,11 +1560,13 @@ class TestAuditZoneMigration(TestPostBase):
         mock_trigger_audit.return_value = mock.ANY
         zm_params = {
             'storage_pools': [
-                    {"src_pool": "src_pool_name",
-                     "src_type": "src_type_name",
-                     "dst_type": "dst_type_name"}
-                ]
-            }
+                {
+                    "src_pool": "src_pool_name",
+                    "src_type": "src_type_name",
+                    "dst_type": "dst_type_name",
+                }
+            ]
+        }
 
         audit_input_dict = self._prepare_audit_params(zm_params)
 
@@ -1281,8 +1575,9 @@ class TestAuditZoneMigration(TestPostBase):
         self.assertEqual(HTTPStatus.CREATED, response.status_int)
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
-    def test_create_audit_zone_migration_without_src_pool(self,
-                                                          mock_trigger_audit):
+    def test_create_audit_zone_migration_without_src_pool(
+        self, mock_trigger_audit
+    ):
         """Verify zone migration audit rejects missing src_pool.
 
         Tests that an audit creation fails with BAD_REQUEST when storage
@@ -1292,28 +1587,29 @@ class TestAuditZoneMigration(TestPostBase):
         mock_trigger_audit.return_value = mock.ANY
         zm_params = {
             'storage_pools': [
-                    {"dst_pool": "dst_pool_name",
-                     "src_type": "src_type_name"}
-                ]
-            }
+                {"dst_pool": "dst_pool_name", "src_type": "src_type_name"}
+            ]
+        }
 
         audit_input_dict = self._prepare_audit_params(zm_params)
 
-        response = self.post_json('/audits', audit_input_dict,
-                                  expect_errors=True)
+        response = self.post_json(
+            '/audits', audit_input_dict, expect_errors=True
+        )
         self.assertEqual("application/json", response.content_type)
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
         expected_error_msgs = (
             "is not valid under any of the given schemas",
-            "Failed validating 'oneOf' in schema"
+            "Failed validating 'oneOf' in schema",
         )
         for expected_error_msg in expected_error_msgs:
             self.assertIn(expected_error_msg, response.json['error_message'])
         mock_trigger_audit.assert_not_called()
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
-    def test_create_audit_zone_migration_without_dst_type(self,
-                                                          mock_trigger_audit):
+    def test_create_audit_zone_migration_without_dst_type(
+        self, mock_trigger_audit
+    ):
         """Verify zone migration audit with dst_pool instead of dst_type.
 
         Tests that an audit can be created with storage pool parameters
@@ -1324,22 +1620,26 @@ class TestAuditZoneMigration(TestPostBase):
         mock_trigger_audit.return_value = mock.ANY
         zm_params = {
             'storage_pools': [
-                    {"src_pool": "src_pool_name",
-                     "src_type": "src_type_name",
-                     "dst_pool": "dst_pool_name"}
-                ]
-            }
+                {
+                    "src_pool": "src_pool_name",
+                    "src_type": "src_type_name",
+                    "dst_pool": "dst_pool_name",
+                }
+            ]
+        }
 
         audit_input_dict = self._prepare_audit_params(zm_params)
 
-        response = self.post_json('/audits', audit_input_dict,
-                                  expect_errors=True)
+        response = self.post_json(
+            '/audits', audit_input_dict, expect_errors=True
+        )
         self.assertEqual("application/json", response.content_type)
         self.assertEqual(HTTPStatus.CREATED, response.status_int)
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
-    def test_create_audit_zone_migration_without_src_type(self,
-                                                          mock_trigger_audit):
+    def test_create_audit_zone_migration_without_src_type(
+        self, mock_trigger_audit
+    ):
         """Verify zone migration audit accepts optional src_type.
 
         Tests that an audit can be created with storage pool parameters
@@ -1350,11 +1650,9 @@ class TestAuditZoneMigration(TestPostBase):
         mock_trigger_audit.return_value = mock.ANY
         zm_params = {
             'storage_pools': [
-                    {"dst_pool": "dst_pool_name",
-                     "src_pool": "src_pool_name",
-                     }
-                ]
-            }
+                {"dst_pool": "dst_pool_name", "src_pool": "src_pool_name"}
+            ]
+        }
 
         audit_input_dict = self._prepare_audit_params(zm_params)
 
@@ -1376,20 +1674,20 @@ class TestAuditZoneMigration(TestPostBase):
         mock_trigger_audit.return_value = mock.ANY
         zm_params = {
             'storage_pools': [
-                    {"dst_type": "dst_type_name",
-                     "dst_pool": "dst_pool_name"}
-                ]
-            }
+                {"dst_type": "dst_type_name", "dst_pool": "dst_pool_name"}
+            ]
+        }
 
         audit_input_dict = self._prepare_audit_params(zm_params)
 
-        response = self.post_json('/audits', audit_input_dict,
-                                  expect_errors=True)
+        response = self.post_json(
+            '/audits', audit_input_dict, expect_errors=True
+        )
         self.assertEqual("application/json", response.content_type)
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
         expected_error_msgs = (
             "is not valid under any of the given schemas",
-            "Failed validating 'oneOf' in schema"
+            "Failed validating 'oneOf' in schema",
         )
         for expected_error_msg in expected_error_msgs:
             self.assertIn(expected_error_msg, response.json['error_message'])
@@ -1409,20 +1707,20 @@ class TestAuditZoneMigration(TestPostBase):
         mock_trigger_audit.return_value = mock.ANY
         zm_params = {
             'storage_pools': [
-                    {"src_type": "src_type_name",
-                     "src_pool": "src_pool_name"}
-                ]
-            }
+                {"src_type": "src_type_name", "src_pool": "src_pool_name"}
+            ]
+        }
 
         audit_input_dict = self._prepare_audit_params(zm_params)
 
-        response = self.post_json('/audits', audit_input_dict,
-                                  expect_errors=True)
+        response = self.post_json(
+            '/audits', audit_input_dict, expect_errors=True
+        )
         self.assertEqual("application/json", response.content_type)
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
         expected_error_msgs = (
             "is not valid under any of the given schemas",
-            "Failed validating 'oneOf' in schema"
+            "Failed validating 'oneOf' in schema",
         )
         for expected_error_msg in expected_error_msgs:
             self.assertIn(expected_error_msg, response.json['error_message'])
@@ -1442,14 +1740,18 @@ class TestAuditZoneMigration(TestPostBase):
         mock_trigger_audit.return_value = mock.ANY
         zm_params = {
             'storage_pools': [
-                    {"src_pool": "src_pool_name",
-                     "src_type": "src_type_name",
-                     "dst_type": "dst_type_name"},
-                    {"src_pool": "src_pool_name",
-                     "src_type": "src_type_name2",
-                     "dst_pool": "dst_type_name"},
-                ]
-            }
+                {
+                    "src_pool": "src_pool_name",
+                    "src_type": "src_type_name",
+                    "dst_type": "dst_type_name",
+                },
+                {
+                    "src_pool": "src_pool_name",
+                    "src_type": "src_type_name2",
+                    "dst_pool": "dst_type_name",
+                },
+            ]
+        }
 
         audit_input_dict = self._prepare_audit_params(zm_params)
 
@@ -1471,14 +1773,18 @@ class TestAuditZoneMigration(TestPostBase):
         mock_trigger_audit.return_value = mock.ANY
         zm_params = {
             'storage_pools': [
-                    {"src_pool": "src_pool_name",
-                     "src_type": "src_type_name",
-                     "dst_type": "dst_type_name"},
-                    {"src_pool": "src_pool_name",
-                     "dst_type": "dst_type_name2",
-                     "dst_pool": "dst_type_name"},
-                ]
-            }
+                {
+                    "src_pool": "src_pool_name",
+                    "src_type": "src_type_name",
+                    "dst_type": "dst_type_name",
+                },
+                {
+                    "src_pool": "src_pool_name",
+                    "dst_type": "dst_type_name2",
+                    "dst_pool": "dst_type_name",
+                },
+            ]
+        }
 
         audit_input_dict = self._prepare_audit_params(zm_params)
 
@@ -1489,7 +1795,7 @@ class TestAuditZoneMigration(TestPostBase):
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
         expected_error_msgs = (
             "is not valid under any of the given schemas",
-            "Failed validating 'oneOf' in schema"
+            "Failed validating 'oneOf' in schema",
         )
         for expected_error_msg in expected_error_msgs:
             self.assertIn(expected_error_msg, response.json['error_message'])

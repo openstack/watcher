@@ -45,9 +45,9 @@ extensions = [
 ]
 
 wsme_protocols = ['restjson']
-config_generator_config_file = [(
-    '../../etc/watcher/oslo-config-generator/watcher.conf',
-    '_static/watcher')]
+config_generator_config_file = [
+    ('../../etc/watcher/oslo-config-generator/watcher.conf', '_static/watcher')
+]
 sample_config_basename = 'watcher'
 
 # The suffix of source filenames.
@@ -92,14 +92,28 @@ pygments_style = 'native'
 # List of tuples 'sourcefile', 'target', u'title', u'Authors name', 'manual'
 
 man_pages = [
-    ('man/watcher-api', 'watcher-api', 'Watcher API Server',
-     ['OpenStack'], 1),
-    ('man/watcher-applier', 'watcher-applier', 'Watcher Applier',
-     ['OpenStack'], 1),
-    ('man/watcher-db-manage', 'watcher-db-manage',
-     'Watcher Db Management Utility', ['OpenStack'], 1),
-    ('man/watcher-decision-engine', 'watcher-decision-engine',
-     'Watcher Decision Engine', ['OpenStack'], 1),
+    ('man/watcher-api', 'watcher-api', 'Watcher API Server', ['OpenStack'], 1),
+    (
+        'man/watcher-applier',
+        'watcher-applier',
+        'Watcher Applier',
+        ['OpenStack'],
+        1,
+    ),
+    (
+        'man/watcher-db-manage',
+        'watcher-db-manage',
+        'Watcher Db Management Utility',
+        ['OpenStack'],
+        1,
+    ),
+    (
+        'man/watcher-decision-engine',
+        'watcher-decision-engine',
+        'Watcher Decision Engine',
+        ['OpenStack'],
+        1,
+    ),
 ]
 
 # -- Options for HTML output --------------------------------------------------
@@ -127,10 +141,13 @@ openstackdocs_bug_tag = ''
 # (source start file, target name, title, author, documentclass
 # [howto/manual]).
 latex_documents = [
-    ('index',
-     'doc-watcher.tex',
-     'Watcher Documentation',
-     'OpenStack Foundation', 'manual'),
+    (
+        'index',
+        'doc-watcher.tex',
+        'Watcher Documentation',
+        'OpenStack Foundation',
+        'manual',
+    )
 ]
 
 # If false, no module index is generated.

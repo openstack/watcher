@@ -41,7 +41,8 @@ class Loadable(metaclass=abc.ABCMeta):
 
 
 LoadableSingletonMeta = type(
-    "LoadableSingletonMeta", (abc.ABCMeta, service.Singleton), {})
+    "LoadableSingletonMeta", (abc.ABCMeta, service.Singleton), {}
+)
 
 
 class LoadableSingleton(metaclass=LoadableSingletonMeta):

@@ -22,35 +22,20 @@ rules = [
         name=GOAL % 'detail',
         check_str=base.RULE_ADMIN_API,
         description='Retrieve a list of goals with detail.',
-        operations=[
-            {
-                'path': '/v1/goals/detail',
-                'method': 'GET'
-            }
-        ]
+        operations=[{'path': '/v1/goals/detail', 'method': 'GET'}],
     ),
     policy.DocumentedRuleDefault(
         name=GOAL % 'get',
         check_str=base.RULE_ADMIN_API,
         description='Get a goal.',
-        operations=[
-            {
-                'path': '/v1/goals/{goal_uuid}',
-                'method': 'GET'
-            }
-        ]
+        operations=[{'path': '/v1/goals/{goal_uuid}', 'method': 'GET'}],
     ),
     policy.DocumentedRuleDefault(
         name=GOAL % 'get_all',
         check_str=base.RULE_ADMIN_API,
         description='Get all goals.',
-        operations=[
-            {
-                'path': '/v1/goals',
-                'method': 'GET'
-            }
-        ]
-    )
+        operations=[{'path': '/v1/goals', 'method': 'GET'}],
+    ),
 ]
 
 

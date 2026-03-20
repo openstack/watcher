@@ -25,7 +25,6 @@ LOG = log.getLogger(__name__)
 
 
 class DefaultStrategySelector(base.BaseSelector):
-
     def __init__(self, goal_name, strategy_name=None, osc=None):
         """Default strategy selector
 
@@ -52,12 +51,15 @@ class DefaultStrategySelector(base.BaseSelector):
             else:
                 available_strategies = self.strategy_loader.list_available()
                 available_strategies_for_goal = list(
-                    key for key, strategy in available_strategies.items()
-                    if strategy.get_goal_name() == self.goal_name)
+                    key
+                    for key, strategy in available_strategies.items()
+                    if strategy.get_goal_name() == self.goal_name
+                )
 
                 if not available_strategies_for_goal:
                     raise exception.NoAvailableStrategyForGoal(
-                        goal=self.goal_name)
+                        goal=self.goal_name
+                    )
 
                 # TODO(v-francoise): We should do some more work here to select
                 # a strategy out of a given goal instead of just choosing the
@@ -70,4 +72,5 @@ class DefaultStrategySelector(base.BaseSelector):
             LOG.exception(exc)
             raise exception.LoadingError(
                 _("Could not load any strategy for goal %(goal)s"),
-                goal=self.goal_name)
+                goal=self.goal_name,
+            )

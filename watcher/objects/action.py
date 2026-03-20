@@ -34,9 +34,11 @@ class State:
 
 
 @base.WatcherObjectRegistry.register
-class Action(base.WatcherPersistentObject, base.WatcherObject,
-             base.WatcherObjectDictCompat):
-
+class Action(
+    base.WatcherPersistentObject,
+    base.WatcherObject,
+    base.WatcherObjectDictCompat,
+):
     # Version 1.0: Initial version
     # Version 1.1: Added 'action_plan' object field
     # Version 2.0: Removed 'next' object field, Added 'parents' object field
@@ -54,12 +56,9 @@ class Action(base.WatcherPersistentObject, base.WatcherObject,
         'state': wfields.StringField(nullable=True),
         'parents': wfields.ListOfStringsField(nullable=True),
         'status_message': wfields.StringField(nullable=True),
-
         'action_plan': wfields.ObjectField('ActionPlan', nullable=True),
     }
-    object_fields = {
-        'action_plan': (objects.ActionPlan, 'action_plan_id'),
-    }
+    object_fields = {'action_plan': (objects.ActionPlan, 'action_plan_id')}
 
     @base.remotable_classmethod
     def get(cls, context, action_id, eager=False):
@@ -102,8 +101,16 @@ class Action(base.WatcherPersistentObject, base.WatcherObject,
         return action
 
     @base.remotable_classmethod
-    def list(cls, context, limit=None, marker=None, filters=None,
-             sort_key=None, sort_dir=None, eager=False):
+    def list(
+        cls,
+        context,
+        limit=None,
+        marker=None,
+        filters=None,
+        sort_key=None,
+        sort_dir=None,
+        eager=False,
+    ):
         """Return a list of Action objects.
 
         :param context: Security context.
@@ -115,16 +122,20 @@ class Action(base.WatcherPersistentObject, base.WatcherObject,
         :param eager: Load object fields if True (Default: False)
         :returns: a list of :class:`Action` object.
         """
-        db_actions = cls.dbapi.get_action_list(context,
-                                               limit=limit,
-                                               marker=marker,
-                                               filters=filters,
-                                               sort_key=sort_key,
-                                               sort_dir=sort_dir,
-                                               eager=eager)
+        db_actions = cls.dbapi.get_action_list(
+            context,
+            limit=limit,
+            marker=marker,
+            filters=filters,
+            sort_key=sort_key,
+            sort_dir=sort_dir,
+            eager=eager,
+        )
 
-        return [cls._from_db_object(cls(context), obj, eager=eager)
-                for obj in db_actions]
+        return [
+            cls._from_db_object(cls(context), obj, eager=eager)
+            for obj in db_actions
+        ]
 
     @base.remotable
     def create(self):
@@ -178,7 +189,8 @@ class Action(base.WatcherPersistentObject, base.WatcherObject,
         self.save()
         db_obj = self.dbapi.soft_delete_action(self.uuid)
         obj = self._from_db_object(
-            self.__class__(self._context), db_obj, eager=False)
+            self.__class__(self._context), db_obj, eager=False
+        )
         self.obj_refresh(obj)
 
         notifications.action.send_delete(self.obj_context, self)

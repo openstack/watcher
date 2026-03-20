@@ -24,7 +24,6 @@ from watcher.tests.unit import base as test_base
 
 
 class DummyClusterDataModelCollector(base.BaseClusterDataModelCollector):
-
     @property
     def notification_endpoints(self):
         return []
@@ -39,7 +38,6 @@ class DummyClusterDataModelCollector(base.BaseClusterDataModelCollector):
 
 
 class TestClusterDataModelCollector(test_base.TestCase):
-
     def test_is_singleton(self):
         m_config = mock.Mock()
         inst1 = DummyClusterDataModelCollector(config=m_config)
@@ -53,14 +51,15 @@ class TestClusterDataModelCollector(test_base.TestCase):
         collector.synchronize()
 
         self.assertIs(
-            collector._cluster_data_model, collector.cluster_data_model)
+            collector._cluster_data_model, collector.cluster_data_model
+        )
         self.assertIsNot(
             collector.cluster_data_model,
-            collector.get_latest_cluster_data_model())
+            collector.get_latest_cluster_data_model(),
+        )
 
 
 class TestComputeDataModelCollector(test_base.TestCase):
-
     def test_model_scope_is_none(self):
         m_config = mock.Mock()
         collector = nova.NovaClusterDataModelCollector(config=m_config)
@@ -71,7 +70,6 @@ class TestComputeDataModelCollector(test_base.TestCase):
 
 
 class TestStorageDataModelCollector(test_base.TestCase):
-
     def test_model_scope_is_none(self):
         m_config = mock.Mock()
         collector = cinder.CinderClusterDataModelCollector(config=m_config)
@@ -82,7 +80,6 @@ class TestStorageDataModelCollector(test_base.TestCase):
 
 
 class TestBareMetalDataModelCollector(test_base.TestCase):
-
     def test_model_scope_is_none(self):
         m_config = mock.Mock()
         collector = ironic.BaremetalClusterDataModelCollector(config=m_config)

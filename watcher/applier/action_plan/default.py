@@ -32,7 +32,6 @@ LOG = log.getLogger(__name__)
 
 
 class DefaultActionPlanHandler(base.BaseActionPlanHandler):
-
     def __init__(self, context, service, action_plan_uuid):
         super().__init__()
         self.ctx = context
@@ -42,16 +41,19 @@ class DefaultActionPlanHandler(base.BaseActionPlanHandler):
     def execute(self):
         try:
             action_plan = objects.ActionPlan.get_by_uuid(
-                self.ctx, self.action_plan_uuid, eager=True)
+                self.ctx, self.action_plan_uuid, eager=True
+            )
             if action_plan.state == objects.action_plan.State.CANCELLED:
                 self._update_action_from_pending_to_cancelled()
                 return
             action_plan.state = objects.action_plan.State.ONGOING
             action_plan.save()
             notifications.action_plan.send_action_notification(
-                self.ctx, action_plan,
+                self.ctx,
+                action_plan,
                 action=fields.NotificationAction.EXECUTION,
-                phase=fields.NotificationPhase.START)
+                phase=fields.NotificationPhase.START,
+            )
 
             applier = default.DefaultApplier(self.ctx, self.service)
             applier.execute(self.action_plan_uuid)
@@ -59,25 +61,29 @@ class DefaultActionPlanHandler(base.BaseActionPlanHandler):
             # If any action has failed the action plan should be FAILED
             # Define default values for successful execution
             ap_state = objects.action_plan.State.SUCCEEDED
-            notification_kwargs = {
-                'phase': fields.NotificationPhase.END
-            }
+            notification_kwargs = {'phase': fields.NotificationPhase.END}
 
-            failed_filter = {'action_plan_uuid': self.action_plan_uuid,
-                             'state': objects.action.State.FAILED}
+            failed_filter = {
+                'action_plan_uuid': self.action_plan_uuid,
+                'state': objects.action.State.FAILED,
+            }
             failed_actions = objects.Action.list(
-                self.ctx, filters=failed_filter, eager=True)
+                self.ctx, filters=failed_filter, eager=True
+            )
             if failed_actions:
                 ap_state = objects.action_plan.State.FAILED
                 notification_kwargs = {
                     'phase': fields.NotificationPhase.ERROR,
-                    'priority': fields.NotificationPriority.ERROR
+                    'priority': fields.NotificationPriority.ERROR,
                 }
 
-            skipped_filter = {'action_plan_uuid': self.action_plan_uuid,
-                              'state': objects.action.State.SKIPPED}
+            skipped_filter = {
+                'action_plan_uuid': self.action_plan_uuid,
+                'state': objects.action.State.SKIPPED,
+            }
             skipped_actions = objects.Action.list(
-                self.ctx, filters=skipped_filter, eager=True)
+                self.ctx, filters=skipped_filter, eager=True
+            )
             if skipped_actions:
                 status_message = _("One or more actions were skipped.")
                 action_plan.status_message = status_message
@@ -85,9 +91,11 @@ class DefaultActionPlanHandler(base.BaseActionPlanHandler):
             action_plan.state = ap_state
             action_plan.save()
             notifications.action_plan.send_action_notification(
-                self.ctx, action_plan,
+                self.ctx,
+                action_plan,
                 action=fields.NotificationAction.EXECUTION,
-                **notification_kwargs)
+                **notification_kwargs,
+            )
 
         except exception.ActionPlanCancelled as e:
             LOG.exception(e)
@@ -95,34 +103,43 @@ class DefaultActionPlanHandler(base.BaseActionPlanHandler):
             self._update_action_from_pending_to_cancelled()
             action_plan.save()
             notifications.action_plan.send_cancel_notification(
-                self.ctx, action_plan,
+                self.ctx,
+                action_plan,
                 action=fields.NotificationAction.CANCEL,
-                phase=fields.NotificationPhase.END)
+                phase=fields.NotificationPhase.END,
+            )
 
         except Exception as e:
             LOG.exception(e)
             action_plan = objects.ActionPlan.get_by_uuid(
-                self.ctx, self.action_plan_uuid, eager=True)
+                self.ctx, self.action_plan_uuid, eager=True
+            )
             if action_plan.state == objects.action_plan.State.CANCELLING:
                 action_plan.state = objects.action_plan.State.FAILED
                 action_plan.save()
                 notifications.action_plan.send_cancel_notification(
-                    self.ctx, action_plan,
+                    self.ctx,
+                    action_plan,
                     action=fields.NotificationAction.CANCEL,
                     priority=fields.NotificationPriority.ERROR,
-                    phase=fields.NotificationPhase.ERROR)
+                    phase=fields.NotificationPhase.ERROR,
+                )
             else:
                 action_plan.state = objects.action_plan.State.FAILED
                 action_plan.save()
                 notifications.action_plan.send_action_notification(
-                    self.ctx, action_plan,
+                    self.ctx,
+                    action_plan,
                     action=fields.NotificationAction.EXECUTION,
                     priority=fields.NotificationPriority.ERROR,
-                    phase=fields.NotificationPhase.ERROR)
+                    phase=fields.NotificationPhase.ERROR,
+                )
 
     def _update_action_from_pending_to_cancelled(self):
-        filters = {'action_plan_uuid': self.action_plan_uuid,
-                   'state': objects.action.State.PENDING}
+        filters = {
+            'action_plan_uuid': self.action_plan_uuid,
+            'state': objects.action.State.PENDING,
+        }
         actions = objects.Action.list(self.ctx, filters=filters, eager=True)
         if actions:
             for a in actions:

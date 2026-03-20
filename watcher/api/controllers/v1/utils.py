@@ -32,9 +32,11 @@ from watcher.common import utils
 CONF = cfg.CONF
 
 
-JSONPATCH_EXCEPTIONS = (jsonpatch.JsonPatchException,
-                        jsonpatch.JsonPointerException,
-                        KeyError)
+JSONPATCH_EXCEPTIONS = (
+    jsonpatch.JsonPatchException,
+    jsonpatch.JsonPointerException,
+    KeyError,
+)
 
 
 def validate_limit(limit):
@@ -54,16 +56,20 @@ def validate_limit(limit):
 
 def validate_sort_dir(sort_dir):
     if sort_dir not in ['asc', 'desc']:
-        raise wsme.exc.ClientSideError(_("Invalid sort direction: %s. "
-                                         "Acceptable values are "
-                                         "'asc' or 'desc'") % sort_dir)
+        raise wsme.exc.ClientSideError(
+            _(
+                "Invalid sort direction: %s. "
+                "Acceptable values are "
+                "'asc' or 'desc'"
+            )
+            % sort_dir
+        )
 
 
 def validate_sort_key(sort_key, allowed_fields):
     # Very lightweight validation for now
     if sort_key not in allowed_fields:
-        raise wsme.exc.ClientSideError(
-            _("Invalid sort key: %s") % sort_key)
+        raise wsme.exc.ClientSideError(_("Invalid sort key: %s") % sort_key)
 
 
 def validate_search_filters(filters, allowed_fields):
@@ -72,7 +78,8 @@ def validate_search_filters(filters, allowed_fields):
     for filter_name in filters:
         if filter_name not in allowed_fields:
             raise wsme.exc.ClientSideError(
-                _("Invalid filter: %s") % filter_name)
+                _("Invalid filter: %s") % filter_name
+            )
 
 
 def check_need_api_sort(sort_key, additional_fields):
@@ -83,7 +90,7 @@ def make_api_sort(sorting_list, sort_key, sort_dir):
     # First sort by uuid field, than sort by sort_key
     # sort() ensures stable sorting, so we could
     # make lexicographical sort
-    reverse_direction = (sort_dir == 'desc')
+    reverse_direction = sort_dir == 'desc'
     sorting_list.sort(key=attrgetter('uuid'), reverse=reverse_direction)
     sorting_list.sort(key=attrgetter(sort_key), reverse=reverse_direction)
 
@@ -92,8 +99,10 @@ def apply_jsonpatch(doc, patch):
     for p in patch:
         if p['op'] == 'add' and p['path'].count('/') == 1:
             if p['path'].lstrip('/') not in doc:
-                msg = _('Adding a new attribute (%s) to the root of '
-                        ' the resource is not allowed')
+                msg = _(
+                    'Adding a new attribute (%s) to the root of '
+                    ' the resource is not allowed'
+                )
                 raise wsme.exc.ClientSideError(msg % p['path'])
     return jsonpatch.apply_patch(doc, jsonpatch.JsonPatch(patch))
 
@@ -120,8 +129,11 @@ def check_audit_state_transition(patch, initial):
     is_transition_valid = True
     state_value = get_patch_value(patch, "state")
     if state_value is not None:
-        is_transition_valid = objects.audit.AuditStateTransitionManager(
-            ).check_transition(initial, state_value)
+        is_transition_valid = (
+            objects.audit.AuditStateTransitionManager().check_transition(
+                initial, state_value
+            )
+        )
     return is_transition_valid
 
 
@@ -167,7 +179,8 @@ def allow_start_end_audit_time():
     audits.
     """
     return pecan.request.version.minor >= (
-        versions.VERSIONS.MINOR_1_START_END_TIMING.value)
+        versions.VERSIONS.MINOR_1_START_END_TIMING.value
+    )
 
 
 def allow_force():
@@ -177,7 +190,8 @@ def allow_force():
     launch audit when other action plan is ongoing.
     """
     return pecan.request.version.minor >= (
-        versions.VERSIONS.MINOR_2_FORCE.value)
+        versions.VERSIONS.MINOR_2_FORCE.value
+    )
 
 
 def allow_list_datamodel():
@@ -186,7 +200,8 @@ def allow_list_datamodel():
     Version 1.3 of the API added support to list data model.
     """
     return pecan.request.version.minor >= (
-        versions.VERSIONS.MINOR_3_DATAMODEL.value)
+        versions.VERSIONS.MINOR_3_DATAMODEL.value
+    )
 
 
 def allow_webhook_api():
@@ -195,7 +210,8 @@ def allow_webhook_api():
     Version 1.4 of the API added support to trigger webhook.
     """
     return pecan.request.version.minor >= (
-        versions.VERSIONS.MINOR_4_WEBHOOK_API.value)
+        versions.VERSIONS.MINOR_4_WEBHOOK_API.value
+    )
 
 
 def allow_skipped_action():
@@ -204,7 +220,8 @@ def allow_skipped_action():
     Version 1.5 of the API added support to skipped actions.
     """
     return pecan.request.version.minor >= (
-        versions.VERSIONS.MINOR_5_SKIPPED_ACTION.value)
+        versions.VERSIONS.MINOR_5_SKIPPED_ACTION.value
+    )
 
 
 def allow_list_extend_compute_model():
@@ -214,4 +231,5 @@ def allow_list_extend_compute_model():
     to the compute data model.
     """
     return pecan.request.version.minor >= (
-        versions.VERSIONS.MINOR_6_EXT_COMPUTE_MODEL.value)
+        versions.VERSIONS.MINOR_6_EXT_COMPUTE_MODEL.value
+    )

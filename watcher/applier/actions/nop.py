@@ -30,9 +30,7 @@ class Nop(base.BaseAction):
 
     The action schema is::
 
-        schema = Schema({
-         'message': str,
-        })
+        schema = Schema({'message': str})
 
     The `message` is the actual message that will be logged.
     """
@@ -44,25 +42,11 @@ class Nop(base.BaseAction):
         return {
             'type': 'object',
             'properties': {
-                'message': {
-                    'type': ['string', 'null']
-                },
-                'skip_pre_condition': {
-                    'type': 'boolean',
-                    'default': False
-                },
-                'fail_pre_condition': {
-                    'type': 'boolean',
-                    'default': False
-                },
-                'fail_execute': {
-                    'type': 'boolean',
-                    'default': False
-                },
-                'fail_post_condition': {
-                    'type': 'boolean',
-                    'default': False
-                }
+                'message': {'type': ['string', 'null']},
+                'skip_pre_condition': {'type': 'boolean', 'default': False},
+                'fail_pre_condition': {'type': 'boolean', 'default': False},
+                'fail_execute': {'type': 'boolean', 'default': False},
+                'fail_post_condition': {'type': 'boolean', 'default': False},
             },
             'required': ['message'],
             'additionalProperties': False,

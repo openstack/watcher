@@ -29,34 +29,37 @@ from watcher.tests.unit.objects import utils as obj_utils
 
 
 class TestActionScheduling(base.DbTestCase):
-
     def setUp(self):
         super().setUp()
         self.goal = db_utils.create_test_goal(name="server_consolidation")
         self.strategy = db_utils.create_test_strategy(
-            name="node_resource_consolidation")
+            name="node_resource_consolidation"
+        )
         self.audit = db_utils.create_test_audit(
-            uuid=utils.generate_uuid(), strategy_id=self.strategy.id)
+            uuid=utils.generate_uuid(), strategy_id=self.strategy.id
+        )
         self.planner = pbase.NodeResourceConsolidationPlanner(mock.Mock())
 
     def test_schedule_actions(self):
         solution = dsol.DefaultSolution(
-            goal=mock.Mock(), strategy=self.strategy)
+            goal=mock.Mock(), strategy=self.strategy
+        )
 
-        parameters = {
-            "source_node": "host1",
-            "destination_node": "host2",
-        }
-        solution.add_action(action_type="migrate",
-                            resource_id="b199db0c-1408-4d52-b5a5-5ca14de0ff36",
-                            input_parameters=parameters)
+        parameters = {"source_node": "host1", "destination_node": "host2"}
+        solution.add_action(
+            action_type="migrate",
+            resource_id="b199db0c-1408-4d52-b5a5-5ca14de0ff36",
+            input_parameters=parameters,
+        )
 
         with mock.patch.object(
-            pbase.NodeResourceConsolidationPlanner, "create_action",
-            wraps=self.planner.create_action
+            pbase.NodeResourceConsolidationPlanner,
+            "create_action",
+            wraps=self.planner.create_action,
         ) as m_create_action:
             action_plan = self.planner.schedule(
-                self.context, self.audit.id, solution)
+                self.context, self.audit.id, solution
+            )
 
         self.assertIsNotNone(action_plan.uuid)
         self.assertEqual(1, m_create_action.call_count)
@@ -66,105 +69,135 @@ class TestActionScheduling(base.DbTestCase):
 
     def test_schedule_two_actions(self):
         solution = dsol.DefaultSolution(
-            goal=mock.Mock(), strategy=self.strategy)
+            goal=mock.Mock(), strategy=self.strategy
+        )
 
         server1_uuid = "b199db0c-1408-4d52-b5a5-5ca14de0ff36"
         server2_uuid = "b199db0c-1408-4d52-b5a5-5ca14de0ff37"
-        solution.add_action(action_type="migrate",
-                            resource_id=server1_uuid,
-                            input_parameters={
-                                "source_node": "host1",
-                                "destination_node": "host2",
-                            })
+        solution.add_action(
+            action_type="migrate",
+            resource_id=server1_uuid,
+            input_parameters={
+                "source_node": "host1",
+                "destination_node": "host2",
+            },
+        )
 
-        solution.add_action(action_type="migrate",
-                            resource_id=server2_uuid,
-                            input_parameters={
-                                "source_node": "host1",
-                                "destination_node": "host3",
-                            })
+        solution.add_action(
+            action_type="migrate",
+            resource_id=server2_uuid,
+            input_parameters={
+                "source_node": "host1",
+                "destination_node": "host3",
+            },
+        )
 
         with mock.patch.object(
-            pbase.NodeResourceConsolidationPlanner, "create_action",
-            wraps=self.planner.create_action
+            pbase.NodeResourceConsolidationPlanner,
+            "create_action",
+            wraps=self.planner.create_action,
         ) as m_create_action:
             action_plan = self.planner.schedule(
-                self.context, self.audit.id, solution)
+                self.context, self.audit.id, solution
+            )
         self.assertIsNotNone(action_plan.uuid)
         self.assertEqual(2, m_create_action.call_count)
         # check order
         filters = {'action_plan_id': action_plan.id}
         actions = objects.Action.dbapi.get_action_list(self.context, filters)
         self.assertEqual(
-            server1_uuid, actions[0]['input_parameters'].get('resource_id'))
+            server1_uuid, actions[0]['input_parameters'].get('resource_id')
+        )
         self.assertEqual(
-            server2_uuid, actions[1]['input_parameters'].get('resource_id'))
+            server2_uuid, actions[1]['input_parameters'].get('resource_id')
+        )
         self.assertIn(actions[0]['uuid'], actions[1]['parents'])
 
     def test_schedule_actions_with_unknown_action(self):
         solution = dsol.DefaultSolution(
-            goal=mock.Mock(), strategy=self.strategy)
+            goal=mock.Mock(), strategy=self.strategy
+        )
 
-        parameters = {
-            "src_uuid_node": "host1",
-            "dst_uuid_node": "host2",
-        }
-        solution.add_action(action_type="migrate",
-                            resource_id="b199db0c-1408-4d52-b5a5-5ca14de0ff36",
-                            input_parameters=parameters)
+        parameters = {"src_uuid_node": "host1", "dst_uuid_node": "host2"}
+        solution.add_action(
+            action_type="migrate",
+            resource_id="b199db0c-1408-4d52-b5a5-5ca14de0ff36",
+            input_parameters=parameters,
+        )
 
-        solution.add_action(action_type="new_action_type",
-                            resource_id="",
-                            input_parameters={})
+        solution.add_action(
+            action_type="new_action_type", resource_id="", input_parameters={}
+        )
 
         with mock.patch.object(
-            pbase.NodeResourceConsolidationPlanner, "create_action",
-            wraps=self.planner.create_action
+            pbase.NodeResourceConsolidationPlanner,
+            "create_action",
+            wraps=self.planner.create_action,
         ) as m_create_action:
             self.assertRaises(
                 exception.UnsupportedActionType,
                 self.planner.schedule,
-                self.context, self.audit.id, solution)
+                self.context,
+                self.audit.id,
+                solution,
+            )
         self.assertEqual(2, m_create_action.call_count)
 
     def test_schedule_migrate_change_state_actions(self):
         solution = dsol.DefaultSolution(
-            goal=mock.Mock(), strategy=self.strategy)
+            goal=mock.Mock(), strategy=self.strategy
+        )
 
-        solution.add_action(action_type="change_nova_service_state",
-                            resource_id="b199db0c-1408-4d52-b5a5-5ca14de0ff36",
-                            input_parameters={"state": "disabled"})
+        solution.add_action(
+            action_type="change_nova_service_state",
+            resource_id="b199db0c-1408-4d52-b5a5-5ca14de0ff36",
+            input_parameters={"state": "disabled"},
+        )
 
-        solution.add_action(action_type="change_nova_service_state",
-                            resource_id="b199db0c-1408-4d52-b5a5-5ca14de0ff37",
-                            input_parameters={"state": "disabled"})
+        solution.add_action(
+            action_type="change_nova_service_state",
+            resource_id="b199db0c-1408-4d52-b5a5-5ca14de0ff37",
+            input_parameters={"state": "disabled"},
+        )
 
-        solution.add_action(action_type="migrate",
-                            resource_id="f6416850-da28-4047-a547-8c49f53e95fe",
-                            input_parameters={"source_node": "host1"})
+        solution.add_action(
+            action_type="migrate",
+            resource_id="f6416850-da28-4047-a547-8c49f53e95fe",
+            input_parameters={"source_node": "host1"},
+        )
 
-        solution.add_action(action_type="migrate",
-                            resource_id="bb404e74-2caf-447b-bd1e-9234db386ca5",
-                            input_parameters={"source_node": "host2"})
+        solution.add_action(
+            action_type="migrate",
+            resource_id="bb404e74-2caf-447b-bd1e-9234db386ca5",
+            input_parameters={"source_node": "host2"},
+        )
 
-        solution.add_action(action_type="migrate",
-                            resource_id="f6416850-da28-4047-a547-8c49f53e95ff",
-                            input_parameters={"source_node": "host1"})
+        solution.add_action(
+            action_type="migrate",
+            resource_id="f6416850-da28-4047-a547-8c49f53e95ff",
+            input_parameters={"source_node": "host1"},
+        )
 
-        solution.add_action(action_type="change_nova_service_state",
-                            resource_id="b199db0c-1408-4d52-b5a5-5ca14de0ff36",
-                            input_parameters={"state": "enabled"})
+        solution.add_action(
+            action_type="change_nova_service_state",
+            resource_id="b199db0c-1408-4d52-b5a5-5ca14de0ff36",
+            input_parameters={"state": "enabled"},
+        )
 
-        solution.add_action(action_type="change_nova_service_state",
-                            resource_id="b199db0c-1408-4d52-b5a5-5ca14de0ff37",
-                            input_parameters={"state": "enabled"})
+        solution.add_action(
+            action_type="change_nova_service_state",
+            resource_id="b199db0c-1408-4d52-b5a5-5ca14de0ff37",
+            input_parameters={"state": "enabled"},
+        )
 
         with mock.patch.object(
-                pbase.NodeResourceConsolidationPlanner, "create_action",
-                wraps=self.planner.create_action
+            pbase.NodeResourceConsolidationPlanner,
+            "create_action",
+            wraps=self.planner.create_action,
         ) as m_create_action:
             action_plan = self.planner.schedule(
-                self.context, self.audit.id, solution)
+                self.context, self.audit.id, solution
+            )
         self.assertIsNotNone(action_plan.uuid)
         self.assertEqual(7, m_create_action.call_count)
         # check order
@@ -202,27 +235,28 @@ class TestActionScheduling(base.DbTestCase):
 
 
 class TestDefaultPlanner(base.DbTestCase):
-
     def setUp(self):
         super().setUp()
         self.planner = pbase.NodeResourceConsolidationPlanner(mock.Mock())
 
         self.goal = obj_utils.create_test_goal(self.context)
         self.strategy = obj_utils.create_test_strategy(
-            self.context, goal_id=self.goal.id)
+            self.context, goal_id=self.goal.id
+        )
         obj_utils.create_test_audit_template(
-            self.context, goal_id=self.goal.id, strategy_id=self.strategy.id)
+            self.context, goal_id=self.goal.id, strategy_id=self.strategy.id
+        )
 
         p = mock.patch.object(db_api.BaseConnection, 'create_action_plan')
         self.mock_create_action_plan = p.start()
         self.mock_create_action_plan.side_effect = (
-            self._simulate_action_plan_create)
+            self._simulate_action_plan_create
+        )
         self.addCleanup(p.stop)
 
         q = mock.patch.object(db_api.BaseConnection, 'create_action')
         self.mock_create_action = q.start()
-        self.mock_create_action.side_effect = (
-            self._simulate_action_create)
+        self.mock_create_action.side_effect = self._simulate_action_create
         self.addCleanup(q.stop)
 
     def _simulate_action_plan_create(self, action_plan):
@@ -237,9 +271,10 @@ class TestDefaultPlanner(base.DbTestCase):
     def test_scheduler_warning_empty_action_plan(self, m_get_by_name):
         m_get_by_name.return_value = self.strategy
         audit = db_utils.create_test_audit(
-            goal_id=self.goal.id, strategy_id=self.strategy.id)
-        fake_solution = mock.MagicMock(efficacy_indicators=[],
-                                       actions=[])
+            goal_id=self.goal.id, strategy_id=self.strategy.id
+        )
+        fake_solution = mock.MagicMock(efficacy_indicators=[], actions=[])
         action_plan = self.planner.schedule(
-            self.context, audit.id, fake_solution)
+            self.context, audit.id, fake_solution
+        )
         self.assertIsNotNone(action_plan.uuid)

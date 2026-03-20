@@ -33,7 +33,6 @@ from watcher.tests.unit.decision_engine.model.notification import fake_managers
 
 
 class NotificationTestCase(base_test.TestCase):
-
     @staticmethod
     def load_message(filename):
         cwd = os.path.abspath(os.path.dirname(__file__))
@@ -46,7 +45,6 @@ class NotificationTestCase(base_test.TestCase):
 
 
 class TestReceiveCinderNotifications(NotificationTestCase):
-
     FAKE_METADATA = {'message_id': None, 'timestamp': None}
 
     def setUp(self):
@@ -58,13 +56,14 @@ class TestReceiveCinderNotifications(NotificationTestCase):
         self.addCleanup(p_from_dict.stop)
 
         p_get_service_list = mock.patch.object(
-            db_api.Connection, 'get_service_list')
+            db_api.Connection, 'get_service_list'
+        )
         p_update_service = mock.patch.object(
-            db_api.Connection, 'update_service')
+            db_api.Connection, 'update_service'
+        )
         m_get_service_list = p_get_service_list.start()
         m_update_service = p_update_service.start()
-        fake_service = utils.get_test_service(
-            created_at=timeutils.utcnow())
+        fake_service = utils.get_test_service(created_at=timeutils.utcnow())
 
         m_get_service_list.return_value = [fake_service]
         m_update_service.return_value = fake_service.copy()
@@ -82,8 +81,12 @@ class TestReceiveCinderNotifications(NotificationTestCase):
 
         de_service.notification_handler.dispatcher.dispatch(incoming)
         m_info.assert_called_once_with(
-            self.context, 'capacity.host1@backend1#pool1', 'capacity.pool',
-            expected_message, self.FAKE_METADATA)
+            self.context,
+            'capacity.host1@backend1#pool1',
+            'capacity.pool',
+            expected_message,
+            self.FAKE_METADATA,
+        )
 
     @mock.patch.object(cnotification.VolumeCreateEnd, 'info')
     def test_cinder_receive_volume_create_end(self, m_info):
@@ -95,8 +98,12 @@ class TestReceiveCinderNotifications(NotificationTestCase):
 
         de_service.notification_handler.dispatcher.dispatch(incoming)
         m_info.assert_called_once_with(
-            self.context, 'volume.host_0@backend_0#pool_0',
-            'volume.create.end', expected_message, self.FAKE_METADATA)
+            self.context,
+            'volume.host_0@backend_0#pool_0',
+            'volume.create.end',
+            expected_message,
+            self.FAKE_METADATA,
+        )
 
     @mock.patch.object(cnotification.VolumeUpdateEnd, 'info')
     def test_cinder_receive_volume_update_end(self, m_info):
@@ -108,8 +115,12 @@ class TestReceiveCinderNotifications(NotificationTestCase):
 
         de_service.notification_handler.dispatcher.dispatch(incoming)
         m_info.assert_called_once_with(
-            self.context, 'volume.host_0@backend_0#pool_0',
-            'volume.update.end', expected_message, self.FAKE_METADATA)
+            self.context,
+            'volume.host_0@backend_0#pool_0',
+            'volume.update.end',
+            expected_message,
+            self.FAKE_METADATA,
+        )
 
     @mock.patch.object(cnotification.VolumeAttachEnd, 'info')
     def test_cinder_receive_volume_attach_end(self, m_info):
@@ -121,8 +132,12 @@ class TestReceiveCinderNotifications(NotificationTestCase):
 
         de_service.notification_handler.dispatcher.dispatch(incoming)
         m_info.assert_called_once_with(
-            self.context, 'volume.host_0@backend_0#pool_0',
-            'volume.attach.end', expected_message, self.FAKE_METADATA)
+            self.context,
+            'volume.host_0@backend_0#pool_0',
+            'volume.attach.end',
+            expected_message,
+            self.FAKE_METADATA,
+        )
 
     @mock.patch.object(cnotification.VolumeDetachEnd, 'info')
     def test_cinder_receive_volume_detach_end(self, m_info):
@@ -134,8 +149,12 @@ class TestReceiveCinderNotifications(NotificationTestCase):
 
         de_service.notification_handler.dispatcher.dispatch(incoming)
         m_info.assert_called_once_with(
-            self.context, 'volume.host_0@backend_0#pool_0',
-            'volume.detach.end', expected_message, self.FAKE_METADATA)
+            self.context,
+            'volume.host_0@backend_0#pool_0',
+            'volume.detach.end',
+            expected_message,
+            self.FAKE_METADATA,
+        )
 
     @mock.patch.object(cnotification.VolumeResizeEnd, 'info')
     def test_cinder_receive_volume_resize_end(self, m_info):
@@ -147,8 +166,12 @@ class TestReceiveCinderNotifications(NotificationTestCase):
 
         de_service.notification_handler.dispatcher.dispatch(incoming)
         m_info.assert_called_once_with(
-            self.context, 'volume.host_0@backend_0#pool_0',
-            'volume.resize.end', expected_message, self.FAKE_METADATA)
+            self.context,
+            'volume.host_0@backend_0#pool_0',
+            'volume.resize.end',
+            expected_message,
+            self.FAKE_METADATA,
+        )
 
     @mock.patch.object(cnotification.VolumeDeleteEnd, 'info')
     def test_cinder_receive_volume_delete_end(self, m_info):
@@ -160,12 +183,15 @@ class TestReceiveCinderNotifications(NotificationTestCase):
 
         de_service.notification_handler.dispatcher.dispatch(incoming)
         m_info.assert_called_once_with(
-            self.context, 'volume.host_0@backend_0#pool_0',
-            'volume.delete.end', expected_message, self.FAKE_METADATA)
+            self.context,
+            'volume.host_0@backend_0#pool_0',
+            'volume.delete.end',
+            expected_message,
+            self.FAKE_METADATA,
+        )
 
 
 class TestCinderNotifications(NotificationTestCase):
-
     FAKE_METADATA = {'message_id': None, 'timestamp': None}
 
     def setUp(self):
@@ -218,13 +244,16 @@ class TestCinderNotifications(NotificationTestCase):
             total_capacity_gb='500',
             free_capacity_gb='380',
             provisioned_capacity_gb='120',
-            allocated_capacity_gb='120')
+            allocated_capacity_gb='120',
+        )
 
         m_get_storage_pool_by_name = mock.Mock(
-            side_effect=lambda name: return_mock)
+            side_effect=lambda name: return_mock
+        )
 
         m_cinder_helper.return_value = mock.Mock(
-            get_storage_pool_by_name=m_get_storage_pool_by_name)
+            get_storage_pool_by_name=m_get_storage_pool_by_name
+        )
 
         storage_model = self.fake_cdmc.generate_scenario_1()
         self.fake_cdmc.cluster_data_model = storage_model
@@ -270,28 +299,31 @@ class TestCinderNotifications(NotificationTestCase):
             total_capacity_gb='500',
             free_capacity_gb='460',
             provisioned_capacity_gb='40',
-            allocated_capacity_gb='40')
+            allocated_capacity_gb='40',
+        )
 
         m_get_storage_pool_by_name = mock.Mock(
-            side_effect=lambda name: return_pool_mock)
+            side_effect=lambda name: return_pool_mock
+        )
 
         # storage_node_by_name mock
         return_node_mock = mock.Mock()
         return_node_mock.configure_mock(
-            host='host_2@backend_2',
-            zone='nova',
-            state='up',
-            status='enabled')
+            host='host_2@backend_2', zone='nova', state='up', status='enabled'
+        )
 
         m_get_storage_node_by_name = mock.Mock(
-            side_effect=lambda name: return_node_mock)
+            side_effect=lambda name: return_node_mock
+        )
 
         m_get_volume_type_by_backendname = mock.Mock(
-            side_effect=lambda name: [mock.Mock('backend_2')])
+            side_effect=lambda name: [mock.Mock('backend_2')]
+        )
         m_cinder_helper.return_value = mock.Mock(
             get_storage_pool_by_name=m_get_storage_pool_by_name,
             get_storage_node_by_name=m_get_storage_node_by_name,
-            get_volume_type_by_backendname=m_get_volume_type_by_backendname)
+            get_volume_type_by_backendname=m_get_volume_type_by_backendname,
+        )
 
         storage_model = self.fake_cdmc.generate_scenario_1()
         self.fake_cdmc.cluster_data_model = storage_model
@@ -337,13 +369,16 @@ class TestCinderNotifications(NotificationTestCase):
             total_capacity_gb='500',
             free_capacity_gb='380',
             provisioned_capacity_gb='120',
-            allocated_capacity_gb='120')
+            allocated_capacity_gb='120',
+        )
 
         m_get_storage_pool_by_name = mock.Mock(
-            side_effect=lambda name: return_pool_mock)
+            side_effect=lambda name: return_pool_mock
+        )
 
         m_cinder_helper.return_value = mock.Mock(
-            get_storage_pool_by_name=m_get_storage_pool_by_name)
+            get_storage_pool_by_name=m_get_storage_pool_by_name
+        )
 
         storage_model = self.fake_cdmc.generate_scenario_1()
         self.fake_cdmc.cluster_data_model = storage_model
@@ -384,13 +419,16 @@ class TestCinderNotifications(NotificationTestCase):
             total_capacity_gb='500',
             free_capacity_gb='380',
             provisioned_capacity_gb='120',
-            allocated_capacity_gb='120')
+            allocated_capacity_gb='120',
+        )
 
         m_get_storage_pool_by_name = mock.Mock(
-            side_effect=lambda name: return_pool_mock)
+            side_effect=lambda name: return_pool_mock
+        )
 
         m_cinder_helper.return_value = mock.Mock(
-            get_storage_pool_by_name=m_get_storage_pool_by_name)
+            get_storage_pool_by_name=m_get_storage_pool_by_name
+        )
 
         storage_model = self.fake_cdmc.generate_scenario_1()
         self.fake_cdmc.cluster_data_model = storage_model
@@ -431,36 +469,40 @@ class TestCinderNotifications(NotificationTestCase):
             total_capacity_gb='500',
             free_capacity_gb='460',
             provisioned_capacity_gb='40',
-            allocated_capacity_gb='40')
+            allocated_capacity_gb='40',
+        )
 
         m_get_storage_pool_by_name = mock.Mock(
-            side_effect=lambda name: return_pool_mock)
+            side_effect=lambda name: return_pool_mock
+        )
 
         # create storage_node_by_name mock
         return_node_mock = mock.Mock()
         return_node_mock.configure_mock(
-            host='host_2@backend_2',
-            zone='nova',
-            state='up',
-            status='enabled')
+            host='host_2@backend_2', zone='nova', state='up', status='enabled'
+        )
 
         m_get_storage_node_by_name = mock.Mock(
-            side_effect=lambda name: return_node_mock)
+            side_effect=lambda name: return_node_mock
+        )
 
         m_get_volume_type_by_backendname = mock.Mock(
-            side_effect=lambda name: [mock.Mock('backend_2')])
+            side_effect=lambda name: [mock.Mock('backend_2')]
+        )
 
         m_cinder_helper.return_value = mock.Mock(
             get_storage_pool_by_name=m_get_storage_pool_by_name,
             get_storage_node_by_name=m_get_storage_node_by_name,
-            get_volume_type_by_backendname=m_get_volume_type_by_backendname)
+            get_volume_type_by_backendname=m_get_volume_type_by_backendname,
+        )
 
         storage_model = self.fake_cdmc.generate_scenario_1()
         self.fake_cdmc.cluster_data_model = storage_model
         handler = cnotification.VolumeCreateEnd(self.fake_cdmc)
 
         message = self.load_message(
-            'scenario_1_volume-create_pool_notfound.json')
+            'scenario_1_volume-create_pool_notfound.json'
+        )
         handler.info(
             ctxt=self.context,
             publisher_id=message['publisher_id'],
@@ -489,9 +531,11 @@ class TestCinderNotifications(NotificationTestCase):
         """test creating error volume unmapped"""
 
         m_get_storage_pool_by_name = mock.Mock(
-            side_effect=exception.PoolNotFound(name="TEST"))
+            side_effect=exception.PoolNotFound(name="TEST")
+        )
         m_cinder_helper.return_value = mock.Mock(
-            get_storage_pool_by_name=m_get_storage_pool_by_name)
+            get_storage_pool_by_name=m_get_storage_pool_by_name
+        )
 
         storage_model = self.fake_cdmc.generate_scenario_1()
         self.fake_cdmc.cluster_data_model = storage_model
@@ -533,13 +577,16 @@ class TestCinderNotifications(NotificationTestCase):
             total_capacity_gb='500',
             free_capacity_gb='420',
             provisioned_capacity_gb='80',
-            allocated_capacity_gb='80')
+            allocated_capacity_gb='80',
+        )
 
         m_get_storage_pool_by_name = mock.Mock(
-            side_effect=lambda name: return_pool_mock)
+            side_effect=lambda name: return_pool_mock
+        )
 
         m_cinder_helper.return_value = mock.Mock(
-            get_storage_pool_by_name=m_get_storage_pool_by_name)
+            get_storage_pool_by_name=m_get_storage_pool_by_name
+        )
 
         message = self.load_message('scenario_1_volume-update.json')
         handler.info(
@@ -565,13 +612,16 @@ class TestCinderNotifications(NotificationTestCase):
             total_capacity_gb='500',
             free_capacity_gb='460',
             provisioned_capacity_gb='40',
-            allocated_capacity_gb='40')
+            allocated_capacity_gb='40',
+        )
 
         m_get_storage_pool_by_name = mock.Mock(
-            side_effect=lambda name: return_pool_mock)
+            side_effect=lambda name: return_pool_mock
+        )
 
         m_cinder_helper.return_value = mock.Mock(
-            get_storage_pool_by_name=m_get_storage_pool_by_name)
+            get_storage_pool_by_name=m_get_storage_pool_by_name
+        )
 
         storage_model = self.fake_cdmc.generate_scenario_1()
         self.fake_cdmc.cluster_data_model = storage_model
@@ -594,7 +644,9 @@ class TestCinderNotifications(NotificationTestCase):
         # volume does not exists after consuming
         self.assertRaises(
             exception.VolumeNotFound,
-            storage_model.get_volume_by_uuid, volume_0_uuid)
+            storage_model.get_volume_by_uuid,
+            volume_0_uuid,
+        )
 
         # check that capacity was updated
         pool_0_name = 'host_0@backend_0#pool_0'
@@ -608,15 +660,15 @@ class TestCinderNotifications(NotificationTestCase):
 
 
 class TestCinderNotificationsEmptyModel(NotificationTestCase):
-
     FAKE_METADATA = {'message_id': None, 'timestamp': None}
 
     def setUp(self):
         super().setUp()
         self.fake_cdmc = faker_cluster_state.FakerEmptyModelCollector()
 
-    @mock.patch.object(cnotification.CapacityNotificationEndpoint,
-                       'update_pool')
+    @mock.patch.object(
+        cnotification.CapacityNotificationEndpoint, 'update_pool'
+    )
     def test_cinder_capacity_empty_model(self, m_update_pool):
         """test consuming capacity"""
 
@@ -635,8 +687,9 @@ class TestCinderNotificationsEmptyModel(NotificationTestCase):
 
     @mock.patch.object(cnotification.VolumeCreateEnd, 'update_volume')
     @mock.patch.object(cinder_helper, 'CinderHelper')
-    def test_cinder_volume_create_empty_model(self, m_update_volume,
-                                              m_cinder_helper):
+    def test_cinder_volume_create_empty_model(
+        self, m_update_volume, m_cinder_helper
+    ):
         """test creating volume in existing pool and node"""
 
         # create storage_pool_by_name mock
@@ -647,13 +700,16 @@ class TestCinderNotificationsEmptyModel(NotificationTestCase):
             total_capacity_gb='500',
             free_capacity_gb='380',
             provisioned_capacity_gb='120',
-            allocated_capacity_gb='120')
+            allocated_capacity_gb='120',
+        )
 
         m_get_storage_pool_by_name = mock.Mock(
-            side_effect=lambda name: return_pool_mock)
+            side_effect=lambda name: return_pool_mock
+        )
 
         m_cinder_helper.return_value = mock.Mock(
-            get_storage_pool_by_name=m_get_storage_pool_by_name)
+            get_storage_pool_by_name=m_get_storage_pool_by_name
+        )
 
         handler = cnotification.VolumeCreateEnd(self.fake_cdmc)
 
@@ -671,8 +727,9 @@ class TestCinderNotificationsEmptyModel(NotificationTestCase):
 
     @mock.patch.object(cnotification.VolumeUpdateEnd, 'update_volume')
     @mock.patch.object(cinder_helper, 'CinderHelper')
-    def test_cinder_volume_update_empty_model(self, m_update_volume,
-                                              m_cinder_helper):
+    def test_cinder_volume_update_empty_model(
+        self, m_update_volume, m_cinder_helper
+    ):
         """test updating volume in existing pool and node"""
 
         handler = cnotification.VolumeUpdateEnd(self.fake_cdmc)
@@ -685,13 +742,16 @@ class TestCinderNotificationsEmptyModel(NotificationTestCase):
             total_capacity_gb='500',
             free_capacity_gb='420',
             provisioned_capacity_gb='80',
-            allocated_capacity_gb='80')
+            allocated_capacity_gb='80',
+        )
 
         m_get_storage_pool_by_name = mock.Mock(
-            side_effect=lambda name: return_pool_mock)
+            side_effect=lambda name: return_pool_mock
+        )
 
         m_cinder_helper.return_value = mock.Mock(
-            get_storage_pool_by_name=m_get_storage_pool_by_name)
+            get_storage_pool_by_name=m_get_storage_pool_by_name
+        )
 
         message = self.load_message('scenario_1_volume-update.json')
         handler.info(
@@ -708,8 +768,9 @@ class TestCinderNotificationsEmptyModel(NotificationTestCase):
 
     @mock.patch.object(cinder_helper, 'CinderHelper')
     @mock.patch.object(cnotification.VolumeDeleteEnd, 'delete_volume')
-    def test_cinder_volume_delete_empty_model(self, m_delete_volume,
-                                              m_cinder_helper):
+    def test_cinder_volume_delete_empty_model(
+        self, m_delete_volume, m_cinder_helper
+    ):
         """test deleting volume when model is empty"""
 
         # create storage_pool_by name mock
@@ -720,13 +781,16 @@ class TestCinderNotificationsEmptyModel(NotificationTestCase):
             total_capacity_gb='500',
             free_capacity_gb='460',
             provisioned_capacity_gb='40',
-            allocated_capacity_gb='40')
+            allocated_capacity_gb='40',
+        )
 
         m_get_storage_pool_by_name = mock.Mock(
-            side_effect=lambda name: return_pool_mock)
+            side_effect=lambda name: return_pool_mock
+        )
 
         m_cinder_helper.return_value = mock.Mock(
-            get_storage_pool_by_name=m_get_storage_pool_by_name)
+            get_storage_pool_by_name=m_get_storage_pool_by_name
+        )
 
         handler = cnotification.VolumeDeleteEnd(self.fake_cdmc)
 

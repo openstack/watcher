@@ -48,8 +48,9 @@ def get_scoring_engine(scoring_engine_name):
     _reload_scoring_engines()
     scoring_engine = _scoring_engine_map.get(scoring_engine_name)
     if scoring_engine is None:
-        raise KeyError(_('Scoring Engine with name=%s not found')
-                       % scoring_engine_name)
+        raise KeyError(
+            _('Scoring Engine with name=%s not found') % scoring_engine_name
+        )
 
     return scoring_engine
 
@@ -93,13 +94,14 @@ def _reload_scoring_engines(refresh=False):
             LOG.debug("Found Scoring Engine plugin: %s", se_impl.get_name())
             _scoring_engine_map[se_impl.get_name()] = se_impl
 
-        engine_containers = \
+        engine_containers = (
             default.DefaultScoringContainerLoader().list_available()
+        )
 
         for container_id, container_cls in engine_containers.items():
-            LOG.debug("Found Scoring Engine container plugin: %s",
-                      container_id)
+            LOG.debug(
+                "Found Scoring Engine container plugin: %s", container_id
+            )
             for se in container_cls.get_scoring_engine_list():
-                LOG.debug("Found Scoring Engine plugin: %s",
-                          se.get_name())
+                LOG.debug("Found Scoring Engine plugin: %s", se.get_name())
                 _scoring_engine_map[se.get_name()] = se

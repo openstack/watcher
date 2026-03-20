@@ -25,10 +25,14 @@ MAX_VER = versions.max_version_string()
 
 
 class TestMicroversions(api_base.FunctionalTest):
-
     controller_list_response = [
-        'scoring_engines', 'audit_templates', 'audits', 'actions',
-        'action_plans', 'services']
+        'scoring_engines',
+        'audit_templates',
+        'audits',
+        'actions',
+        'action_plans',
+        'services',
+    ]
 
     def setUp(self):
         super().setUp()
@@ -36,75 +40,101 @@ class TestMicroversions(api_base.FunctionalTest):
     def test_wrong_major_version(self):
         response = self.get_json(
             '/',
-            headers={'OpenStack-API-Version': ' '.join([SERVICE_TYPE,
-                                                        '10'])},
-            expect_errors=True, return_json=False)
+            headers={'OpenStack-API-Version': ' '.join([SERVICE_TYPE, '10'])},
+            expect_errors=True,
+            return_json=False,
+        )
         self.assertEqual('application/json', response.content_type)
         self.assertEqual(HTTPStatus.NOT_ACCEPTABLE, response.status_int)
-        expected_error_msg = ('Invalid value for'
-                              ' OpenStack-API-Version header')
+        expected_error_msg = 'Invalid value for OpenStack-API-Version header'
         self.assertTrue(response.json['error_message'])
         self.assertIn(expected_error_msg, response.json['error_message'])
 
     def test_extend_initial_version_with_micro(self):
         response = self.get_json(
             '/',
-            headers={'OpenStack-API-Version': ' '.join([SERVICE_TYPE,
-                                                        '1'])},
-            return_json=False)
+            headers={'OpenStack-API-Version': ' '.join([SERVICE_TYPE, '1'])},
+            return_json=False,
+        )
         self.assertEqual(response.headers[H_MIN_VER], MIN_VER)
         self.assertEqual(response.headers[H_MAX_VER], MAX_VER)
-        self.assertEqual(response.headers[H_RESP_VER],
-                         ' '.join([SERVICE_TYPE, MIN_VER]))
-        self.assertTrue(all(x in response.json.keys() for x in
-                            self.controller_list_response))
+        self.assertEqual(
+            response.headers[H_RESP_VER], ' '.join([SERVICE_TYPE, MIN_VER])
+        )
+        self.assertTrue(
+            all(
+                x in response.json.keys()
+                for x in self.controller_list_response
+            )
+        )
 
     def test_without_microversion(self):
         response = self.get_json('/', return_json=False)
         self.assertEqual(response.headers[H_MIN_VER], MIN_VER)
         self.assertEqual(response.headers[H_MAX_VER], MAX_VER)
-        self.assertEqual(response.headers[H_RESP_VER],
-                         ' '.join([SERVICE_TYPE, MIN_VER]))
-        self.assertTrue(all(x in response.json.keys() for x in
-                            self.controller_list_response))
+        self.assertEqual(
+            response.headers[H_RESP_VER], ' '.join([SERVICE_TYPE, MIN_VER])
+        )
+        self.assertTrue(
+            all(
+                x in response.json.keys()
+                for x in self.controller_list_response
+            )
+        )
 
     def test_new_client_new_api(self):
         response = self.get_json(
             '/',
-            headers={'OpenStack-API-Version': ' '.join([SERVICE_TYPE,
-                                                        '1.1'])},
-            return_json=False)
+            headers={'OpenStack-API-Version': ' '.join([SERVICE_TYPE, '1.1'])},
+            return_json=False,
+        )
         self.assertEqual(response.headers[H_MIN_VER], MIN_VER)
         self.assertEqual(response.headers[H_MAX_VER], MAX_VER)
-        self.assertEqual(response.headers[H_RESP_VER],
-                         ' '.join([SERVICE_TYPE, '1.1']))
-        self.assertTrue(all(x in response.json.keys() for x in
-                            self.controller_list_response))
+        self.assertEqual(
+            response.headers[H_RESP_VER], ' '.join([SERVICE_TYPE, '1.1'])
+        )
+        self.assertTrue(
+            all(
+                x in response.json.keys()
+                for x in self.controller_list_response
+            )
+        )
 
     def test_latest_microversion(self):
         response = self.get_json(
             '/',
-            headers={'OpenStack-API-Version': ' '.join([SERVICE_TYPE,
-                                                        'latest'])},
-            return_json=False)
+            headers={
+                'OpenStack-API-Version': ' '.join([SERVICE_TYPE, 'latest'])
+            },
+            return_json=False,
+        )
         self.assertEqual(response.headers[H_MIN_VER], MIN_VER)
         self.assertEqual(response.headers[H_MAX_VER], MAX_VER)
-        self.assertEqual(response.headers[H_RESP_VER],
-                         ' '.join([SERVICE_TYPE, MAX_VER]))
-        self.assertTrue(all(x in response.json.keys() for x in
-                            self.controller_list_response))
+        self.assertEqual(
+            response.headers[H_RESP_VER], ' '.join([SERVICE_TYPE, MAX_VER])
+        )
+        self.assertTrue(
+            all(
+                x in response.json.keys()
+                for x in self.controller_list_response
+            )
+        )
 
     def test_unsupported_version(self):
         response = self.get_json(
             '/',
-            headers={'OpenStack-API-Version': ' '.join([SERVICE_TYPE,
-                                                        '1.999'])},
-            expect_errors=True)
+            headers={
+                'OpenStack-API-Version': ' '.join([SERVICE_TYPE, '1.999'])
+            },
+            expect_errors=True,
+        )
         self.assertEqual(HTTPStatus.NOT_ACCEPTABLE, response.status_int)
         self.assertEqual(response.headers[H_MIN_VER], MIN_VER)
         self.assertEqual(response.headers[H_MAX_VER], MAX_VER)
-        expected_error_msg = ('Version 1.999 was requested but the minor '
-                              'version is not supported by this service. '
-                              'The supported version range is')
+        expected_error_msg = (
+            'Version 1.999 was requested but the minor '
+            'version is not supported by this service. '
+            'The supported version range is'
+        )
         self.assertTrue(response.json['error_message'])
         self.assertIn(expected_error_msg, response.json['error_message'])

@@ -28,7 +28,6 @@ CONF = conf.CONF
 
 
 class DecisionEngineAPI(service.Service):
-
     def __init__(self):
         super().__init__(DecisionEngineAPIManager)
 
@@ -37,20 +36,24 @@ class DecisionEngineAPI(service.Service):
             raise exception.InvalidUuidOrName(name=audit_uuid)
 
         self.conductor_client.cast(
-            context, 'trigger_audit', audit_uuid=audit_uuid)
+            context, 'trigger_audit', audit_uuid=audit_uuid
+        )
 
     def get_strategy_info(self, context, strategy_name):
         return self.conductor_client.call(
-            context, 'get_strategy_info', strategy_name=strategy_name)
+            context, 'get_strategy_info', strategy_name=strategy_name
+        )
 
     def get_data_model_info(self, context, data_model_type, audit):
         return self.conductor_client.call(
-            context, 'get_data_model_info',
-            data_model_type=data_model_type, audit=audit)
+            context,
+            'get_data_model_info',
+            data_model_type=data_model_type,
+            audit=audit,
+        )
 
 
 class DecisionEngineAPIManager(service_manager.ServiceManager):
-
     @property
     def service_name(self):
         return None

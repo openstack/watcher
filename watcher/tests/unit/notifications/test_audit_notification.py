@@ -27,7 +27,6 @@ from watcher.tests.unit.objects import utils
 
 @freezegun.freeze_time('2016-10-18T09:52:05.219414')
 class TestAuditNotification(base.DbTestCase):
-
     def setUp(self):
         super().setUp()
         p_get_notifier = mock.patch.object(rpc, 'get_notifier')
@@ -45,21 +44,33 @@ class TestAuditNotification(base.DbTestCase):
 
     def test_send_invalid_audit(self):
         audit = utils.get_test_audit(
-            mock.Mock(), interval=None, state='DOESNOTMATTER', goal_id=1)
+            mock.Mock(), interval=None, state='DOESNOTMATTER', goal_id=1
+        )
 
         self.assertRaises(
             exception.InvalidAudit,
             notifications.audit.send_update,
-            mock.MagicMock(), audit, host='node0')
+            mock.MagicMock(),
+            audit,
+            host='node0',
+        )
 
     def test_send_audit_update_with_strategy(self):
         audit = utils.create_test_audit(
-            mock.Mock(), interval=None, state=objects.audit.State.ONGOING,
-            goal_id=self.goal.id, strategy_id=self.strategy.id,
-            goal=self.goal, strategy=self.strategy)
+            mock.Mock(),
+            interval=None,
+            state=objects.audit.State.ONGOING,
+            goal_id=self.goal.id,
+            strategy_id=self.strategy.id,
+            goal=self.goal,
+            strategy=self.strategy,
+        )
         notifications.audit.send_update(
-            mock.MagicMock(), audit, host='node0',
-            old_state=objects.audit.State.PENDING)
+            mock.MagicMock(),
+            audit,
+            host='node0',
+            old_state=objects.audit.State.PENDING,
+        )
 
         # The 1st notification is because we created the object.
         self.assertEqual(2, self.m_notifier.info.call_count)
@@ -86,9 +97,9 @@ class TestAuditNotification(base.DbTestCase):
                             "parameters_spec": {},
                             "created_at": "2016-10-18T09:52:05Z",
                             "display_name": "test strategy",
-                            "deleted_at": None
+                            "deleted_at": None,
                         },
-                        "watcher_object.name": "StrategyPayload"
+                        "watcher_object.name": "StrategyPayload",
                     },
                     "parameters": {},
                     "uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d",
@@ -104,9 +115,9 @@ class TestAuditNotification(base.DbTestCase):
                             "efficacy_specification": [],
                             "created_at": "2016-10-18T09:52:05Z",
                             "display_name": "test goal",
-                            "deleted_at": None
+                            "deleted_at": None,
                         },
-                        "watcher_object.name": "GoalPayload"
+                        "watcher_object.name": "GoalPayload",
                     },
                     "deleted_at": None,
                     "scope": [],
@@ -119,26 +130,33 @@ class TestAuditNotification(base.DbTestCase):
                         "watcher_object.data": {
                             "old_state": "PENDING",
                             "state": "ONGOING",
-                            "status_message": None
+                            "status_message": None,
                         },
-                        "watcher_object.name": "AuditStateUpdatePayload"
+                        "watcher_object.name": "AuditStateUpdatePayload",
                     },
                     "audit_type": "ONESHOT",
-                    "status_message": None
+                    "status_message": None,
                 },
-                "watcher_object.name": "AuditUpdatePayload"
+                "watcher_object.name": "AuditUpdatePayload",
             },
-            payload
+            payload,
         )
 
     def test_send_audit_update_without_strategy(self):
         audit = utils.get_test_audit(
-            mock.Mock(), interval=None, state=objects.audit.State.ONGOING,
-            goal_id=self.goal.id, goal=self.goal,
-            status_message='Fake message')
+            mock.Mock(),
+            interval=None,
+            state=objects.audit.State.ONGOING,
+            goal_id=self.goal.id,
+            goal=self.goal,
+            status_message='Fake message',
+        )
         notifications.audit.send_update(
-            mock.MagicMock(), audit, host='node0',
-            old_state=objects.audit.State.PENDING)
+            mock.MagicMock(),
+            audit,
+            host='node0',
+            old_state=objects.audit.State.PENDING,
+        )
 
         self.assertEqual(1, self.m_notifier.info.call_count)
         notification = self.m_notifier.info.call_args[1]
@@ -167,9 +185,9 @@ class TestAuditNotification(base.DbTestCase):
                             "efficacy_specification": [],
                             "created_at": "2016-10-18T09:52:05Z",
                             "display_name": "test goal",
-                            "deleted_at": None
+                            "deleted_at": None,
                         },
-                        "watcher_object.name": "GoalPayload"
+                        "watcher_object.name": "GoalPayload",
                     },
                     "strategy_uuid": None,
                     "strategy": None,
@@ -184,25 +202,29 @@ class TestAuditNotification(base.DbTestCase):
                         "watcher_object.data": {
                             "old_state": "PENDING",
                             "state": "ONGOING",
-                            "status_message": "Fake message"
+                            "status_message": "Fake message",
                         },
-                        "watcher_object.name": "AuditStateUpdatePayload"
+                        "watcher_object.name": "AuditStateUpdatePayload",
                     },
                     "audit_type": "ONESHOT",
-                    "status_message": "Fake message"
+                    "status_message": "Fake message",
                 },
-                "watcher_object.name": "AuditUpdatePayload"
+                "watcher_object.name": "AuditUpdatePayload",
             },
-            payload
+            payload,
         )
 
     def test_send_audit_create(self):
         audit = utils.get_test_audit(
-            mock.Mock(), interval=None, state=objects.audit.State.PENDING,
-            goal_id=self.goal.id, strategy_id=self.strategy.id,
-            goal=self.goal.as_dict(), strategy=self.strategy.as_dict())
-        notifications.audit.send_create(
-            mock.MagicMock(), audit, host='node0')
+            mock.Mock(),
+            interval=None,
+            state=objects.audit.State.PENDING,
+            goal_id=self.goal.id,
+            strategy_id=self.strategy.id,
+            goal=self.goal.as_dict(),
+            strategy=self.strategy.as_dict(),
+        )
+        notifications.audit.send_create(mock.MagicMock(), audit, host='node0')
 
         self.assertEqual(1, self.m_notifier.info.call_count)
         notification = self.m_notifier.info.call_args[1]
@@ -228,9 +250,9 @@ class TestAuditNotification(base.DbTestCase):
                             "parameters_spec": {},
                             "created_at": "2016-10-18T09:52:05Z",
                             "display_name": "test strategy",
-                            "deleted_at": None
+                            "deleted_at": None,
                         },
-                        "watcher_object.name": "StrategyPayload"
+                        "watcher_object.name": "StrategyPayload",
                     },
                     "parameters": {},
                     "uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d",
@@ -246,9 +268,9 @@ class TestAuditNotification(base.DbTestCase):
                             "efficacy_specification": [],
                             "created_at": "2016-10-18T09:52:05Z",
                             "display_name": "test goal",
-                            "deleted_at": None
+                            "deleted_at": None,
                         },
-                        "watcher_object.name": "GoalPayload"
+                        "watcher_object.name": "GoalPayload",
                     },
                     "deleted_at": None,
                     "scope": [],
@@ -256,19 +278,22 @@ class TestAuditNotification(base.DbTestCase):
                     "updated_at": None,
                     "created_at": None,
                     "audit_type": "ONESHOT",
-                    "status_message": None
+                    "status_message": None,
                 },
-                "watcher_object.name": "AuditCreatePayload"
+                "watcher_object.name": "AuditCreatePayload",
             },
-            payload
+            payload,
         )
 
     def test_send_audit_delete(self):
         audit = utils.create_test_audit(
-            mock.Mock(), interval=None, state=objects.audit.State.DELETED,
-            goal_id=self.goal.id, strategy_id=self.strategy.id)
-        notifications.audit.send_delete(
-            mock.MagicMock(), audit, host='node0')
+            mock.Mock(),
+            interval=None,
+            state=objects.audit.State.DELETED,
+            goal_id=self.goal.id,
+            strategy_id=self.strategy.id,
+        )
+        notifications.audit.send_delete(mock.MagicMock(), audit, host='node0')
 
         # The 1st notification is because we created the object.
         self.assertEqual(2, self.m_notifier.info.call_count)
@@ -295,9 +320,9 @@ class TestAuditNotification(base.DbTestCase):
                             "parameters_spec": {},
                             "created_at": "2016-10-18T09:52:05Z",
                             "display_name": "test strategy",
-                            "deleted_at": None
+                            "deleted_at": None,
                         },
-                        "watcher_object.name": "StrategyPayload"
+                        "watcher_object.name": "StrategyPayload",
                     },
                     "parameters": {},
                     "uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d",
@@ -313,9 +338,9 @@ class TestAuditNotification(base.DbTestCase):
                             "efficacy_specification": [],
                             "created_at": "2016-10-18T09:52:05Z",
                             "display_name": "test goal",
-                            "deleted_at": None
+                            "deleted_at": None,
                         },
-                        "watcher_object.name": "GoalPayload"
+                        "watcher_object.name": "GoalPayload",
                     },
                     "deleted_at": None,
                     "scope": [],
@@ -323,21 +348,30 @@ class TestAuditNotification(base.DbTestCase):
                     "updated_at": None,
                     "created_at": "2016-10-18T09:52:05Z",
                     "audit_type": "ONESHOT",
-                    "status_message": None
+                    "status_message": None,
                 },
-                "watcher_object.name": "AuditDeletePayload"
+                "watcher_object.name": "AuditDeletePayload",
             },
-            payload
+            payload,
         )
 
     def test_send_audit_action(self):
         audit = utils.create_test_audit(
-            mock.Mock(), interval=None, state=objects.audit.State.ONGOING,
-            goal_id=self.goal.id, strategy_id=self.strategy.id,
-            goal=self.goal, strategy=self.strategy)
+            mock.Mock(),
+            interval=None,
+            state=objects.audit.State.ONGOING,
+            goal_id=self.goal.id,
+            strategy_id=self.strategy.id,
+            goal=self.goal,
+            strategy=self.strategy,
+        )
         notifications.audit.send_action_notification(
-            mock.MagicMock(), audit, host='node0',
-            action='strategy', phase='start')
+            mock.MagicMock(),
+            audit,
+            host='node0',
+            action='strategy',
+            phase='start',
+        )
 
         # The 1st notification is because we created the object.
         self.assertEqual(2, self.m_notifier.info.call_count)
@@ -363,11 +397,11 @@ class TestAuditNotification(base.DbTestCase):
                                 "efficacy_specification": [],
                                 "name": "TEST",
                                 "updated_at": None,
-                                "uuid": "f7ad87ae-4298-91cf-93a0-f35a852e3652"
+                                "uuid": "f7ad87ae-4298-91cf-93a0-f35a852e3652",
                             },
                             "watcher_object.name": "GoalPayload",
                             "watcher_object.namespace": "watcher",
-                            "watcher_object.version": "1.0"
+                            "watcher_object.version": "1.0",
                         },
                         "interval": None,
                         "next_run_time": None,
@@ -377,7 +411,8 @@ class TestAuditNotification(base.DbTestCase):
                         "scope": [],
                         "state": "ONGOING",
                         "strategy_uuid": (
-                            "cb3d0b58-4415-4d90-b75b-1e96878730e3"),
+                            "cb3d0b58-4415-4d90-b75b-1e96878730e3"
+                        ),
                         "strategy": {
                             "watcher_object.data": {
                                 "created_at": "2016-10-18T09:52:05Z",
@@ -386,37 +421,47 @@ class TestAuditNotification(base.DbTestCase):
                                 "name": "TEST",
                                 "parameters_spec": {},
                                 "updated_at": None,
-                                "uuid": "cb3d0b58-4415-4d90-b75b-1e96878730e3"
+                                "uuid": "cb3d0b58-4415-4d90-b75b-1e96878730e3",
                             },
                             "watcher_object.name": "StrategyPayload",
                             "watcher_object.namespace": "watcher",
-                            "watcher_object.version": "1.0"
+                            "watcher_object.version": "1.0",
                         },
                         "updated_at": None,
                         "uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d",
-                        "status_message": None
+                        "status_message": None,
                     },
                     "watcher_object.name": "AuditActionPayload",
                     "watcher_object.namespace": "watcher",
-                    "watcher_object.version": "1.2"
-                }
+                    "watcher_object.version": "1.2",
+                },
             },
-            notification
+            notification,
         )
 
     def test_send_audit_action_with_error(self):
         audit = utils.create_test_audit(
-            mock.Mock(), interval=None, state=objects.audit.State.ONGOING,
-            goal_id=self.goal.id, strategy_id=self.strategy.id,
-            goal=self.goal, strategy=self.strategy)
+            mock.Mock(),
+            interval=None,
+            state=objects.audit.State.ONGOING,
+            goal_id=self.goal.id,
+            strategy_id=self.strategy.id,
+            goal=self.goal,
+            strategy=self.strategy,
+        )
 
         try:
             # This is to load the exception in sys.exc_info()
             raise exception.WatcherException("TEST")
         except exception.WatcherException:
             notifications.audit.send_action_notification(
-                mock.MagicMock(), audit, host='node0',
-                action='strategy', priority='error', phase='error')
+                mock.MagicMock(),
+                audit,
+                host='node0',
+                action='strategy',
+                priority='error',
+                phase='error',
+            )
 
         self.assertEqual(1, self.m_notifier.error.call_count)
         notification = self.m_notifier.error.call_args[1]
@@ -434,14 +479,15 @@ class TestAuditNotification(base.DbTestCase):
                                 "exception": "WatcherException",
                                 "exception_message": "TEST",
                                 "function_name": (
-                                    "test_send_audit_action_with_error"),
+                                    "test_send_audit_action_with_error"
+                                ),
                                 "module_name": "watcher.tests.unit."
-                                               "notifications."
-                                               "test_audit_notification"
+                                "notifications."
+                                "test_audit_notification",
                             },
                             "watcher_object.name": "ExceptionPayload",
                             "watcher_object.namespace": "watcher",
-                            "watcher_object.version": "1.0"
+                            "watcher_object.version": "1.0",
                         },
                         "goal_uuid": "f7ad87ae-4298-91cf-93a0-f35a852e3652",
                         "goal": {
@@ -452,11 +498,11 @@ class TestAuditNotification(base.DbTestCase):
                                 "efficacy_specification": [],
                                 "name": "TEST",
                                 "updated_at": None,
-                                "uuid": "f7ad87ae-4298-91cf-93a0-f35a852e3652"
+                                "uuid": "f7ad87ae-4298-91cf-93a0-f35a852e3652",
                             },
                             "watcher_object.name": "GoalPayload",
                             "watcher_object.namespace": "watcher",
-                            "watcher_object.version": "1.0"
+                            "watcher_object.version": "1.0",
                         },
                         "interval": None,
                         "next_run_time": None,
@@ -466,7 +512,8 @@ class TestAuditNotification(base.DbTestCase):
                         "scope": [],
                         "state": "ONGOING",
                         "strategy_uuid": (
-                            "cb3d0b58-4415-4d90-b75b-1e96878730e3"),
+                            "cb3d0b58-4415-4d90-b75b-1e96878730e3"
+                        ),
                         "strategy": {
                             "watcher_object.data": {
                                 "created_at": "2016-10-18T09:52:05Z",
@@ -475,20 +522,20 @@ class TestAuditNotification(base.DbTestCase):
                                 "name": "TEST",
                                 "parameters_spec": {},
                                 "updated_at": None,
-                                "uuid": "cb3d0b58-4415-4d90-b75b-1e96878730e3"
+                                "uuid": "cb3d0b58-4415-4d90-b75b-1e96878730e3",
                             },
                             "watcher_object.name": "StrategyPayload",
                             "watcher_object.namespace": "watcher",
-                            "watcher_object.version": "1.0"
+                            "watcher_object.version": "1.0",
                         },
                         "updated_at": None,
                         "uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d",
-                        "status_message": None
+                        "status_message": None,
                     },
                     "watcher_object.name": "AuditActionPayload",
                     "watcher_object.namespace": "watcher",
-                    "watcher_object.version": "1.2"
-                }
+                    "watcher_object.version": "1.2",
+                },
             },
-            notification
+            notification,
         )

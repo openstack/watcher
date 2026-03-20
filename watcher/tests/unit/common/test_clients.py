@@ -32,7 +32,6 @@ CONF = conf.CONF
 
 
 class TestBaseClients(base.TestCase):
-
     def _register_watcher_clients_auth_opts(self):
         _AUTH_CONF_GROUP = 'watcher_clients_auth'
         ka_loading.register_auth_conf_options(CONF, _AUTH_CONF_GROUP)
@@ -62,15 +61,15 @@ class TestBaseClients(base.TestCase):
             conf_obj.register_opts = original_method
 
         original_register_opts = CONF.register_opts
-        self.addCleanup(reset_register_opts_mock,
-                        CONF,
-                        original_register_opts)
+        self.addCleanup(reset_register_opts_mock, CONF, original_register_opts)
 
-        expected = {'username': 'foousername',
-                    'password': 'foopassword',
-                    'auth_url': 'http://server.ip:5000',
-                    'user_domain_id': 'foouserdomainid',
-                    'project_domain_id': 'fooprojdomainid'}
+        expected = {
+            'username': 'foousername',
+            'password': 'foopassword',
+            'auth_url': 'http://server.ip:5000',
+            'user_domain_id': 'foouserdomainid',
+            'project_domain_id': 'fooprojdomainid',
+        }
 
         # Because some of the conf options for auth plugins are not registered
         # until right before they are loaded, and because the method that does
@@ -90,25 +89,27 @@ class TestBaseClients(base.TestCase):
 
 
 class TestClients(TestBaseClients):
-
     def test_get_keystone_session(self):
         self._register_watcher_clients_auth_opts()
 
         osc = clients.OpenStackClients()
 
-        expected = {'username': 'foousername',
-                    'password': 'foopassword',
-                    'auth_url': 'http://server.ip:5000',
-                    'user_domain_id': 'foouserdomainid',
-                    'project_domain_id': 'fooprojdomainid'}
+        expected = {
+            'username': 'foousername',
+            'password': 'foopassword',
+            'auth_url': 'http://server.ip:5000',
+            'user_domain_id': 'foouserdomainid',
+            'project_domain_id': 'fooprojdomainid',
+        }
 
         sess = osc.session
         self.assertEqual(expected['auth_url'], sess.auth.auth_url)
         self.assertEqual(expected['username'], sess.auth._username)
         self.assertEqual(expected['password'], sess.auth._password)
         self.assertEqual(expected['user_domain_id'], sess.auth._user_domain_id)
-        self.assertEqual(expected['project_domain_id'],
-                         sess.auth._project_domain_id)
+        self.assertEqual(
+            expected['project_domain_id'], sess.auth._project_domain_id
+        )
 
     @mock.patch.object(gnclient, 'Client')
     @mock.patch.object(clients.OpenStackClients, 'session')
@@ -120,8 +121,10 @@ class TestClients(TestBaseClients):
             CONF.gnocchi_client.api_version,
             adapter_options={
                 "interface": CONF.gnocchi_client.endpoint_type,
-                "region_name": CONF.gnocchi_client.region_name},
-            session=mock_session)
+                "region_name": CONF.gnocchi_client.region_name,
+            },
+            session=mock_session,
+        )
 
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_gnocchi_diff_vers(self, mock_session):
@@ -159,7 +162,8 @@ class TestClients(TestBaseClients):
             CONF.cinder_client.api_version,
             endpoint_type=CONF.cinder_client.endpoint_type,
             region_name=CONF.cinder_client.region_name,
-            session=mock_session)
+            session=mock_session,
+        )
 
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_cinder_diff_vers(self, mock_session):
@@ -171,8 +175,9 @@ class TestClients(TestBaseClients):
 
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_cinder_diff_endpoint(self, mock_session):
-        CONF.set_override('endpoint_type',
-                          'internalURL', group='cinder_client')
+        CONF.set_override(
+            'endpoint_type', 'internalURL', group='cinder_client'
+        )
         osc = clients.OpenStackClients()
         osc._cinder = None
         osc.cinder()
@@ -214,18 +219,17 @@ class TestClients(TestBaseClients):
         osc._ironic = None
         osc.ironic()
         mock_session.get_endpoint.assert_called_with(
-            interface='publicURL',
-            region_name=None,
-            service_type='baremetal')
+            interface='publicURL', region_name=None, service_type='baremetal'
+        )
 
-        CONF.set_override('endpoint_type', 'internalURL',
-                          group='ironic_client')
+        CONF.set_override(
+            'endpoint_type', 'internalURL', group='ironic_client'
+        )
         osc._ironic = None
         osc.ironic()
         mock_session.get_endpoint.assert_called_with(
-            interface='internalURL',
-            region_name=None,
-            service_type='baremetal')
+            interface='internalURL', region_name=None, service_type='baremetal'
+        )
 
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_ironic_cached(self, mock_session):
@@ -249,7 +253,8 @@ class TestClients(TestBaseClients):
             default_microversion=CONF.placement_client.api_version,
             interface=CONF.placement_client.interface,
             region_name=CONF.placement_client.region_name,
-            additional_headers=headers)
+            additional_headers=headers,
+        )
 
 
 class TestGetSDKConnection(TestBaseClients):
@@ -260,13 +265,13 @@ class TestGetSDKConnection(TestBaseClients):
         return super().setUp()
 
     @mock.patch('openstack.connection.Connection', autospec=True)
-    def test_get_sdk_connection_with_context(
-            self, mock_connect):
+    def test_get_sdk_connection_with_context(self, mock_connect):
         """Test SDK connection creation with context."""
 
         context_obj = context.RequestContext(
-            auth_token='test_token', project_id='test_project_id',
-            project_domain='test_project_domain_id'
+            auth_token='test_token',
+            project_id='test_project_id',
+            project_domain='test_project_domain_id',
         )
         mock_connection = mock.Mock()
         mock_connect.return_value = mock_connection
@@ -282,15 +287,17 @@ class TestGetSDKConnection(TestBaseClients):
             project_domain_id='test_project_domain_id',
             auth_url='http://server.ip:5000',
             interface=None,
-            region_name=None
+            region_name=None,
         )
         self.assertEqual(mock_connection, result)
 
-    @mock.patch.object(ka_loading, 'load_auth_from_conf_options',
-                       autospec=True)
+    @mock.patch.object(
+        ka_loading, 'load_auth_from_conf_options', autospec=True
+    )
     @mock.patch('openstack.connection.Connection', autospec=True)
     def test_get_sdk_connection_with_session(
-            self, mock_connect, mock_load_auth):
+        self, mock_connect, mock_load_auth
+    ):
         """Test SDK connection creation with provided session."""
         mock_session = mock.Mock()
         mock_connection = mock.Mock()
@@ -301,21 +308,21 @@ class TestGetSDKConnection(TestBaseClients):
         )
 
         mock_connect.assert_called_once_with(
-            session=mock_session,
-            oslo_conf=CONF
+            session=mock_session, oslo_conf=CONF
         )
-        mock_load_auth.assert_called_once_with(
-            CONF, 'watcher_clients_auth'
-        )
+        mock_load_auth.assert_called_once_with(CONF, 'watcher_clients_auth')
         self.assertEqual(mock_connection, result)
 
-    @mock.patch.object(ka_loading, 'load_session_from_conf_options',
-                       autospec=True)
-    @mock.patch.object(ka_loading, 'load_auth_from_conf_options',
-                       autospec=True)
+    @mock.patch.object(
+        ka_loading, 'load_session_from_conf_options', autospec=True
+    )
+    @mock.patch.object(
+        ka_loading, 'load_auth_from_conf_options', autospec=True
+    )
     @mock.patch('openstack.connection.Connection', autospec=True)
     def test_get_sdk_connection_no_session_no_context(
-            self, mock_connect, mock_load_auth, mock_load_session):
+        self, mock_connect, mock_load_auth, mock_load_session
+    ):
         """Test SDK connection creation without session or context."""
         mock_auth = mock.Mock()
         mock_session = mock.Mock()
@@ -326,15 +333,11 @@ class TestGetSDKConnection(TestBaseClients):
 
         result = clients.get_sdk_connection('watcher_clients_auth')
 
-        mock_load_auth.assert_called_once_with(
-            CONF, 'watcher_clients_auth'
-        )
+        mock_load_auth.assert_called_once_with(CONF, 'watcher_clients_auth')
         mock_load_session.assert_called_once_with(
-            CONF,
-            'watcher_clients_auth',
-            auth=mock_auth)
+            CONF, 'watcher_clients_auth', auth=mock_auth
+        )
         mock_connect.assert_called_once_with(
-            session=mock_session,
-            oslo_conf=CONF
+            session=mock_session, oslo_conf=CONF
         )
         self.assertEqual(mock_connection, result)

@@ -43,13 +43,13 @@ class DefaultStrategyContext(base.StrategyContext):
         strategy_name = None
         if audit.strategy_id:
             strategy = objects.Strategy.get_by_id(
-                request_context, audit.strategy_id)
+                request_context, audit.strategy_id
+            )
             strategy_name = strategy.name
 
         strategy_selector = default.DefaultStrategySelector(
-            goal_name=goal.name,
-            strategy_name=strategy_name,
-            osc=osc)
+            goal_name=goal.name, strategy_name=strategy_name, osc=osc
+        )
         return strategy_selector.select()
 
     def do_execute_strategy(self, audit, request_context):
@@ -60,10 +60,11 @@ class DefaultStrategyContext(base.StrategyContext):
         if not audit.parameters and schema:
             # Default value feedback if no predefined strategy
             utils.StrictDefaultValidatingDraft4Validator(schema).validate(
-                audit.parameters)
+                audit.parameters
+            )
 
-        selected_strategy.input_parameters.update({
-            name: value for name, value in audit.parameters.items()
-        })
+        selected_strategy.input_parameters.update(
+            {name: value for name, value in audit.parameters.items()}
+        )
 
         return selected_strategy.execute(audit=audit)

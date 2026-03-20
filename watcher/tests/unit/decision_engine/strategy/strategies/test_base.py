@@ -24,7 +24,6 @@ from watcher.tests.unit.decision_engine.model import faker_cluster_state
 
 
 class TestBaseStrategy(base.TestCase):
-
     def setUp(self):
         super().setUp()
 
@@ -32,14 +31,18 @@ class TestBaseStrategy(base.TestCase):
         self.fake_c_cluster = faker_cluster_state.FakerModelCollector()
 
         p_c_model = mock.patch.object(
-            strategies.BaseStrategy, "compute_model",
-            new_callable=mock.PropertyMock)
+            strategies.BaseStrategy,
+            "compute_model",
+            new_callable=mock.PropertyMock,
+        )
         self.m_c_model = p_c_model.start()
         self.addCleanup(p_c_model.stop)
 
         p_audit_scope = mock.patch.object(
-            strategies.BaseStrategy, "audit_scope",
-            new_callable=mock.PropertyMock)
+            strategies.BaseStrategy,
+            "audit_scope",
+            new_callable=mock.PropertyMock,
+        )
         self.m_audit_scope = p_audit_scope.start()
         self.addCleanup(p_audit_scope.stop)
 
@@ -50,11 +53,11 @@ class TestBaseStrategy(base.TestCase):
 
 
 class TestBaseStrategyDatasource(TestBaseStrategy):
-
     def setUp(self):
         super().setUp()
         self.strategy = strategies.DummyStrategy(
-            config=mock.Mock(datasources=None))
+            config=mock.Mock(datasources=None)
+        )
 
     @mock.patch.object(strategies.BaseStrategy, 'osc', None)
     @mock.patch.object(manager, 'DataSourceManager')
@@ -65,15 +68,17 @@ class TestBaseStrategyDatasource(TestBaseStrategy):
         m_conf.watcher_datasources.datasources = dss
 
         # Make sure we access the property and not the underlying function.
-        m_manager.return_value.get_backend.return_value = \
+        m_manager.return_value.get_backend.return_value = (
             mock.NonCallableMock()
+        )
 
         # Access the property so that the configuration is read in order to
         # get the correct datasource
         self.strategy.datasource_backend
 
         m_manager.assert_called_once_with(
-            config=m_conf.watcher_datasources, osc=None)
+            config=m_conf.watcher_datasources, osc=None
+        )
 
     @mock.patch.object(strategies.BaseStrategy, 'osc', None)
     @mock.patch.object(manager, 'DataSourceManager')
@@ -84,15 +89,17 @@ class TestBaseStrategyDatasource(TestBaseStrategy):
         m_conf.watcher_datasources.datasources = dss
 
         # Make sure we access the property and not the underlying function.
-        m_manager.return_value.get_backend.return_value = \
+        m_manager.return_value.get_backend.return_value = (
             mock.NonCallableMock()
+        )
 
         # Access the property so that the configuration is read in order to
         # get the correct datasource
         self.strategy.datasource_backend
 
         m_manager.assert_called_once_with(
-            config=m_conf.watcher_datasources, osc=None)
+            config=m_conf.watcher_datasources, osc=None
+        )
 
     @mock.patch.object(strategies.BaseStrategy, 'osc', None)
     @mock.patch.object(manager, 'DataSourceManager')
@@ -102,8 +109,7 @@ class TestBaseStrategyDatasource(TestBaseStrategy):
 
         datasources = mock.Mock(datasources=['gnocchi'])
 
-        self.strategy = strategies.DummyStrategy(
-            config=datasources)
+        self.strategy = strategies.DummyStrategy(config=datasources)
 
         m_conf.watcher_datasources.datasources = ['gnocchi']
 
@@ -111,19 +117,18 @@ class TestBaseStrategyDatasource(TestBaseStrategy):
         # get the correct datasource
         self.strategy.datasource_backend
 
-        m_manager.assert_called_once_with(
-            config=datasources, osc=None)
+        m_manager.assert_called_once_with(config=datasources, osc=None)
 
 
 class TestBaseStrategyException(TestBaseStrategy):
-
     def setUp(self):
         super().setUp()
 
     def test_exception_model(self):
         self.m_c_model.return_value = None
         self.assertRaises(
-            exception.ClusterStateNotDefined, self.strategy.execute)
+            exception.ClusterStateNotDefined, self.strategy.execute
+        )
 
     def test_exception_stale_cdm(self):
         self.fake_c_cluster.set_cluster_data_model_as_stale()
@@ -133,4 +138,5 @@ class TestBaseStrategyException(TestBaseStrategy):
             # TODO(Dantali0n) This should return ClusterStale,
             #  improve set_cluster_data_model_as_stale().
             exception.ClusterStateNotDefined,
-            self.strategy.execute)
+            self.strategy.execute,
+        )

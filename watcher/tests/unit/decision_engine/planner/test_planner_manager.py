@@ -25,5 +25,6 @@ class TestPlannerManager(base.TestCase):
         cfg.CONF.set_override('planner', "weight", group='watcher_planner')
         manager = planner.PlannerManager()
         selected_planner = cfg.CONF.watcher_planner.planner
-        self.assertIsInstance(manager.load(selected_planner),
-                              weight.WeightPlanner)
+        self.assertIsInstance(
+            manager.load(selected_planner), weight.WeightPlanner
+        )

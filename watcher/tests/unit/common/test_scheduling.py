@@ -19,7 +19,6 @@ from watcher.tests.unit import base
 
 
 class TestSchedulerMonkeyPatching(base.BaseTestCase):
-
     def setUp(self):
         super().setUp()
         self.started = False
@@ -54,7 +53,8 @@ class TestSchedulerMonkeyPatching(base.BaseTestCase):
     @mock.patch.object(background.BackgroundScheduler, '_main_loop')
     @mock.patch.object(eventlet_helper, 'patch')
     def test_main_loop_is_monkey_patched(
-            self, mock_eventlet_patch, mock_main_loop):
+        self, mock_eventlet_patch, mock_main_loop
+    ):
         self.test_scheduler._main_loop()
         mock_eventlet_patch.assert_called_once_with()
         mock_main_loop.assert_called_once_with()

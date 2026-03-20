@@ -70,6 +70,7 @@ state may be one of the following:
    **RECOMMENDED** state and was superseded by the
    :ref:`Administrator <administrator_definition>`
 """
+
 import datetime
 
 from oslo_utils import timeutils
@@ -102,9 +103,11 @@ class State:
 
 
 @base.WatcherObjectRegistry.register
-class ActionPlan(base.WatcherPersistentObject, base.WatcherObject,
-                 base.WatcherObjectDictCompat):
-
+class ActionPlan(
+    base.WatcherPersistentObject,
+    base.WatcherObject,
+    base.WatcherObjectDictCompat,
+):
     # Version 1.0: Initial version
     # Version 1.1: Added 'audit' and 'strategy' object field
     # Version 1.2: audit_id is not nullable anymore
@@ -124,7 +127,6 @@ class ActionPlan(base.WatcherPersistentObject, base.WatcherObject,
         'state': wfields.StringField(nullable=True),
         'global_efficacy': wfields.FlexibleListOfDictField(nullable=True),
         'hostname': wfields.StringField(nullable=True),
-
         'audit': wfields.ObjectField('Audit', nullable=True),
         'strategy': wfields.ObjectField('Strategy', nullable=True),
         'status_message': wfields.StringField(nullable=True),
@@ -192,9 +194,11 @@ class ActionPlan(base.WatcherPersistentObject, base.WatcherObject,
         :returns: a :class:`ActionPlan` object.
         """  # noqa: E501
         db_action_plan = cls.dbapi.get_action_plan_by_id(
-            context, action_plan_id, eager=eager)
+            context, action_plan_id, eager=eager
+        )
         action_plan = cls._from_db_object(
-            cls(context), db_action_plan, eager=eager)
+            cls(context), db_action_plan, eager=eager
+        )
         return action_plan
 
     @base.remotable_classmethod
@@ -207,14 +211,24 @@ class ActionPlan(base.WatcherPersistentObject, base.WatcherObject,
         :returns: a :class:`ActionPlan` object.
         """  # noqa: E501
         db_action_plan = cls.dbapi.get_action_plan_by_uuid(
-            context, uuid, eager=eager)
+            context, uuid, eager=eager
+        )
         action_plan = cls._from_db_object(
-            cls(context), db_action_plan, eager=eager)
+            cls(context), db_action_plan, eager=eager
+        )
         return action_plan
 
     @base.remotable_classmethod
-    def list(cls, context, limit=None, marker=None, filters=None,
-             sort_key=None, sort_dir=None, eager=False):
+    def list(
+        cls,
+        context,
+        limit=None,
+        marker=None,
+        filters=None,
+        sort_key=None,
+        sort_dir=None,
+        eager=False,
+    ):
         """Return a list of ActionPlan objects.
 
         :param context: Security context.
@@ -226,16 +240,20 @@ class ActionPlan(base.WatcherPersistentObject, base.WatcherObject,
         :param eager: Load object fields if True (Default: False)
         :returns: a list of :class:`ActionPlan` object.
         """
-        db_action_plans = cls.dbapi.get_action_plan_list(context,
-                                                         limit=limit,
-                                                         marker=marker,
-                                                         filters=filters,
-                                                         sort_key=sort_key,
-                                                         sort_dir=sort_dir,
-                                                         eager=eager)
+        db_action_plans = cls.dbapi.get_action_plan_list(
+            context,
+            limit=limit,
+            marker=marker,
+            filters=filters,
+            sort_key=sort_key,
+            sort_dir=sort_dir,
+            eager=eager,
+        )
 
-        return [cls._from_db_object(cls(context), obj, eager=eager)
-                for obj in db_action_plans]
+        return [
+            cls._from_db_object(cls(context), obj, eager=eager)
+            for obj in db_action_plans
+        ]
 
     @base.remotable
     def create(self):
@@ -258,8 +276,8 @@ class ActionPlan(base.WatcherPersistentObject, base.WatcherObject,
     def destroy(self):
         """Delete the action plan from the DB"""
         related_efficacy_indicators = objects.EfficacyIndicator.list(
-            context=self._context,
-            filters={"action_plan_uuid": self.uuid})
+            context=self._context, filters={"action_plan_uuid": self.uuid}
+        )
 
         # Cascade soft_delete of related efficacy indicators
         for related_efficacy_indicator in related_efficacy_indicators:
@@ -278,12 +296,14 @@ class ActionPlan(base.WatcherPersistentObject, base.WatcherObject,
         updates = self.obj_get_changes()
         db_obj = self.dbapi.update_action_plan(self.uuid, updates)
         obj = self._from_db_object(
-            self.__class__(self._context), db_obj, eager=False)
+            self.__class__(self._context), db_obj, eager=False
+        )
         self.obj_refresh(obj)
 
         def _notify():
             notifications.action_plan.send_update(
-                self._context, self, old_state=self.old_state)
+                self._context, self, old_state=self.old_state
+            )
 
         _notify()
 
@@ -307,15 +327,16 @@ class ActionPlan(base.WatcherPersistentObject, base.WatcherObject,
         related_actions = objects.Action.list(
             context=self._context,
             filters={"action_plan_uuid": self.uuid},
-            eager=True)
+            eager=True,
+        )
 
         # Cascade soft_delete of related actions
         for related_action in related_actions:
             related_action.soft_delete()
 
         related_efficacy_indicators = objects.EfficacyIndicator.list(
-            context=self._context,
-            filters={"action_plan_uuid": self.uuid})
+            context=self._context, filters={"action_plan_uuid": self.uuid}
+        )
 
         # Cascade soft_delete of related efficacy indicators
         for related_efficacy_indicator in related_efficacy_indicators:
@@ -325,7 +346,8 @@ class ActionPlan(base.WatcherPersistentObject, base.WatcherObject,
         self.save()
         db_obj = self.dbapi.soft_delete_action_plan(self.uuid)
         obj = self._from_db_object(
-            self.__class__(self._context), db_obj, eager=False)
+            self.__class__(self._context), db_obj, eager=False
+        )
         self.obj_refresh(obj)
 
         def _notify():
@@ -336,14 +358,17 @@ class ActionPlan(base.WatcherPersistentObject, base.WatcherObject,
 
 class StateManager:
     def check_expired(self, context):
-        action_plan_expiry = (
-            CONF.watcher_decision_engine.action_plan_expiry)
+        action_plan_expiry = CONF.watcher_decision_engine.action_plan_expiry
         date_created = timeutils.utcnow() - datetime.timedelta(
-            hours=action_plan_expiry)
-        filters = {'state__eq': State.RECOMMENDED,
-                   'created_at__lt': date_created}
+            hours=action_plan_expiry
+        )
+        filters = {
+            'state__eq': State.RECOMMENDED,
+            'created_at__lt': date_created,
+        }
         action_plans = objects.ActionPlan.list(
-            context, filters=filters, eager=True)
+            context, filters=filters, eager=True
+        )
         for action_plan in action_plans:
             action_plan.state = State.SUPERSEDED
             action_plan.save()

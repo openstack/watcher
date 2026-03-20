@@ -31,12 +31,14 @@ Instance = instance.Instance
 VolumeState = volume.VolumeState
 Volume = volume.Volume
 
-__all__ = ['ServiceState',
-           'ComputeNode',
-           'InstanceState',
-           'Instance',
-           'StorageNode',
-           'Pool',
-           'VolumeState',
-           'Volume',
-           'IronicNode']
+__all__ = [
+    'ServiceState',
+    'ComputeNode',
+    'InstanceState',
+    'Instance',
+    'StorageNode',
+    'Pool',
+    'VolumeState',
+    'Volume',
+    'IronicNode',
+]

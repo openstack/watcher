@@ -26,23 +26,23 @@ from watcher.tests.unit.decision_engine.strategy.strategies.test_base import (
 
 
 class TestSavingEnergy(TestBaseStrategy):
-
     def setUp(self):
         super().setUp()
 
-        self.fake_nodes = [fake_metal_helper.get_mock_metal_node(),
-                           fake_metal_helper.get_mock_metal_node()]
+        self.fake_nodes = [
+            fake_metal_helper.get_mock_metal_node(),
+            fake_metal_helper.get_mock_metal_node(),
+        ]
         self._metal_helper = mock.Mock()
         self._metal_helper.list_compute_nodes.return_value = self.fake_nodes
 
         self.m_c_model.return_value = self.fake_c_cluster.generate_scenario_1()
 
-        self.strategy = strategies.SavingEnergy(
-            config=mock.Mock())
+        self.strategy = strategies.SavingEnergy(config=mock.Mock())
         self.strategy.input_parameters = utils.Struct()
         self.strategy.input_parameters.update(
-            {'free_used_percent': 10.0,
-             'min_free_hosts_num': 1})
+            {'free_used_percent': 10.0, 'min_free_hosts_num': 1}
+        )
         self.strategy.free_used_percent = 10.0
         self.strategy.min_free_hosts_num = 1
         self.strategy._metal_helper = self._metal_helper
@@ -52,11 +52,13 @@ class TestSavingEnergy(TestBaseStrategy):
             fake_metal_helper.get_mock_metal_node(
                 power_state=m_constants.PowerState.ON,
                 hostname='hostname_0',
-                running_vms=2),
+                running_vms=2,
+            ),
             fake_metal_helper.get_mock_metal_node(
                 power_state=m_constants.PowerState.OFF,
                 hostname='hostname_1',
-                running_vms=2),
+                running_vms=2,
+            ),
         ]
 
         self.strategy.get_hosts_pool()
@@ -70,11 +72,13 @@ class TestSavingEnergy(TestBaseStrategy):
             fake_metal_helper.get_mock_metal_node(
                 power_state=m_constants.PowerState.ON,
                 hostname='hostname_0',
-                running_vms=0),
+                running_vms=0,
+            ),
             fake_metal_helper.get_mock_metal_node(
                 power_state=m_constants.PowerState.ON,
                 hostname='hostname_1',
-                running_vms=0),
+                running_vms=0,
+            ),
         ]
 
         self.strategy.get_hosts_pool()
@@ -88,11 +92,13 @@ class TestSavingEnergy(TestBaseStrategy):
             fake_metal_helper.get_mock_metal_node(
                 power_state=m_constants.PowerState.OFF,
                 hostname='hostname_0',
-                running_vms=0),
+                running_vms=0,
+            ),
             fake_metal_helper.get_mock_metal_node(
                 power_state=m_constants.PowerState.OFF,
                 hostname='hostname_1',
-                running_vms=0),
+                running_vms=0,
+            ),
         ]
 
         self.strategy.get_hosts_pool()
@@ -106,11 +112,13 @@ class TestSavingEnergy(TestBaseStrategy):
             fake_metal_helper.get_mock_metal_node(
                 power_state=m_constants.PowerState.OFF,
                 hostname='hostname_0',
-                running_vms=0),
+                running_vms=0,
+            ),
             fake_metal_helper.get_mock_metal_node(
                 power_state=m_constants.PowerState.OFF,
                 hostname='hostname_10',
-                running_vms=0),
+                running_vms=0,
+            ),
         ]
         self.strategy.get_hosts_pool()
 
@@ -131,8 +139,8 @@ class TestSavingEnergy(TestBaseStrategy):
     def test_save_energy_poweroff(self):
         self.strategy.free_poweron_node_pool = [
             mock.Mock(uuid='922d4762-0bc5-4b30-9cb9-48ab644dd861'),
-            mock.Mock(uuid='922d4762-0bc5-4b30-9cb9-48ab644dd862')
-            ]
+            mock.Mock(uuid='922d4762-0bc5-4b30-9cb9-48ab644dd862'),
+        ]
         self.strategy.save_energy()
         self.assertEqual(len(self.strategy.solution.actions), 1)
         action = self.strategy.solution.actions[0]
@@ -143,11 +151,13 @@ class TestSavingEnergy(TestBaseStrategy):
             fake_metal_helper.get_mock_metal_node(
                 power_state=m_constants.PowerState.ON,
                 hostname='hostname_0',
-                running_vms=0),
+                running_vms=0,
+            ),
             fake_metal_helper.get_mock_metal_node(
                 power_state=m_constants.PowerState.ON,
                 hostname='hostname_1',
-                running_vms=0),
+                running_vms=0,
+            ),
         ]
 
         model = self.fake_c_cluster.generate_scenario_1()

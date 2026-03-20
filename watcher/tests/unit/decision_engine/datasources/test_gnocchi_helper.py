@@ -28,30 +28,32 @@ CONF = cfg.CONF
 
 @mock.patch.object(clients.OpenStackClients, 'gnocchi')
 class TestGnocchiHelper(base.BaseTestCase):
-
     def setUp(self):
         super().setUp()
         self.osc_mock = mock.Mock()
         self.helper = gnocchi_helper.GnocchiHelper(osc=self.osc_mock)
         stat_agg_patcher = mock.patch.object(
-            self.helper, 'statistic_aggregation',
-            spec=gnocchi_helper.GnocchiHelper.statistic_aggregation)
+            self.helper,
+            'statistic_aggregation',
+            spec=gnocchi_helper.GnocchiHelper.statistic_aggregation,
+        )
         self.mock_aggregation = stat_agg_patcher.start()
         self.addCleanup(stat_agg_patcher.stop)
 
     def test_gnocchi_statistic_aggregation(self, mock_gnocchi):
         vcpus = 2
         mock_instance = mock.Mock(
-            id='16a86790-327a-45f9-bc82-45839f062fdc',
-            vcpus=vcpus)
+            id='16a86790-327a-45f9-bc82-45839f062fdc', vcpus=vcpus
+        )
 
         gnocchi = mock.MagicMock()
         # cpu time rate of change (ns)
-        mock_rate_measure = 360 * 10e+8 * vcpus * 5.5 / 100
+        mock_rate_measure = 360 * 10e8 * vcpus * 5.5 / 100
         expected_result = 5.5
 
         expected_measures = [
-            ["2017-02-02T09:00:00.000000", 360, mock_rate_measure]]
+            ["2017-02-02T09:00:00.000000", 360, mock_rate_measure]
+        ]
 
         gnocchi.metric.get_measures.return_value = expected_measures
         mock_gnocchi.return_value = gnocchi
@@ -73,18 +75,19 @@ class TestGnocchiHelper(base.BaseTestCase):
             stop=mock.ANY,
             resource_id=mock_instance.uuid,
             granularity=360,
-            aggregation="rate:mean")
+            aggregation="rate:mean",
+        )
 
     def test_gnocchi_statistic_series(self, mock_gnocchi):
         gnocchi = mock.MagicMock()
         expected_result = {
             "2017-02-02T09:00:00.000000": 5.5,
-            "2017-02-02T09:03:60.000000": 5.8
+            "2017-02-02T09:03:60.000000": 5.8,
         }
 
         expected_measures = [
             ["2017-02-02T09:00:00.000000", 360, 5.5],
-            ["2017-02-02T09:03:60.000000", 360, 5.8]
+            ["2017-02-02T09:03:60.000000", 360, 5.8],
         ]
 
         gnocchi.metric.get_measures.return_value = expected_measures
@@ -109,82 +112,82 @@ class TestGnocchiHelper(base.BaseTestCase):
 
         # invalidate instance_cpu_usage in metric map
         original_metric_value = helper.METRIC_MAP.get('instance_cpu_usage')
-        helper.METRIC_MAP.update(
-            instance_cpu_usage=None
-        )
+        helper.METRIC_MAP.update(instance_cpu_usage=None)
 
         self.assertRaises(
-            exception.MetricNotAvailable, helper.statistic_aggregation,
+            exception.MetricNotAvailable,
+            helper.statistic_aggregation,
             resource=mock.Mock(id='16a86790-327a-45f9-bc82-45839f062fdc'),
-            resource_type='instance', meter_name='instance_cpu_usage',
-            period=300, granularity=360, aggregate='mean',
+            resource_type='instance',
+            meter_name='instance_cpu_usage',
+            period=300,
+            granularity=360,
+            aggregate='mean',
         )
 
         # restore the metric map as it is a static attribute that does not get
         # restored between unit tests!
-        helper.METRIC_MAP.update(
-            instance_cpu_usage=original_metric_value
-        )
+        helper.METRIC_MAP.update(instance_cpu_usage=original_metric_value)
 
     def test_get_host_cpu_usage(self, mock_gnocchi):
         self.helper.get_host_cpu_usage('compute1', 600, 'mean', 300)
         self.mock_aggregation.assert_called_once_with(
-            'compute1', 'compute_node', 'host_cpu_usage', 600, 'mean',
-            300)
+            'compute1', 'compute_node', 'host_cpu_usage', 600, 'mean', 300
+        )
 
     def test_get_host_ram_usage(self, mock_gnocchi):
         self.helper.get_host_ram_usage('compute1', 600, 'mean', 300)
         self.mock_aggregation.assert_called_once_with(
-            'compute1', 'compute_node', 'host_ram_usage', 600, 'mean',
-            300)
+            'compute1', 'compute_node', 'host_ram_usage', 600, 'mean', 300
+        )
 
     def test_get_host_outlet_temperature(self, mock_gnocchi):
         self.helper.get_host_outlet_temp('compute1', 600, 'mean', 300)
         self.mock_aggregation.assert_called_once_with(
-            'compute1', 'compute_node', 'host_outlet_temp', 600, 'mean',
-            300)
+            'compute1', 'compute_node', 'host_outlet_temp', 600, 'mean', 300
+        )
 
     def test_get_host_inlet_temperature(self, mock_gnocchi):
         self.helper.get_host_inlet_temp('compute1', 600, 'mean', 300)
         self.mock_aggregation.assert_called_once_with(
-            'compute1', 'compute_node', 'host_inlet_temp', 600, 'mean',
-            300)
+            'compute1', 'compute_node', 'host_inlet_temp', 600, 'mean', 300
+        )
 
     def test_get_host_airflow(self, mock_gnocchi):
         self.helper.get_host_airflow('compute1', 600, 'mean', 300)
         self.mock_aggregation.assert_called_once_with(
-            'compute1', 'compute_node', 'host_airflow', 600, 'mean',
-            300)
+            'compute1', 'compute_node', 'host_airflow', 600, 'mean', 300
+        )
 
     def test_get_host_power(self, mock_gnocchi):
         self.helper.get_host_power('compute1', 600, 'mean', 300)
         self.mock_aggregation.assert_called_once_with(
-            'compute1', 'compute_node', 'host_power', 600, 'mean',
-            300)
+            'compute1', 'compute_node', 'host_power', 600, 'mean', 300
+        )
 
     def test_get_instance_cpu_usage(self, mock_gnocchi):
         self.helper.get_instance_cpu_usage('compute1', 600, 'mean', 300)
         self.mock_aggregation.assert_called_once_with(
-            'compute1', 'instance', 'instance_cpu_usage', 600, 'mean',
-            300)
+            'compute1', 'instance', 'instance_cpu_usage', 600, 'mean', 300
+        )
 
     def test_get_instance_memory_usage(self, mock_gnocchi):
         self.helper.get_instance_ram_usage('compute1', 600, 'mean', 300)
         self.mock_aggregation.assert_called_once_with(
-            'compute1', 'instance', 'instance_ram_usage', 600, 'mean',
-            300)
+            'compute1', 'instance', 'instance_ram_usage', 600, 'mean', 300
+        )
 
     def test_get_instance_ram_allocated(self, mock_gnocchi):
         self.helper.get_instance_ram_allocated('compute1', 600, 'mean', 300)
         self.mock_aggregation.assert_called_once_with(
-            'compute1', 'instance', 'instance_ram_allocated', 600, 'mean',
-            300)
+            'compute1', 'instance', 'instance_ram_allocated', 600, 'mean', 300
+        )
 
     def test_get_instance_root_disk_allocated(self, mock_gnocchi):
         self.helper.get_instance_root_disk_size('compute1', 600, 'mean', 300)
         self.mock_aggregation.assert_called_once_with(
-            'compute1', 'instance', 'instance_root_disk_size', 600, 'mean',
-            300)
+            'compute1', 'instance', 'instance_root_disk_size', 600, 'mean', 300
+        )
 
     def test_gnocchi_check_availability(self, mock_gnocchi):
         gnocchi = mock.MagicMock()
@@ -195,8 +198,9 @@ class TestGnocchiHelper(base.BaseTestCase):
         self.assertEqual('available', result)
 
     def test_gnocchi_check_availability_with_failure(self, mock_gnocchi):
-        cfg.CONF.set_override("query_max_retries", 1,
-                              group='watcher_datasources')
+        cfg.CONF.set_override(
+            "query_max_retries", 1, group='watcher_datasources'
+        )
         gnocchi = mock.MagicMock()
         gnocchi.status.get.side_effect = Exception()
         mock_gnocchi.return_value = gnocchi
@@ -215,8 +219,9 @@ class TestGnocchiHelper(base.BaseTestCase):
         self.assertEqual(expected_metrics, result)
 
     def test_gnocchi_list_metrics_with_failure(self, mock_gnocchi):
-        cfg.CONF.set_override("query_max_retries", 1,
-                              group='watcher_datasources')
+        cfg.CONF.set_override(
+            "query_max_retries", 1, group='watcher_datasources'
+        )
         gnocchi = mock.MagicMock()
         gnocchi.metric.list.side_effect = Exception()
         mock_gnocchi.return_value = gnocchi

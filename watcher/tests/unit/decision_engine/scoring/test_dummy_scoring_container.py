@@ -22,10 +22,8 @@ from watcher.tests.unit import base
 
 
 class TestDummyScoringContainer(base.TestCase):
-
     def test_get_scoring_engine_list(self):
-        scorers = (dummy_scoring_container.DummyScoringContainer
-                                          .get_scoring_engine_list())
+        scorers = dummy_scoring_container.DummyScoringContainer.get_scoring_engine_list()  # noqa: E501
 
         self.assertEqual(3, len(scorers))
         self.assertEqual('dummy_min_scorer', scorers[0].get_name())
@@ -33,8 +31,7 @@ class TestDummyScoringContainer(base.TestCase):
         self.assertEqual('dummy_avg_scorer', scorers[2].get_name())
 
     def test_scorers(self):
-        scorers = (dummy_scoring_container.DummyScoringContainer
-                                          .get_scoring_engine_list())
+        scorers = dummy_scoring_container.DummyScoringContainer.get_scoring_engine_list()  # noqa: E501
 
         self._assert_result(scorers[0], 1.1, '[1.1, 2.2, 4, 8]')
         self._assert_result(scorers[1], 8, '[1.1, 2.2, 4, 8]')

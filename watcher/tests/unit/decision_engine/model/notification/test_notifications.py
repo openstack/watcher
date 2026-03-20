@@ -30,14 +30,12 @@ from watcher.tests.unit.decision_engine.model.notification import fake_managers
 
 
 class DummyManager(fake_managers.FakeManager):
-
     @property
     def notification_endpoints(self):
         return [DummyNotification(self.fake_cdmc)]
 
 
 class DummyNotification(base.NotificationEndpoint):
-
     @property
     def filter_rule(self):
         return filtering.NotificationFilter(
@@ -51,7 +49,6 @@ class DummyNotification(base.NotificationEndpoint):
 
 
 class NotificationTestCase(base_test.TestCase):
-
     def load_message(self, filename):
         cwd = os.path.abspath(os.path.dirname(__file__))
         data_folder = os.path.join(cwd, "data")
@@ -63,7 +60,6 @@ class NotificationTestCase(base_test.TestCase):
 
 
 class TestReceiveNotifications(NotificationTestCase):
-
     def setUp(self):
         super().setUp()
 
@@ -87,9 +83,12 @@ class TestReceiveNotifications(NotificationTestCase):
         de_service.notification_handler.dispatcher.dispatch(incoming)
 
         m_info.assert_called_once_with(
-            self.context, 'nova-compute', 'compute.dummy',
+            self.context,
+            'nova-compute',
+            'compute.dummy',
             {'data': {'nested': 'TEST'}},
-            {'message_id': None, 'timestamp': None})
+            {'message_id': None, 'timestamp': None},
+        )
 
     @mock.patch.object(watcher_service.ServiceHeartbeat, 'send_beat')
     @mock.patch.object(DummyNotification, 'info')

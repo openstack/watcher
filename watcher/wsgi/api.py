@@ -10,6 +10,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 """WSGI application entry-point for Watcher API."""
+
 import threading
 
 from watcher.api import wsgi

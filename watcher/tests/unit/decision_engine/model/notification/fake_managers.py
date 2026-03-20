@@ -22,7 +22,6 @@ from watcher.tests.unit.decision_engine.model import faker_cluster_state
 
 
 class FakeManager(service_manager.ServiceManager):
-
     API_VERSION = '1.0'
 
     fake_cdmc = faker_cluster_state.FakerModelCollector()
@@ -53,13 +52,10 @@ class FakeManager(service_manager.ServiceManager):
 
     @property
     def notification_endpoints(self):
-        return [
-            novanotification.VersionedNotification(self.fake_cdmc),
-        ]
+        return [novanotification.VersionedNotification(self.fake_cdmc)]
 
 
 class FakeStorageManager(FakeManager):
-
     fake_cdmc = faker_cluster_state.FakerStorageModelCollector()
 
     @property

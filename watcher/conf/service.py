@@ -23,27 +23,38 @@ from watcher._i18n import _
 
 
 SERVICE_OPTS = [
-    cfg.IntOpt('periodic_interval',
-               default=60,
-               mutable=True,
-               help=_('Seconds between running periodic tasks.')),
-    cfg.HostAddressOpt('host',
-                       default=socket.gethostname(),
-                       help=_('Name of this node. This can be an opaque '
-                              'identifier. It is not necessarily a hostname, '
-                              'FQDN, or IP address. However, the node name '
-                              'must be valid within an AMQP key.')
-                       ),
-    cfg.IntOpt('service_down_time',
-               default=90,
-               help=_('Maximum time since last check-in for up service.')),
-    cfg.BoolOpt('print_thread_pool_stats',
-                default=False,
-                help=_('Enable logging of thread pool executor statistics '
-                       'when submitting tasks. Logs current queue length, '
-                       'number of workers (total, idle or running) and '
-                       'executor runtime statistics. Useful for diagnosing '
-                       'contention and performance issues.'))
+    cfg.IntOpt(
+        'periodic_interval',
+        default=60,
+        mutable=True,
+        help=_('Seconds between running periodic tasks.'),
+    ),
+    cfg.HostAddressOpt(
+        'host',
+        default=socket.gethostname(),
+        help=_(
+            'Name of this node. This can be an opaque '
+            'identifier. It is not necessarily a hostname, '
+            'FQDN, or IP address. However, the node name '
+            'must be valid within an AMQP key.'
+        ),
+    ),
+    cfg.IntOpt(
+        'service_down_time',
+        default=90,
+        help=_('Maximum time since last check-in for up service.'),
+    ),
+    cfg.BoolOpt(
+        'print_thread_pool_stats',
+        default=False,
+        help=_(
+            'Enable logging of thread pool executor statistics '
+            'when submitting tasks. Logs current queue length, '
+            'number of workers (total, idle or running) and '
+            'executor runtime statistics. Useful for diagnosing '
+            'contention and performance issues.'
+        ),
+    ),
 ]
 
 
@@ -52,6 +63,4 @@ def register_opts(conf):
 
 
 def list_opts():
-    return [
-        ('DEFAULT', SERVICE_OPTS),
-    ]
+    return [('DEFAULT', SERVICE_OPTS)]

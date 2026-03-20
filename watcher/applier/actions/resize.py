@@ -34,10 +34,12 @@ class Resize(base.BaseAction):
 
     The action schema is::
 
-        schema = Schema({
-         'resource_id': str,  # should be a UUID
-         'flavor': str,  # should be either ID or Name of Flavor
-        })
+        schema = Schema(
+            {
+                'resource_id': str,  # should be a UUID
+                'flavor': str,  # should be either ID or Name of Flavor
+            }
+        )
 
     The `resource_id` is the UUID of the server to resize.
     The `flavor` is the ID or Name of Flavor (Nova accepts either ID or Name
@@ -55,14 +57,13 @@ class Resize(base.BaseAction):
                 'resource_id': {
                     'type': 'string',
                     'minlength': 1,
-                    'pattern': ('^([a-fA-F0-9]){8}-([a-fA-F0-9]){4}-'
-                                '([a-fA-F0-9]){4}-([a-fA-F0-9]){4}-'
-                                '([a-fA-F0-9]){12}$')
+                    'pattern': (
+                        '^([a-fA-F0-9]){8}-([a-fA-F0-9]){4}-'
+                        '([a-fA-F0-9]){4}-([a-fA-F0-9]){4}-'
+                        '([a-fA-F0-9]){12}$'
+                    ),
                 },
-                'flavor': {
-                    'type': 'string',
-                    'minlength': 1,
-                },
+                'flavor': {'type': 'string', 'minlength': 1},
             },
             'required': ['resource_id', 'flavor'],
             'additionalProperties': False,
@@ -78,24 +79,28 @@ class Resize(base.BaseAction):
 
     def resize(self):
         nova = nova_helper.NovaHelper(osc=self.osc)
-        LOG.debug("Resize instance %s to %s flavor", self.instance_uuid,
-                  self.flavor)
+        LOG.debug(
+            "Resize instance %s to %s flavor", self.instance_uuid, self.flavor
+        )
         try:
             nova.find_instance(self.instance_uuid)
         except exception.ComputeResourceNotFound:
-            LOG.warning("Instance %s not found, skipping resize",
-                        self.instance_uuid)
+            LOG.warning(
+                "Instance %s not found, skipping resize", self.instance_uuid
+            )
             raise exception.InstanceNotFound(name=self.instance_uuid)
 
         result = None
         try:
             result = nova.resize_instance(
-                instance_id=self.instance_uuid, flavor=self.flavor)
+                instance_id=self.instance_uuid, flavor=self.flavor
+            )
         except Exception as exc:
             LOG.exception(exc)
             LOG.critical(
-                "Unexpected error occurred. Resizing failed for "
-                "instance %s.", self.instance_uuid)
+                "Unexpected error occurred. Resizing failed for instance %s.",
+                self.instance_uuid,
+            )
             return False
         return result
 
@@ -120,13 +125,15 @@ class Resize(base.BaseAction):
             nova.find_instance(self.instance_uuid)
         except exception.ComputeResourceNotFound:
             raise exception.ActionSkipped(
-                _("Instance %s not found") % self.instance_uuid)
+                _("Instance %s not found") % self.instance_uuid
+            )
 
         try:
             nova.get_flavor_id(self.flavor)
         except exception.ComputeResourceNotFound:
             raise exception.ActionExecutionFailure(
-                _("Flavor %s not found") % self.flavor)
+                _("Flavor %s not found") % self.flavor
+            )
 
     def post_condition(self):
         # TODO(jed): check extra parameters (network response, etc.)

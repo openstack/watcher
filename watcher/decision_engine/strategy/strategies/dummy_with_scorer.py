@@ -64,16 +64,19 @@ class DummyWithScorer(base.DummyBaseStrategy):
         super().__init__(config, osc)
 
         # Setup Scoring Engines
-        self._workload_scorer = (scoring_factory
-                                 .get_scoring_engine('dummy_scorer'))
-        self._avg_scorer = (scoring_factory
-                            .get_scoring_engine('dummy_avg_scorer'))
+        self._workload_scorer = scoring_factory.get_scoring_engine(
+            'dummy_scorer'
+        )
+        self._avg_scorer = scoring_factory.get_scoring_engine(
+            'dummy_avg_scorer'
+        )
 
         # Get metainfo from Workload Scorer for result interpretation
         metainfo = jsonutils.loads(self._workload_scorer.get_metainfo())
-        self._workloads = {index: workload
-                           for index, workload in enumerate(
-                               metainfo['workloads'])}
+        self._workloads = {
+            index: workload
+            for index, workload in enumerate(metainfo['workloads'])
+        }
 
     def pre_execute(self):
         self._pre_execute()
@@ -82,11 +85,14 @@ class DummyWithScorer(base.DummyBaseStrategy):
         # Simple "hello world" from strategy
         param1 = self.input_parameters.param1
         param2 = self.input_parameters.param2
-        LOG.debug('DummyWithScorer params: param1=%(p1)f, param2=%(p2)s',
-                  {'p1': param1, 'p2': param2})
+        LOG.debug(
+            'DummyWithScorer params: param1=%(p1)f, param2=%(p2)s',
+            {'p1': param1, 'p2': param2},
+        )
         parameters = {'message': 'Hello from Dummy Strategy with Scorer!'}
-        self.solution.add_action(action_type=self.NOP,
-                                 input_parameters=parameters)
+        self.solution.add_action(
+            action_type=self.NOP, input_parameters=parameters
+        )
 
         # Demonstrate workload scorer
         features = self._generate_random_telemetry()
@@ -97,8 +103,9 @@ class DummyWithScorer(base.DummyBaseStrategy):
         result = self._workloads[jsonutils.loads(result_str)[0]]
         LOG.debug('Detected Workload: %s', result)
         parameters = {'message': f'Detected Workload: {result}'}
-        self.solution.add_action(action_type=self.NOP,
-                                 input_parameters=parameters)
+        self.solution.add_action(
+            action_type=self.NOP, input_parameters=parameters
+        )
 
         # Demonstrate AVG scorer
         features = jsonutils.dumps(random.sample(range(1000), 20))
@@ -107,12 +114,14 @@ class DummyWithScorer(base.DummyBaseStrategy):
         result = jsonutils.loads(result_str)[0]
         LOG.debug('AVG Scorer result (parsed): %d', result)
         parameters = {'message': f'AVG Scorer result: {result}'}
-        self.solution.add_action(action_type=self.NOP,
-                                 input_parameters=parameters)
+        self.solution.add_action(
+            action_type=self.NOP, input_parameters=parameters
+        )
 
         # Sleep action
-        self.solution.add_action(action_type=self.SLEEP,
-                                 input_parameters={'duration': 5.0})
+        self.solution.add_action(
+            action_type=self.SLEEP, input_parameters={'duration': 5.0}
+        )
 
     def post_execute(self):
         pass
@@ -144,23 +153,32 @@ class DummyWithScorer(base.DummyBaseStrategy):
                 'param2': {
                     'description': 'string parameter example',
                     'type': "string",
-                    'default': "hello"
+                    'default': "hello",
                 },
-            },
+            }
         }
 
     def _generate_random_telemetry(self):
         processor_time = random.randint(0, 100)
-        mem_total_bytes = 4*units.Gi
-        mem_avail_bytes = random.randint(1*units.Gi, 4*units.Gi)
+        mem_total_bytes = 4 * units.Gi
+        mem_avail_bytes = random.randint(1 * units.Gi, 4 * units.Gi)
         mem_page_reads = random.randint(0, 2000)
         mem_page_writes = random.randint(0, 2000)
-        disk_read_bytes = random.randint(0*units.Mi, 200*units.Mi)
-        disk_write_bytes = random.randint(0*units.Mi, 200*units.Mi)
-        net_bytes_received = random.randint(0*units.Mi, 20*units.Mi)
-        net_bytes_sent = random.randint(0*units.Mi, 10*units.Mi)
+        disk_read_bytes = random.randint(0 * units.Mi, 200 * units.Mi)
+        disk_write_bytes = random.randint(0 * units.Mi, 200 * units.Mi)
+        net_bytes_received = random.randint(0 * units.Mi, 20 * units.Mi)
+        net_bytes_sent = random.randint(0 * units.Mi, 10 * units.Mi)
 
-        return jsonutils.dumps([
-            processor_time, mem_total_bytes, mem_avail_bytes,
-            mem_page_reads, mem_page_writes, disk_read_bytes,
-            disk_write_bytes, net_bytes_received, net_bytes_sent])
+        return jsonutils.dumps(
+            [
+                processor_time,
+                mem_total_bytes,
+                mem_avail_bytes,
+                mem_page_reads,
+                mem_page_writes,
+                disk_read_bytes,
+                disk_write_bytes,
+                net_bytes_received,
+                net_bytes_sent,
+            ]
+        )

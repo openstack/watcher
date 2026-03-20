@@ -28,11 +28,11 @@ CONF = cfg.CONF
 
 
 class PolicyFixture(fixtures.Fixture):
-
     def _setUp(self):
         self.policy_dir = self.useFixture(fixtures.TempDir())
-        self.policy_file_name = os.path.join(self.policy_dir.path,
-                                             'policy.yaml')
+        self.policy_file_name = os.path.join(
+            self.policy_dir.path, 'policy.yaml'
+        )
         with open(self.policy_file_name, 'w') as policy_file:
             policy_file.write(fake_policy.policy_data)
         policy_opts.set_defaults(CONF)
@@ -42,5 +42,4 @@ class PolicyFixture(fixtures.Fixture):
 
     def set_rules(self, rules):
         policy = watcher_policy._ENFORCER
-        policy.set_rules({k: _parser.parse_rule(v)
-                          for k, v in rules.items()})
+        policy.set_rules({k: _parser.parse_rule(v) for k, v in rules.items()})

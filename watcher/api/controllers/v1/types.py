@@ -132,8 +132,9 @@ class JsonType(wtypes.UserType):
 
     def __str__(self):
         # These are the json serializable native types
-        return ' | '.join(map(str, (wtypes.text, int, float,
-                                    BooleanType, list, dict, None)))
+        return ' | '.join(
+            map(str, (wtypes.text, int, float, BooleanType, list, dict, None))
+        )
 
     @staticmethod
     def validate(value):
@@ -178,17 +179,20 @@ class MultiType(wtypes.UserType):
         else:
             raise ValueError(
                 _("Wrong type. Expected '%(type)s', got '%(value)s'"),
-                type=self.types, value=type(value)
+                type=self.types,
+                value=type(value),
             )
 
 
 class JsonPatchType(wtypes.Base):
     """A complex type that represents a single json-patch operation."""
 
-    path = wtypes.wsattr(wtypes.StringType(pattern=r'^(/[\w-]+)+$'),
-                         mandatory=True)
-    op = wtypes.wsattr(wtypes.Enum(str, 'add', 'replace', 'remove'),
-                       mandatory=True)
+    path = wtypes.wsattr(
+        wtypes.StringType(pattern=r'^(/[\w-]+)+$'), mandatory=True
+    )
+    op = wtypes.wsattr(
+        wtypes.Enum(str, 'add', 'replace', 'remove'), mandatory=True
+    )
     value = wsme.wsattr(jsontype, default=wtypes.Unset)
 
     @staticmethod
@@ -199,8 +203,14 @@ class JsonPatchType(wtypes.Base):
         method may be overwritten by derived class.
 
         """
-        return ['/created_at', '/id', '/links', '/updated_at',
-                '/deleted_at', '/uuid']
+        return [
+            '/created_at',
+            '/id',
+            '/links',
+            '/updated_at',
+            '/deleted_at',
+            '/uuid',
+        ]
 
     @staticmethod
     def mandatory_attrs():
@@ -222,8 +232,9 @@ class JsonPatchType(wtypes.Base):
         _path = '/{}'.format(patch.path.split('/')[1])
         if len(patch.allowed_attrs()) > 0:
             if _path not in patch.allowed_attrs():
-                msg = _("'%s' is not an allowed attribute and can not be "
-                        "updated")
+                msg = _(
+                    "'%s' is not an allowed attribute and can not be updated"
+                )
                 raise wsme.exc.ClientSideError(msg % patch.path)
 
         if _path in patch.internal_attrs():

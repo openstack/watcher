@@ -21,9 +21,11 @@ from watcher.objects import fields as wfields
 
 
 @base.WatcherObjectRegistry.register
-class ActionDescription(base.WatcherPersistentObject, base.WatcherObject,
-                        base.WatcherObjectDictCompat):
-
+class ActionDescription(
+    base.WatcherPersistentObject,
+    base.WatcherObject,
+    base.WatcherObjectDictCompat,
+):
     # Version 1.0: Initial version
     VERSION = '1.0'
 
@@ -50,7 +52,8 @@ class ActionDescription(base.WatcherPersistentObject, base.WatcherObject,
         """
         if utils.is_int_like(action_id):
             db_action = cls.dbapi.get_action_description_by_id(
-                context, action_id)
+                context, action_id
+            )
             action = ActionDescription._from_db_object(cls(context), db_action)
             return action
         else:
@@ -66,13 +69,21 @@ class ActionDescription(base.WatcherPersistentObject, base.WatcherObject,
         """
 
         db_action = cls.dbapi.get_action_description_by_type(
-            context, action_type)
+            context, action_type
+        )
         action = cls._from_db_object(cls(context), db_action)
         return action
 
     @base.remotable_classmethod
-    def list(cls, context, limit=None, marker=None, filters=None,
-             sort_key=None, sort_dir=None):
+    def list(
+        cls,
+        context,
+        limit=None,
+        marker=None,
+        filters=None,
+        sort_key=None,
+        sort_dir=None,
+    ):
         """Return a list of :class:`ActionDescription` objects.
 
         :param context: Security context. NOTE: This should only
@@ -94,7 +105,8 @@ class ActionDescription(base.WatcherPersistentObject, base.WatcherObject,
             limit=limit,
             marker=marker,
             sort_key=sort_key,
-            sort_dir=sort_dir)
+            sort_dir=sort_dir,
+        )
 
         return [cls._from_db_object(cls(context), obj) for obj in db_actions]
 
@@ -128,13 +140,16 @@ class ActionDescription(base.WatcherPersistentObject, base.WatcherObject,
         """
         current = self.get(self._context, action_id=self.id)
         for field in self.fields:
-            if (hasattr(self, base.get_attrname(field)) and
-                    self[field] != current[field]):
+            if (
+                hasattr(self, base.get_attrname(field))
+                and self[field] != current[field]
+            ):
                 self[field] = current[field]
 
     def soft_delete(self):
         """Soft Delete the :class:`ActionDescription` from the DB."""
         db_obj = self.dbapi.soft_delete_action_description(self.id)
         obj = self._from_db_object(
-            self.__class__(self._context), db_obj, eager=False)
+            self.__class__(self._context), db_obj, eager=False
+        )
         self.obj_refresh(obj)

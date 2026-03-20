@@ -30,11 +30,14 @@ from watcher.tests.unit.decision_engine.strategy.strategies.test_base import (
 
 
 class TestWorkloadBalance(TestBaseStrategy):
-
     scenarios = [
-        ("Gnocchi",
-         {"datasource": "gnocchi",
-          "fake_datasource_cls": gnocchi_metrics.FakeGnocchiMetrics}),
+        (
+            "Gnocchi",
+            {
+                "datasource": "gnocchi",
+                "fake_datasource_cls": gnocchi_metrics.FakeGnocchiMetrics,
+            },
+        )
     ]
 
     def setUp(self):
@@ -43,20 +46,28 @@ class TestWorkloadBalance(TestBaseStrategy):
         self.fake_metrics = self.fake_datasource_cls()
 
         p_datasource = mock.patch.object(
-            strategies.WorkloadBalance, "datasource_backend",
-            new_callable=mock.PropertyMock)
+            strategies.WorkloadBalance,
+            "datasource_backend",
+            new_callable=mock.PropertyMock,
+        )
         self.m_datasource = p_datasource.start()
         self.addCleanup(p_datasource.stop)
 
         self.m_datasource.return_value = mock.Mock(
-            statistic_aggregation=self.fake_metrics.mock_get_statistics_wb)
+            statistic_aggregation=self.fake_metrics.mock_get_statistics_wb
+        )
         self.strategy = strategies.WorkloadBalance(
-            config=mock.Mock(datasource=self.datasource))
+            config=mock.Mock(datasource=self.datasource)
+        )
         self.strategy.input_parameters = utils.Struct()
-        self.strategy.input_parameters.update({'metrics': 'instance_cpu_usage',
-                                               'threshold': 25.0,
-                                               'period': 300,
-                                               'granularity': 300})
+        self.strategy.input_parameters.update(
+            {
+                'metrics': 'instance_cpu_usage',
+                'threshold': 25.0,
+                'period': 300,
+                'granularity': 300,
+            }
+        )
         self.strategy.threshold = 25.0
         self.strategy._period = 300
         self.strategy._meter = 'instance_cpu_usage'
@@ -86,10 +97,12 @@ class TestWorkloadBalance(TestBaseStrategy):
         self.m_c_model.return_value = model
         n1, n2, avg, w_map = self.strategy.group_hosts_by_cpu_or_ram_util()
         instance_to_mig = self.strategy.choose_instance_to_migrate(
-            n1, avg, w_map)
+            n1, avg, w_map
+        )
         self.assertEqual(instance_to_mig[0].uuid, 'Node_0')
-        self.assertEqual(instance_to_mig[1].uuid,
-                         "73b09e16-35b7-4922-804e-e8f5d9b740fc")
+        self.assertEqual(
+            instance_to_mig[1].uuid, "73b09e16-35b7-4922-804e-e8f5d9b740fc"
+        )
 
     def test_choose_instance_notfound(self):
         model = self.fake_c_cluster.generate_scenario_6_with_2_nodes()
@@ -98,7 +111,8 @@ class TestWorkloadBalance(TestBaseStrategy):
         instances = model.get_all_instances()
         [model.remove_instance(inst) for inst in instances.values()]
         instance_to_mig = self.strategy.choose_instance_to_migrate(
-            n1, avg, w_map)
+            n1, avg, w_map
+        )
         self.assertIsNone(instance_to_mig)
 
     @mock.patch.object(workload_balance.LOG, 'debug', autospec=True)
@@ -106,27 +120,45 @@ class TestWorkloadBalance(TestBaseStrategy):
         model = self.fake_c_cluster.generate_scenario_6_with_2_nodes()
         self.m_c_model.return_value = model
         self.strategy.datasource = mock.MagicMock(
-            statistic_aggregation=self.fake_metrics.mock_get_statistics_wb)
+            statistic_aggregation=self.fake_metrics.mock_get_statistics_wb
+        )
         n1, n2, avg, w_map = self.strategy.group_hosts_by_cpu_or_ram_util()
         instance_to_mig = self.strategy.choose_instance_to_migrate(
-            n1, avg, w_map)
+            n1, avg, w_map
+        )
         dest_hosts = self.strategy.filter_destination_hosts(
-            n2, instance_to_mig[1], avg, w_map)
+            n2, instance_to_mig[1], avg, w_map
+        )
         self.assertEqual(len(dest_hosts), 1)
         self.assertEqual(dest_hosts[0]['compute_node'].uuid, 'Node_1')
         expected_calls = [
-            mock.call('Host usage for %s: %s is %s. '
-                      'Higher than threshold %s: %s',
-                      'Node_0', 'host_cpu_usage_percent', 32.5, 25.0, True),
-            mock.call('Host usage for %s: %s is %s. '
-                      'Higher than threshold %s: %s',
-                      'Node_1', 'host_cpu_usage_percent', 7.5, 25.0, False),
-            mock.call('Host %s evaluated as destination for %s. '
-                      'Host usage for cpu would be %s.'
-                      'The threshold is: %s. selected: %s',
-                      'hostname_1',
-                      '73b09e16-35b7-4922-804e-e8f5d9b740fc',
-                      20.0, 25.0, True)]
+            mock.call(
+                'Host usage for %s: %s is %s. Higher than threshold %s: %s',
+                'Node_0',
+                'host_cpu_usage_percent',
+                32.5,
+                25.0,
+                True,
+            ),
+            mock.call(
+                'Host usage for %s: %s is %s. Higher than threshold %s: %s',
+                'Node_1',
+                'host_cpu_usage_percent',
+                7.5,
+                25.0,
+                False,
+            ),
+            mock.call(
+                'Host %s evaluated as destination for %s. '
+                'Host usage for cpu would be %s.'
+                'The threshold is: %s. selected: %s',
+                'hostname_1',
+                '73b09e16-35b7-4922-804e-e8f5d9b740fc',
+                20.0,
+                25.0,
+                True,
+            ),
+        ]
         mock_debug.assert_has_calls(expected_calls, any_order=True)
 
     @mock.patch.object(workload_balance.LOG, 'debug', autospec=True)
@@ -136,34 +168,51 @@ class TestWorkloadBalance(TestBaseStrategy):
         self.strategy._meter = 'instance_ram_usage'
         self.strategy.threshold = 30.0
         self.strategy.datasource = mock.MagicMock(
-            statistic_aggregation=self.fake_metrics.mock_get_statistics_wb)
+            statistic_aggregation=self.fake_metrics.mock_get_statistics_wb
+        )
         n1, n2, avg, w_map = self.strategy.group_hosts_by_cpu_or_ram_util()
         instance_to_mig = self.strategy.choose_instance_to_migrate(
-            n1, avg, w_map)
+            n1, avg, w_map
+        )
         dest_hosts = self.strategy.filter_destination_hosts(
-            n2, instance_to_mig[1], avg, w_map)
+            n2, instance_to_mig[1], avg, w_map
+        )
         self.assertEqual(len(dest_hosts), 1)
         self.assertEqual(dest_hosts[0]['compute_node'].uuid, 'Node_1')
         expected_calls = [
-            mock.call('Host usage for %s: %s is %s. '
-                      'Higher than threshold %s: %s',
-                      'Node_0', 'host_ram_usage_percent',
-                      37.121212121212125, 30.0, True),
-            mock.call('Host usage for %s: %s is %s. '
-                      'Higher than threshold %s: %s',
-                      'Node_1', 'host_ram_usage_percent',
-                      18.181818181818183, 30.0, False),
-            mock.call('Host %s evaluated as destination for %s. '
-                      'Host usage for ram would be %s.'
-                      'The threshold is: %s. selected: %s',
-                      'hostname_1',
-                      '73b09e16-35b7-4922-804e-e8f5d9b740fc',
-                      25.0, 30.0, True)]
+            mock.call(
+                'Host usage for %s: %s is %s. Higher than threshold %s: %s',
+                'Node_0',
+                'host_ram_usage_percent',
+                37.121212121212125,
+                30.0,
+                True,
+            ),
+            mock.call(
+                'Host usage for %s: %s is %s. Higher than threshold %s: %s',
+                'Node_1',
+                'host_ram_usage_percent',
+                18.181818181818183,
+                30.0,
+                False,
+            ),
+            mock.call(
+                'Host %s evaluated as destination for %s. '
+                'Host usage for ram would be %s.'
+                'The threshold is: %s. selected: %s',
+                'hostname_1',
+                '73b09e16-35b7-4922-804e-e8f5d9b740fc',
+                25.0,
+                30.0,
+                True,
+            ),
+        ]
         mock_debug.assert_has_calls(expected_calls, any_order=True)
 
     def test_execute_no_workload(self):
-        model = self.fake_c_cluster.\
-            generate_scenario_4_with_1_node_no_instance()
+        model = (
+            self.fake_c_cluster.generate_scenario_4_with_1_node_no_instance()
+        )
         self.m_c_model.return_value = model
         solution = self.strategy.execute()
         self.assertEqual([], solution.actions)
@@ -173,7 +222,8 @@ class TestWorkloadBalance(TestBaseStrategy):
         self.m_c_model.return_value = model
         solution = self.strategy.execute()
         actions_counter = collections.Counter(
-            [action.get('action_type') for action in solution.actions])
+            [action.get('action_type') for action in solution.actions]
+        )
 
         num_migrations = actions_counter.get("migrate", 0)
         self.assertEqual(num_migrations, 1)

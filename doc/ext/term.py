@@ -24,12 +24,29 @@ from watcher.version import version_string
 
 
 class BaseWatcherDirective(rst.Directive):
-
-    def __init__(self, name, arguments, options, content, lineno,
-                 content_offset, block_text, state, state_machine):
+    def __init__(
+        self,
+        name,
+        arguments,
+        options,
+        content,
+        lineno,
+        content_offset,
+        block_text,
+        state,
+        state_machine,
+    ):
         super().__init__(
-            name, arguments, options, content, lineno,
-            content_offset, block_text, state, state_machine)
+            name,
+            arguments,
+            options,
+            content,
+            lineno,
+            content_offset,
+            block_text,
+            state,
+            state_machine,
+        )
         self.result = statemachine.ViewList()
 
     def run(self):
@@ -143,7 +160,8 @@ class WatcherFunc(BaseWatcherDirective):
             error = self.state_machine.reporter.error(
                 f'The "{self.name}" directive is empty; content required.',
                 nodes.literal_block(self.block_text, self.block_text),
-                line=self.lineno)
+                line=self.lineno,
+            )
             return [error]
 
         func_path = self.content[0]
@@ -164,8 +182,9 @@ class WatcherFunc(BaseWatcherDirective):
         self.add_textblock(textblock)
 
         try:
-            node_class = getattr(nodes,
-                                 self.options.get('format', 'paragraph'))
+            node_class = getattr(
+                nodes, self.options.get('format', 'paragraph')
+            )
         except Exception as exc:
             raise self.error(exc)
 

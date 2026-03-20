@@ -30,7 +30,6 @@ from oslo_serialization import jsonutils
 
 
 class EfficacySpecification(metaclass=abc.ABCMeta):
-
     def __init__(self):
         self._indicators_specs = self.get_indicators_specifications()
 
@@ -63,11 +62,7 @@ class EfficacySpecification(metaclass=abc.ABCMeta):
     @property
     def schema(self):
         """Combined schema from the schema of the indicators"""
-        schema = {
-            "type": "object",
-            "properties": {},
-            "required": []
-        }
+        schema = {"type": "object", "properties": {}, "required": []}
         for indicator in self.indicators_specs:
             schema["properties"][indicator.name] = indicator.schema
             if indicator.required:
@@ -81,8 +76,7 @@ class EfficacySpecification(metaclass=abc.ABCMeta):
             True
 
     def get_indicators_specs_dicts(self):
-        return [indicator.to_dict()
-                for indicator in self.indicators_specs]
+        return [indicator.to_dict() for indicator in self.indicators_specs]
 
     def serialize_indicators_specs(self):
         return jsonutils.dumps(self.get_indicators_specs_dicts())

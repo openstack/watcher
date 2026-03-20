@@ -94,7 +94,6 @@ def hide_fields_in_newer_versions(obj):
 
 
 class ActionPlanPatchType(types.JsonPatchType):
-
     @staticmethod
     def _validate_state(patch):
         serialized_patch = {'path': patch.path, 'op': patch.op}
@@ -105,7 +104,8 @@ class ActionPlanPatchType(types.JsonPatchType):
         if state_value and not hasattr(ap_objects.State, state_value):
             msg = _("Invalid state: %(state)s")
             raise exception.PatchError(
-                patch=serialized_patch, reason=msg % dict(state=state_value))
+                patch=serialized_patch, reason=msg % dict(state=state_value)
+            )
 
     @staticmethod
     def validate(patch):
@@ -164,7 +164,8 @@ class ActionPlan(base.APIBase):
             try:
                 _efficacy_indicators = objects.EfficacyIndicator.list(
                     pecan.request.context,
-                    filters={"action_plan_uuid": self.uuid})
+                    filters={"action_plan_uuid": self.uuid},
+                )
 
                 for indicator in _efficacy_indicators:
                     efficacy_indicator = efficacyindicator.EfficacyIndicator(
@@ -187,11 +188,11 @@ class ActionPlan(base.APIBase):
         strategy = None
         try:
             if utils.is_uuid_like(value) or utils.is_int_like(value):
-                strategy = objects.Strategy.get(
-                    pecan.request.context, value)
+                strategy = objects.Strategy.get(pecan.request.context, value)
             else:
                 strategy = objects.Strategy.get_by_name(
-                    pecan.request.context, value)
+                    pecan.request.context, value
+                )
         except exception.StrategyNotFound:
             pass
         if strategy:
@@ -221,22 +222,27 @@ class ActionPlan(base.APIBase):
     uuid = wtypes.wsattr(types.uuid, readonly=True)
     """Unique UUID for this action plan"""
 
-    audit_uuid = wtypes.wsproperty(types.uuid, _get_audit_uuid,
-                                   _set_audit_uuid,
-                                   mandatory=True)
+    audit_uuid = wtypes.wsproperty(
+        types.uuid, _get_audit_uuid, _set_audit_uuid, mandatory=True
+    )
     """The UUID of the audit this port belongs to"""
 
     strategy_uuid = wtypes.wsproperty(
-        wtypes.text, _get_strategy_uuid, _set_strategy_uuid, mandatory=False)
+        wtypes.text, _get_strategy_uuid, _set_strategy_uuid, mandatory=False
+    )
     """Strategy UUID the action plan refers to"""
 
     strategy_name = wtypes.wsproperty(
-        wtypes.text, _get_strategy_name, _set_strategy_name, mandatory=False)
+        wtypes.text, _get_strategy_name, _set_strategy_name, mandatory=False
+    )
     """The name of the strategy this action plan refers to"""
 
     efficacy_indicators = wtypes.wsproperty(
-        types.jsontype, _get_efficacy_indicators, _set_efficacy_indicators,
-        mandatory=True)
+        types.jsontype,
+        _get_efficacy_indicators,
+        _set_efficacy_indicators,
+        mandatory=True,
+    )
     """The list of efficacy indicators associated to this action plan"""
 
     global_efficacy = wtypes.wsattr(types.jsontype, readonly=True)
@@ -278,40 +284,60 @@ class ActionPlan(base.APIBase):
     def _convert_with_links(action_plan, url, expand=True):
         if not expand:
             action_plan.unset_fields_except(
-                ['uuid', 'state', 'efficacy_indicators', 'global_efficacy',
-                 'updated_at', 'audit_uuid', 'strategy_uuid', 'strategy_name'])
+                [
+                    'uuid',
+                    'state',
+                    'efficacy_indicators',
+                    'global_efficacy',
+                    'updated_at',
+                    'audit_uuid',
+                    'strategy_uuid',
+                    'strategy_name',
+                ]
+            )
 
         action_plan.links = [
+            link.Link.make_link('self', url, 'action_plans', action_plan.uuid),
             link.Link.make_link(
-                'self', url,
-                'action_plans', action_plan.uuid),
-            link.Link.make_link(
-                'bookmark', url,
-                'action_plans', action_plan.uuid,
-                bookmark=True)]
+                'bookmark',
+                url,
+                'action_plans',
+                action_plan.uuid,
+                bookmark=True,
+            ),
+        ]
         return action_plan
 
     @classmethod
     def convert_with_links(cls, rpc_action_plan, expand=True):
         action_plan = ActionPlan(**rpc_action_plan.as_dict())
         hide_fields_in_newer_versions(action_plan)
-        return cls._convert_with_links(action_plan, pecan.request.host_url,
-                                       expand)
+        return cls._convert_with_links(
+            action_plan, pecan.request.host_url, expand
+        )
 
     @classmethod
     def sample(cls, expand=True):
-        sample = cls(uuid='9ef4d84c-41e8-4418-9220-ce55be0436af',
-                     state='ONGOING',
-                     created_at=timeutils.utcnow(),
-                     deleted_at=None,
-                     updated_at=timeutils.utcnow())
+        sample = cls(
+            uuid='9ef4d84c-41e8-4418-9220-ce55be0436af',
+            state='ONGOING',
+            created_at=timeutils.utcnow(),
+            deleted_at=None,
+            updated_at=timeutils.utcnow(),
+        )
         sample._audit_uuid = 'abcee106-14d3-4515-b744-5a26885cf6f6'
-        sample._efficacy_indicators = [{'description': 'Test indicator',
-                                        'name': 'test_indicator',
-                                        'unit': '%'}]
-        sample._global_efficacy = {'description': 'Global efficacy',
-                                   'name': 'test_global_efficacy',
-                                   'unit': '%'}
+        sample._efficacy_indicators = [
+            {
+                'description': 'Test indicator',
+                'name': 'test_indicator',
+                'unit': '%',
+            }
+        ]
+        sample._global_efficacy = {
+            'description': 'Global efficacy',
+            'name': 'test_global_efficacy',
+            'unit': '%',
+        }
         return cls._convert_with_links(sample, 'http://localhost:9322', expand)
 
 
@@ -325,11 +351,13 @@ class ActionPlanCollection(collection.Collection):
         self._type = 'action_plans'
 
     @staticmethod
-    def convert_with_links(rpc_action_plans, limit, url=None, expand=False,
-                           **kwargs):
+    def convert_with_links(
+        rpc_action_plans, limit, url=None, expand=False, **kwargs
+    ):
         ap_collection = ActionPlanCollection()
-        ap_collection.action_plans = [ActionPlan.convert_with_links(
-            p, expand) for p in rpc_action_plans]
+        ap_collection.action_plans = [
+            ActionPlan.convert_with_links(p, expand) for p in rpc_action_plans
+        ]
         ap_collection.next = ap_collection.get_next(limit, url=url, **kwargs)
         return ap_collection
 
@@ -347,26 +375,32 @@ class ActionPlansController(rest.RestController):
         super().__init__()
         self.applier_client = rpcapi.ApplierAPI()
 
-    _custom_actions = {
-        'start': ['POST'],
-        'detail': ['GET']
-    }
+    _custom_actions = {'start': ['POST'], 'detail': ['GET']}
 
-    def _get_action_plans_collection(self, marker, limit,
-                                     sort_key, sort_dir, expand=False,
-                                     resource_url=None, audit_uuid=None,
-                                     strategy=None):
+    def _get_action_plans_collection(
+        self,
+        marker,
+        limit,
+        sort_key,
+        sort_dir,
+        expand=False,
+        resource_url=None,
+        audit_uuid=None,
+        strategy=None,
+    ):
         additional_fields = ['audit_uuid', 'strategy_uuid', 'strategy_name']
 
         api_utils.validate_sort_key(
-            sort_key, list(objects.ActionPlan.fields) + additional_fields)
+            sort_key, list(objects.ActionPlan.fields) + additional_fields
+        )
         limit = api_utils.validate_limit(limit)
         api_utils.validate_sort_dir(sort_dir)
 
         marker_obj = None
         if marker:
             marker_obj = objects.ActionPlan.get_by_uuid(
-                pecan.request.context, marker)
+                pecan.request.context, marker
+            )
 
         filters = {}
         if audit_uuid:
@@ -378,31 +412,54 @@ class ActionPlansController(rest.RestController):
             else:
                 filters['strategy_name'] = strategy
 
-        need_api_sort = api_utils.check_need_api_sort(sort_key,
-                                                      additional_fields)
-        sort_db_key = (sort_key if not need_api_sort
-                       else None)
+        need_api_sort = api_utils.check_need_api_sort(
+            sort_key, additional_fields
+        )
+        sort_db_key = sort_key if not need_api_sort else None
 
         action_plans = objects.ActionPlan.list(
             pecan.request.context,
             limit,
-            marker_obj, sort_key=sort_db_key,
-            sort_dir=sort_dir, filters=filters)
+            marker_obj,
+            sort_key=sort_db_key,
+            sort_dir=sort_dir,
+            filters=filters,
+        )
 
         action_plans_collection = ActionPlanCollection.convert_with_links(
-            action_plans, limit, url=resource_url, expand=expand,
-            sort_key=sort_key, sort_dir=sort_dir)
+            action_plans,
+            limit,
+            url=resource_url,
+            expand=expand,
+            sort_key=sort_key,
+            sort_dir=sort_dir,
+        )
 
         if need_api_sort:
-            api_utils.make_api_sort(action_plans_collection.action_plans,
-                                    sort_key, sort_dir)
+            api_utils.make_api_sort(
+                action_plans_collection.action_plans, sort_key, sort_dir
+            )
 
         return action_plans_collection
 
-    @wsme_pecan.wsexpose(ActionPlanCollection, types.uuid, int, wtypes.text,
-                         wtypes.text, types.uuid, wtypes.text)
-    def get_all(self, marker=None, limit=None,
-                sort_key='id', sort_dir='asc', audit_uuid=None, strategy=None):
+    @wsme_pecan.wsexpose(
+        ActionPlanCollection,
+        types.uuid,
+        int,
+        wtypes.text,
+        wtypes.text,
+        types.uuid,
+        wtypes.text,
+    )
+    def get_all(
+        self,
+        marker=None,
+        limit=None,
+        sort_key='id',
+        sort_dir='asc',
+        audit_uuid=None,
+        strategy=None,
+    ):
         """Retrieve a list of action plans.
 
         :param marker: pagination marker for large data sets.
@@ -414,17 +471,37 @@ class ActionPlansController(rest.RestController):
         :param strategy: strategy UUID or name to filter by
         """
         context = pecan.request.context
-        policy.enforce(context, 'action_plan:get_all',
-                       action='action_plan:get_all')
+        policy.enforce(
+            context, 'action_plan:get_all', action='action_plan:get_all'
+        )
 
         return self._get_action_plans_collection(
-            marker, limit, sort_key, sort_dir,
-            audit_uuid=audit_uuid, strategy=strategy)
+            marker,
+            limit,
+            sort_key,
+            sort_dir,
+            audit_uuid=audit_uuid,
+            strategy=strategy,
+        )
 
-    @wsme_pecan.wsexpose(ActionPlanCollection, types.uuid, int, wtypes.text,
-                         wtypes.text, types.uuid, wtypes.text)
-    def detail(self, marker=None, limit=None,
-               sort_key='id', sort_dir='asc', audit_uuid=None, strategy=None):
+    @wsme_pecan.wsexpose(
+        ActionPlanCollection,
+        types.uuid,
+        int,
+        wtypes.text,
+        wtypes.text,
+        types.uuid,
+        wtypes.text,
+    )
+    def detail(
+        self,
+        marker=None,
+        limit=None,
+        sort_key='id',
+        sort_dir='asc',
+        audit_uuid=None,
+        strategy=None,
+    ):
         """Retrieve a list of action_plans with detail.
 
         :param marker: pagination marker for large data sets.
@@ -436,8 +513,9 @@ class ActionPlansController(rest.RestController):
         :param strategy: strategy UUID or name to filter by
         """
         context = pecan.request.context
-        policy.enforce(context, 'action_plan:detail',
-                       action='action_plan:detail')
+        policy.enforce(
+            context, 'action_plan:detail', action='action_plan:detail'
+        )
 
         # NOTE(lucasagomes): /detail should only work against collections
         parent = pecan.request.path.split('/')[:-1][-1]
@@ -447,8 +525,15 @@ class ActionPlansController(rest.RestController):
         expand = True
         resource_url = '/'.join(['action_plans', 'detail'])
         return self._get_action_plans_collection(
-            marker, limit, sort_key, sort_dir, expand,
-            resource_url, audit_uuid=audit_uuid, strategy=strategy)
+            marker,
+            limit,
+            sort_key,
+            sort_dir,
+            expand,
+            resource_url,
+            audit_uuid=audit_uuid,
+            strategy=strategy,
+        )
 
     @wsme_pecan.wsexpose(ActionPlan, types.uuid)
     def get_one(self, action_plan_uuid):
@@ -459,7 +544,8 @@ class ActionPlansController(rest.RestController):
         context = pecan.request.context
         action_plan = api_utils.get_resource('ActionPlan', action_plan_uuid)
         policy.enforce(
-            context, 'action_plan:get', action_plan, action='action_plan:get')
+            context, 'action_plan:get', action_plan, action='action_plan:get'
+        )
 
         return ActionPlan.convert_with_links(action_plan)
 
@@ -471,24 +557,29 @@ class ActionPlansController(rest.RestController):
         """
         context = pecan.request.context
         action_plan = api_utils.get_resource(
-            'ActionPlan', action_plan_uuid, eager=True)
-        policy.enforce(context, 'action_plan:delete', action_plan,
-                       action='action_plan:delete')
+            'ActionPlan', action_plan_uuid, eager=True
+        )
+        policy.enforce(
+            context,
+            'action_plan:delete',
+            action_plan,
+            action='action_plan:delete',
+        )
 
-        allowed_states = (ap_objects.State.SUCCEEDED,
-                          ap_objects.State.RECOMMENDED,
-                          ap_objects.State.FAILED,
-                          ap_objects.State.SUPERSEDED,
-                          ap_objects.State.CANCELLED)
+        allowed_states = (
+            ap_objects.State.SUCCEEDED,
+            ap_objects.State.RECOMMENDED,
+            ap_objects.State.FAILED,
+            ap_objects.State.SUPERSEDED,
+            ap_objects.State.CANCELLED,
+        )
         if action_plan.state not in allowed_states:
-            raise exception.DeleteError(
-                state=action_plan.state)
+            raise exception.DeleteError(state=action_plan.state)
 
         action_plan.soft_delete()
 
     @wsme.validate(types.uuid, [ActionPlanPatchType])
-    @wsme_pecan.wsexpose(ActionPlan, types.uuid,
-                         body=[ActionPlanPatchType])
+    @wsme_pecan.wsexpose(ActionPlan, types.uuid, body=[ActionPlanPatchType])
     def patch(self, action_plan_uuid, patch):
         """Update an existing action plan.
 
@@ -497,14 +588,20 @@ class ActionPlansController(rest.RestController):
         """
         context = pecan.request.context
         action_plan_to_update = api_utils.get_resource(
-            'ActionPlan', action_plan_uuid, eager=True)
-        policy.enforce(context, 'action_plan:update', action_plan_to_update,
-                       action='action_plan:update')
+            'ActionPlan', action_plan_uuid, eager=True
+        )
+        policy.enforce(
+            context,
+            'action_plan:update',
+            action_plan_to_update,
+            action='action_plan:update',
+        )
 
         try:
             action_plan_dict = action_plan_to_update.as_dict()
-            action_plan = ActionPlan(**api_utils.apply_jsonpatch(
-                action_plan_dict, patch))
+            action_plan = ActionPlan(
+                **api_utils.apply_jsonpatch(action_plan_dict, patch)
+            )
         except api_utils.JSONPATCH_EXCEPTIONS as e:
             raise exception.PatchError(patch=patch, reason=e)
 
@@ -513,27 +610,28 @@ class ActionPlansController(rest.RestController):
 
         # transitions that are allowed via PATCH
         allowed_patch_transitions = [
-            (ap_objects.State.RECOMMENDED,
-             ap_objects.State.PENDING),
-            (ap_objects.State.RECOMMENDED,
-             ap_objects.State.CANCELLED),
-            (ap_objects.State.ONGOING,
-             ap_objects.State.CANCELLING),
-            (ap_objects.State.PENDING,
-             ap_objects.State.CANCELLED),
+            (ap_objects.State.RECOMMENDED, ap_objects.State.PENDING),
+            (ap_objects.State.RECOMMENDED, ap_objects.State.CANCELLED),
+            (ap_objects.State.ONGOING, ap_objects.State.CANCELLING),
+            (ap_objects.State.PENDING, ap_objects.State.CANCELLED),
         ]
 
         # todo: improve this in blueprint watcher-api-validation
         if hasattr(action_plan, 'state'):
             transition = (action_plan_to_update.state, action_plan.state)
             if transition not in allowed_patch_transitions:
-                error_message = _("State transition not allowed: "
-                                  "(%(initial_state)s -> %(new_state)s)")
+                error_message = _(
+                    "State transition not allowed: "
+                    "(%(initial_state)s -> %(new_state)s)"
+                )
                 raise exception.PatchError(
                     patch=patch,
-                    reason=error_message % dict(
+                    reason=error_message
+                    % dict(
                         initial_state=action_plan_to_update.state,
-                        new_state=action_plan.state))
+                        new_state=action_plan.state,
+                    ),
+                )
 
             if action_plan.state == ap_objects.State.PENDING:
                 launch_action_plan = True
@@ -552,8 +650,10 @@ class ActionPlansController(rest.RestController):
             if action_plan_to_update[field] != patch_val:
                 action_plan_to_update[field] = patch_val
 
-            if (field == 'state' and
-                    patch_val == objects.action_plan.State.PENDING):
+            if (
+                field == 'state'
+                and patch_val == objects.action_plan.State.PENDING
+            ):
                 launch_action_plan = True
 
         action_plan_to_update.save()
@@ -562,19 +662,21 @@ class ActionPlansController(rest.RestController):
         # state update action state here only
         if cancel_action_plan:
             filters = {'action_plan_uuid': action_plan.uuid}
-            actions = objects.Action.list(pecan.request.context,
-                                          filters=filters, eager=True)
+            actions = objects.Action.list(
+                pecan.request.context, filters=filters, eager=True
+            )
             for a in actions:
                 a.state = objects.action.State.CANCELLED
                 a.save()
 
         if launch_action_plan:
-            self.applier_client.launch_action_plan(pecan.request.context,
-                                                   action_plan.uuid)
+            self.applier_client.launch_action_plan(
+                pecan.request.context, action_plan.uuid
+            )
 
         action_plan_to_update = objects.ActionPlan.get_by_uuid(
-            pecan.request.context,
-            action_plan_uuid)
+            pecan.request.context, action_plan_uuid
+        )
         return ActionPlan.convert_with_links(action_plan_to_update)
 
     @wsme_pecan.wsexpose(ActionPlan, types.uuid)
@@ -585,23 +687,31 @@ class ActionPlansController(rest.RestController):
         """
 
         action_plan_to_start = api_utils.get_resource(
-            'ActionPlan', action_plan_uuid, eager=True)
+            'ActionPlan', action_plan_uuid, eager=True
+        )
         context = pecan.request.context
 
-        policy.enforce(context, 'action_plan:start', action_plan_to_start,
-                       action='action_plan:start')
+        policy.enforce(
+            context,
+            'action_plan:start',
+            action_plan_to_start,
+            action='action_plan:start',
+        )
 
-        if action_plan_to_start['state'] != \
-                objects.action_plan.State.RECOMMENDED:
-            raise exception.StartError(
-                state=action_plan_to_start.state)
+        if (
+            action_plan_to_start['state']
+            != objects.action_plan.State.RECOMMENDED
+        ):
+            raise exception.StartError(state=action_plan_to_start.state)
 
         action_plan_to_start['state'] = objects.action_plan.State.PENDING
         action_plan_to_start.save()
 
-        self.applier_client.launch_action_plan(pecan.request.context,
-                                               action_plan_uuid)
+        self.applier_client.launch_action_plan(
+            pecan.request.context, action_plan_uuid
+        )
         action_plan_to_start = objects.ActionPlan.get_by_uuid(
-            pecan.request.context, action_plan_uuid)
+            pecan.request.context, action_plan_uuid
+        )
 
         return ActionPlan.convert_with_links(action_plan_to_start)

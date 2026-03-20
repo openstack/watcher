@@ -26,20 +26,22 @@ from watcher.tests.unit.db import utils
 
 
 class TestActionDescriptionObject(base.DbTestCase):
-
     def setUp(self):
         super().setUp()
         self.fake_action_desc = utils.get_test_action_desc(
-            created_at=timeutils.utcnow())
+            created_at=timeutils.utcnow()
+        )
 
     @mock.patch.object(db_api.Connection, 'get_action_description_by_id')
     def test_get_by_id(self, mock_get_action_desc):
         action_desc_id = self.fake_action_desc['id']
         mock_get_action_desc.return_value = self.fake_action_desc
         action_desc = objects.ActionDescription.get(
-            self.context, action_desc_id)
+            self.context, action_desc_id
+        )
         mock_get_action_desc.assert_called_once_with(
-            self.context, action_desc_id)
+            self.context, action_desc_id
+        )
         self.assertEqual(self.context, action_desc._context)
 
     @mock.patch.object(db_api.Connection, 'get_action_description_list')
@@ -55,12 +57,14 @@ class TestActionDescriptionObject(base.DbTestCase):
     def test_create(self, mock_create_action_desc):
         mock_create_action_desc.return_value = self.fake_action_desc
         action_desc = objects.ActionDescription(
-            self.context, **self.fake_action_desc)
+            self.context, **self.fake_action_desc
+        )
 
         action_desc.create()
         expected_action_desc = self.fake_action_desc.copy()
         expected_action_desc['created_at'] = expected_action_desc[
-            'created_at'].replace(tzinfo=datetime.timezone.utc)
+            'created_at'
+        ].replace(tzinfo=datetime.timezone.utc)
 
         mock_create_action_desc.assert_called_once_with(expected_action_desc)
         self.assertEqual(self.context, action_desc._context)
@@ -79,17 +83,19 @@ class TestActionDescriptionObject(base.DbTestCase):
 
         mock_get_action_desc.assert_called_once_with(self.context, _id)
         mock_update_action_desc.assert_called_once_with(
-            _id, {'description': 'This is a test'})
+            _id, {'description': 'This is a test'}
+        )
         self.assertEqual(self.context, action_desc._context)
 
     @mock.patch.object(db_api.Connection, 'get_action_description_by_id')
     def test_refresh(self, mock_get_action_desc):
-        returns = [dict(self.fake_action_desc, description="Test message1"),
-                   dict(self.fake_action_desc, description="Test message2")]
+        returns = [
+            dict(self.fake_action_desc, description="Test message1"),
+            dict(self.fake_action_desc, description="Test message2"),
+        ]
         mock_get_action_desc.side_effect = returns
         _id = self.fake_action_desc['id']
-        expected = [mock.call(self.context, _id),
-                    mock.call(self.context, _id)]
+        expected = [mock.call(self.context, _id), mock.call(self.context, _id)]
         action_desc = objects.ActionDescription.get(self.context, _id)
         self.assertEqual("Test message1", action_desc.description)
         action_desc.refresh()
@@ -107,9 +113,11 @@ class TestActionDescriptionObject(base.DbTestCase):
 
         expected_action_desc = fake_deleted_action_desc.copy()
         expected_action_desc['created_at'] = expected_action_desc[
-            'created_at'].replace(tzinfo=datetime.timezone.utc)
+            'created_at'
+        ].replace(tzinfo=datetime.timezone.utc)
         expected_action_desc['deleted_at'] = expected_action_desc[
-            'deleted_at'].replace(tzinfo=datetime.timezone.utc)
+            'deleted_at'
+        ].replace(tzinfo=datetime.timezone.utc)
 
         _id = self.fake_action_desc['id']
         action_desc = objects.ActionDescription.get(self.context, _id)

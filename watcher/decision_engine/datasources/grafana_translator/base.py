@@ -72,26 +72,31 @@ class BaseGrafanaTranslator:
             'resource_type': None,
             'period': None,
             'aggregate': None,
-            'granularity': None
+            'granularity': None,
         }
         reference_data.update(self._data)
 
         for key, value in reference_data.items():
             if value is None and key not in optionals:
                 raise exception.InvalidParameter(
-                    message=(_("The value %(value)s for parameter "
-                               "%(parameter)s is invalid") % {'value': None,
-                                                              'parameter': key}
-                             )
+                    message=(
+                        _(
+                            "The value %(value)s for parameter "
+                            "%(parameter)s is invalid"
+                        )
+                        % {'value': None, 'parameter': key}
+                    )
                 )
 
         if reference_data['resource_type'] not in self.RESOURCE_TYPES:
-            raise exception.InvalidParameter(parameter='resource_type',
-                                             parameter_type='RESOURCE_TYPES')
+            raise exception.InvalidParameter(
+                parameter='resource_type', parameter_type='RESOURCE_TYPES'
+            )
 
         if reference_data['aggregate'] not in self.AGGREGATES:
-            raise exception.InvalidParameter(parameter='aggregate',
-                                             parameter_type='AGGREGATES')
+            raise exception.InvalidParameter(
+                parameter='aggregate', parameter_type='AGGREGATES'
+            )
 
     @staticmethod
     def _extract_attribute(resource, attribute):
@@ -108,10 +113,12 @@ class BaseGrafanaTranslator:
             raise
 
     @staticmethod
-    def _query_format(query, aggregate, resource, period,
-                      granularity, translator_specific):
-        return query.format(aggregate, resource, period, granularity,
-                            translator_specific)
+    def _query_format(
+        query, aggregate, resource, period, granularity, translator_specific
+    ):
+        return query.format(
+            aggregate, resource, period, granularity, translator_specific
+        )
 
     @abc.abstractmethod
     def build_params(self):

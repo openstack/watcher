@@ -43,8 +43,9 @@ class DefaultSolution(base.BaseSolution):
     def add_action(self, action_type, input_parameters=None, resource_id=None):
         if input_parameters is not None:
             if baction.BaseAction.RESOURCE_ID in input_parameters.keys():
-                raise exception.ReservedWord(name=baction.BaseAction.
-                                             RESOURCE_ID)
+                raise exception.ReservedWord(
+                    name=baction.BaseAction.RESOURCE_ID
+                )
         else:
             input_parameters = {}
 
@@ -52,13 +53,16 @@ class DefaultSolution(base.BaseSolution):
             input_parameters[baction.BaseAction.RESOURCE_ID] = resource_id
         action = {
             'action_type': action_type,
-            'input_parameters': input_parameters
+            'input_parameters': input_parameters,
         }
         if action not in self._actions:
             self._actions.append(action)
         else:
-            LOG.warning('Action %s has been added into the solution, '
-                        'duplicate action will be dropped.', str(action))
+            LOG.warning(
+                'Action %s has been added into the solution, '
+                'duplicate action will be dropped.',
+                str(action),
+            )
 
     def __str__(self):
         return "\n".join(self._actions)

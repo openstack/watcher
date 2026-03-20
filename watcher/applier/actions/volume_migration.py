@@ -42,12 +42,14 @@ class VolumeMigrate(base.BaseAction):
 
     The action schema is::
 
-        schema = Schema({
-            'resource_id': str,  # should be a UUID
-            'migration_type': str,  # choices -> "swap", "migrate","retype"
-            'destination_node': str,
-            'destination_type': str,
-        })
+        schema = Schema(
+            {
+                'resource_id': str,  # should be a UUID
+                'migration_type': str,  # choices -> "swap", "migrate","retype"
+                'destination_node': str,
+                'destination_type': str,
+            }
+        )
 
     The `resource_id` is the UUID of cinder volume to migrate.
     The `destination_node` is the destination block storage pool name.
@@ -80,30 +82,29 @@ class VolumeMigrate(base.BaseAction):
                 'resource_id': {
                     'type': 'string',
                     "minlength": 1,
-                    "pattern": ("^([a-fA-F0-9]){8}-([a-fA-F0-9]){4}-"
-                                "([a-fA-F0-9]){4}-([a-fA-F0-9]){4}-"
-                                "([a-fA-F0-9]){12}$")
+                    "pattern": (
+                        "^([a-fA-F0-9]){8}-([a-fA-F0-9]){4}-"
+                        "([a-fA-F0-9]){4}-([a-fA-F0-9]){4}-"
+                        "([a-fA-F0-9]){12}$"
+                    ),
                 },
-                'resource_name': {
-                    'type': 'string',
-                    "minlength": 1
-                },
+                'resource_name': {'type': 'string', "minlength": 1},
                 'migration_type': {
                     'type': 'string',
-                    "enum": ["swap", "retype", "migrate"]
+                    "enum": ["swap", "retype", "migrate"],
                 },
                 'destination_node': {
                     "anyof": [
                         {'type': 'string', "minLength": 1},
-                        {'type': 'None'}
-                        ]
+                        {'type': 'None'},
+                    ]
                 },
                 'destination_type': {
                     "anyof": [
                         {'type': 'string', "minLength": 1},
-                        {'type': 'None'}
-                        ]
-                }
+                        {'type': 'None'},
+                    ]
+                },
             },
             'required': ['resource_id', 'migration_type'],
             'additionalProperties': False,
@@ -149,21 +150,26 @@ class VolumeMigrate(base.BaseAction):
         except exception.ComputeResourceNotFound:
             LOG.debug(
                 "Could not find instance %s, could not determine whether"
-                "it's safe to migrate", instance_id
+                "it's safe to migrate",
+                instance_id,
             )
             return False
         instance_status = instance.status
         LOG.debug(
-            "volume: %s is attached to instance: %s "
-            "in instance status: %s",
-            volume.id, instance_id, instance_status)
+            "volume: %s is attached to instance: %s in instance status: %s",
+            volume.id,
+            instance_id,
+            instance_status,
+        )
         # NOTE(sean-k-mooney): This used to allow RESIZED which
         # is the resize_verify task state, that is not an acceptable time
         # to migrate volumes, if nova does not block this in the API
         # today that is probably a bug. PAUSED is also questionable but
         # it should generally be safe.
-        return (volume.status == 'in-use' and
-                instance_status in ('ACTIVE', 'PAUSED'))
+        return volume.status == 'in-use' and instance_status in (
+            'ACTIVE',
+            'PAUSED',
+        )
 
     def _migrate(self, volume_id, dest_node, dest_type):
         try:
@@ -172,15 +178,21 @@ class VolumeMigrate(base.BaseAction):
             if self.migration_type in (self.SWAP, self.MIGRATE):
                 if not self._can_swap(volume):
                     raise exception.Invalid(
-                        message=(_("Invalid state for swapping volume")))
+                        message=(_("Invalid state for swapping volume"))
+                    )
                 return self.cinder_util.migrate(volume, dest_node)
             elif self.migration_type == self.RETYPE:
                 return self.cinder_util.retype(volume, dest_type)
             else:
                 raise exception.Invalid(
-                    message=(_("Migration of type '%(migration_type)s' is not "
-                               "supported.") %
-                             {'migration_type': self.migration_type}))
+                    message=(
+                        _(
+                            "Migration of type '%(migration_type)s' is not "
+                            "supported."
+                        )
+                        % {'migration_type': self.migration_type}
+                    )
+                )
         except exception.Invalid as ei:
             LOG.exception(ei)
             return False
@@ -190,9 +202,9 @@ class VolumeMigrate(base.BaseAction):
             return False
 
     def execute(self):
-        return self._migrate(self.volume_id,
-                             self.destination_node,
-                             self.destination_type)
+        return self._migrate(
+            self.volume_id, self.destination_node, self.destination_type
+        )
 
     def revert(self):
         LOG.warning("revert not supported")
@@ -215,7 +227,8 @@ class VolumeMigrate(base.BaseAction):
             volume = self.cinder_util.get_volume(self.volume_id)
         except cinder_exception.NotFound:
             raise exception.ActionSkipped(
-                _("Volume %s not found") % self.volume_id)
+                _("Volume %s not found") % self.volume_id
+            )
 
         # Check if destination_type exists (if specified)
         if self.destination_type:
@@ -223,31 +236,40 @@ class VolumeMigrate(base.BaseAction):
             type_names = [vt.name for vt in volume_types]
             if self.destination_type not in type_names:
                 raise exception.ActionExecutionFailure(
-                    _("Volume type %s not found") % self.destination_type)
+                    _("Volume type %s not found") % self.destination_type
+                )
 
         # Check if destination_node (pool) exists (if specified)
         if self.destination_node:
             try:
                 self.cinder_util.get_storage_pool_by_name(
-                    self.destination_node)
+                    self.destination_node
+                )
             except exception.PoolNotFound:
                 raise exception.ActionExecutionFailure(
-                    _("Pool %s not found") % self.destination_node)
+                    _("Pool %s not found") % self.destination_node
+                )
 
         # Check if retype to same type
-        if (self.migration_type == self.RETYPE and
-                self.destination_type and
-                volume.volume_type == self.destination_type):
+        if (
+            self.migration_type == self.RETYPE
+            and self.destination_type
+            and volume.volume_type == self.destination_type
+        ):
             raise exception.ActionSkipped(
-                _("Volume type is already %s") % self.destination_type)
+                _("Volume type is already %s") % self.destination_type
+            )
 
         # Check if migrate to same node
-        if (self.migration_type in (self.SWAP, self.MIGRATE) and
-                self.destination_node):
+        if (
+            self.migration_type in (self.SWAP, self.MIGRATE)
+            and self.destination_node
+        ):
             current_host = getattr(volume, 'os-vol-host-attr:host')
             if current_host == self.destination_node:
                 raise exception.ActionSkipped(
-                    _("Volume is already on node %s") % self.destination_node)
+                    _("Volume is already on node %s") % self.destination_node
+                )
 
     def post_condition(self):
         pass

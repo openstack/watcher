@@ -31,11 +31,14 @@ from watcher.tests.unit.decision_engine.strategy.strategies.test_base import (
 
 
 class TestBasicConsolidation(TestBaseStrategy):
-
     scenarios = [
-        ("Gnocchi",
-         {"datasource": "gnocchi",
-          "fake_datasource_cls": gnocchi_metrics.FakeGnocchiMetrics}),
+        (
+            "Gnocchi",
+            {
+                "datasource": "gnocchi",
+                "fake_datasource_cls": gnocchi_metrics.FakeGnocchiMetrics,
+            },
+        )
     ]
 
     def setUp(self):
@@ -43,28 +46,30 @@ class TestBasicConsolidation(TestBaseStrategy):
         # fake metrics
         self.fake_metrics = self.fake_datasource_cls()
 
-        p_osc = mock.patch.object(
-            clients, "OpenStackClients")
+        p_osc = mock.patch.object(clients, "OpenStackClients")
         self.m_osc = p_osc.start()
         self.addCleanup(p_osc.stop)
 
         p_datasource = mock.patch.object(
-            strategies.BasicConsolidation, 'datasource_backend',
-            new_callable=mock.PropertyMock)
+            strategies.BasicConsolidation,
+            'datasource_backend',
+            new_callable=mock.PropertyMock,
+        )
         self.m_datasource = p_datasource.start()
         self.addCleanup(p_datasource.stop)
 
         self.m_datasource.return_value = mock.Mock(
             get_host_cpu_usage=self.fake_metrics.get_usage_compute_node_cpu,
-            get_instance_cpu_usage=self.fake_metrics.
-            get_average_usage_instance_cpu
+            get_instance_cpu_usage=self.fake_metrics.get_average_usage_instance_cpu,
         )
         self.strategy = strategies.BasicConsolidation(
-            config=mock.Mock(datasource=self.datasource))
+            config=mock.Mock(datasource=self.datasource)
+        )
 
     def test_cluster_size(self):
         size_cluster = len(
-            self.fake_c_cluster.generate_scenario_1().get_all_compute_nodes())
+            self.fake_c_cluster.generate_scenario_1().get_all_compute_nodes()
+        )
         size_cluster_assert = 5
         self.assertEqual(size_cluster_assert, size_cluster)
 
@@ -72,14 +77,26 @@ class TestBasicConsolidation(TestBaseStrategy):
         model = self.fake_c_cluster.generate_scenario_1()
         self.m_c_model.return_value = model
         node_1_score = 0.023333333333333317
-        self.assertEqual(node_1_score, self.strategy.calculate_score_node(
-            model.get_node_by_uuid("Node_1")))
+        self.assertEqual(
+            node_1_score,
+            self.strategy.calculate_score_node(
+                model.get_node_by_uuid("Node_1")
+            ),
+        )
         node_2_score = 0.26666666666666666
-        self.assertEqual(node_2_score, self.strategy.calculate_score_node(
-            model.get_node_by_uuid("Node_2")))
+        self.assertEqual(
+            node_2_score,
+            self.strategy.calculate_score_node(
+                model.get_node_by_uuid("Node_2")
+            ),
+        )
         node_0_score = 0.023333333333333317
-        self.assertEqual(node_0_score, self.strategy.calculate_score_node(
-            model.get_node_by_uuid("Node_0")))
+        self.assertEqual(
+            node_0_score,
+            self.strategy.calculate_score_node(
+                model.get_node_by_uuid("Node_0")
+            ),
+        )
 
     def test_basic_consolidation_score_instance(self):
         model = self.fake_c_cluster.generate_scenario_1()
@@ -90,35 +107,40 @@ class TestBasicConsolidation(TestBaseStrategy):
         instance_0_score = 0.023333333333333317
         self.assertEqual(
             instance_0_score,
-            self.strategy.calculate_score_instance(instance_0))
+            self.strategy.calculate_score_instance(instance_0),
+        )
         instance_1 = model.get_instance_by_uuid(
             "d010ef1f-dc19-4982-9383-087498bfde03"
         )
         instance_1_score = 0.023333333333333317
         self.assertEqual(
             instance_1_score,
-            self.strategy.calculate_score_instance(instance_1))
+            self.strategy.calculate_score_instance(instance_1),
+        )
         instance_2 = model.get_instance_by_uuid(
             "d020ef1f-dc19-4982-9383-087498bfde03"
         )
         instance_2_score = 0.033333333333333326
         self.assertEqual(
             instance_2_score,
-            self.strategy.calculate_score_instance(instance_2))
+            self.strategy.calculate_score_instance(instance_2),
+        )
         instance_6 = model.get_instance_by_uuid(
             "d060ef1f-dc19-4982-9383-087498bfde03"
         )
         instance_6_score = 0.02666666666666669
         self.assertEqual(
             instance_6_score,
-            self.strategy.calculate_score_instance(instance_6))
+            self.strategy.calculate_score_instance(instance_6),
+        )
         instance_7 = model.get_instance_by_uuid(
             "d070ef1f-dc19-4982-9383-087498bfde03"
         )
         instance_7_score = 0.013333333333333345
         self.assertEqual(
             instance_7_score,
-            self.strategy.calculate_score_instance(instance_7))
+            self.strategy.calculate_score_instance(instance_7),
+        )
 
     def test_basic_consolidation_score_instance_disk(self):
         model = self.fake_c_cluster.generate_scenario_5_with_instance_disk_0()
@@ -127,7 +149,8 @@ class TestBasicConsolidation(TestBaseStrategy):
         instance_0_score = 0.023333333333333355
         self.assertEqual(
             instance_0_score,
-            self.strategy.calculate_score_instance(instance_0))
+            self.strategy.calculate_score_instance(instance_0),
+        )
 
     def test_basic_consolidation_weight(self):
         model = self.fake_c_cluster.generate_scenario_1()
@@ -143,7 +166,8 @@ class TestBasicConsolidation(TestBaseStrategy):
         instance_0_weight_assert = 3.1999999999999997
         self.assertEqual(
             instance_0_weight_assert,
-            self.strategy.calculate_weight(instance_0, cores, disk, mem))
+            self.strategy.calculate_weight(instance_0, cores, disk, mem),
+        )
 
     def test_check_migration(self):
         model = self.fake_c_cluster.generate_scenario_3_with_2_nodes()
@@ -163,15 +187,19 @@ class TestBasicConsolidation(TestBaseStrategy):
         all_nodes = model.get_all_compute_nodes()
         node0 = all_nodes[list(all_nodes.keys())[0]]
 
-        self.assertFalse(self.strategy.check_threshold(
-            node0, 1000, 1000, 1000))
+        self.assertFalse(
+            self.strategy.check_threshold(node0, 1000, 1000, 1000)
+        )
 
     def test_basic_consolidation_works_on_model_copy(self):
         model = self.fake_c_cluster.generate_scenario_3_with_2_nodes()
         self.m_c_model.return_value = copy.deepcopy(model)
 
-        self.assertTrue(model_root.ModelRoot.is_isomorphic(
-            model, self.strategy.compute_model))
+        self.assertTrue(
+            model_root.ModelRoot.is_isomorphic(
+                model, self.strategy.compute_model
+            )
+        )
         self.assertIsNot(model, self.strategy.compute_model)
 
     def test_basic_consolidation_migration(self):
@@ -181,14 +209,16 @@ class TestBasicConsolidation(TestBaseStrategy):
         solution = self.strategy.execute()
 
         actions_counter = collections.Counter(
-            [action.get('action_type') for action in solution.actions])
+            [action.get('action_type') for action in solution.actions]
+        )
 
         expected_num_migrations = 1
         expected_power_state = 1
 
         num_migrations = actions_counter.get("migrate", 0)
         num_node_state_change = actions_counter.get(
-            "change_nova_service_state", 0)
+            "change_nova_service_state", 0
+        )
         self.assertEqual(expected_num_migrations, num_migrations)
         self.assertEqual(expected_power_state, num_node_state_change)
 
@@ -199,7 +229,8 @@ class TestBasicConsolidation(TestBaseStrategy):
         solution = self.strategy.execute()
 
         actions_counter = collections.Counter(
-            [action.get('action_type') for action in solution.actions])
+            [action.get('action_type') for action in solution.actions]
+        )
 
         expected_num_migrations = 5
         expected_power_state = 3
@@ -207,7 +238,8 @@ class TestBasicConsolidation(TestBaseStrategy):
 
         num_migrations = actions_counter.get("migrate", 0)
         num_node_state_change = actions_counter.get(
-            "change_nova_service_state", 0)
+            "change_nova_service_state", 0
+        )
 
         global_efficacy_value = solution.global_efficacy[0].get('value', 0)
 
@@ -218,8 +250,8 @@ class TestBasicConsolidation(TestBaseStrategy):
     # calculate_weight
     def test_execute_no_workload(self):
         model = (
-            self.fake_c_cluster
-            .generate_scenario_4_with_1_node_no_instance())
+            self.fake_c_cluster.generate_scenario_4_with_1_node_no_instance()
+        )
         self.m_c_model.return_value = model
 
         with mock.patch.object(
@@ -228,8 +260,9 @@ class TestBasicConsolidation(TestBaseStrategy):
             mock_score_call.return_value = 0
             solution = self.strategy.execute()
 
-            self.assertEqual(0,
-                             solution.efficacy.global_efficacy[0].get('value'))
+            self.assertEqual(
+                0, solution.efficacy.global_efficacy[0].get('value')
+            )
 
     def test_check_parameters(self):
         model = self.fake_c_cluster.generate_scenario_3_with_2_nodes()
@@ -244,14 +277,19 @@ class TestBasicConsolidation(TestBaseStrategy):
     def test_parameter_backwards_compat(self):
         # Set the deprecated node values to a none default value
         self.strategy.input_parameters.update(
-            {'aggregation_method': {
-                "instance": "mean",
-                "compute_node": "mean",
-                "node": 'min'}})
+            {
+                'aggregation_method': {
+                    "instance": "mean",
+                    "compute_node": "mean",
+                    "node": 'min',
+                }
+            }
+        )
 
         # Pre execute method handles backwards compatibility of parameters
         self.strategy.pre_execute()
 
         # assert that the compute_node values are updated to the those of node
         self.assertEqual(
-            'min', self.strategy.aggregation_method['compute_node'])
+            'min', self.strategy.aggregation_method['compute_node']
+        )

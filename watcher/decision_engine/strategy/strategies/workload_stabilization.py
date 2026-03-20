@@ -41,9 +41,9 @@ def _set_memoize(conf):
     oslo_cache.configure(conf)
     region = oslo_cache.create_region()
     configured_region = oslo_cache.configure_cache_region(conf, region)
-    return oslo_cache.core.get_memoization_decorator(conf,
-                                                     configured_region,
-                                                     'cache')
+    return oslo_cache.core.get_memoization_decorator(
+        conf, configured_region, 'cache'
+    )
 
 
 class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
@@ -70,8 +70,12 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
 
     MEMOIZE = _set_memoize(CONF)
 
-    DATASOURCE_METRICS = ['host_cpu_usage', 'instance_cpu_usage',
-                          'instance_ram_usage', 'host_ram_usage']
+    DATASOURCE_METRICS = [
+        'host_cpu_usage',
+        'instance_cpu_usage',
+        'instance_ram_usage',
+        'host_ram_usage',
+    ]
 
     def __init__(self, config, osc=None):
         """Workload Stabilization control using live migration
@@ -119,96 +123,96 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                     "type": "array",
                     "items": {
                         "type": "string",
-                        "enum": ["instance_cpu_usage", "instance_ram_usage"]
+                        "enum": ["instance_cpu_usage", "instance_ram_usage"],
                     },
-                    "default": ["instance_cpu_usage"]
+                    "default": ["instance_cpu_usage"],
                 },
                 "thresholds": {
                     "description": "Dict where key is a metric and value "
-                                   "is a trigger value.",
+                    "is a trigger value.",
                     "type": "object",
                     "properties": {
                         "instance_cpu_usage": {
                             "type": "number",
                             "minimum": 0,
-                            "maximum": 1
+                            "maximum": 1,
                         },
                         "instance_ram_usage": {
                             "type": "number",
                             "minimum": 0,
-                            "maximum": 1
-                        }
+                            "maximum": 1,
+                        },
                     },
-                    "default": {"instance_cpu_usage": 0.1,
-                                "instance_ram_usage": 0.1}
+                    "default": {
+                        "instance_cpu_usage": 0.1,
+                        "instance_ram_usage": 0.1,
+                    },
                 },
                 "weights": {
                     "description": "These weights used to calculate "
-                                   "common standard deviation. Name of weight"
-                                   " contains meter name and _weight suffix.",
+                    "common standard deviation. Name of weight"
+                    " contains meter name and _weight suffix.",
                     "type": "object",
                     "properties": {
                         "instance_cpu_usage_weight": {
                             "type": "number",
                             "minimum": 0,
-                            "maximum": 1
+                            "maximum": 1,
                         },
                         "instance_ram_usage_weight": {
                             "type": "number",
                             "minimum": 0,
-                            "maximum": 1
-                        }
+                            "maximum": 1,
+                        },
                     },
-                    "default": {"instance_cpu_usage_weight": 1.0,
-                                "instance_ram_usage_weight": 1.0}
+                    "default": {
+                        "instance_cpu_usage_weight": 1.0,
+                        "instance_ram_usage_weight": 1.0,
+                    },
                 },
                 "instance_metrics": {
                     "description": "Mapping to get hardware statistics using"
-                                   " instance metrics",
+                    " instance metrics",
                     "type": "object",
-                    "default": {"instance_cpu_usage": "host_cpu_usage",
-                                "instance_ram_usage": "host_ram_usage"}
+                    "default": {
+                        "instance_cpu_usage": "host_cpu_usage",
+                        "instance_ram_usage": "host_ram_usage",
+                    },
                 },
                 "host_choice": {
                     "description": "Method of host's choice. There are cycle,"
-                                   " retry and fullsearch methods. "
-                                   "Cycle will iterate hosts in cycle. "
-                                   "Retry will get some hosts random "
-                                   "(count defined in retry_count option). "
-                                   "Fullsearch will return each host "
-                                   "from list.",
+                    " retry and fullsearch methods. "
+                    "Cycle will iterate hosts in cycle. "
+                    "Retry will get some hosts random "
+                    "(count defined in retry_count option). "
+                    "Fullsearch will return each host "
+                    "from list.",
                     "type": "string",
-                    "default": "retry"
+                    "default": "retry",
                 },
                 "retry_count": {
                     "description": "Count of random returned hosts",
                     "type": "number",
                     "minimum": 1,
-                    "default": 1
+                    "default": 1,
                 },
                 "periods": {
                     "description": "These periods are used to get statistic "
-                                   "aggregation for instance and host "
-                                   "metrics. The period is simply a repeating"
-                                   " interval of time into which the samples"
-                                   " are grouped for aggregation. Watcher "
-                                   "uses only the last period of all received"
-                                   " ones.",
+                    "aggregation for instance and host "
+                    "metrics. The period is simply a repeating"
+                    " interval of time into which the samples"
+                    " are grouped for aggregation. Watcher "
+                    "uses only the last period of all received"
+                    " ones.",
                     "type": "object",
                     "properties": {
-                        "instance": {
-                            "type": "integer",
-                            "minimum": 0
-                        },
-                        "compute_node": {
-                            "type": "integer",
-                            "minimum": 0
-                        },
+                        "instance": {"type": "integer", "minimum": 0},
+                        "compute_node": {"type": "integer", "minimum": 0},
                         "node": {
                             "type": "integer",
                             # node is deprecated
                             "minimum": 0,
-                            "default": 0
+                            "default": 0,
                         },
                     },
                     "default": {
@@ -216,44 +220,35 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                         "compute_node": 600,
                         # node is deprecated
                         "node": 0,
-                    }
+                    },
                 },
                 "aggregation_method": {
                     "description": "Function used to aggregate multiple "
-                                   "measures into an aggregate. For example, "
-                                   "the min aggregation method will aggregate "
-                                   "the values of different measures to the "
-                                   "minimum value of all the measures in the "
-                                   "time range.",
+                    "measures into an aggregate. For example, "
+                    "the min aggregation method will aggregate "
+                    "the values of different measures to the "
+                    "minimum value of all the measures in the "
+                    "time range.",
                     "type": "object",
                     "properties": {
-                        "instance": {
-                            "type": "string",
-                            "default": 'mean'
-                        },
-                        "compute_node": {
-                            "type": "string",
-                            "default": 'mean'
-                        },
+                        "instance": {"type": "string", "default": 'mean'},
+                        "compute_node": {"type": "string", "default": 'mean'},
                         # node is deprecated
-                        "node": {
-                            "type": "string",
-                            "default": ''
-                        },
+                        "node": {"type": "string", "default": ''},
                     },
                     "default": {
                         "instance": 'mean',
                         "compute_node": 'mean',
                         # node is deprecated
                         "node": '',
-                    }
+                    },
                 },
                 "granularity": {
                     "description": "The time between two measures in an "
-                                   "aggregated timeseries of a metric.",
+                    "aggregated timeseries of a metric.",
                     "type": "number",
                     "minimum": 0,
-                    "default": 300
+                    "default": 300,
                 },
             }
         }
@@ -266,8 +261,9 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         :param host_vcpus: int
         :return: float value
         """
-        return (instance_load['instance_cpu_usage'] *
-                (instance_load['vcpus'] / float(host_vcpus)))
+        return instance_load['instance_cpu_usage'] * (
+            instance_load['vcpus'] / float(host_vcpus)
+        )
 
     @MEMOIZE
     def get_instance_load(self, instance):
@@ -280,20 +276,30 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         instance_load = {'uuid': instance.uuid, 'vcpus': instance.vcpus}
         for meter in self.metrics:
             avg_meter = self.datasource_backend.statistic_aggregation(
-                instance, 'instance', meter, self.periods['instance'],
-                self.aggregation_method['instance'], self.granularity)
+                instance,
+                'instance',
+                meter,
+                self.periods['instance'],
+                self.aggregation_method['instance'],
+                self.granularity,
+            )
             if avg_meter is None:
                 LOG.warning(
                     "No values returned by %(resource_id)s "
-                    "for %(metric_name)s", dict(
-                        resource_id=instance.uuid, metric_name=meter))
+                    "for %(metric_name)s",
+                    dict(resource_id=instance.uuid, metric_name=meter),
+                )
                 return
             if meter == 'instance_cpu_usage':
                 avg_meter /= float(100)
-            LOG.debug('Load of %(metric)s for %(instance)s is %(value)s',
-                      {'metric': meter,
-                       'instance': instance.uuid,
-                       'value': avg_meter})
+            LOG.debug(
+                'Load of %(metric)s for %(instance)s is %(value)s',
+                {
+                    'metric': meter,
+                    'instance': instance.uuid,
+                    'value': avg_meter,
+                },
+            )
             instance_load[meter] = avg_meter
         return instance_load
 
@@ -302,16 +308,20 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         for host in normalized_hosts:
             if 'instance_ram_usage' in normalized_hosts[host]:
                 node = self.compute_model.get_node_by_uuid(host)
-                normalized_hosts[host]['instance_ram_usage'] \
-                    /= float(node.memory)
+                normalized_hosts[host]['instance_ram_usage'] /= float(
+                    node.memory
+                )
 
         return normalized_hosts
 
     def get_available_nodes(self):
         nodes = self.compute_model.get_all_compute_nodes().items()
-        return {node_uuid: node for node_uuid, node in nodes
-                if node.state == element.ServiceState.ONLINE.value and
-                node.status == element.ServiceState.ENABLED.value}
+        return {
+            node_uuid: node
+            for node_uuid, node in nodes
+            if node.state == element.ServiceState.ONLINE.value
+            and node.status == element.ServiceState.ENABLED.value
+        }
 
     def get_hosts_load(self):
         """Get load of every available host by gathering instances load"""
@@ -324,12 +334,19 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                 avg_meter = None
                 meter_name = self.instance_metrics[metric]
                 avg_meter = self.datasource_backend.statistic_aggregation(
-                    node, 'compute_node', self.instance_metrics[metric],
+                    node,
+                    'compute_node',
+                    self.instance_metrics[metric],
                     self.periods['compute_node'],
-                    self.aggregation_method['compute_node'], self.granularity)
+                    self.aggregation_method['compute_node'],
+                    self.granularity,
+                )
                 if avg_meter is None:
-                    LOG.warning('No values returned by node %s for %s',
-                                node_id, meter_name)
+                    LOG.warning(
+                        'No values returned by node %s for %s',
+                        node_id,
+                        meter_name,
+                    )
                     del hosts_load[node_id]
                     break
                 else:
@@ -337,10 +354,10 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                         avg_meter /= oslo_utils.units.Ki
                     if meter_name == 'host_cpu_usage':
                         avg_meter /= 100
-                LOG.debug('Load of %(metric)s for %(node)s is %(value)s',
-                          {'metric': metric,
-                           'node': node_id,
-                           'value': avg_meter})
+                LOG.debug(
+                    'Load of %(metric)s for %(node)s is %(value)s',
+                    {'metric': metric, 'node': node_id, 'value': avg_meter},
+                )
                 hosts_load[node_id][metric] = avg_meter
         return hosts_load
 
@@ -369,8 +386,12 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
             except KeyError as exc:
                 LOG.exception(exc)
                 raise exception.WatcherException(
-                    _("Incorrect mapping: could not find associated weight"
-                      " for %s in weight dict.") % metric)
+                    _(
+                        "Incorrect mapping: could not find associated weight"
+                        " for %s in weight dict."
+                    )
+                    % metric
+                )
         return weighted_sd
 
     def calculate_migration_case(self, hosts, instance, src_node, dst_node):
@@ -394,9 +415,11 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         for metric in self.metrics:
             if metric == 'instance_cpu_usage':
                 new_hosts[src_node.uuid][metric] -= (
-                    self.transform_instance_cpu(instance_load, s_host_vcpus))
+                    self.transform_instance_cpu(instance_load, s_host_vcpus)
+                )
                 new_hosts[dst_node.uuid][metric] += (
-                    self.transform_instance_cpu(instance_load, d_host_vcpus))
+                    self.transform_instance_cpu(instance_load, d_host_vcpus)
+                )
             else:
                 new_hosts[src_node.uuid][metric] -= instance_load[metric]
                 new_hosts[dst_node.uuid][metric] += instance_load[metric]
@@ -418,6 +441,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
 
     def simulate_migrations(self, hosts):
         """Make sorted list of pairs instance:dst_host"""
+
         def yield_nodes(nodes):
             if self.host_choice == 'cycle':
                 for i in itertools.cycle(nodes):
@@ -440,17 +464,22 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
             for instance in self.compute_model.get_node_instances(src_node):
                 # NOTE: skip exclude instance when migrating
                 if instance.watcher_exclude:
-                    LOG.debug("Instance is excluded by scope, "
-                              "skipped: %s", instance.uuid)
+                    LOG.debug(
+                        "Instance is excluded by scope, skipped: %s",
+                        instance.uuid,
+                    )
                     continue
-                if instance.state not in [element.InstanceState.ACTIVE.value,
-                                          element.InstanceState.PAUSED.value]:
+                if instance.state not in [
+                    element.InstanceState.ACTIVE.value,
+                    element.InstanceState.PAUSED.value,
+                ]:
                     continue
                 min_sd_case = {'value': current_weighted_sd}
                 for dst_host in next(node_list):
                     dst_node = self.compute_model.get_node_by_uuid(dst_host)
                     sd_case = self.calculate_migration_case(
-                        hosts, instance, src_node, dst_node)
+                        hosts, instance, src_node, dst_node
+                    )
                     if sd_case is None:
                         break
 
@@ -458,8 +487,11 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
 
                     if weighted_sd < min_sd_case['value']:
                         min_sd_case = {
-                            'host': dst_node.uuid, 'value': weighted_sd,
-                            's_host': src_node.uuid, 'instance': instance.uuid}
+                            'host': dst_node.uuid,
+                            'value': weighted_sd,
+                            's_host': src_node.uuid,
+                            'instance': instance.uuid,
+                        }
                         instance_host_map.append(min_sd_case)
                 if sd_case is None:
                     continue
@@ -471,36 +503,43 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         normalized_load = self.normalize_hosts_load(hosts_load)
         for metric in self.metrics:
             metric_sd = self.get_sd(normalized_load, metric)
-            LOG.info("Standard deviation for %(metric)s is %(sd)s.",
-                     {'metric': metric, 'sd': metric_sd})
+            LOG.info(
+                "Standard deviation for %(metric)s is %(sd)s.",
+                {'metric': metric, 'sd': metric_sd},
+            )
             if metric_sd > float(self.thresholds[metric]):
-                LOG.info("Standard deviation of %(metric)s exceeds"
-                         " appropriate threshold %(threshold)s by %(sd)s.",
-                         {'metric': metric,
-                          'threshold': float(self.thresholds[metric]),
-                          'sd': metric_sd})
+                LOG.info(
+                    "Standard deviation of %(metric)s exceeds"
+                    " appropriate threshold %(threshold)s by %(sd)s.",
+                    {
+                        'metric': metric,
+                        'threshold': float(self.thresholds[metric]),
+                        'sd': metric_sd,
+                    },
+                )
                 LOG.info("Launching workload optimization...")
                 self.sd_before_audit = metric_sd
                 return self.simulate_migrations(hosts_load)
 
-    def create_migration_instance(self, mig_instance, mig_source_node,
-                                  mig_destination_node):
+    def create_migration_instance(
+        self, mig_instance, mig_source_node, mig_destination_node
+    ):
         """Create migration VM"""
         if self.compute_model.migrate_instance(
-                mig_instance, mig_source_node, mig_destination_node):
-            self.add_action_migrate(mig_instance, 'live',
-                                    mig_source_node,
-                                    mig_destination_node)
+            mig_instance, mig_source_node, mig_destination_node
+        ):
+            self.add_action_migrate(
+                mig_instance, 'live', mig_source_node, mig_destination_node
+            )
             self.instance_migrations_count += 1
 
     def migrate(self, instance_uuid, src_host, dst_host):
         mig_instance = self.compute_model.get_instance_by_uuid(instance_uuid)
-        mig_source_node = self.compute_model.get_node_by_uuid(
-            src_host)
-        mig_destination_node = self.compute_model.get_node_by_uuid(
-            dst_host)
-        self.create_migration_instance(mig_instance, mig_source_node,
-                                       mig_destination_node)
+        mig_source_node = self.compute_model.get_node_by_uuid(src_host)
+        mig_destination_node = self.compute_model.get_node_by_uuid(dst_host)
+        self.create_migration_instance(
+            mig_instance, mig_source_node, mig_destination_node
+        )
 
     def fill_solution(self):
         self.solution.model = self.compute_model
@@ -519,15 +558,20 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
 
         # backwards compatibility for node parameter with aggregate.
         if self.aggregation_method['node']:
-            LOG.warning('Parameter node has been renamed to compute_node and '
-                        'will be removed in next release.')
-            self.aggregation_method['compute_node'] = \
-                self.aggregation_method['node']
+            LOG.warning(
+                'Parameter node has been renamed to compute_node and '
+                'will be removed in next release.'
+            )
+            self.aggregation_method['compute_node'] = self.aggregation_method[
+                'node'
+            ]
 
         # backwards compatibility for node parameter with period.
         if self.periods['node'] != 0:
-            LOG.warning('Parameter node has been renamed to compute_node and '
-                        'will be removed in next release.')
+            LOG.warning(
+                'Parameter node has been renamed to compute_node and '
+                'will be removed in next release.'
+            )
             self.periods['compute_node'] = self.periods['node']
 
     def do_execute(self, audit=None):
@@ -538,37 +582,49 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
             balanced = False
             for instance_host in migration:
                 instance = self.compute_model.get_instance_by_uuid(
-                    instance_host['instance'])
+                    instance_host['instance']
+                )
                 src_node = self.compute_model.get_node_by_uuid(
-                    instance_host['s_host'])
+                    instance_host['s_host']
+                )
                 dst_node = self.compute_model.get_node_by_uuid(
-                    instance_host['host'])
+                    instance_host['host']
+                )
                 if instance.disk > dst_node.disk:
                     continue
                 instance_load = self.calculate_migration_case(
-                    hosts_load, instance, src_node, dst_node)
+                    hosts_load, instance, src_node, dst_node
+                )
                 weighted_sd = self.calculate_weighted_sd(instance_load[:-1])
                 if weighted_sd < min_sd:
                     min_sd = weighted_sd
                     hosts_load = instance_load[-1]
-                    LOG.info("Migration of %(instance_uuid)s from %(s_host)s "
-                             "to %(host)s reduces standard deviation to "
-                             "%(min_sd)s.",
-                             {'instance_uuid': instance_host['instance'],
-                              's_host': instance_host['s_host'],
-                              'host': instance_host['host'],
-                              'min_sd': min_sd})
-                    self.migrate(instance_host['instance'],
-                                 instance_host['s_host'],
-                                 instance_host['host'])
+                    LOG.info(
+                        "Migration of %(instance_uuid)s from %(s_host)s "
+                        "to %(host)s reduces standard deviation to "
+                        "%(min_sd)s.",
+                        {
+                            'instance_uuid': instance_host['instance'],
+                            's_host': instance_host['s_host'],
+                            'host': instance_host['host'],
+                            'min_sd': min_sd,
+                        },
+                    )
+                    self.migrate(
+                        instance_host['instance'],
+                        instance_host['s_host'],
+                        instance_host['host'],
+                    )
                     self.sd_after_audit = min_sd
 
                 for metric, value in zip(self.metrics, instance_load[:-1]):
                     if value < float(self.thresholds[metric]):
-                        LOG.info("At least one of metrics' values fell "
-                                 "below the threshold values. "
-                                 "Workload Stabilization has successfully "
-                                 "completed optimization process.")
+                        LOG.info(
+                            "At least one of metrics' values fell "
+                            "below the threshold values. "
+                            "Workload Stabilization has successfully "
+                            "completed optimization process."
+                        )
                         balanced = True
                         break
                 if balanced:

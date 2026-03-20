@@ -42,9 +42,7 @@ TRANSPORT = None
 NOTIFICATION_TRANSPORT = None
 NOTIFIER = None
 
-ALLOWED_EXMODS = [
-    exception.__name__,
-]
+ALLOWED_EXMODS = [exception.__name__]
 EXTRA_EXMODS = []
 
 
@@ -54,18 +52,20 @@ JsonPayloadSerializer = messaging.JsonPayloadSerializer
 def init(conf):
     global TRANSPORT, NOTIFICATION_TRANSPORT, NOTIFIER
     exmods = get_allowed_exmods()
-    TRANSPORT = messaging.get_rpc_transport(
-        conf, allowed_remote_exmods=exmods)
+    TRANSPORT = messaging.get_rpc_transport(conf, allowed_remote_exmods=exmods)
     NOTIFICATION_TRANSPORT = messaging.get_notification_transport(
-        conf, allowed_remote_exmods=exmods)
+        conf, allowed_remote_exmods=exmods
+    )
 
     serializer = RequestContextSerializer(JsonPayloadSerializer())
     if not conf.notification_level:
         NOTIFIER = messaging.Notifier(
-            NOTIFICATION_TRANSPORT, serializer=serializer, driver='noop')
+            NOTIFICATION_TRANSPORT, serializer=serializer, driver='noop'
+        )
     else:
-        NOTIFIER = messaging.Notifier(NOTIFICATION_TRANSPORT,
-                                      serializer=serializer)
+        NOTIFIER = messaging.Notifier(
+            NOTIFICATION_TRANSPORT, serializer=serializer
+        )
 
 
 def initialized():
@@ -98,7 +98,6 @@ def get_allowed_exmods():
 
 
 class RequestContextSerializer(messaging.Serializer):
-
     def __init__(self, base):
         self._base = base
 
@@ -123,10 +122,7 @@ def get_client(target, version_cap=None, serializer=None):
     assert TRANSPORT is not None
     serializer = RequestContextSerializer(serializer)
     return messaging.get_rpc_client(
-        TRANSPORT,
-        target,
-        version_cap=version_cap,
-        serializer=serializer
+        TRANSPORT, target, version_cap=version_cap, serializer=serializer
     )
 
 
@@ -139,7 +135,7 @@ def get_server(target, endpoints, serializer=None):
         target,
         endpoints,
         serializer=serializer,
-        access_policy=access_policy
+        access_policy=access_policy,
     )
 
 
@@ -152,7 +148,7 @@ def get_notification_listener(targets, endpoints, serializer=None, pool=None):
         endpoints,
         allow_requeue=False,
         pool=pool,
-        serializer=serializer
+        serializer=serializer,
     )
 
 

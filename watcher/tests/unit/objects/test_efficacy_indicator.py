@@ -23,127 +23,157 @@ from watcher.tests.unit.db import utils
 
 
 class TestEfficacyIndicatorObject(base.DbTestCase):
-
     def setUp(self):
         super().setUp()
         self.fake_efficacy_indicator = utils.get_test_efficacy_indicator()
 
     def test_get_by_id(self):
         efficacy_indicator_id = self.fake_efficacy_indicator['id']
-        with mock.patch.object(self.dbapi, 'get_efficacy_indicator_by_id',
-                               autospec=True) as mock_get_efficacy_indicator:
+        with mock.patch.object(
+            self.dbapi, 'get_efficacy_indicator_by_id', autospec=True
+        ) as mock_get_efficacy_indicator:
             mock_get_efficacy_indicator.return_value = (
-                self.fake_efficacy_indicator)
+                self.fake_efficacy_indicator
+            )
             efficacy_indicator = objects.EfficacyIndicator.get(
-                self.context, efficacy_indicator_id)
+                self.context, efficacy_indicator_id
+            )
             mock_get_efficacy_indicator.assert_called_once_with(
-                self.context, efficacy_indicator_id)
+                self.context, efficacy_indicator_id
+            )
             self.assertEqual(self.context, efficacy_indicator._context)
 
     def test_get_by_uuid(self):
         uuid = self.fake_efficacy_indicator['uuid']
-        with mock.patch.object(self.dbapi, 'get_efficacy_indicator_by_uuid',
-                               autospec=True) as mock_get_efficacy_indicator:
+        with mock.patch.object(
+            self.dbapi, 'get_efficacy_indicator_by_uuid', autospec=True
+        ) as mock_get_efficacy_indicator:
             mock_get_efficacy_indicator.return_value = (
-                self.fake_efficacy_indicator)
+                self.fake_efficacy_indicator
+            )
             efficacy_indicator = objects.EfficacyIndicator.get(
-                self.context, uuid)
+                self.context, uuid
+            )
             mock_get_efficacy_indicator.assert_called_once_with(
-                self.context, uuid)
+                self.context, uuid
+            )
             self.assertEqual(self.context, efficacy_indicator._context)
 
     def test_get_bad_id_and_uuid(self):
         self.assertRaises(
             exception.InvalidIdentity,
-            objects.EfficacyIndicator.get, self.context, 'not-a-uuid')
+            objects.EfficacyIndicator.get,
+            self.context,
+            'not-a-uuid',
+        )
 
     def test_list(self):
-        with mock.patch.object(self.dbapi, 'get_efficacy_indicator_list',
-                               autospec=True) as mock_get_list:
+        with mock.patch.object(
+            self.dbapi, 'get_efficacy_indicator_list', autospec=True
+        ) as mock_get_list:
             mock_get_list.return_value = [self.fake_efficacy_indicator]
             efficacy_indicators = objects.EfficacyIndicator.list(self.context)
             self.assertEqual(1, mock_get_list.call_count)
             self.assertEqual(1, len(efficacy_indicators))
             self.assertIsInstance(
-                efficacy_indicators[0], objects.EfficacyIndicator)
+                efficacy_indicators[0], objects.EfficacyIndicator
+            )
             self.assertEqual(self.context, efficacy_indicators[0]._context)
 
     def test_create(self):
         with mock.patch.object(
-            self.dbapi, 'create_efficacy_indicator',
-            autospec=True
+            self.dbapi, 'create_efficacy_indicator', autospec=True
         ) as mock_create_efficacy_indicator:
             mock_create_efficacy_indicator.return_value = (
-                self.fake_efficacy_indicator)
+                self.fake_efficacy_indicator
+            )
             efficacy_indicator = objects.EfficacyIndicator(
-                self.context, **self.fake_efficacy_indicator)
+                self.context, **self.fake_efficacy_indicator
+            )
 
             efficacy_indicator.create()
             mock_create_efficacy_indicator.assert_called_once_with(
-                self.fake_efficacy_indicator)
+                self.fake_efficacy_indicator
+            )
             self.assertEqual(self.context, efficacy_indicator._context)
 
     def test_destroy(self):
         uuid = self.fake_efficacy_indicator['uuid']
         with mock.patch.object(
-            self.dbapi, 'get_efficacy_indicator_by_uuid',
-            autospec=True
+            self.dbapi, 'get_efficacy_indicator_by_uuid', autospec=True
         ) as mock_get_efficacy_indicator:
             mock_get_efficacy_indicator.return_value = (
-                self.fake_efficacy_indicator)
+                self.fake_efficacy_indicator
+            )
             with mock.patch.object(
-                self.dbapi, 'destroy_efficacy_indicator',
-                autospec=True
+                self.dbapi, 'destroy_efficacy_indicator', autospec=True
             ) as mock_destroy_efficacy_indicator:
                 efficacy_indicator = objects.EfficacyIndicator.get_by_uuid(
-                    self.context, uuid)
+                    self.context, uuid
+                )
                 efficacy_indicator.destroy()
                 mock_get_efficacy_indicator.assert_called_once_with(
-                    self.context, uuid)
+                    self.context, uuid
+                )
                 mock_destroy_efficacy_indicator.assert_called_once_with(uuid)
                 self.assertEqual(self.context, efficacy_indicator._context)
 
     def test_save(self):
         uuid = self.fake_efficacy_indicator['uuid']
         with mock.patch.object(
-            self.dbapi, 'get_efficacy_indicator_by_uuid',
-            autospec=True
+            self.dbapi, 'get_efficacy_indicator_by_uuid', autospec=True
         ) as mock_get_efficacy_indicator:
             mock_get_efficacy_indicator.return_value = (
-                self.fake_efficacy_indicator)
+                self.fake_efficacy_indicator
+            )
             with mock.patch.object(
-                self.dbapi, 'update_efficacy_indicator',
-                autospec=True
+                self.dbapi, 'update_efficacy_indicator', autospec=True
             ) as mock_update_efficacy_indicator:
                 efficacy_indicator = objects.EfficacyIndicator.get_by_uuid(
-                    self.context, uuid)
+                    self.context, uuid
+                )
                 efficacy_indicator.description = 'Indicator Description'
                 efficacy_indicator.save()
 
                 mock_get_efficacy_indicator.assert_called_once_with(
-                    self.context, uuid)
+                    self.context, uuid
+                )
                 mock_update_efficacy_indicator.assert_called_once_with(
-                    uuid, {'description': 'Indicator Description'})
+                    uuid, {'description': 'Indicator Description'}
+                )
                 self.assertEqual(self.context, efficacy_indicator._context)
 
     def test_refresh(self):
         uuid = self.fake_efficacy_indicator['uuid']
-        returns = [dict(self.fake_efficacy_indicator,
-                        description="first description"),
-                   dict(self.fake_efficacy_indicator,
-                        description="second description")]
-        expected = [mock.call(self.context, uuid),
-                    mock.call(self.context, uuid)]
-        with mock.patch.object(self.dbapi, 'get_efficacy_indicator_by_uuid',
-                               side_effect=returns,
-                               autospec=True) as mock_get_efficacy_indicator:
+        returns = [
+            dict(
+                self.fake_efficacy_indicator, description="first description"
+            ),
+            dict(
+                self.fake_efficacy_indicator, description="second description"
+            ),
+        ]
+        expected = [
+            mock.call(self.context, uuid),
+            mock.call(self.context, uuid),
+        ]
+        with mock.patch.object(
+            self.dbapi,
+            'get_efficacy_indicator_by_uuid',
+            side_effect=returns,
+            autospec=True,
+        ) as mock_get_efficacy_indicator:
             efficacy_indicator = objects.EfficacyIndicator.get(
-                self.context, uuid)
+                self.context, uuid
+            )
             self.assertEqual(
-                "first description", efficacy_indicator.description)
+                "first description", efficacy_indicator.description
+            )
             efficacy_indicator.refresh()
             self.assertEqual(
-                "second description", efficacy_indicator.description)
+                "second description", efficacy_indicator.description
+            )
             self.assertEqual(
-                expected, mock_get_efficacy_indicator.call_args_list)
+                expected, mock_get_efficacy_indicator.call_args_list
+            )
             self.assertEqual(self.context, efficacy_indicator._context)

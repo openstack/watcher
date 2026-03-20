@@ -91,14 +91,14 @@ class ScoringEngine(base.APIBase):
     @staticmethod
     def _convert_with_links(se, url, expand=True):
         if not expand:
-            se.unset_fields_except(
-                ['uuid', 'name', 'description'])
+            se.unset_fields_except(['uuid', 'name', 'description'])
 
-        se.links = [link.Link.make_link('self', url,
-                                        'scoring_engines', se.uuid),
-                    link.Link.make_link('bookmark', url,
-                                        'scoring_engines', se.uuid,
-                                        bookmark=True)]
+        se.links = [
+            link.Link.make_link('self', url, 'scoring_engines', se.uuid),
+            link.Link.make_link(
+                'bookmark', url, 'scoring_engines', se.uuid, bookmark=True
+            ),
+        ]
         return se
 
     @classmethod
@@ -106,13 +106,16 @@ class ScoringEngine(base.APIBase):
         scoring_engine = ScoringEngine(**scoring_engine.as_dict())
         hide_fields_in_newer_versions(scoring_engine)
         return cls._convert_with_links(
-            scoring_engine, pecan.request.host_url, expand)
+            scoring_engine, pecan.request.host_url, expand
+        )
 
     @classmethod
     def sample(cls, expand=True):
-        sample = cls(uuid='81bbd3c7-3b08-4d12-a268-99354dbf7b71',
-                     name='sample-se-123',
-                     description='Sample Scoring Engine 123 just for testing')
+        sample = cls(
+            uuid='81bbd3c7-3b08-4d12-a268-99354dbf7b71',
+            name='sample-se-123',
+            description='Sample Scoring Engine 123 just for testing',
+        )
         return cls._convert_with_links(sample, 'http://localhost:9322', expand)
 
 
@@ -127,12 +130,14 @@ class ScoringEngineCollection(collection.Collection):
         self._type = 'scoring_engines'
 
     @staticmethod
-    def convert_with_links(scoring_engines, limit, url=None, expand=False,
-                           **kwargs):
-
+    def convert_with_links(
+        scoring_engines, limit, url=None, expand=False, **kwargs
+    ):
         collection = ScoringEngineCollection()
-        collection.scoring_engines = [ScoringEngine.convert_with_links(
-            se, expand) for se in scoring_engines]
+        collection.scoring_engines = [
+            ScoringEngine.convert_with_links(se, expand)
+            for se in scoring_engines
+        ]
         collection.next = collection.get_next(limit, url=url, **kwargs)
         return collection
 
@@ -149,27 +154,34 @@ class ScoringEngineController(rest.RestController):
     def __init__(self):
         super().__init__()
 
-    _custom_actions = {
-        'detail': ['GET'],
-    }
+    _custom_actions = {'detail': ['GET']}
 
-    def _get_scoring_engines_collection(self, marker, limit,
-                                        sort_key, sort_dir, expand=False,
-                                        resource_url=None):
+    def _get_scoring_engines_collection(
+        self,
+        marker,
+        limit,
+        sort_key,
+        sort_dir,
+        expand=False,
+        resource_url=None,
+    ):
         api_utils.validate_sort_key(
-            sort_key, list(objects.ScoringEngine.fields))
+            sort_key, list(objects.ScoringEngine.fields)
+        )
         limit = api_utils.validate_limit(limit)
         api_utils.validate_sort_dir(sort_dir)
 
         marker_obj = None
         if marker:
             marker_obj = objects.ScoringEngine.get_by_uuid(
-                pecan.request.context, marker)
+                pecan.request.context, marker
+            )
 
         filters = {}
 
-        sort_db_key = (sort_key if sort_key in objects.ScoringEngine.fields
-                       else None)
+        sort_db_key = (
+            sort_key if sort_key in objects.ScoringEngine.fields else None
+        )
 
         scoring_engines = objects.ScoringEngine.list(
             context=pecan.request.context,
@@ -177,7 +189,8 @@ class ScoringEngineController(rest.RestController):
             marker=marker_obj,
             sort_key=sort_db_key,
             sort_dir=sort_dir,
-            filters=filters)
+            filters=filters,
+        )
 
         return ScoringEngineCollection.convert_with_links(
             scoring_engines,
@@ -185,12 +198,13 @@ class ScoringEngineController(rest.RestController):
             url=resource_url,
             expand=expand,
             sort_key=sort_key,
-            sort_dir=sort_dir)
+            sort_dir=sort_dir,
+        )
 
-    @wsme_pecan.wsexpose(ScoringEngineCollection, wtypes.text,
-                         int, wtypes.text, wtypes.text)
-    def get_all(self, marker=None, limit=None, sort_key='id',
-                sort_dir='asc'):
+    @wsme_pecan.wsexpose(
+        ScoringEngineCollection, wtypes.text, int, wtypes.text, wtypes.text
+    )
+    def get_all(self, marker=None, limit=None, sort_key='id', sort_dir='asc'):
         """Retrieve a list of Scoring Engines.
 
         :param marker: pagination marker for large data sets.
@@ -199,14 +213,17 @@ class ScoringEngineController(rest.RestController):
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         """
         context = pecan.request.context
-        policy.enforce(context, 'scoring_engine:get_all',
-                       action='scoring_engine:get_all')
+        policy.enforce(
+            context, 'scoring_engine:get_all', action='scoring_engine:get_all'
+        )
 
         return self._get_scoring_engines_collection(
-            marker, limit, sort_key, sort_dir)
+            marker, limit, sort_key, sort_dir
+        )
 
-    @wsme_pecan.wsexpose(ScoringEngineCollection, wtypes.text,
-                         int, wtypes.text, wtypes.text)
+    @wsme_pecan.wsexpose(
+        ScoringEngineCollection, wtypes.text, int, wtypes.text, wtypes.text
+    )
     def detail(self, marker=None, limit=None, sort_key='id', sort_dir='asc'):
         """Retrieve a list of Scoring Engines with detail.
 
@@ -216,8 +233,9 @@ class ScoringEngineController(rest.RestController):
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         """
         context = pecan.request.context
-        policy.enforce(context, 'scoring_engine:detail',
-                       action='scoring_engine:detail')
+        policy.enforce(
+            context, 'scoring_engine:detail', action='scoring_engine:detail'
+        )
 
         parent = pecan.request.path.split('/')[:-1][-1]
         if parent != "scoring_engines":
@@ -225,7 +243,8 @@ class ScoringEngineController(rest.RestController):
         expand = True
         resource_url = '/'.join(['scoring_engines', 'detail'])
         return self._get_scoring_engines_collection(
-            marker, limit, sort_key, sort_dir, expand, resource_url)
+            marker, limit, sort_key, sort_dir, expand, resource_url
+        )
 
     @wsme_pecan.wsexpose(ScoringEngine, wtypes.text)
     def get_one(self, scoring_engine):
@@ -234,9 +253,11 @@ class ScoringEngineController(rest.RestController):
         :param scoring_engine_name: The name of the Scoring Engine.
         """
         context = pecan.request.context
-        policy.enforce(context, 'scoring_engine:get',
-                       action='scoring_engine:get')
+        policy.enforce(
+            context, 'scoring_engine:get', action='scoring_engine:get'
+        )
         rpc_scoring_engine = api_utils.get_resource(
-            'ScoringEngine', scoring_engine)
+            'ScoringEngine', scoring_engine
+        )
 
         return ScoringEngine.convert_with_links(rpc_scoring_engine)

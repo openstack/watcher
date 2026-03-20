@@ -19,7 +19,6 @@ import abc
 
 
 class BaseSelector(metaclass=abc.ABCMeta):
-
     @abc.abstractmethod
     def select(self):
         raise NotImplementedError()

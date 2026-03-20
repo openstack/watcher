@@ -29,12 +29,12 @@ LOG = log.getLogger(__name__)
 
 
 class AuditEndpoint:
-
     def __init__(self, messaging):
         self._messaging = messaging
         self.amount_workers = CONF.watcher_decision_engine.max_audit_workers
-        self._executor = (
-            executor.get_futurist_pool_executor(self.amount_workers))
+        self._executor = executor.get_futurist_pool_executor(
+            self.amount_workers
+        )
         self._oneshot_handler = o_handler.OneShotAuditHandler()
         self._event_handler = e_handler.EventAuditHandler()
 
@@ -52,7 +52,5 @@ class AuditEndpoint:
     def trigger_audit(self, context, audit_uuid):
         LOG.debug("Trigger audit %s", audit_uuid)
         executor.log_executor_stats(self.executor, name="audit-endpoint-pool")
-        self.executor.submit(self.do_trigger_audit,
-                             context,
-                             audit_uuid)
+        self.executor.submit(self.do_trigger_audit, context, audit_uuid)
         return audit_uuid

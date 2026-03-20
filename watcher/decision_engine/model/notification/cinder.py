@@ -26,7 +26,6 @@ LOG = log.getLogger(__name__)
 
 
 class CinderNotification(base.NotificationEndpoint):
-
     def __init__(self, collector):
         super().__init__(collector)
         self._cinder = None
@@ -39,13 +38,15 @@ class CinderNotification(base.NotificationEndpoint):
 
     def update_pool(self, pool, data):
         """Update the storage pool using the notification data."""
-        pool.update({
-            "total_capacity_gb": data['total'],
-            "free_capacity_gb": data['free'],
-            "provisioned_capacity_gb": data['provisioned'],
-            "allocated_capacity_gb": data['allocated'],
-            "virtual_free": data['virtual_free']
-        })
+        pool.update(
+            {
+                "total_capacity_gb": data['total'],
+                "free_capacity_gb": data['free'],
+                "provisioned_capacity_gb": data['provisioned'],
+                "allocated_capacity_gb": data['allocated'],
+                "virtual_free": data['virtual_free'],
+            }
+        )
 
         node_name = pool.name.split("#")[0]
         node = self.get_or_create_node(node_name)
@@ -57,13 +58,15 @@ class CinderNotification(base.NotificationEndpoint):
         if not pool:
             return
         _pool = self.cinder.get_storage_pool_by_name(pool.name)
-        pool.update({
-            "total_volumes": _pool.total_volumes,
-            "total_capacity_gb": _pool.total_capacity_gb,
-            "free_capacity_gb": _pool.free_capacity_gb,
-            "provisioned_capacity_gb": _pool.provisioned_capacity_gb,
-            "allocated_capacity_gb": _pool.allocated_capacity_gb
-        })
+        pool.update(
+            {
+                "total_volumes": _pool.total_volumes,
+                "total_capacity_gb": _pool.total_capacity_gb,
+                "free_capacity_gb": _pool.free_capacity_gb,
+                "provisioned_capacity_gb": _pool.provisioned_capacity_gb,
+                "allocated_capacity_gb": _pool.allocated_capacity_gb,
+            }
+        )
         node_name = pool.name.split("#")[0]
         node = self.get_or_create_node(node_name)
         self.cluster_data_model.map_pool(pool, node)
@@ -75,13 +78,15 @@ class CinderNotification(base.NotificationEndpoint):
             _node = self.cinder.get_storage_node_by_name(name)
             _volume_type = self.cinder.get_volume_type_by_backendname(
                 # name is formatted as host@backendname
-                name.split('@')[1])
+                name.split('@')[1]
+            )
             storage_node = element.StorageNode(
                 host=_node.host,
                 zone=_node.zone,
                 state=_node.state,
                 status=_node.status,
-                volume_type=_volume_type)
+                volume_type=_volume_type,
+            )
             return storage_node
         except Exception as exc:
             LOG.exception(exc)
@@ -113,7 +118,8 @@ class CinderNotification(base.NotificationEndpoint):
                 total_capacity_gb=_pool.total_capacity_gb,
                 free_capacity_gb=_pool.free_capacity_gb,
                 provisioned_capacity_gb=_pool.provisioned_capacity_gb,
-                allocated_capacity_gb=_pool.allocated_capacity_gb)
+                allocated_capacity_gb=_pool.allocated_capacity_gb,
+            )
             return pool
         except Exception as exc:
             LOG.exception(exc)
@@ -139,14 +145,17 @@ class CinderNotification(base.NotificationEndpoint):
             if pool_name:
                 self.get_or_create_pool(pool_name)
         except exception.PoolNotFound:
-            LOG.warning("Could not find storage pool %(pool)s for "
-                        "volume %(volume)s",
-                        dict(pool=pool_name, volume=volume_id))
+            LOG.warning(
+                "Could not find storage pool %(pool)s for volume %(volume)s",
+                dict(pool=pool_name, volume=volume_id),
+            )
         try:
             return self.cluster_data_model.get_volume_by_uuid(volume_id)
         except exception.VolumeNotFound:
-            LOG.debug("Volume %(volume)s not found in the model, creating it",
-                      dict(volume=volume_id))
+            LOG.debug(
+                "Volume %(volume)s not found in the model, creating it",
+                dict(volume=volume_id),
+            )
             # The volume didn't exist yet so we create a new volume object
             volume = element.Volume(uuid=volume_id)
             self.cluster_data_model.add_volume(volume)
@@ -162,8 +171,11 @@ class CinderNotification(base.NotificationEndpoint):
                 return 'attachment_id'
 
         attachments = [
-            {_keyReplace(k): v for k, v in iter(d.items())
-                if k in ('instance_uuid', 'id')}
+            {
+                _keyReplace(k): v
+                for k, v in iter(d.items())
+                if k in ('instance_uuid', 'id')
+            }
             for d in data['volume_attachment']
         ]
 
@@ -172,16 +184,18 @@ class CinderNotification(base.NotificationEndpoint):
         if 'glance_metadata' in data:
             bootable = True
 
-        volume.update({
-            "name": data['display_name'] or "",
-            "size": data['size'],
-            "status": data['status'],
-            "attachments": attachments,
-            "snapshot_id": data['snapshot_id'] or "",
-            "project_id": data['tenant_id'],
-            "metadata": data['metadata'],
-            "bootable": bootable
-            })
+        volume.update(
+            {
+                "name": data['display_name'] or "",
+                "size": data['size'],
+                "status": data['status'],
+                "attachments": attachments,
+                "snapshot_id": data['snapshot_id'] or "",
+                "project_id": data['tenant_id'],
+                "metadata": data['metadata'],
+                "bootable": bootable,
+            }
+        )
 
         try:
             # if volume is under pool, let's update pool element.
@@ -198,14 +212,15 @@ class CinderNotification(base.NotificationEndpoint):
     def update_volume_mapping(self, volume, pool):
         if pool is None:
             self.cluster_data_model.add_volume(volume)
-            LOG.debug("Volume %s not yet attached to any pool: skipping",
-                      volume.uuid)
+            LOG.debug(
+                "Volume %s not yet attached to any pool: skipping", volume.uuid
+            )
             return
         try:
             try:
-                current_pool = (
-                    self.cluster_data_model.get_pool_by_volume(
-                        volume) or self.get_or_create_pool(pool.name))
+                current_pool = self.cluster_data_model.get_pool_by_volume(
+                    volume
+                ) or self.get_or_create_pool(pool.name)
             except exception.PoolNotFound as exc:
                 LOG.exception(exc)
                 # If we can't create the pool,
@@ -214,8 +229,9 @@ class CinderNotification(base.NotificationEndpoint):
 
             LOG.debug("Mapped pool %s found", pool.name)
             if current_pool and pool != current_pool:
-                LOG.debug("Unmapping volume %s from %s",
-                          volume.uuid, pool.name)
+                LOG.debug(
+                    "Unmapping volume %s from %s", volume.uuid, pool.name
+                )
                 self.cluster_data_model.unmap_volume(volume, current_pool)
         except exception.VolumeNotFound:
             # The instance didn't exist yet so we map it for the first time
@@ -243,27 +259,27 @@ class CinderNotification(base.NotificationEndpoint):
 
 
 class CapacityNotificationEndpoint(CinderNotification):
-
     @property
     def filter_rule(self):
         """Cinder capacity notification filter"""
         return filtering.NotificationFilter(
-            publisher_id=r'capacity.*',
-            event_type='capacity.pool',
+            publisher_id=r'capacity.*', event_type='capacity.pool'
         )
 
     def info(self, ctxt, publisher_id, event_type, payload, metadata):
         ctxt.request_id = metadata['message_id']
         ctxt.project_domain = event_type
-        LOG.info("Event '%(event)s' received from %(publisher)s "
-                 "with metadata %(metadata)s",
-                 dict(event=event_type,
-                      publisher=publisher_id,
-                      metadata=metadata))
+        LOG.info(
+            "Event '%(event)s' received from %(publisher)s "
+            "with metadata %(metadata)s",
+            dict(event=event_type, publisher=publisher_id, metadata=metadata),
+        )
         LOG.debug(payload)
         if not self.cluster_data_model:
-            LOG.debug('Storage CDM has not yet been built; ignoring '
-                      'notifications until an audit is performed.')
+            LOG.debug(
+                'Storage CDM has not yet been built; ignoring '
+                'notifications until an audit is performed.'
+            )
             return
         name = payload['name_to_id']
         try:
@@ -278,7 +294,6 @@ class VolumeNotificationEndpoint(CinderNotification):
 
 
 class VolumeCreateEnd(VolumeNotificationEndpoint):
-
     @property
     def filter_rule(self):
         """Cinder volume notification filter"""
@@ -290,15 +305,17 @@ class VolumeCreateEnd(VolumeNotificationEndpoint):
     def info(self, ctxt, publisher_id, event_type, payload, metadata):
         ctxt.request_id = metadata['message_id']
         ctxt.project_domain = event_type
-        LOG.info("Event '%(event)s' received from %(publisher)s "
-                 "with metadata %(metadata)s",
-                 dict(event=event_type,
-                      publisher=publisher_id,
-                      metadata=metadata))
+        LOG.info(
+            "Event '%(event)s' received from %(publisher)s "
+            "with metadata %(metadata)s",
+            dict(event=event_type, publisher=publisher_id, metadata=metadata),
+        )
         LOG.debug(payload)
         if not self.cluster_data_model:
-            LOG.debug('Storage CDM has not yet been built; ignoring '
-                      'notifications until an audit is performed.')
+            LOG.debug(
+                'Storage CDM has not yet been built; ignoring '
+                'notifications until an audit is performed.'
+            )
             return
         volume_id = payload['volume_id']
         poolname = payload['host']
@@ -307,7 +324,6 @@ class VolumeCreateEnd(VolumeNotificationEndpoint):
 
 
 class VolumeUpdateEnd(VolumeNotificationEndpoint):
-
     @property
     def filter_rule(self):
         """Cinder volume notification filter"""
@@ -319,15 +335,17 @@ class VolumeUpdateEnd(VolumeNotificationEndpoint):
     def info(self, ctxt, publisher_id, event_type, payload, metadata):
         ctxt.request_id = metadata['message_id']
         ctxt.project_domain = event_type
-        LOG.info("Event '%(event)s' received from %(publisher)s "
-                 "with metadata %(metadata)s",
-                 dict(event=event_type,
-                      publisher=publisher_id,
-                      metadata=metadata))
+        LOG.info(
+            "Event '%(event)s' received from %(publisher)s "
+            "with metadata %(metadata)s",
+            dict(event=event_type, publisher=publisher_id, metadata=metadata),
+        )
         LOG.debug(payload)
         if not self.cluster_data_model:
-            LOG.debug('Storage CDM has not yet been built; ignoring '
-                      'notifications until an audit is performed.')
+            LOG.debug(
+                'Storage CDM has not yet been built; ignoring '
+                'notifications until an audit is performed.'
+            )
             return
         volume_id = payload['volume_id']
         poolname = payload['host']
@@ -336,7 +354,6 @@ class VolumeUpdateEnd(VolumeNotificationEndpoint):
 
 
 class VolumeAttachEnd(VolumeUpdateEnd):
-
     @property
     def filter_rule(self):
         """Cinder volume notification filter"""
@@ -347,7 +364,6 @@ class VolumeAttachEnd(VolumeUpdateEnd):
 
 
 class VolumeDetachEnd(VolumeUpdateEnd):
-
     @property
     def filter_rule(self):
         """Cinder volume notification filter"""
@@ -358,7 +374,6 @@ class VolumeDetachEnd(VolumeUpdateEnd):
 
 
 class VolumeResizeEnd(VolumeUpdateEnd):
-
     @property
     def filter_rule(self):
         """Cinder volume notification filter"""
@@ -369,7 +384,6 @@ class VolumeResizeEnd(VolumeUpdateEnd):
 
 
 class VolumeDeleteEnd(VolumeNotificationEndpoint):
-
     @property
     def filter_rule(self):
         """Cinder volume notification filter"""
@@ -381,15 +395,17 @@ class VolumeDeleteEnd(VolumeNotificationEndpoint):
     def info(self, ctxt, publisher_id, event_type, payload, metadata):
         ctxt.request_id = metadata['message_id']
         ctxt.project_domain = event_type
-        LOG.info("Event '%(event)s' received from %(publisher)s "
-                 "with metadata %(metadata)s",
-                 dict(event=event_type,
-                      publisher=publisher_id,
-                      metadata=metadata))
+        LOG.info(
+            "Event '%(event)s' received from %(publisher)s "
+            "with metadata %(metadata)s",
+            dict(event=event_type, publisher=publisher_id, metadata=metadata),
+        )
         LOG.debug(payload)
         if not self.cluster_data_model:
-            LOG.debug('Storage CDM has not yet been built; ignoring '
-                      'notifications until an audit is performed.')
+            LOG.debug(
+                'Storage CDM has not yet been built; ignoring '
+                'notifications until an audit is performed.'
+            )
             return
         volume_id = payload['volume_id']
         poolname = payload['host']

@@ -77,13 +77,15 @@ def add_identity_filter(query, value):
         raise exception.InvalidIdentity(identity=value)
 
 
-def _paginate_query(model, limit=None, marker=None, sort_key=None,
-                    sort_dir=None, query=None):
+def _paginate_query(
+    model, limit=None, marker=None, sort_key=None, sort_dir=None, query=None
+):
     sort_keys = ['id']
     if sort_key and sort_key not in sort_keys:
         sort_keys.insert(0, sort_key)
-    query = db_utils.paginate_query(query, model, limit, sort_keys,
-                                    marker=marker, sort_dir=sort_dir)
+    query = db_utils.paginate_query(
+        query, model, limit, sort_keys, marker=marker, sort_dir=sort_dir
+    )
     return query.all()
 
 
@@ -92,7 +94,8 @@ class JoinMap(utils.Struct):
 
 
 NaturalJoinFilter = collections.namedtuple(
-    'NaturalJoinFilter', ['join_fieldname', 'join_model'])
+    'NaturalJoinFilter', ['join_fieldname', 'join_model']
+)
 
 
 class Connection(api.BaseConnection):
@@ -116,8 +119,11 @@ class Connection(api.BaseConnection):
     def __add_simple_filter(self, query, model, fieldname, value, operator_):
         field = getattr(model, fieldname)
 
-        if (fieldname != 'deleted' and value and
-                field.type.python_type is datetime.datetime):
+        if (
+            fieldname != 'deleted'
+            and value
+            and field.type.python_type is datetime.datetime
+        ):
             if not isinstance(value, datetime.datetime):
                 value = timeutils.parse_isotime(value)
 
@@ -125,8 +131,9 @@ class Connection(api.BaseConnection):
 
     def __add_join_filter(self, query, model, fieldname, value, operator_):
         query = query.join(model)
-        return self.__add_simple_filter(query, model, fieldname,
-                                        value, operator_)
+        return self.__add_simple_filter(
+            query, model, fieldname, value, operator_
+        )
 
     def __decompose_filter(self, raw_fieldname):
         """Decompose a filter name into its 2 subparts
@@ -153,12 +160,14 @@ class Connection(api.BaseConnection):
 
         if operator_ and operator_ not in self.valid_operators:
             raise exception.InvalidOperator(
-                operator=operator_, valid_operators=self.valid_operators)
+                operator=operator_, valid_operators=self.valid_operators
+            )
 
         return fieldname, operator_
 
-    def _add_filters(self, query, model, filters=None,
-                     plain_fields=None, join_fieldmap=None):
+    def _add_filters(
+        self, query, model, filters=None, plain_fields=None, join_fieldmap=None
+    ):
         """Generic way to add filters to a Watcher model
 
         Each filter key provided by the `filters` parameter will be decomposed
@@ -201,20 +210,23 @@ class Connection(api.BaseConnection):
             filters[f'deleted__{op}'] = 0
 
         plain_fields = tuple(
-            (list(plain_fields) or []) +
-            soft_delete_mixin_fields +
-            timestamp_mixin_fields)
+            (list(plain_fields) or [])
+            + soft_delete_mixin_fields
+            + timestamp_mixin_fields
+        )
         join_fieldmap = join_fieldmap or {}
 
         for raw_fieldname, value in filters.items():
             fieldname, operator_ = self.__decompose_filter(raw_fieldname)
             if fieldname in plain_fields:
                 query = self.__add_simple_filter(
-                    query, model, fieldname, value, operator_)
+                    query, model, fieldname, value, operator_
+                )
             elif fieldname in join_fieldmap:
                 join_field, join_model = join_fieldmap[fieldname]
                 query = self.__add_join_filter(
-                    query, join_model, join_field, value, operator_)
+                    query, join_model, join_field, value, operator_
+                )
 
         return query
 
@@ -228,16 +240,20 @@ class Connection(api.BaseConnection):
         for relationship in relationships:
             if not relationship.uselist:
                 # We have a One-to-X relationship
-                query = query.options(joinedload(
-                    getattr(model, relationship.key)))
+                query = query.options(
+                    joinedload(getattr(model, relationship.key))
+                )
         return query
 
     @oslo_db_api.retry_on_deadlock
     def _create(self, model, values):
         with _session_for_write() as session:
             obj = model()
-            cleaned_values = {k: v for k, v in values.items()
-                              if k not in self._get_relationships(model)}
+            cleaned_values = {
+                k: v
+                for k, v in values.items()
+                if k not in self._get_relationships(model)
+            }
             obj.update(cleaned_values)
             session.add(obj)
             session.flush()
@@ -304,9 +320,18 @@ class Connection(api.BaseConnection):
 
             query.delete()
 
-    def _get_model_list(self, model, add_filters_func, context, filters=None,
-                        limit=None, marker=None, sort_key=None, sort_dir=None,
-                        eager=False):
+    def _get_model_list(
+        self,
+        model,
+        add_filters_func,
+        context,
+        filters=None,
+        limit=None,
+        marker=None,
+        sort_key=None,
+        sort_dir=None,
+        eager=False,
+    ):
         with _session_for_read() as session:
             query = session.query(model)
             if eager:
@@ -314,8 +339,9 @@ class Connection(api.BaseConnection):
             query = add_filters_func(query, filters)
             if not context.show_deleted:
                 query = query.filter(model.deleted_at.is_(None))
-            return _paginate_query(model, limit, marker,
-                                   sort_key, sort_dir, query)
+            return _paginate_query(
+                model, limit, marker, sort_key, sort_dir, query
+            )
 
     # NOTE(erakli): _add_..._filters methods should be refactored to have same
     # content. join_fieldmap should be filled with JoinMap instead of dict
@@ -327,19 +353,29 @@ class Connection(api.BaseConnection):
         plain_fields = ['uuid', 'name', 'display_name']
 
         return self._add_filters(
-            query=query, model=models.Goal, filters=filters,
-            plain_fields=plain_fields)
+            query=query,
+            model=models.Goal,
+            filters=filters,
+            plain_fields=plain_fields,
+        )
 
     def _add_strategies_filters(self, query, filters):
         plain_fields = ['uuid', 'name', 'display_name', 'goal_id']
         join_fieldmap = JoinMap(
             goal_uuid=NaturalJoinFilter(
-                join_fieldname="uuid", join_model=models.Goal),
+                join_fieldname="uuid", join_model=models.Goal
+            ),
             goal_name=NaturalJoinFilter(
-                join_fieldname="name", join_model=models.Goal))
+                join_fieldname="name", join_model=models.Goal
+            ),
+        )
         return self._add_filters(
-            query=query, model=models.Strategy, filters=filters,
-            plain_fields=plain_fields, join_fieldmap=join_fieldmap)
+            query=query,
+            model=models.Strategy,
+            filters=filters,
+            plain_fields=plain_fields,
+            join_fieldmap=join_fieldmap,
+        )
 
     def _add_audit_templates_filters(self, query, filters):
         if filters is None:
@@ -348,25 +384,39 @@ class Connection(api.BaseConnection):
         plain_fields = ['uuid', 'name', 'goal_id', 'strategy_id']
         join_fieldmap = JoinMap(
             goal_uuid=NaturalJoinFilter(
-                join_fieldname="uuid", join_model=models.Goal),
+                join_fieldname="uuid", join_model=models.Goal
+            ),
             goal_name=NaturalJoinFilter(
-                join_fieldname="name", join_model=models.Goal),
+                join_fieldname="name", join_model=models.Goal
+            ),
             strategy_uuid=NaturalJoinFilter(
-                join_fieldname="uuid", join_model=models.Strategy),
+                join_fieldname="uuid", join_model=models.Strategy
+            ),
             strategy_name=NaturalJoinFilter(
-                join_fieldname="name", join_model=models.Strategy),
+                join_fieldname="name", join_model=models.Strategy
+            ),
         )
 
         return self._add_filters(
-            query=query, model=models.AuditTemplate, filters=filters,
-            plain_fields=plain_fields, join_fieldmap=join_fieldmap)
+            query=query,
+            model=models.AuditTemplate,
+            filters=filters,
+            plain_fields=plain_fields,
+            join_fieldmap=join_fieldmap,
+        )
 
     def _add_audits_filters(self, query, filters):
         if filters is None:
             filters = {}
 
-        plain_fields = ['uuid', 'audit_type', 'state', 'goal_id',
-                        'strategy_id', 'hostname']
+        plain_fields = [
+            'uuid',
+            'audit_type',
+            'state',
+            'goal_id',
+            'strategy_id',
+            'hostname',
+        ]
         join_fieldmap = {
             'goal_uuid': ("uuid", models.Goal),
             'goal_name': ("name", models.Goal),
@@ -375,47 +425,64 @@ class Connection(api.BaseConnection):
         }
 
         return self._add_filters(
-            query=query, model=models.Audit, filters=filters,
-            plain_fields=plain_fields, join_fieldmap=join_fieldmap)
+            query=query,
+            model=models.Audit,
+            filters=filters,
+            plain_fields=plain_fields,
+            join_fieldmap=join_fieldmap,
+        )
 
     def _add_action_plans_filters(self, query, filters):
         if filters is None:
             filters = {}
 
-        plain_fields = ['uuid', 'state', 'audit_id', 'strategy_id',
-                        'hostname']
+        plain_fields = ['uuid', 'state', 'audit_id', 'strategy_id', 'hostname']
         join_fieldmap = JoinMap(
             audit_uuid=NaturalJoinFilter(
-                join_fieldname="uuid", join_model=models.Audit),
+                join_fieldname="uuid", join_model=models.Audit
+            ),
             strategy_uuid=NaturalJoinFilter(
-                join_fieldname="uuid", join_model=models.Strategy),
+                join_fieldname="uuid", join_model=models.Strategy
+            ),
             strategy_name=NaturalJoinFilter(
-                join_fieldname="name", join_model=models.Strategy),
+                join_fieldname="name", join_model=models.Strategy
+            ),
         )
 
         return self._add_filters(
-            query=query, model=models.ActionPlan, filters=filters,
-            plain_fields=plain_fields, join_fieldmap=join_fieldmap)
+            query=query,
+            model=models.ActionPlan,
+            filters=filters,
+            plain_fields=plain_fields,
+            join_fieldmap=join_fieldmap,
+        )
 
     def _add_actions_filters(self, query, filters):
         if filters is None:
             filters = {}
 
         plain_fields = ['uuid', 'state', 'action_plan_id']
-        join_fieldmap = {
-            'action_plan_uuid': ("uuid", models.ActionPlan),
-        }
+        join_fieldmap = {'action_plan_uuid': ("uuid", models.ActionPlan)}
 
         query = self._add_filters(
-            query=query, model=models.Action, filters=filters,
-            plain_fields=plain_fields, join_fieldmap=join_fieldmap)
+            query=query,
+            model=models.Action,
+            filters=filters,
+            plain_fields=plain_fields,
+            join_fieldmap=join_fieldmap,
+        )
 
         if 'audit_uuid' in filters:
             with _session_for_read() as session:
-                stmt = session.query(models.ActionPlan).join(
-                    models.Audit,
-                    models.Audit.id == models.ActionPlan.audit_id)\
-                    .filter_by(uuid=filters['audit_uuid']).subquery()
+                stmt = (
+                    session.query(models.ActionPlan)
+                    .join(
+                        models.Audit,
+                        models.Audit.id == models.ActionPlan.audit_id,
+                    )
+                    .filter_by(uuid=filters['audit_uuid'])
+                    .subquery()
+                )
                 query = query.filter_by(action_plan_id=stmt.c.id)
 
         return query
@@ -427,12 +494,17 @@ class Connection(api.BaseConnection):
         plain_fields = ['uuid', 'name', 'unit', 'schema', 'action_plan_id']
         join_fieldmap = JoinMap(
             action_plan_uuid=NaturalJoinFilter(
-                join_fieldname="uuid", join_model=models.ActionPlan),
+                join_fieldname="uuid", join_model=models.ActionPlan
+            )
         )
 
         return self._add_filters(
-            query=query, model=models.EfficacyIndicator, filters=filters,
-            plain_fields=plain_fields, join_fieldmap=join_fieldmap)
+            query=query,
+            model=models.EfficacyIndicator,
+            filters=filters,
+            plain_fields=plain_fields,
+            join_fieldmap=join_fieldmap,
+        )
 
     def _add_scoring_engine_filters(self, query, filters):
         if filters is None:
@@ -441,8 +513,11 @@ class Connection(api.BaseConnection):
         plain_fields = ['id', 'description']
 
         return self._add_filters(
-            query=query, model=models.ScoringEngine, filters=filters,
-            plain_fields=plain_fields)
+            query=query,
+            model=models.ScoringEngine,
+            filters=filters,
+            plain_fields=plain_fields,
+        )
 
     def _add_action_descriptions_filters(self, query, filters):
         if not filters:
@@ -451,8 +526,11 @@ class Connection(api.BaseConnection):
         plain_fields = ['id', 'action_type']
 
         return self._add_filters(
-            query=query, model=models.ActionDescription, filters=filters,
-            plain_fields=plain_fields)
+            query=query,
+            model=models.ActionDescription,
+            filters=filters,
+            plain_fields=plain_fields,
+        )
 
     def _add_services_filters(self, query, filters):
         if not filters:
@@ -461,15 +539,18 @@ class Connection(api.BaseConnection):
         plain_fields = ['id', 'name', 'host']
 
         return self._add_filters(
-            query=query, model=models.Service, filters=filters,
-            plain_fields=plain_fields)
+            query=query,
+            model=models.Service,
+            filters=filters,
+            plain_fields=plain_fields,
+        )
 
     # ### GOALS ### #
 
     def get_goal_list(self, *args, **kwargs):
-        return self._get_model_list(models.Goal,
-                                    self._add_goals_filters,
-                                    *args, **kwargs)
+        return self._get_model_list(
+            models.Goal, self._add_goals_filters, *args, **kwargs
+        )
 
     def create_goal(self, values):
         # ensure defaults are present for new goals
@@ -484,22 +565,30 @@ class Connection(api.BaseConnection):
 
     def _get_goal(self, context, fieldname, value, eager):
         try:
-            return self._get(context, model=models.Goal,
-                             fieldname=fieldname, value=value, eager=eager)
+            return self._get(
+                context,
+                model=models.Goal,
+                fieldname=fieldname,
+                value=value,
+                eager=eager,
+            )
         except exception.ResourceNotFound:
             raise exception.GoalNotFound(goal=value)
 
     def get_goal_by_id(self, context, goal_id, eager=False):
         return self._get_goal(
-            context, fieldname="id", value=goal_id, eager=eager)
+            context, fieldname="id", value=goal_id, eager=eager
+        )
 
     def get_goal_by_uuid(self, context, goal_uuid, eager=False):
         return self._get_goal(
-            context, fieldname="uuid", value=goal_uuid, eager=eager)
+            context, fieldname="uuid", value=goal_uuid, eager=eager
+        )
 
     def get_goal_by_name(self, context, goal_name, eager=False):
         return self._get_goal(
-            context, fieldname="name", value=goal_name, eager=eager)
+            context, fieldname="name", value=goal_name, eager=eager
+        )
 
     def destroy_goal(self, goal_id):
         try:
@@ -510,7 +599,8 @@ class Connection(api.BaseConnection):
     def update_goal(self, goal_id, values):
         if 'uuid' in values:
             raise exception.Invalid(
-                message=_("Cannot overwrite UUID for an existing Goal."))
+                message=_("Cannot overwrite UUID for an existing Goal.")
+            )
 
         try:
             return self._update(models.Goal, goal_id, values)
@@ -526,9 +616,9 @@ class Connection(api.BaseConnection):
     # ### STRATEGIES ### #
 
     def get_strategy_list(self, *args, **kwargs):
-        return self._get_model_list(models.Strategy,
-                                    self._add_strategies_filters,
-                                    *args, **kwargs)
+        return self._get_model_list(
+            models.Strategy, self._add_strategies_filters, *args, **kwargs
+        )
 
     def create_strategy(self, values):
         # ensure defaults are present for new strategies
@@ -543,22 +633,30 @@ class Connection(api.BaseConnection):
 
     def _get_strategy(self, context, fieldname, value, eager):
         try:
-            return self._get(context, model=models.Strategy,
-                             fieldname=fieldname, value=value, eager=eager)
+            return self._get(
+                context,
+                model=models.Strategy,
+                fieldname=fieldname,
+                value=value,
+                eager=eager,
+            )
         except exception.ResourceNotFound:
             raise exception.StrategyNotFound(strategy=value)
 
     def get_strategy_by_id(self, context, strategy_id, eager=False):
         return self._get_strategy(
-            context, fieldname="id", value=strategy_id, eager=eager)
+            context, fieldname="id", value=strategy_id, eager=eager
+        )
 
     def get_strategy_by_uuid(self, context, strategy_uuid, eager=False):
         return self._get_strategy(
-            context, fieldname="uuid", value=strategy_uuid, eager=eager)
+            context, fieldname="uuid", value=strategy_uuid, eager=eager
+        )
 
     def get_strategy_by_name(self, context, strategy_name, eager=False):
         return self._get_strategy(
-            context, fieldname="name", value=strategy_name, eager=eager)
+            context, fieldname="name", value=strategy_name, eager=eager
+        )
 
     def destroy_strategy(self, strategy_id):
         try:
@@ -569,7 +667,8 @@ class Connection(api.BaseConnection):
     def update_strategy(self, strategy_id, values):
         if 'uuid' in values:
             raise exception.Invalid(
-                message=_("Cannot overwrite UUID for an existing Strategy."))
+                message=_("Cannot overwrite UUID for an existing Strategy.")
+            )
 
         try:
             return self._update(models.Strategy, strategy_id, values)
@@ -585,9 +684,12 @@ class Connection(api.BaseConnection):
     # ### AUDIT TEMPLATES ### #
 
     def get_audit_template_list(self, *args, **kwargs):
-        return self._get_model_list(models.AuditTemplate,
-                                    self._add_audit_templates_filters,
-                                    *args, **kwargs)
+        return self._get_model_list(
+            models.AuditTemplate,
+            self._add_audit_templates_filters,
+            *args,
+            **kwargs,
+        )
 
     @oslo_db_api.retry_on_deadlock
     def create_audit_template(self, values):
@@ -597,74 +699,92 @@ class Connection(api.BaseConnection):
 
         with _session_for_write() as session:
             query = session.query(models.AuditTemplate)
-            query = query.filter_by(name=values.get('name'),
-                                    deleted_at=None)
+            query = query.filter_by(name=values.get('name'), deleted_at=None)
 
             if len(query.all()) > 0:
                 raise exception.AuditTemplateAlreadyExists(
-                    audit_template=values['name'])
+                    audit_template=values['name']
+                )
 
             try:
                 audit_template = self._create(models.AuditTemplate, values)
             except db_exc.DBDuplicateEntry:
                 raise exception.AuditTemplateAlreadyExists(
-                    audit_template=values['name'])
+                    audit_template=values['name']
+                )
             return audit_template
 
     def _get_audit_template(self, context, fieldname, value, eager):
         try:
-            return self._get(context, model=models.AuditTemplate,
-                             fieldname=fieldname, value=value, eager=eager)
+            return self._get(
+                context,
+                model=models.AuditTemplate,
+                fieldname=fieldname,
+                value=value,
+                eager=eager,
+            )
         except exception.ResourceNotFound:
             raise exception.AuditTemplateNotFound(audit_template=value)
 
-    def get_audit_template_by_id(self, context, audit_template_id,
-                                 eager=False):
+    def get_audit_template_by_id(
+        self, context, audit_template_id, eager=False
+    ):
         return self._get_audit_template(
-            context, fieldname="id", value=audit_template_id, eager=eager)
+            context, fieldname="id", value=audit_template_id, eager=eager
+        )
 
-    def get_audit_template_by_uuid(self, context, audit_template_uuid,
-                                   eager=False):
+    def get_audit_template_by_uuid(
+        self, context, audit_template_uuid, eager=False
+    ):
         return self._get_audit_template(
-            context, fieldname="uuid", value=audit_template_uuid, eager=eager)
+            context, fieldname="uuid", value=audit_template_uuid, eager=eager
+        )
 
-    def get_audit_template_by_name(self, context, audit_template_name,
-                                   eager=False):
+    def get_audit_template_by_name(
+        self, context, audit_template_name, eager=False
+    ):
         return self._get_audit_template(
-            context, fieldname="name", value=audit_template_name, eager=eager)
+            context, fieldname="name", value=audit_template_name, eager=eager
+        )
 
     def destroy_audit_template(self, audit_template_id):
         try:
             return self._destroy(models.AuditTemplate, audit_template_id)
         except exception.ResourceNotFound:
             raise exception.AuditTemplateNotFound(
-                audit_template=audit_template_id)
+                audit_template=audit_template_id
+            )
 
     def update_audit_template(self, audit_template_id, values):
         if 'uuid' in values:
             raise exception.Invalid(
-                message=_("Cannot overwrite UUID for an existing "
-                          "Audit Template."))
+                message=_(
+                    "Cannot overwrite UUID for an existing Audit Template."
+                )
+            )
         try:
             return self._update(
-                models.AuditTemplate, audit_template_id, values)
+                models.AuditTemplate, audit_template_id, values
+            )
         except exception.ResourceNotFound:
             raise exception.AuditTemplateNotFound(
-                audit_template=audit_template_id)
+                audit_template=audit_template_id
+            )
 
     def soft_delete_audit_template(self, audit_template_id):
         try:
             return self._soft_delete(models.AuditTemplate, audit_template_id)
         except exception.ResourceNotFound:
             raise exception.AuditTemplateNotFound(
-                audit_template=audit_template_id)
+                audit_template=audit_template_id
+            )
 
     # ### AUDITS ### #
 
     def get_audit_list(self, *args, **kwargs):
-        return self._get_model_list(models.Audit,
-                                    self._add_audits_filters,
-                                    *args, **kwargs)
+        return self._get_model_list(
+            models.Audit, self._add_audits_filters, *args, **kwargs
+        )
 
     @oslo_db_api.retry_on_deadlock
     def create_audit(self, values):
@@ -674,12 +794,10 @@ class Connection(api.BaseConnection):
 
         with _session_for_write() as session:
             query = session.query(models.Audit)
-            query = query.filter_by(name=values.get('name'),
-                                    deleted_at=None)
+            query = query.filter_by(name=values.get('name'), deleted_at=None)
 
             if len(query.all()) > 0:
-                raise exception.AuditAlreadyExists(
-                    audit=values['name'])
+                raise exception.AuditAlreadyExists(audit=values['name'])
 
             if values.get('state') is None:
                 values['state'] = objects.audit.State.PENDING
@@ -695,22 +813,30 @@ class Connection(api.BaseConnection):
 
     def _get_audit(self, context, fieldname, value, eager):
         try:
-            return self._get(context, model=models.Audit,
-                             fieldname=fieldname, value=value, eager=eager)
+            return self._get(
+                context,
+                model=models.Audit,
+                fieldname=fieldname,
+                value=value,
+                eager=eager,
+            )
         except exception.ResourceNotFound:
             raise exception.AuditNotFound(audit=value)
 
     def get_audit_by_id(self, context, audit_id, eager=False):
         return self._get_audit(
-            context, fieldname="id", value=audit_id, eager=eager)
+            context, fieldname="id", value=audit_id, eager=eager
+        )
 
     def get_audit_by_uuid(self, context, audit_uuid, eager=False):
         return self._get_audit(
-            context, fieldname="uuid", value=audit_uuid, eager=eager)
+            context, fieldname="uuid", value=audit_uuid, eager=eager
+        )
 
     def get_audit_by_name(self, context, audit_name, eager=False):
         return self._get_audit(
-            context, fieldname="name", value=audit_name, eager=eager)
+            context, fieldname="name", value=audit_name, eager=eager
+        )
 
     @oslo_db_api.retry_on_deadlock
     def destroy_audit(self, audit_id):
@@ -718,7 +844,8 @@ class Connection(api.BaseConnection):
             """Checks whether the audit is referenced by action_plan(s)."""
             query = session.query(models.ActionPlan)
             query = self._add_action_plans_filters(
-                query, {'audit_id': audit_id})
+                query, {'audit_id': audit_id}
+            )
             return query.count() != 0
 
         with _session_for_write() as session:
@@ -738,8 +865,8 @@ class Connection(api.BaseConnection):
     def update_audit(self, audit_id, values):
         if 'uuid' in values:
             raise exception.Invalid(
-                message=_("Cannot overwrite UUID for an existing "
-                          "Audit."))
+                message=_("Cannot overwrite UUID for an existing Audit.")
+            )
 
         try:
             return self._update(models.Audit, audit_id, values)
@@ -755,9 +882,9 @@ class Connection(api.BaseConnection):
     # ### ACTIONS ### #
 
     def get_action_list(self, *args, **kwargs):
-        return self._get_model_list(models.Action,
-                                    self._add_actions_filters,
-                                    *args, **kwargs)
+        return self._get_model_list(
+            models.Action, self._add_actions_filters, *args, **kwargs
+        )
 
     def create_action(self, values):
         # ensure defaults are present for new actions
@@ -775,18 +902,25 @@ class Connection(api.BaseConnection):
 
     def _get_action(self, context, fieldname, value, eager):
         try:
-            return self._get(context, model=models.Action,
-                             fieldname=fieldname, value=value, eager=eager)
+            return self._get(
+                context,
+                model=models.Action,
+                fieldname=fieldname,
+                value=value,
+                eager=eager,
+            )
         except exception.ResourceNotFound:
             raise exception.ActionNotFound(action=value)
 
     def get_action_by_id(self, context, action_id, eager=False):
         return self._get_action(
-            context, fieldname="id", value=action_id, eager=eager)
+            context, fieldname="id", value=action_id, eager=eager
+        )
 
     def get_action_by_uuid(self, context, action_uuid, eager=False):
         return self._get_action(
-            context, fieldname="uuid", value=action_uuid, eager=eager)
+            context, fieldname="uuid", value=action_uuid, eager=eager
+        )
 
     @oslo_db_api.retry_on_deadlock
     def destroy_action(self, action_id):
@@ -802,7 +936,8 @@ class Connection(api.BaseConnection):
         # NOTE(dtantsur): this can lead to very strange errors
         if 'uuid' in values:
             raise exception.Invalid(
-                message=_("Cannot overwrite UUID for an existing Action."))
+                message=_("Cannot overwrite UUID for an existing Action.")
+            )
 
         return self._do_update_action(action_id, values)
 
@@ -828,9 +963,9 @@ class Connection(api.BaseConnection):
     # ### ACTION PLANS ### #
 
     def get_action_plan_list(self, *args, **kwargs):
-        return self._get_model_list(models.ActionPlan,
-                                    self._add_action_plans_filters,
-                                    *args, **kwargs)
+        return self._get_model_list(
+            models.ActionPlan, self._add_action_plans_filters, *args, **kwargs
+        )
 
     def create_action_plan(self, values):
         # ensure defaults are present for new audits
@@ -845,18 +980,25 @@ class Connection(api.BaseConnection):
 
     def _get_action_plan(self, context, fieldname, value, eager):
         try:
-            return self._get(context, model=models.ActionPlan,
-                             fieldname=fieldname, value=value, eager=eager)
+            return self._get(
+                context,
+                model=models.ActionPlan,
+                fieldname=fieldname,
+                value=value,
+                eager=eager,
+            )
         except exception.ResourceNotFound:
             raise exception.ActionPlanNotFound(action_plan=value)
 
     def get_action_plan_by_id(self, context, action_plan_id, eager=False):
         return self._get_action_plan(
-            context, fieldname="id", value=action_plan_id, eager=eager)
+            context, fieldname="id", value=action_plan_id, eager=eager
+        )
 
     def get_action_plan_by_uuid(self, context, action_plan_uuid, eager=False):
         return self._get_action_plan(
-            context, fieldname="uuid", value=action_plan_uuid, eager=eager)
+            context, fieldname="uuid", value=action_plan_uuid, eager=eager
+        )
 
     @oslo_db_api.retry_on_deadlock
     def destroy_action_plan(self, action_plan_id):
@@ -864,7 +1006,8 @@ class Connection(api.BaseConnection):
             """Checks whether the action_plan is referenced by action(s)."""
             query = session.query(models.Action)
             query = self._add_actions_filters(
-                query, {'action_plan_id': action_plan_id})
+                query, {'action_plan_id': action_plan_id}
+            )
             return query.count() != 0
 
         with _session_for_write() as session:
@@ -878,7 +1021,8 @@ class Connection(api.BaseConnection):
 
             if is_action_plan_referenced(session, action_plan_ref['id']):
                 raise exception.ActionPlanReferenced(
-                    action_plan=action_plan_id)
+                    action_plan=action_plan_id
+                )
 
             query.delete()
 
@@ -886,8 +1030,8 @@ class Connection(api.BaseConnection):
     def update_action_plan(self, action_plan_id, values):
         if 'uuid' in values:
             raise exception.Invalid(
-                message=_("Cannot overwrite UUID for an existing "
-                          "Action Plan."))
+                message=_("Cannot overwrite UUID for an existing Action Plan.")
+            )
 
         return self._do_update_action_plan(action_plan_id, values)
 
@@ -916,8 +1060,9 @@ class Connection(api.BaseConnection):
         eff_ind_models = self._get_model_list(
             models.EfficacyIndicator,
             self._add_efficacy_indicators_filters,
-            *args, **kwargs
-            )
+            *args,
+            **kwargs,
+        )
         for indicator in eff_ind_models:
             if indicator.data is not None:
                 # jgilaber: use the data value since it stores the value
@@ -930,8 +1075,7 @@ class Connection(api.BaseConnection):
                 # value column
                 indicator.data = indicator.value
                 # store the new column in the database
-                self._update(models.EfficacyIndicator,
-                             indicator.id, indicator)
+                self._update(models.EfficacyIndicator, indicator.id, indicator)
 
         return eff_ind_models
 
@@ -952,10 +1096,13 @@ class Connection(api.BaseConnection):
 
     def _get_efficacy_indicator(self, context, fieldname, value, eager):
         try:
-            efficacy_indicator = self._get(context,
-                                           model=models.EfficacyIndicator,
-                                           fieldname=fieldname,
-                                           value=value, eager=eager)
+            efficacy_indicator = self._get(
+                context,
+                model=models.EfficacyIndicator,
+                fieldname=fieldname,
+                value=value,
+                eager=eager,
+            )
 
             if efficacy_indicator.data is not None:
                 # jgilaber: use the data value since it stores the value
@@ -968,65 +1115,88 @@ class Connection(api.BaseConnection):
                 # value column
                 efficacy_indicator.data = efficacy_indicator.value
                 # store the new column in the database
-                self._update(models.EfficacyIndicator, efficacy_indicator.id,
-                             efficacy_indicator)
+                self._update(
+                    models.EfficacyIndicator,
+                    efficacy_indicator.id,
+                    efficacy_indicator,
+                )
             return efficacy_indicator
         except exception.ResourceNotFound:
             raise exception.EfficacyIndicatorNotFound(efficacy_indicator=value)
 
-    def get_efficacy_indicator_by_id(self, context, efficacy_indicator_id,
-                                     eager=False):
+    def get_efficacy_indicator_by_id(
+        self, context, efficacy_indicator_id, eager=False
+    ):
         return self._get_efficacy_indicator(
-            context, fieldname="id",
-            value=efficacy_indicator_id, eager=eager)
+            context, fieldname="id", value=efficacy_indicator_id, eager=eager
+        )
 
-    def get_efficacy_indicator_by_uuid(self, context, efficacy_indicator_uuid,
-                                       eager=False):
+    def get_efficacy_indicator_by_uuid(
+        self, context, efficacy_indicator_uuid, eager=False
+    ):
         return self._get_efficacy_indicator(
-            context, fieldname="uuid",
-            value=efficacy_indicator_uuid, eager=eager)
+            context,
+            fieldname="uuid",
+            value=efficacy_indicator_uuid,
+            eager=eager,
+        )
 
-    def get_efficacy_indicator_by_name(self, context, efficacy_indicator_name,
-                                       eager=False):
+    def get_efficacy_indicator_by_name(
+        self, context, efficacy_indicator_name, eager=False
+    ):
         return self._get_efficacy_indicator(
-            context, fieldname="name",
-            value=efficacy_indicator_name, eager=eager)
+            context,
+            fieldname="name",
+            value=efficacy_indicator_name,
+            eager=eager,
+        )
 
     def update_efficacy_indicator(self, efficacy_indicator_id, values):
         if 'uuid' in values:
             raise exception.Invalid(
-                message=_("Cannot overwrite UUID for an existing "
-                          "efficacy indicator."))
+                message=_(
+                    "Cannot overwrite UUID for an existing efficacy indicator."
+                )
+            )
 
         try:
             return self._update(
-                models.EfficacyIndicator, efficacy_indicator_id, values)
+                models.EfficacyIndicator, efficacy_indicator_id, values
+            )
         except exception.ResourceNotFound:
             raise exception.EfficacyIndicatorNotFound(
-                efficacy_indicator=efficacy_indicator_id)
+                efficacy_indicator=efficacy_indicator_id
+            )
 
     def soft_delete_efficacy_indicator(self, efficacy_indicator_id):
         try:
             return self._soft_delete(
-                models.EfficacyIndicator, efficacy_indicator_id)
+                models.EfficacyIndicator, efficacy_indicator_id
+            )
         except exception.ResourceNotFound:
             raise exception.EfficacyIndicatorNotFound(
-                efficacy_indicator=efficacy_indicator_id)
+                efficacy_indicator=efficacy_indicator_id
+            )
 
     def destroy_efficacy_indicator(self, efficacy_indicator_id):
         try:
             return self._destroy(
-                models.EfficacyIndicator, efficacy_indicator_id)
+                models.EfficacyIndicator, efficacy_indicator_id
+            )
         except exception.ResourceNotFound:
             raise exception.EfficacyIndicatorNotFound(
-                efficacy_indicator=efficacy_indicator_id)
+                efficacy_indicator=efficacy_indicator_id
+            )
 
     # ### SCORING ENGINES ### #
 
     def get_scoring_engine_list(self, *args, **kwargs):
-        return self._get_model_list(models.ScoringEngine,
-                                    self._add_scoring_engine_filters,
-                                    *args, **kwargs)
+        return self._get_model_list(
+            models.ScoringEngine,
+            self._add_scoring_engine_filters,
+            *args,
+            **kwargs,
+        )
 
     def create_scoring_engine(self, values):
         # ensure defaults are present for new scoring engines
@@ -1041,83 +1211,107 @@ class Connection(api.BaseConnection):
 
     def _get_scoring_engine(self, context, fieldname, value, eager):
         try:
-            return self._get(context, model=models.ScoringEngine,
-                             fieldname=fieldname, value=value, eager=eager)
+            return self._get(
+                context,
+                model=models.ScoringEngine,
+                fieldname=fieldname,
+                value=value,
+                eager=eager,
+            )
         except exception.ResourceNotFound:
             raise exception.ScoringEngineNotFound(scoring_engine=value)
 
-    def get_scoring_engine_by_id(self, context, scoring_engine_id,
-                                 eager=False):
+    def get_scoring_engine_by_id(
+        self, context, scoring_engine_id, eager=False
+    ):
         return self._get_scoring_engine(
-            context, fieldname="id", value=scoring_engine_id, eager=eager)
+            context, fieldname="id", value=scoring_engine_id, eager=eager
+        )
 
-    def get_scoring_engine_by_uuid(self, context, scoring_engine_uuid,
-                                   eager=False):
+    def get_scoring_engine_by_uuid(
+        self, context, scoring_engine_uuid, eager=False
+    ):
         return self._get_scoring_engine(
-            context, fieldname="uuid", value=scoring_engine_uuid, eager=eager)
+            context, fieldname="uuid", value=scoring_engine_uuid, eager=eager
+        )
 
-    def get_scoring_engine_by_name(self, context, scoring_engine_name,
-                                   eager=False):
+    def get_scoring_engine_by_name(
+        self, context, scoring_engine_name, eager=False
+    ):
         return self._get_scoring_engine(
-            context, fieldname="name", value=scoring_engine_name, eager=eager)
+            context, fieldname="name", value=scoring_engine_name, eager=eager
+        )
 
     def destroy_scoring_engine(self, scoring_engine_id):
         try:
             return self._destroy(models.ScoringEngine, scoring_engine_id)
         except exception.ResourceNotFound:
             raise exception.ScoringEngineNotFound(
-                scoring_engine=scoring_engine_id)
+                scoring_engine=scoring_engine_id
+            )
 
     def update_scoring_engine(self, scoring_engine_id, values):
         if 'uuid' in values:
             raise exception.Invalid(
-                message=_("Cannot overwrite UUID for an existing "
-                          "Scoring Engine."))
+                message=_(
+                    "Cannot overwrite UUID for an existing Scoring Engine."
+                )
+            )
 
         try:
             return self._update(
-                models.ScoringEngine, scoring_engine_id, values)
+                models.ScoringEngine, scoring_engine_id, values
+            )
         except exception.ResourceNotFound:
             raise exception.ScoringEngineNotFound(
-                scoring_engine=scoring_engine_id)
+                scoring_engine=scoring_engine_id
+            )
 
     def soft_delete_scoring_engine(self, scoring_engine_id):
         try:
-            return self._soft_delete(
-                models.ScoringEngine, scoring_engine_id)
+            return self._soft_delete(models.ScoringEngine, scoring_engine_id)
         except exception.ResourceNotFound:
             raise exception.ScoringEngineNotFound(
-                scoring_engine=scoring_engine_id)
+                scoring_engine=scoring_engine_id
+            )
 
     # ### SERVICES ### #
 
     def get_service_list(self, *args, **kwargs):
-        return self._get_model_list(models.Service,
-                                    self._add_services_filters,
-                                    *args, **kwargs)
+        return self._get_model_list(
+            models.Service, self._add_services_filters, *args, **kwargs
+        )
 
     def create_service(self, values):
         try:
             service = self._create(models.Service, values)
         except db_exc.DBDuplicateEntry:
-            raise exception.ServiceAlreadyExists(name=values['name'],
-                                                 host=values['host'])
+            raise exception.ServiceAlreadyExists(
+                name=values['name'], host=values['host']
+            )
         return service
 
     def _get_service(self, context, fieldname, value, eager):
         try:
-            return self._get(context, model=models.Service,
-                             fieldname=fieldname, value=value, eager=eager)
+            return self._get(
+                context,
+                model=models.Service,
+                fieldname=fieldname,
+                value=value,
+                eager=eager,
+            )
         except exception.ResourceNotFound:
             raise exception.ServiceNotFound(service=value)
 
     def get_service_by_id(self, context, service_id, eager=False):
         return self._get_service(
-            context, fieldname="id", value=service_id, eager=eager)
+            context, fieldname="id", value=service_id, eager=eager
+        )
 
     def get_service_by_name(self, context, service_name, eager=False):
         return self._get_service(
-            context, fieldname="name", value=service_name, eager=eager)
+            context, fieldname="name", value=service_name, eager=eager
+        )
 
     def destroy_service(self, service_id):
         try:
@@ -1140,53 +1334,60 @@ class Connection(api.BaseConnection):
     # ### ACTION_DESCRIPTIONS ### #
 
     def get_action_description_list(self, *args, **kwargs):
-        return self._get_model_list(models.ActionDescription,
-                                    self._add_action_descriptions_filters,
-                                    *args, **kwargs)
+        return self._get_model_list(
+            models.ActionDescription,
+            self._add_action_descriptions_filters,
+            *args,
+            **kwargs,
+        )
 
     def create_action_description(self, values):
         try:
             action_description = self._create(models.ActionDescription, values)
         except db_exc.DBDuplicateEntry:
             raise exception.ActionDescriptionAlreadyExists(
-                action_type=values['action_type'])
+                action_type=values['action_type']
+            )
         return action_description
 
     def _get_action_description(self, context, fieldname, value, eager):
         try:
-            return self._get(context, model=models.ActionDescription,
-                             fieldname=fieldname, value=value, eager=eager)
+            return self._get(
+                context,
+                model=models.ActionDescription,
+                fieldname=fieldname,
+                value=value,
+                eager=eager,
+            )
         except exception.ResourceNotFound:
             raise exception.ActionDescriptionNotFound(action_id=value)
 
-    def get_action_description_by_id(self, context,
-                                     action_id, eager=False):
+    def get_action_description_by_id(self, context, action_id, eager=False):
         return self._get_action_description(
-            context, fieldname="id", value=action_id, eager=eager)
+            context, fieldname="id", value=action_id, eager=eager
+        )
 
-    def get_action_description_by_type(self, context,
-                                       action_type, eager=False):
+    def get_action_description_by_type(
+        self, context, action_type, eager=False
+    ):
         return self._get_action_description(
-            context, fieldname="action_type", value=action_type, eager=eager)
+            context, fieldname="action_type", value=action_type, eager=eager
+        )
 
     def destroy_action_description(self, action_id):
         try:
             return self._destroy(models.ActionDescription, action_id)
         except exception.ResourceNotFound:
-            raise exception.ActionDescriptionNotFound(
-                action_id=action_id)
+            raise exception.ActionDescriptionNotFound(action_id=action_id)
 
     def update_action_description(self, action_id, values):
         try:
-            return self._update(models.ActionDescription,
-                                action_id, values)
+            return self._update(models.ActionDescription, action_id, values)
         except exception.ResourceNotFound:
-            raise exception.ActionDescriptionNotFound(
-                action_id=action_id)
+            raise exception.ActionDescriptionNotFound(action_id=action_id)
 
     def soft_delete_action_description(self, action_id):
         try:
             return self._soft_delete(models.ActionDescription, action_id)
         except exception.ResourceNotFound:
-            raise exception.ActionDescriptionNotFound(
-                action_id=action_id)
+            raise exception.ActionDescriptionNotFound(action_id=action_id)

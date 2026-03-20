@@ -38,7 +38,6 @@ from watcher.tests.unit.decision_engine.model.notification import fake_managers
 
 
 class NotificationTestCase(test_utils.NovaResourcesMixin, base_test.TestCase):
-
     @staticmethod
     def load_message(filename):
         cwd = os.path.abspath(os.path.dirname(__file__))
@@ -51,7 +50,6 @@ class NotificationTestCase(test_utils.NovaResourcesMixin, base_test.TestCase):
 
 
 class TestReceiveNovaNotifications(NotificationTestCase):
-
     FAKE_METADATA = {'message_id': None, 'timestamp': None}
     FAKE_NOTIFICATIONS = {
         'instance.create.end': 'instance-create-end.json',
@@ -72,16 +70,18 @@ class TestReceiveNovaNotifications(NotificationTestCase):
         'instance.rebuild.end': 'instance-rebuild-end.json',
         'instance.rescue.end': 'instance-rescue-end.json',
         'instance.update': 'instance-update.json',
-        'instance.live_migration_force_complete.end':
-        'instance-live_migration_force_complete-end.json',
-        'instance.live_migration_post_dest.end':
-        'instance-live_migration_post_dest-end.json',
+        'instance.live_migration_force_complete.end': (
+            'instance-live_migration_force_complete-end.json'
+        ),
+        'instance.live_migration_post_dest.end': (
+            'instance-live_migration_post_dest-end.json'
+        ),
         'instance.delete.end': 'instance-delete-end.json',
         'instance.soft_delete.end': 'instance-soft_delete-end.json',
         'service.create': 'service-create.json',
         'service.delete': 'service-delete.json',
         'service.update': 'service-update.json',
-        }
+    }
 
     def setUp(self):
         super().setUp()
@@ -91,7 +91,8 @@ class TestReceiveNovaNotifications(NotificationTestCase):
         m_from_dict.return_value = self.context
         self.addCleanup(p_from_dict.stop)
         p_heartbeat = mock.patch.object(
-            watcher_service.ServiceHeartbeat, "send_beat")
+            watcher_service.ServiceHeartbeat, "send_beat"
+        )
         self.m_heartbeat = p_heartbeat.start()
         self.addCleanup(p_heartbeat.stop)
 
@@ -109,13 +110,16 @@ class TestReceiveNovaNotifications(NotificationTestCase):
 
             de_service.notification_handler.dispatcher.dispatch(incoming)
             m_info.assert_called_with(
-                self.context, publisher_id, n_type,
-                expected_message, self.FAKE_METADATA)
+                self.context,
+                publisher_id,
+                n_type,
+                expected_message,
+                self.FAKE_METADATA,
+            )
 
 
 @ddt.ddt
 class TestNovaNotifications(NotificationTestCase):
-
     FAKE_METADATA = {'message_id': None, 'timestamp': None}
 
     def setUp(self):
@@ -165,14 +169,13 @@ class TestNovaNotifications(NotificationTestCase):
 
     @mock.patch.object(placement_helper, 'PlacementHelper')
     @mock.patch.object(nova_helper, "NovaHelper")
-    def test_nova_service_create(self, m_nova_helper_cls,
-                                 m_placement_helper):
+    def test_nova_service_create(self, m_nova_helper_cls, m_placement_helper):
         mock_placement = mock.Mock(name="placement_helper")
         mock_placement.get_inventories.return_value = dict()
         mock_placement.get_usages_for_resource_provider.return_value = {
             orc.DISK_GB: 10,
             orc.MEMORY_MB: 100,
-            orc.VCPU: 0
+            orc.VCPU: 0,
         }
         m_placement_helper.return_value = mock_placement
         m_get_compute_node_by_hostname = mock.Mock(
@@ -186,14 +189,18 @@ class TestNovaNotifications(NotificationTestCase):
                     vcpus=42,
                     local_disk_free=974,
                     local_disk_size=1337,
-                    service_details={'id': 123, 'host': 'host2',
-                                     'disabled_reason': ''},
-                    )
+                    service_details={
+                        'id': 123,
+                        'host': 'host2',
+                        'disabled_reason': '',
+                    },
+                )
             )
         )
         m_nova_helper_cls.return_value = mock.Mock(
             get_compute_node_by_hostname=m_get_compute_node_by_hostname,
-            name='m_nova_helper')
+            name='m_nova_helper',
+        )
 
         compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
         self.fake_cdmc.cluster_data_model = compute_model
@@ -203,7 +210,9 @@ class TestNovaNotifications(NotificationTestCase):
 
         self.assertRaises(
             exception.ComputeNodeNotFound,
-            compute_model.get_node_by_name, new_node_name)
+            compute_model.get_node_by_name,
+            new_node_name,
+        )
 
         message = self.load_message('service-create.json')
         handler.info(
@@ -241,7 +250,9 @@ class TestNovaNotifications(NotificationTestCase):
         # After
         self.assertRaises(
             exception.ComputeNodeNotFound,
-            compute_model.get_node_by_name, node0_name)
+            compute_model.get_node_by_name,
+            node0_name,
+        )
 
     def test_nova_instance_update(self):
         compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
@@ -294,14 +305,14 @@ class TestNovaNotifications(NotificationTestCase):
     @mock.patch.object(nova_helper, "NovaHelper")
     @ddt.data(False, True)
     def test_nova_instance_update_notfound_still_creates(
-            self, extended_attr_enabled, m_nova_helper_cls,
-            m_placement_helper):
+        self, extended_attr_enabled, m_nova_helper_cls, m_placement_helper
+    ):
         mock_placement = mock.Mock(name="placement_helper")
         mock_placement.get_inventories.return_value = dict()
         mock_placement.get_usages_for_resource_provider.return_value = {
             orc.DISK_GB: 10,
             orc.MEMORY_MB: 100,
-            orc.VCPU: 0
+            orc.VCPU: 0,
         }
         m_placement_helper.return_value = mock_placement
         m_get_compute_node_by_hostname = mock.Mock(
@@ -315,19 +326,24 @@ class TestNovaNotifications(NotificationTestCase):
                     vcpus=42,
                     local_disk_free=974,
                     local_disk_size=1337,
-                    service_details={'id': 123, 'host': 'Node_2',
-                                     'disabled_reason': ''},
-                    )
+                    service_details={
+                        'id': 123,
+                        'host': 'Node_2',
+                        'disabled_reason': '',
+                    },
                 )
+            )
         )
         m_nova_helper_cls.return_value = mock.Mock(
             get_compute_node_by_hostname=m_get_compute_node_by_hostname,
-            name='m_nova_helper')
+            name='m_nova_helper',
+        )
         compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
         self.fake_cdmc.cluster_data_model = compute_model
         # Set the extended_attributes_enabled configuration value
         self.fake_cdmc.cluster_data_model.extended_attributes_enabled = (
-            extended_attr_enabled)
+            extended_attr_enabled
+        )
 
         handler = novanotification.VersionedNotification(self.fake_cdmc)
 
@@ -362,12 +378,15 @@ class TestNovaNotifications(NotificationTestCase):
 
     @mock.patch.object(nova_helper, "NovaHelper")
     def test_instance_update_node_notfound_set_unmapped(
-            self, m_nova_helper_cls):
+        self, m_nova_helper_cls
+    ):
         m_get_compute_node_by_hostname = mock.Mock(
-            side_effect=exception.ComputeNodeNotFound(name="TEST"))
+            side_effect=exception.ComputeNodeNotFound(name="TEST")
+        )
         m_nova_helper_cls.return_value = mock.Mock(
             get_compute_node_by_hostname=m_get_compute_node_by_hostname,
-            name='m_nova_helper')
+            name='m_nova_helper',
+        )
 
         compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
         self.fake_cdmc.cluster_data_model = compute_model
@@ -375,8 +394,7 @@ class TestNovaNotifications(NotificationTestCase):
 
         instance0_uuid = '9966d6bd-a45c-4e1c-9d57-3054899a3ec7'
 
-        message = self.load_message(
-            'scenario3_notfound_instance-update.json')
+        message = self.load_message('scenario3_notfound_instance-update.json')
 
         handler.info(
             ctxt=self.context,
@@ -396,21 +414,22 @@ class TestNovaNotifications(NotificationTestCase):
         m_get_compute_node_by_hostname.assert_any_call('Node_2')
         self.assertRaises(
             exception.ComputeNodeNotFound,
-            compute_model.get_node_by_uuid, 'Node_2')
+            compute_model.get_node_by_uuid,
+            'Node_2',
+        )
 
     @mock.patch.object(placement_helper, 'PlacementHelper')
     @mock.patch.object(nova_helper, 'NovaHelper')
     @ddt.data(False, True)
-    def test_nova_instance_create(self,
-                                  extended_attr_enabled,
-                                  m_nova_helper_cls,
-                                  m_placement_helper):
+    def test_nova_instance_create(
+        self, extended_attr_enabled, m_nova_helper_cls, m_placement_helper
+    ):
         mock_placement = mock.Mock(name="placement_helper")
         mock_placement.get_inventories.return_value = dict()
         mock_placement.get_usages_for_resource_provider.return_value = {
             orc.DISK_GB: 10,
             orc.MEMORY_MB: 100,
-            orc.VCPU: 0
+            orc.VCPU: 0,
         }
         m_placement_helper.return_value = mock_placement
         m_get_compute_node_by_hostname = mock.Mock(
@@ -425,20 +444,25 @@ class TestNovaNotifications(NotificationTestCase):
                     vcpus=42,
                     local_disk_free=974,
                     local_disk_size=1337,
-                    service_details={'id': 123, 'host': 'compute',
-                                     'disabled_reason': ''},
-                    )
+                    service_details={
+                        'id': 123,
+                        'host': 'compute',
+                        'disabled_reason': '',
+                    },
                 )
+            )
         )
         m_nova_helper_cls.return_value = mock.Mock(
             get_compute_node_by_hostname=m_get_compute_node_by_hostname,
-            name='m_nova_helper')
+            name='m_nova_helper',
+        )
 
         compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
         self.fake_cdmc.cluster_data_model = compute_model
         # Set the extended_attributes_enabled configuration value
         self.fake_cdmc.cluster_data_model.extended_attributes_enabled = (
-            extended_attr_enabled)
+            extended_attr_enabled
+        )
 
         handler = novanotification.VersionedNotification(self.fake_cdmc)
 
@@ -446,7 +470,9 @@ class TestNovaNotifications(NotificationTestCase):
 
         self.assertRaises(
             exception.InstanceNotFound,
-            compute_model.get_instance_by_uuid, instance0_uuid)
+            compute_model.get_instance_by_uuid,
+            instance0_uuid,
+        )
 
         message = self.load_message('instance-create-end.json')
         handler.info(
@@ -459,20 +485,24 @@ class TestNovaNotifications(NotificationTestCase):
 
         hostname = message['payload']['nova_object.data']['host']
         node = self.fake_cdmc.cluster_data_model.get_node_by_instance_uuid(
-            instance0_uuid)
+            instance0_uuid
+        )
         self.assertEqual(hostname, node.hostname)
         m_get_compute_node_by_hostname.assert_called_once_with(hostname)
 
         instance0 = self.fake_cdmc.cluster_data_model.get_instance_by_uuid(
-            instance0_uuid)
+            instance0_uuid
+        )
 
         self.assertEqual(element.InstanceState.ACTIVE.value, instance0.state)
         self.assertEqual(1, instance0.vcpus)
         self.assertEqual(1, instance0.disk)
         self.assertEqual(512, instance0.memory)
         if extended_attr_enabled:
-            self.assertEqual({'hw:watchdog_action': 'disabled'},
-                             instance0.flavor_extra_specs)
+            self.assertEqual(
+                {'hw:watchdog_action': 'disabled'},
+                instance0.flavor_extra_specs,
+            )
             # NOTE(dviroel): pinned_az is not available in nova notifications
             self.assertEqual('', instance0.pinned_az)
         else:
@@ -501,7 +531,9 @@ class TestNovaNotifications(NotificationTestCase):
         # After
         self.assertRaises(
             exception.InstanceNotFound,
-            compute_model.get_instance_by_uuid, instance0_uuid)
+            compute_model.get_instance_by_uuid,
+            instance0_uuid,
+        )
 
     def test_nova_instance_soft_delete_end(self):
         compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
@@ -525,7 +557,9 @@ class TestNovaNotifications(NotificationTestCase):
         # After
         self.assertRaises(
             exception.InstanceNotFound,
-            compute_model.get_instance_by_uuid, instance0_uuid)
+            compute_model.get_instance_by_uuid,
+            instance0_uuid,
+        )
 
     def test_live_migrated_force_end(self):
         compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
@@ -536,7 +570,8 @@ class TestNovaNotifications(NotificationTestCase):
         node = compute_model.get_node_by_instance_uuid(instance0_uuid)
         self.assertEqual('fa69c544-906b-4a6a-a9c6-c1f7a8078c73', node.uuid)
         message = self.load_message(
-            'instance-live_migration_force_complete-end.json')
+            'instance-live_migration_force_complete-end.json'
+        )
         handler.info(
             ctxt=self.context,
             publisher_id=message['publisher_id'],
@@ -557,7 +592,8 @@ class TestNovaNotifications(NotificationTestCase):
         node = compute_model.get_node_by_instance_uuid(instance0_uuid)
         self.assertEqual('fa69c544-906b-4a6a-a9c6-c1f7a8078c73', node.uuid)
         message = self.load_message(
-            'instance-live_migration_post_dest-end.json')
+            'instance-live_migration_post_dest-end.json'
+        )
         handler.info(
             ctxt=self.context,
             publisher_id=message['publisher_id'],
@@ -607,7 +643,8 @@ class TestNovaNotifications(NotificationTestCase):
         compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
         self.fake_cdmc.cluster_data_model = compute_model
         self.fake_cdmc.cluster_data_model.extended_attributes_enabled = (
-            extended_attr_enabled)
+            extended_attr_enabled
+        )
         handler = novanotification.VersionedNotification(self.fake_cdmc)
 
         instance0_uuid = '73b09e16-35b7-4922-804e-e8f5d9b740fc'
@@ -625,8 +662,10 @@ class TestNovaNotifications(NotificationTestCase):
             metadata=self.FAKE_METADATA,
         )
         if extended_attr_enabled:
-            self.assertEqual({'hw:watchdog_action': 'disabled'},
-                             instance0.flavor_extra_specs)
+            self.assertEqual(
+                {'hw:watchdog_action': 'disabled'},
+                instance0.flavor_extra_specs,
+            )
         else:
             self.assertEqual({}, instance0.flavor_extra_specs)
 
@@ -756,7 +795,8 @@ class TestNovaNotifications(NotificationTestCase):
         compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
         self.fake_cdmc.cluster_data_model = compute_model
         self.fake_cdmc.cluster_data_model.extended_attributes_enabled = (
-            extended_attr_enabled)
+            extended_attr_enabled
+        )
 
         handler = novanotification.VersionedNotification(self.fake_cdmc)
         instance0_uuid = '73b09e16-35b7-4922-804e-e8f5d9b740fc'
@@ -767,8 +807,7 @@ class TestNovaNotifications(NotificationTestCase):
         # NOTE(dviroel): extra_specs are empty generated scenario
         self.assertEqual({}, instance0.flavor_extra_specs)
 
-        message = self.load_message(
-            'instance-resize_confirm-end.json')
+        message = self.load_message('instance-resize_confirm-end.json')
         handler.info(
             ctxt=self.context,
             publisher_id=message['publisher_id'],
@@ -780,9 +819,9 @@ class TestNovaNotifications(NotificationTestCase):
         self.assertEqual('fa69c544-906b-4a6a-a9c6-c1f7a8078c73', node.uuid)
         self.assertEqual(element.InstanceState.ACTIVE.value, instance0.state)
 
-        expected_extra_specs = {
-            'hw:watchdog_action': 'disabled'
-        } if extended_attr_enabled else {}
+        expected_extra_specs = (
+            {'hw:watchdog_action': 'disabled'} if extended_attr_enabled else {}
+        )
         self.assertEqual(expected_extra_specs, instance0.flavor_extra_specs)
 
     def test_nova_instance_restore_end(self):
@@ -903,7 +942,8 @@ class TestNovaNotifications(NotificationTestCase):
         )
 
         self.assertEqual(
-            element.InstanceState.SUSPENDED.value, instance0.state)
+            element.InstanceState.SUSPENDED.value, instance0.state
+        )
 
     def test_info_no_cdm(self):
         # Tests that a notification is received before an audit has been
@@ -913,12 +953,17 @@ class TestNovaNotifications(NotificationTestCase):
         payload = {
             'nova_object.data': {
                 'uuid': '9966d6bd-a45c-4e1c-9d57-3054899a3ec7',
-                'host': None
+                'host': None,
             }
         }
         with mock.patch.object(handler, 'update_instance') as update_instance:
-            handler.info(mock.sentinel.ctxt, 'publisher_id', 'instance.update',
-                         payload, metadata={})
+            handler.info(
+                mock.sentinel.ctxt,
+                'publisher_id',
+                'instance.update',
+                payload,
+                metadata={},
+            )
             # update_instance should not be called since we did not add an
             # Instance object to the CDM since the CDM does not exist yet.
             update_instance.assert_not_called()
@@ -930,8 +975,9 @@ class TestNovaNotifications(NotificationTestCase):
         message = self.load_message('instance-create-end.json')
 
         # get_instance_by_uuid should not be called when creating instance
-        with mock.patch.object(self.fake_cdmc.cluster_data_model,
-                               'get_instance_by_uuid') as mock_get:
+        with mock.patch.object(
+            self.fake_cdmc.cluster_data_model, 'get_instance_by_uuid'
+        ) as mock_get:
             handler.info(
                 ctxt=self.context,
                 publisher_id=message['publisher_id'],

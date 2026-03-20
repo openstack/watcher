@@ -26,7 +26,6 @@ LOG = log.getLogger(__name__)
 
 
 class KeystoneHelper:
-
     def __init__(self, osc=None):
         """:param osc: an OpenStackClients instance"""
         self.osc = osc if osc else clients.OpenStackClients()
@@ -40,10 +39,12 @@ class KeystoneHelper:
             roles = self.keystone.roles.list(name=name_or_id)
             if len(roles) == 0:
                 raise exception.Invalid(
-                    message=(_("Role not Found: %s") % name_or_id))
+                    message=(_("Role not Found: %s") % name_or_id)
+                )
             if len(roles) > 1:
                 raise exception.Invalid(
-                    message=(_("Role name seems ambiguous: %s") % name_or_id))
+                    message=(_("Role name seems ambiguous: %s") % name_or_id)
+                )
         return roles[0]
 
     def get_user(self, name_or_id):
@@ -54,10 +55,12 @@ class KeystoneHelper:
             users = self.keystone.users.list(name=name_or_id)
             if len(users) == 0:
                 raise exception.Invalid(
-                    message=(_("User not Found: %s") % name_or_id))
+                    message=(_("User not Found: %s") % name_or_id)
+                )
             if len(users) > 1:
                 raise exception.Invalid(
-                    message=(_("User name seems ambiguous: %s") % name_or_id))
+                    message=(_("User name seems ambiguous: %s") % name_or_id)
+                )
             return users[0]
 
     def get_project(self, name_or_id):
@@ -68,11 +71,14 @@ class KeystoneHelper:
             projects = self.keystone.projects.list(name=name_or_id)
             if len(projects) == 0:
                 raise exception.Invalid(
-                    message=(_("Project not Found: %s") % name_or_id))
+                    message=(_("Project not Found: %s") % name_or_id)
+                )
             if len(projects) > 1:
                 raise exception.Invalid(
-                    message=(_("Project name seems ambiguous: %s") %
-                             name_or_id))
+                    message=(
+                        _("Project name seems ambiguous: %s") % name_or_id
+                    )
+                )
             return projects[0]
 
     def get_domain(self, name_or_id):
@@ -83,11 +89,12 @@ class KeystoneHelper:
             domains = self.keystone.domains.list(name=name_or_id)
             if len(domains) == 0:
                 raise exception.Invalid(
-                    message=(_("Domain not Found: %s") % name_or_id))
+                    message=(_("Domain not Found: %s") % name_or_id)
+                )
             if len(domains) > 1:
                 raise exception.Invalid(
-                    message=(_("Domain name seems ambiguous: %s") %
-                             name_or_id))
+                    message=(_("Domain name seems ambiguous: %s") % name_or_id)
+                )
             return domains[0]
 
     def is_service_enabled_by_type(self, svc_type):

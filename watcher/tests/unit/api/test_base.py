@@ -19,14 +19,15 @@ from watcher.tests.unit.api import base
 
 
 class TestBase(base.FunctionalTest):
-
     def test_api_setup(self):
         pass
 
     def test_bad_uri(self):
-        response = self.get_json('/bad/path',
-                                 expect_errors=True,
-                                 headers={"Accept": "application/json"})
+        response = self.get_json(
+            '/bad/path',
+            expect_errors=True,
+            headers={"Accept": "application/json"},
+        )
         self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
         self.assertEqual("application/json", response.content_type)
         self.assertTrue(response.json['error_message'])

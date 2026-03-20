@@ -23,14 +23,18 @@ def upgrade():
         sa.Column('created_at', sa.DateTime(), nullable=True),
         sa.Column('updated_at', sa.DateTime(), nullable=True),
         sa.Column('deleted_at', sa.DateTime(), nullable=True),
-        sa.Column('deleted', oslo_db.sqlalchemy.types.SoftDeleteInteger(),
-                  nullable=True),
+        sa.Column(
+            'deleted',
+            oslo_db.sqlalchemy.types.SoftDeleteInteger(),
+            nullable=True,
+        ),
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('action_type', sa.String(length=255), nullable=False),
         sa.Column('description', sa.String(length=255), nullable=False),
         sa.PrimaryKeyConstraint('id'),
-        sa.UniqueConstraint('action_type',
-                            name='uniq_action_description0action_type')
+        sa.UniqueConstraint(
+            'action_type', name='uniq_action_description0action_type'
+        ),
     )
 
 

@@ -24,7 +24,6 @@ from watcher.tests.unit.db import utils
 
 
 class TestDbAuditTemplateFilters(base.DbTestCase):
-
     FAKE_OLDER_DATE = '2014-01-01T09:52:05.219414'
     FAKE_OLD_DATE = '2015-01-01T09:52:05.219414'
     FAKE_TODAY = '2016-02-24T09:52:05.219414'
@@ -35,7 +34,6 @@ class TestDbAuditTemplateFilters(base.DbTestCase):
         self._data_setup()
 
     def _data_setup(self):
-
         def gen_name():
             return f"Audit Template {w_utils.generate_uuid()}"
 
@@ -45,13 +43,16 @@ class TestDbAuditTemplateFilters(base.DbTestCase):
 
         with freezegun.freeze_time(self.FAKE_TODAY):
             self.audit_template1 = utils.create_test_audit_template(
-                name=self.audit_template1_name, id=1, uuid=None)
+                name=self.audit_template1_name, id=1, uuid=None
+            )
         with freezegun.freeze_time(self.FAKE_OLD_DATE):
             self.audit_template2 = utils.create_test_audit_template(
-                name=self.audit_template2_name, id=2, uuid=None)
+                name=self.audit_template2_name, id=2, uuid=None
+            )
         with freezegun.freeze_time(self.FAKE_OLDER_DATE):
             self.audit_template3 = utils.create_test_audit_template(
-                name=self.audit_template3_name, id=3, uuid=None)
+                name=self.audit_template3_name, id=3, uuid=None
+            )
 
     def _soft_delete_audit_templates(self):
         with freezegun.freeze_time(self.FAKE_TODAY):
@@ -64,20 +65,24 @@ class TestDbAuditTemplateFilters(base.DbTestCase):
     def _update_audit_templates(self):
         with freezegun.freeze_time(self.FAKE_TODAY):
             self.dbapi.update_audit_template(
-                self.audit_template1.uuid, values={"name": "audit_template1"})
+                self.audit_template1.uuid, values={"name": "audit_template1"}
+            )
         with freezegun.freeze_time(self.FAKE_OLD_DATE):
             self.dbapi.update_audit_template(
-                self.audit_template2.uuid, values={"name": "audit_template2"})
+                self.audit_template2.uuid, values={"name": "audit_template2"}
+            )
         with freezegun.freeze_time(self.FAKE_OLDER_DATE):
             self.dbapi.update_audit_template(
-                self.audit_template3.uuid, values={"name": "audit_template3"})
+                self.audit_template3.uuid, values={"name": "audit_template3"}
+            )
 
     def test_get_audit_template_list_filter_deleted_true(self):
         with freezegun.freeze_time(self.FAKE_TODAY):
             self.dbapi.soft_delete_audit_template(self.audit_template1.uuid)
 
         res = self.dbapi.get_audit_template_list(
-            self.context, filters={'deleted': True})
+            self.context, filters={'deleted': True}
+        )
 
         self.assertEqual([self.audit_template1['id']], [r.id for r in res])
 
@@ -86,17 +91,20 @@ class TestDbAuditTemplateFilters(base.DbTestCase):
             self.dbapi.soft_delete_audit_template(self.audit_template1.uuid)
 
         res = self.dbapi.get_audit_template_list(
-            self.context, filters={'deleted': False})
+            self.context, filters={'deleted': False}
+        )
 
         self.assertEqual(
             [self.audit_template2['id'], self.audit_template3['id']],
-            [r.id for r in res])
+            [r.id for r in res],
+        )
 
     def test_get_audit_template_list_filter_deleted_at_eq(self):
         self._soft_delete_audit_templates()
 
         res = self.dbapi.get_audit_template_list(
-            self.context, filters={'deleted_at__eq': self.FAKE_TODAY})
+            self.context, filters={'deleted_at__eq': self.FAKE_TODAY}
+        )
 
         self.assertEqual([self.audit_template1['id']], [r.id for r in res])
 
@@ -104,27 +112,32 @@ class TestDbAuditTemplateFilters(base.DbTestCase):
         self._soft_delete_audit_templates()
 
         res = self.dbapi.get_audit_template_list(
-            self.context, filters={'deleted_at__lt': self.FAKE_TODAY})
+            self.context, filters={'deleted_at__lt': self.FAKE_TODAY}
+        )
 
         self.assertEqual(
             [self.audit_template2['id'], self.audit_template3['id']],
-            [r.id for r in res])
+            [r.id for r in res],
+        )
 
     def test_get_audit_template_list_filter_deleted_at_lte(self):
         self._soft_delete_audit_templates()
 
         res = self.dbapi.get_audit_template_list(
-            self.context, filters={'deleted_at__lte': self.FAKE_OLD_DATE})
+            self.context, filters={'deleted_at__lte': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual(
             [self.audit_template2['id'], self.audit_template3['id']],
-            [r.id for r in res])
+            [r.id for r in res],
+        )
 
     def test_get_audit_template_list_filter_deleted_at_gt(self):
         self._soft_delete_audit_templates()
 
         res = self.dbapi.get_audit_template_list(
-            self.context, filters={'deleted_at__gt': self.FAKE_OLD_DATE})
+            self.context, filters={'deleted_at__gt': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual([self.audit_template1['id']], [r.id for r in res])
 
@@ -132,49 +145,59 @@ class TestDbAuditTemplateFilters(base.DbTestCase):
         self._soft_delete_audit_templates()
 
         res = self.dbapi.get_audit_template_list(
-            self.context, filters={'deleted_at__gte': self.FAKE_OLD_DATE})
+            self.context, filters={'deleted_at__gte': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual(
             [self.audit_template1['id'], self.audit_template2['id']],
-            [r.id for r in res])
+            [r.id for r in res],
+        )
 
     # created_at #
 
     def test_get_audit_template_list_filter_created_at_eq(self):
         res = self.dbapi.get_audit_template_list(
-            self.context, filters={'created_at__eq': self.FAKE_TODAY})
+            self.context, filters={'created_at__eq': self.FAKE_TODAY}
+        )
 
         self.assertEqual([self.audit_template1['id']], [r.id for r in res])
 
     def test_get_audit_template_list_filter_created_at_lt(self):
         res = self.dbapi.get_audit_template_list(
-            self.context, filters={'created_at__lt': self.FAKE_TODAY})
+            self.context, filters={'created_at__lt': self.FAKE_TODAY}
+        )
 
         self.assertEqual(
             [self.audit_template2['id'], self.audit_template3['id']],
-            [r.id for r in res])
+            [r.id for r in res],
+        )
 
     def test_get_audit_template_list_filter_created_at_lte(self):
         res = self.dbapi.get_audit_template_list(
-            self.context, filters={'created_at__lte': self.FAKE_OLD_DATE})
+            self.context, filters={'created_at__lte': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual(
             [self.audit_template2['id'], self.audit_template3['id']],
-            [r.id for r in res])
+            [r.id for r in res],
+        )
 
     def test_get_audit_template_list_filter_created_at_gt(self):
         res = self.dbapi.get_audit_template_list(
-            self.context, filters={'created_at__gt': self.FAKE_OLD_DATE})
+            self.context, filters={'created_at__gt': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual([self.audit_template1['id']], [r.id for r in res])
 
     def test_get_audit_template_list_filter_created_at_gte(self):
         res = self.dbapi.get_audit_template_list(
-            self.context, filters={'created_at__gte': self.FAKE_OLD_DATE})
+            self.context, filters={'created_at__gte': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual(
             [self.audit_template1['id'], self.audit_template2['id']],
-            [r.id for r in res])
+            [r.id for r in res],
+        )
 
     # updated_at #
 
@@ -182,7 +205,8 @@ class TestDbAuditTemplateFilters(base.DbTestCase):
         self._update_audit_templates()
 
         res = self.dbapi.get_audit_template_list(
-            self.context, filters={'updated_at__eq': self.FAKE_TODAY})
+            self.context, filters={'updated_at__eq': self.FAKE_TODAY}
+        )
 
         self.assertEqual([self.audit_template1['id']], [r.id for r in res])
 
@@ -190,27 +214,32 @@ class TestDbAuditTemplateFilters(base.DbTestCase):
         self._update_audit_templates()
 
         res = self.dbapi.get_audit_template_list(
-            self.context, filters={'updated_at__lt': self.FAKE_TODAY})
+            self.context, filters={'updated_at__lt': self.FAKE_TODAY}
+        )
 
         self.assertEqual(
             [self.audit_template2['id'], self.audit_template3['id']],
-            [r.id for r in res])
+            [r.id for r in res],
+        )
 
     def test_get_audit_template_list_filter_updated_at_lte(self):
         self._update_audit_templates()
 
         res = self.dbapi.get_audit_template_list(
-            self.context, filters={'updated_at__lte': self.FAKE_OLD_DATE})
+            self.context, filters={'updated_at__lte': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual(
             [self.audit_template2['id'], self.audit_template3['id']],
-            [r.id for r in res])
+            [r.id for r in res],
+        )
 
     def test_get_audit_template_list_filter_updated_at_gt(self):
         self._update_audit_templates()
 
         res = self.dbapi.get_audit_template_list(
-            self.context, filters={'updated_at__gt': self.FAKE_OLD_DATE})
+            self.context, filters={'updated_at__gt': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual([self.audit_template1['id']], [r.id for r in res])
 
@@ -218,22 +247,24 @@ class TestDbAuditTemplateFilters(base.DbTestCase):
         self._update_audit_templates()
 
         res = self.dbapi.get_audit_template_list(
-            self.context, filters={'updated_at__gte': self.FAKE_OLD_DATE})
+            self.context, filters={'updated_at__gte': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual(
             [self.audit_template1['id'], self.audit_template2['id']],
-            [r.id for r in res])
+            [r.id for r in res],
+        )
 
 
 class DbAuditTemplateTestCase(base.DbTestCase):
-
     def test_get_audit_template_list(self):
         uuids = []
         for i in range(1, 4):
             audit_template = utils.create_test_audit_template(
                 id=i,
                 uuid=w_utils.generate_uuid(),
-                name=f'My Audit Template {i}')
+                name=f'My Audit Template {i}',
+            )
             uuids.append(str(audit_template['uuid']))
         audit_templates = self.dbapi.get_audit_template_list(self.context)
         audit_template_uuids = [at.uuid for at in audit_templates]
@@ -251,18 +282,23 @@ class DbAuditTemplateTestCase(base.DbTestCase):
         uuids = []
         for i in range(1, 4):
             audit_template = utils.create_test_audit_template(
-                id=i, uuid=w_utils.generate_uuid(),
+                id=i,
+                uuid=w_utils.generate_uuid(),
                 name=f'My Audit Template {i}',
-                goal_id=goal.id, strategy_id=strategy.id)
+                goal_id=goal.id,
+                strategy_id=strategy.id,
+            )
             uuids.append(str(audit_template['uuid']))
         audit_templates = self.dbapi.get_audit_template_list(
-            self.context, eager=True)
+            self.context, eager=True
+        )
         audit_template_map = {a.uuid: a for a in audit_templates}
         self.assertEqual(sorted(uuids), sorted(audit_template_map.keys()))
         eager_audit_template = audit_template_map[audit_template.uuid]
         self.assertEqual(goal.as_dict(), eager_audit_template.goal.as_dict())
         self.assertEqual(
-            strategy.as_dict(), eager_audit_template.strategy.as_dict())
+            strategy.as_dict(), eager_audit_template.strategy.as_dict()
+        )
 
     def test_get_audit_template_list_with_filters(self):
         goal = utils.create_test_goal(name='DUMMY')
@@ -272,58 +308,69 @@ class DbAuditTemplateTestCase(base.DbTestCase):
             uuid=w_utils.generate_uuid(),
             name='My Audit Template 1',
             description='Description of my audit template 1',
-            goal_id=goal['id'])
+            goal_id=goal['id'],
+        )
         audit_template2 = utils.create_test_audit_template(
             id=2,
             uuid=w_utils.generate_uuid(),
             name='My Audit Template 2',
             description='Description of my audit template 2',
-            goal_id=goal['id'])
+            goal_id=goal['id'],
+        )
         audit_template3 = utils.create_test_audit_template(
             id=3,
             uuid=w_utils.generate_uuid(),
             name='My Audit Template 3',
             description='Description of my audit template 3',
-            goal_id=goal['id'])
+            goal_id=goal['id'],
+        )
 
         self.dbapi.soft_delete_audit_template(audit_template3['uuid'])
 
         res = self.dbapi.get_audit_template_list(
-            self.context,
-            filters={'name': 'My Audit Template 1'})
+            self.context, filters={'name': 'My Audit Template 1'}
+        )
         self.assertEqual([audit_template1['id']], [r.id for r in res])
 
         res = self.dbapi.get_audit_template_list(
-            self.context,
-            filters={'name': 'Does not exist'})
+            self.context, filters={'name': 'Does not exist'}
+        )
         self.assertEqual([], [r.id for r in res])
 
         res = self.dbapi.get_audit_template_list(
-            self.context,
-            filters={'goal_name': 'DUMMY'})
+            self.context, filters={'goal_name': 'DUMMY'}
+        )
         self.assertEqual(
             sorted([audit_template1['id'], audit_template2['id']]),
-            sorted([r.id for r in res]))
+            sorted([r.id for r in res]),
+        )
 
         temp_context = self.context
         temp_context.show_deleted = True
         res = self.dbapi.get_audit_template_list(
-            temp_context,
-            filters={'goal_name': 'DUMMY'})
+            temp_context, filters={'goal_name': 'DUMMY'}
+        )
         self.assertEqual(
-            sorted([audit_template1['id'], audit_template2['id'],
-                    audit_template3['id']]),
-            sorted([r.id for r in res]))
+            sorted(
+                [
+                    audit_template1['id'],
+                    audit_template2['id'],
+                    audit_template3['id'],
+                ]
+            ),
+            sorted([r.id for r in res]),
+        )
 
         res = self.dbapi.get_audit_template_list(
-            self.context,
-            filters={'name': 'My Audit Template 2'})
+            self.context, filters={'name': 'My Audit Template 2'}
+        )
         self.assertEqual([audit_template2['id']], [r.id for r in res])
 
     def test_get_audit_template_list_with_filter_by_uuid(self):
         audit_template = utils.create_test_audit_template()
         res = self.dbapi.get_audit_template_list(
-            self.context, filters={'uuid': audit_template["uuid"]})
+            self.context, filters={'uuid': audit_template["uuid"]}
+        )
 
         self.assertEqual(len(res), 1)
         self.assertEqual(audit_template['uuid'], res[0].uuid)
@@ -331,72 +378,98 @@ class DbAuditTemplateTestCase(base.DbTestCase):
     def test_get_audit_template_by_id(self):
         audit_template = utils.create_test_audit_template()
         audit_template = self.dbapi.get_audit_template_by_id(
-            self.context, audit_template['id'])
+            self.context, audit_template['id']
+        )
         self.assertEqual(audit_template['uuid'], audit_template.uuid)
 
     def test_get_audit_template_by_uuid(self):
         audit_template = utils.create_test_audit_template()
         audit_template = self.dbapi.get_audit_template_by_uuid(
-            self.context, audit_template['uuid'])
+            self.context, audit_template['uuid']
+        )
         self.assertEqual(audit_template['id'], audit_template.id)
 
     def test_get_audit_template_that_does_not_exist(self):
-        self.assertRaises(exception.AuditTemplateNotFound,
-                          self.dbapi.get_audit_template_by_id,
-                          self.context, 1234)
+        self.assertRaises(
+            exception.AuditTemplateNotFound,
+            self.dbapi.get_audit_template_by_id,
+            self.context,
+            1234,
+        )
 
     def test_update_audit_template(self):
         audit_template = utils.create_test_audit_template()
-        res = self.dbapi.update_audit_template(audit_template['id'],
-                                               {'name': 'updated-model'})
+        res = self.dbapi.update_audit_template(
+            audit_template['id'], {'name': 'updated-model'}
+        )
         self.assertEqual('updated-model', res.name)
 
     def test_update_audit_template_that_does_not_exist(self):
-        self.assertRaises(exception.AuditTemplateNotFound,
-                          self.dbapi.update_audit_template, 1234, {'name': ''})
+        self.assertRaises(
+            exception.AuditTemplateNotFound,
+            self.dbapi.update_audit_template,
+            1234,
+            {'name': ''},
+        )
 
     def test_update_audit_template_uuid(self):
         audit_template = utils.create_test_audit_template()
-        self.assertRaises(exception.Invalid,
-                          self.dbapi.update_audit_template,
-                          audit_template['id'],
-                          {'uuid': 'hello'})
+        self.assertRaises(
+            exception.Invalid,
+            self.dbapi.update_audit_template,
+            audit_template['id'],
+            {'uuid': 'hello'},
+        )
 
     def test_destroy_audit_template(self):
         audit_template = utils.create_test_audit_template()
         self.dbapi.destroy_audit_template(audit_template['id'])
-        self.assertRaises(exception.AuditTemplateNotFound,
-                          self.dbapi.get_audit_template_by_id,
-                          self.context, audit_template['id'])
+        self.assertRaises(
+            exception.AuditTemplateNotFound,
+            self.dbapi.get_audit_template_by_id,
+            self.context,
+            audit_template['id'],
+        )
 
     def test_destroy_audit_template_by_uuid(self):
         uuid = w_utils.generate_uuid()
         utils.create_test_audit_template(uuid=uuid)
-        self.assertIsNotNone(self.dbapi.get_audit_template_by_uuid(
-            self.context, uuid))
+        self.assertIsNotNone(
+            self.dbapi.get_audit_template_by_uuid(self.context, uuid)
+        )
         self.dbapi.destroy_audit_template(uuid)
-        self.assertRaises(exception.AuditTemplateNotFound,
-                          self.dbapi.get_audit_template_by_uuid,
-                          self.context, uuid)
+        self.assertRaises(
+            exception.AuditTemplateNotFound,
+            self.dbapi.get_audit_template_by_uuid,
+            self.context,
+            uuid,
+        )
 
     def test_destroy_audit_template_that_does_not_exist(self):
-        self.assertRaises(exception.AuditTemplateNotFound,
-                          self.dbapi.destroy_audit_template, 1234)
+        self.assertRaises(
+            exception.AuditTemplateNotFound,
+            self.dbapi.destroy_audit_template,
+            1234,
+        )
 
     def test_create_audit_template_already_exists(self):
         uuid = w_utils.generate_uuid()
         utils.create_test_audit_template(id=1, uuid=uuid)
-        self.assertRaises(exception.AuditTemplateAlreadyExists,
-                          utils.create_test_audit_template,
-                          id=2, uuid=uuid)
+        self.assertRaises(
+            exception.AuditTemplateAlreadyExists,
+            utils.create_test_audit_template,
+            id=2,
+            uuid=uuid,
+        )
 
     def test_audit_template_create_same_name(self):
         audit_template1 = utils.create_test_audit_template(
-            uuid=w_utils.generate_uuid(),
-            name='audit_template_name')
+            uuid=w_utils.generate_uuid(), name='audit_template_name'
+        )
         self.assertEqual(audit_template1['uuid'], audit_template1.uuid)
         self.assertRaises(
             exception.AuditTemplateAlreadyExists,
             utils.create_test_audit_template,
             uuid=w_utils.generate_uuid(),
-            name='audit_template_name')
+            name='audit_template_name',
+        )

@@ -55,9 +55,11 @@ from watcher.objects import fields as wfields
 
 
 @base.WatcherObjectRegistry.register
-class AuditTemplate(base.WatcherPersistentObject, base.WatcherObject,
-                    base.WatcherObjectDictCompat):
-
+class AuditTemplate(
+    base.WatcherPersistentObject,
+    base.WatcherObject,
+    base.WatcherObjectDictCompat,
+):
     # Version 1.0: Initial version
     # Version 1.1: Added 'goal' and 'strategy' object field
     VERSION = '1.1'
@@ -72,7 +74,6 @@ class AuditTemplate(base.WatcherPersistentObject, base.WatcherObject,
         'scope': wfields.FlexibleListOfDictField(nullable=True),
         'goal_id': wfields.IntegerField(),
         'strategy_id': wfields.IntegerField(nullable=True),
-
         'goal': wfields.ObjectField('Goal', nullable=True),
         'strategy': wfields.ObjectField('Strategy', nullable=True),
     }
@@ -118,9 +119,11 @@ class AuditTemplate(base.WatcherPersistentObject, base.WatcherObject,
         :returns: a :class:`AuditTemplate` object.
         """
         db_audit_template = cls.dbapi.get_audit_template_by_id(
-            context, audit_template_id, eager=eager)
+            context, audit_template_id, eager=eager
+        )
         audit_template = cls._from_db_object(
-            cls(context), db_audit_template, eager=eager)
+            cls(context), db_audit_template, eager=eager
+        )
         return audit_template
 
     @base.remotable_classmethod
@@ -138,9 +141,11 @@ class AuditTemplate(base.WatcherPersistentObject, base.WatcherObject,
         :returns: a :class:`AuditTemplate` object.
         """
         db_audit_template = cls.dbapi.get_audit_template_by_uuid(
-            context, uuid, eager=eager)
+            context, uuid, eager=eager
+        )
         audit_template = cls._from_db_object(
-            cls(context), db_audit_template, eager=eager)
+            cls(context), db_audit_template, eager=eager
+        )
         return audit_template
 
     @base.remotable_classmethod
@@ -153,14 +158,24 @@ class AuditTemplate(base.WatcherPersistentObject, base.WatcherObject,
         :returns: a :class:`AuditTemplate` object.
         """
         db_audit_template = cls.dbapi.get_audit_template_by_name(
-            context, name, eager=eager)
+            context, name, eager=eager
+        )
         audit_template = cls._from_db_object(
-            cls(context), db_audit_template, eager=eager)
+            cls(context), db_audit_template, eager=eager
+        )
         return audit_template
 
     @base.remotable_classmethod
-    def list(cls, context, filters=None, limit=None, marker=None,
-             sort_key=None, sort_dir=None, eager=False):
+    def list(
+        cls,
+        context,
+        filters=None,
+        limit=None,
+        marker=None,
+        sort_key=None,
+        sort_dir=None,
+        eager=False,
+    ):
         """Return a list of :class:`AuditTemplate` objects.
 
         :param context: Security context. NOTE: This should only
@@ -184,10 +199,13 @@ class AuditTemplate(base.WatcherPersistentObject, base.WatcherObject,
             marker=marker,
             sort_key=sort_key,
             sort_dir=sort_dir,
-            eager=eager)
+            eager=eager,
+        )
 
-        return [cls._from_db_object(cls(context), obj, eager=eager)
-                for obj in db_audit_templates]
+        return [
+            cls._from_db_object(cls(context), obj, eager=eager)
+            for obj in db_audit_templates
+        ]
 
     @base.remotable
     def create(self):
@@ -236,5 +254,6 @@ class AuditTemplate(base.WatcherPersistentObject, base.WatcherObject,
         """Soft Delete the :class:`AuditTemplate` from the DB"""
         db_obj = self.dbapi.soft_delete_audit_template(self.uuid)
         obj = self._from_db_object(
-            self.__class__(self._context), db_obj, eager=False)
+            self.__class__(self._context), db_obj, eager=False
+        )
         self.obj_refresh(obj)

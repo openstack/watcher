@@ -40,7 +40,6 @@ class InstanceState(enum.Enum):
 
 @base.WatcherObjectRegistry.register_if(False)
 class Instance(compute_resource.ComputeResource):
-
     fields = {
         # If the resource is excluded by the scope,
         # 'watcher_exclude' property will be set True.

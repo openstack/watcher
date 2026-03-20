@@ -26,11 +26,9 @@ from watcher.tests.unit.db import utils
 
 
 class TestGoalObject(base.DbTestCase):
-
     def setUp(self):
         super().setUp()
-        self.fake_goal = utils.get_test_goal(
-            created_at=timeutils.utcnow())
+        self.fake_goal = utils.get_test_goal(created_at=timeutils.utcnow())
 
     @mock.patch.object(db_api.Connection, 'get_goal_by_id')
     def test_get_by_id(self, mock_get_goal):
@@ -72,7 +70,8 @@ class TestGoalObject(base.DbTestCase):
         goal.create()
         expected_goal = self.fake_goal.copy()
         expected_goal['created_at'] = expected_goal['created_at'].replace(
-            tzinfo=datetime.timezone.utc)
+            tzinfo=datetime.timezone.utc
+        )
         mock_create_goal.assert_called_once_with(expected_goal)
         self.assertEqual(self.context, goal._context)
 
@@ -83,8 +82,7 @@ class TestGoalObject(base.DbTestCase):
         mock_get_goal.return_value = self.fake_goal
         goal = objects.Goal.get_by_id(self.context, goal_id)
         goal.destroy()
-        mock_get_goal.assert_called_once_with(
-            self.context, goal_id)
+        mock_get_goal.assert_called_once_with(self.context, goal_id)
         mock_destroy_goal.assert_called_once_with(goal_id)
         self.assertEqual(self.context, goal._context)
 
@@ -103,7 +101,8 @@ class TestGoalObject(base.DbTestCase):
 
         mock_get_goal.assert_called_once_with(self.context, goal_uuid)
         mock_update_goal.assert_called_once_with(
-            goal_uuid, {'display_name': 'DUMMY'})
+            goal_uuid, {'display_name': 'DUMMY'}
+        )
         self.assertEqual(self.context, goal._context)
 
     @mock.patch.object(db_api.Connection, 'get_goal_by_uuid')
@@ -112,8 +111,10 @@ class TestGoalObject(base.DbTestCase):
         returns = [self.fake_goal, fake_goal2]
         mock_get_goal.side_effect = returns
         uuid = self.fake_goal['uuid']
-        expected = [mock.call(self.context, uuid),
-                    mock.call(self.context, uuid)]
+        expected = [
+            mock.call(self.context, uuid),
+            mock.call(self.context, uuid),
+        ]
         goal = objects.Goal.get(self.context, uuid)
         self.assertEqual("TEST", goal.name)
         goal.refresh()
@@ -131,9 +132,11 @@ class TestGoalObject(base.DbTestCase):
 
         expected_goal = fake_deleted_goal.copy()
         expected_goal['created_at'] = expected_goal['created_at'].replace(
-            tzinfo=datetime.timezone.utc)
+            tzinfo=datetime.timezone.utc
+        )
         expected_goal['deleted_at'] = expected_goal['deleted_at'].replace(
-            tzinfo=datetime.timezone.utc)
+            tzinfo=datetime.timezone.utc
+        )
 
         uuid = self.fake_goal['uuid']
         goal = objects.Goal.get_by_uuid(self.context, uuid)

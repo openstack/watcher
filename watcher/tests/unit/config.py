@@ -14,21 +14,14 @@ from watcher.api import hooks
 
 
 # Server Specific Configurations
-server = {
-    'port': '9322',
-    'host': '0.0.0.0'
-}
+server = {'port': '9322', 'host': '0.0.0.0'}
 
 # Pecan Application Configurations
 app = {
     'root': 'watcher.api.controllers.root.RootController',
     'modules': ['watcher.api'],
-    'hooks': [
-        hooks.ContextHook(),
-    ],
-    'acl_public_routes': [
-        '/'
-    ],
+    'hooks': [hooks.ContextHook()],
+    'acl_public_routes': ['/'],
 }
 
 # Custom Configurations must be in Python dictionary format::

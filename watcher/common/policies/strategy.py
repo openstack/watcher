@@ -22,46 +22,30 @@ rules = [
         name=STRATEGY % 'detail',
         check_str=base.RULE_ADMIN_API,
         description='List strategies with detail.',
-        operations=[
-            {
-                'path': '/v1/strategies/detail',
-                'method': 'GET'
-            }
-        ]
+        operations=[{'path': '/v1/strategies/detail', 'method': 'GET'}],
     ),
     policy.DocumentedRuleDefault(
         name=STRATEGY % 'get',
         check_str=base.RULE_ADMIN_API,
         description='Get a strategy.',
         operations=[
-            {
-                'path': '/v1/strategies/{strategy_uuid}',
-                'method': 'GET'
-            }
-        ]
+            {'path': '/v1/strategies/{strategy_uuid}', 'method': 'GET'}
+        ],
     ),
     policy.DocumentedRuleDefault(
         name=STRATEGY % 'get_all',
         check_str=base.RULE_ADMIN_API,
         description='List all strategies.',
-        operations=[
-            {
-                'path': '/v1/strategies',
-                'method': 'GET'
-            }
-        ]
+        operations=[{'path': '/v1/strategies', 'method': 'GET'}],
     ),
     policy.DocumentedRuleDefault(
         name=STRATEGY % 'state',
         check_str=base.RULE_ADMIN_API,
         description='Get state of strategy.',
         operations=[
-            {
-                'path': '/v1/strategies{strategy_uuid}/state',
-                'method': 'GET'
-            }
-        ]
-    )
+            {'path': '/v1/strategies{strategy_uuid}/state', 'method': 'GET'}
+        ],
+    ),
 ]
 
 

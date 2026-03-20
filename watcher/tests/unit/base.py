@@ -66,19 +66,16 @@ class TestCase(BaseTestCase):
         self.messaging_conf = self.useFixture(conffixture.ConfFixture(CONF))
         self.messaging_conf.transport_url = 'fake:/'
 
-        cfg.CONF.set_override("auth_type", "admin_token",
-                              group='keystone_authtoken')
+        cfg.CONF.set_override(
+            "auth_type", "admin_token", group='keystone_authtoken'
+        )
 
         app_config_path = os.path.join(os.path.dirname(__file__), 'config.py')
         self.app = testing.load_test_app(app_config_path)
         self.token_info = {
             'token': {
-                'project': {
-                    'id': 'fake_project'
-                },
-                'user': {
-                    'id': 'fake_user'
-                }
+                'project': {'id': 'fake_project'},
+                'user': {'id': 'fake_user'},
             }
         }
 
@@ -87,7 +84,8 @@ class TestCase(BaseTestCase):
         self.context = watcher_context.RequestContext(
             auth_token_info=self.token_info,
             project_id='fake_project',
-            user_id='fake_user')
+            user_id='fake_user',
+        )
 
         self.policy = self.useFixture(policy_fixture.PolicyFixture())
 
@@ -103,8 +101,9 @@ class TestCase(BaseTestCase):
             context = watcher_context.RequestContext(*args, **kwargs)
             return watcher_context.RequestContext.from_dict(context.to_dict())
 
-        p = mock.patch.object(watcher_context, 'make_context',
-                              side_effect=make_context)
+        p = mock.patch.object(
+            watcher_context, 'make_context', side_effect=make_context
+        )
         self.mock_make_context = p.start()
         self.addCleanup(p.stop)
 
@@ -112,7 +111,8 @@ class TestCase(BaseTestCase):
         self._reset_singletons()
 
         self._base_test_obj_backup = copy.copy(
-            objects_base.WatcherObjectRegistry._registry._obj_classes)
+            objects_base.WatcherObjectRegistry._registry._obj_classes
+        )
         self.addCleanup(self._restore_obj_registry)
         self.addCleanup(self._reset_singletons)
 
@@ -126,7 +126,8 @@ class TestCase(BaseTestCase):
 
     def _restore_obj_registry(self):
         objects_base.WatcherObjectRegistry._registry._obj_classes = (
-            self._base_test_obj_backup)
+            self._base_test_obj_backup
+        )
 
     def config(self, **kw):
         """Override config options for a test."""
@@ -141,7 +142,8 @@ class TestCase(BaseTestCase):
         :returns: path to the specified file, or path to project root.
         """
         root = os.path.abspath(
-            os.path.join(os.path.dirname(__file__), '..', '..'))
+            os.path.join(os.path.dirname(__file__), '..', '..')
+        )
         if project_file:
             return os.path.join(root, project_file)
         else:

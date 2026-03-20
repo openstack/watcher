@@ -22,25 +22,22 @@ from watcher.tests.unit import base
 
 
 class TestOsloServiceHelper(base.TestCase):
-
     @mock.patch.object(eventlet_helper, 'is_patched')
     @mock.patch.object(backend, 'init_backend')
-    def test_init_oslo_backend_eventlet(self, mock_init_backend,
-                                        mock_is_patched):
-
+    def test_init_oslo_backend_eventlet(
+        self, mock_init_backend, mock_is_patched
+    ):
         mock_is_patched.return_value = True
 
         oslo_service_helper.init_oslo_service_backend()
 
-        mock_init_backend.assert_called_once_with(
-            backend.BackendType.EVENTLET
-        )
+        mock_init_backend.assert_called_once_with(backend.BackendType.EVENTLET)
 
     @mock.patch.object(eventlet_helper, 'is_patched')
     @mock.patch.object(backend, 'init_backend')
-    def test_init_oslo_backend_threading(self, mock_init_backend,
-                                         mock_is_patched):
-
+    def test_init_oslo_backend_threading(
+        self, mock_init_backend, mock_is_patched
+    ):
         mock_is_patched.return_value = False
 
         oslo_service_helper.init_oslo_service_backend()

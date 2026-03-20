@@ -50,7 +50,6 @@ CONF = conf.CONF
 
 
 class DecisionEngineManager(service_manager.ServiceManager):
-
     @property
     def service_name(self):
         return 'watcher-decision-engine'
@@ -73,9 +72,11 @@ class DecisionEngineManager(service_manager.ServiceManager):
 
     @property
     def conductor_endpoints(self):
-        return [audit_endpoint.AuditEndpoint,
-                strategy_endpoint.StrategyEndpoint,
-                data_model_endpoint.DataModelEndpoint]
+        return [
+            audit_endpoint.AuditEndpoint,
+            strategy_endpoint.StrategyEndpoint,
+            data_model_endpoint.DataModelEndpoint,
+        ]
 
     @property
     def notification_endpoints(self):

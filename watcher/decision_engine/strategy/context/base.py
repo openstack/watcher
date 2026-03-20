@@ -23,7 +23,6 @@ from watcher.objects import fields
 
 
 class StrategyContext(metaclass=abc.ABCMeta):
-
     def execute_strategy(self, audit, request_context):
         """Execute the strategy for the given an audit
 
@@ -36,21 +35,27 @@ class StrategyContext(metaclass=abc.ABCMeta):
         """
         try:
             notifications.audit.send_action_notification(
-                request_context, audit,
+                request_context,
+                audit,
                 action=fields.NotificationAction.STRATEGY,
-                phase=fields.NotificationPhase.START)
+                phase=fields.NotificationPhase.START,
+            )
             solution = self.do_execute_strategy(audit, request_context)
             notifications.audit.send_action_notification(
-                request_context, audit,
+                request_context,
+                audit,
                 action=fields.NotificationAction.STRATEGY,
-                phase=fields.NotificationPhase.END)
+                phase=fields.NotificationPhase.END,
+            )
             return solution
         except Exception:
             notifications.audit.send_action_notification(
-                request_context, audit,
+                request_context,
+                audit,
                 action=fields.NotificationAction.STRATEGY,
                 priority=fields.NotificationPriority.ERROR,
-                phase=fields.NotificationPhase.ERROR)
+                phase=fields.NotificationPhase.ERROR,
+            )
             raise
 
     @abc.abstractmethod

@@ -46,7 +46,7 @@ def setup_app(config=None):
         logging=getattr(config, 'logging', {}),
         debug=CONF.debug,
         wrap_app=_wrap_app,
-        **app_conf
+        **app_conf,
     )
 
     return acl.install(app, CONF, config.app.acl_public_routes)

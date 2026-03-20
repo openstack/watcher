@@ -36,6 +36,8 @@ def install(app, conf, public_routes):
     """
     if not CONF.get('enable_authentication'):
         return app
-    return auth_token.AuthTokenMiddleware(app,
-                                          conf=dict(conf.keystone_authtoken),
-                                          public_api_routes=public_routes)
+    return auth_token.AuthTokenMiddleware(
+        app,
+        conf=dict(conf.keystone_authtoken),
+        public_api_routes=public_routes,
+    )

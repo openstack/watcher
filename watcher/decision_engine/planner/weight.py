@@ -67,7 +67,7 @@ class WeightPlanner(base.BasePlanner):
         'change_nova_service_state': 1,
         'nop': 1,
         'change_node_power_state': 2,
-        'volume_migrate': 2
+        'volume_migrate': 2,
     }
 
     @classmethod
@@ -76,15 +76,17 @@ class WeightPlanner(base.BasePlanner):
             cfg.DictOpt(
                 'weights',
                 help="These weights are used to schedule the actions. "
-                     "Action Plan will be build in accordance with sets of "
-                     "actions ordered by descending weights."
-                     "Two action types cannot have the same weight. ",
-                default=cls.action_weights),
+                "Action Plan will be build in accordance with sets of "
+                "actions ordered by descending weights."
+                "Two action types cannot have the same weight. ",
+                default=cls.action_weights,
+            ),
             cfg.DictOpt(
                 'parallelization',
                 help="Number of actions to be run in parallel on a per "
-                     "action type basis.",
-                default=cls.parallelization),
+                "action type basis.",
+                default=cls.parallelization,
+            ),
         ]
 
     @staticmethod
@@ -98,7 +100,7 @@ class WeightPlanner(base.BasePlanner):
         # Split a flat list in a list of chunks of size n.
         # e.g. chunkify([0, 1, 2, 3, 4], 2) -> [[0, 1], [2, 3], [4]]
         for i in range(0, len(lst), n):
-            yield lst[i:i + n]
+            yield lst[i : i + n]
 
     def compute_action_graph(self, sorted_weighted_actions):
         reverse_weights = {v: k for k, v in self.config.weights.items()}
@@ -119,7 +121,8 @@ class WeightPlanner(base.BasePlanner):
         # insert them in a Directed Acyclic Graph
         for idx, (weight, actions) in enumerate(sorted_weighted_actions):
             action_chunks = self.chunkify(
-                actions, self.config.parallelization[reverse_weights[weight]])
+                actions, self.config.parallelization[reverse_weights[weight]]
+            )
 
             # We split the actions into chunks/layers that will have to be
             # spread across all the available branches of the graph
@@ -149,11 +152,13 @@ class WeightPlanner(base.BasePlanner):
         action_plan = self.create_action_plan(context, audit_id, solution)
 
         sorted_weighted_actions = self.get_sorted_actions_by_weight(
-            context, action_plan, solution)
+            context, action_plan, solution
+        )
         action_graph = self.compute_action_graph(sorted_weighted_actions)
 
         self._create_efficacy_indicators(
-            context, action_plan.id, solution.efficacy_indicators)
+            context, action_plan.id, solution.efficacy_indicators
+        )
 
         if len(action_graph.nodes()) == 0:
             LOG.warning("The action plan is empty")
@@ -165,11 +170,18 @@ class WeightPlanner(base.BasePlanner):
 
     def get_sorted_actions_by_weight(self, context, action_plan, solution):
         # We need to make them immutable to add them to the graph
-        action_objects = list([
-            objects.Action(
-                context, uuid=utils.generate_uuid(), parents=[],
-                action_plan_id=action_plan.id, **a)
-            for a in solution.actions])
+        action_objects = list(
+            [
+                objects.Action(
+                    context,
+                    uuid=utils.generate_uuid(),
+                    parents=[],
+                    action_plan_id=action_plan.id,
+                    **a,
+                )
+                for a in solution.actions
+            ]
+        )
         # This is a dict of list with each being a weight and the list being
         # all the actions associated to this weight
         weighted_actions = collections.defaultdict(list)
@@ -181,8 +193,9 @@ class WeightPlanner(base.BasePlanner):
 
     def create_scheduled_actions(self, graph):
         for action in graph.nodes():
-            LOG.debug("Creating the %s in the Watcher database",
-                      action.action_type)
+            LOG.debug(
+                "Creating the %s in the Watcher database", action.action_type
+            )
             try:
                 action.create()
             except Exception as exc:
@@ -191,7 +204,8 @@ class WeightPlanner(base.BasePlanner):
 
     def create_action_plan(self, context, audit_id, solution):
         strategy = objects.Strategy.get_by_name(
-            context, solution.strategy.name)
+            context, solution.strategy.name
+        )
 
         action_plan_dict = {
             'uuid': utils.generate_uuid(),
@@ -218,7 +232,8 @@ class WeightPlanner(base.BasePlanner):
                 'action_plan_id': action_plan_id,
             }
             new_efficacy_indicator = objects.EfficacyIndicator(
-                context, **efficacy_indicator_dict)
+                context, **efficacy_indicator_dict
+            )
             new_efficacy_indicator.create()
 
             efficacy_indicators.append(new_efficacy_indicator)

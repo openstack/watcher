@@ -22,34 +22,19 @@ rules = [
         name=SERVICE % 'detail',
         check_str=base.RULE_ADMIN_API,
         description='List services with detail.',
-        operations=[
-            {
-                'path': '/v1/services/',
-                'method': 'GET'
-            }
-        ]
+        operations=[{'path': '/v1/services/', 'method': 'GET'}],
     ),
     policy.DocumentedRuleDefault(
         name=SERVICE % 'get',
         check_str=base.RULE_ADMIN_API,
         description='Get a specific service.',
-        operations=[
-            {
-                'path': '/v1/services/{service_id}',
-                'method': 'GET'
-            }
-        ]
+        operations=[{'path': '/v1/services/{service_id}', 'method': 'GET'}],
     ),
     policy.DocumentedRuleDefault(
         name=SERVICE % 'get_all',
         check_str=base.RULE_ADMIN_API,
         description='List all services.',
-        operations=[
-            {
-                'path': '/v1/services/',
-                'method': 'GET'
-            }
-        ]
+        operations=[{'path': '/v1/services/', 'method': 'GET'}],
     ),
 ]
 

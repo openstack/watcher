@@ -22,8 +22,9 @@ from oslo_db import api as db_api
 
 
 _BACKEND_MAPPING = {'sqlalchemy': 'watcher.db.sqlalchemy.api'}
-IMPL = db_api.DBAPI.from_config(cfg.CONF, backend_mapping=_BACKEND_MAPPING,
-                                lazy=True)
+IMPL = db_api.DBAPI.from_config(
+    cfg.CONF, backend_mapping=_BACKEND_MAPPING, lazy=True
+)
 
 
 def get_instance():
@@ -35,8 +36,16 @@ class BaseConnection(metaclass=abc.ABCMeta):
     """Base class for storage system connections."""
 
     @abc.abstractmethod
-    def get_goal_list(self, context, filters=None, limit=None,
-                      marker=None, sort_key=None, sort_dir=None, eager=False):
+    def get_goal_list(
+        self,
+        context,
+        filters=None,
+        limit=None,
+        marker=None,
+        sort_key=None,
+        sort_dir=None,
+        eager=False,
+    ):
         """Get specific columns for matching goals.
 
         Return a list of the specified columns for all goals that
@@ -141,9 +150,16 @@ class BaseConnection(metaclass=abc.ABCMeta):
         """
 
     @abc.abstractmethod
-    def get_strategy_list(self, context, filters=None, limit=None,
-                          marker=None, sort_key=None, sort_dir=None,
-                          eager=True):
+    def get_strategy_list(
+        self,
+        context,
+        filters=None,
+        limit=None,
+        marker=None,
+        sort_key=None,
+        sort_dir=None,
+        eager=True,
+    ):
         """Get specific columns for matching strategies.
 
         Return a list of the specified columns for all strategies that
@@ -241,9 +257,16 @@ class BaseConnection(metaclass=abc.ABCMeta):
         """
 
     @abc.abstractmethod
-    def get_audit_template_list(self, context, filters=None,
-                                limit=None, marker=None, sort_key=None,
-                                sort_dir=None, eager=False):
+    def get_audit_template_list(
+        self,
+        context,
+        filters=None,
+        limit=None,
+        marker=None,
+        sort_key=None,
+        sort_dir=None,
+        eager=False,
+    ):
         """Get specific columns for matching audit templates.
 
         Return a list of the specified columns for all audit templates that
@@ -281,8 +304,9 @@ class BaseConnection(metaclass=abc.ABCMeta):
         """
 
     @abc.abstractmethod
-    def get_audit_template_by_id(self, context, audit_template_id,
-                                 eager=False):
+    def get_audit_template_by_id(
+        self, context, audit_template_id, eager=False
+    ):
         """Return an audit template.
 
         :param context: The security context
@@ -293,8 +317,9 @@ class BaseConnection(metaclass=abc.ABCMeta):
         """
 
     @abc.abstractmethod
-    def get_audit_template_by_uuid(self, context, audit_template_uuid,
-                                   eager=False):
+    def get_audit_template_by_uuid(
+        self, context, audit_template_uuid, eager=False
+    ):
         """Return an audit template.
 
         :param context: The security context
@@ -304,8 +329,9 @@ class BaseConnection(metaclass=abc.ABCMeta):
         :raises: :py:class:`~.AuditTemplateNotFound`
         """
 
-    def get_audit_template_by_name(self, context, audit_template_name,
-                                   eager=False):
+    def get_audit_template_by_name(
+        self, context, audit_template_name, eager=False
+    ):
         """Return an audit template.
 
         :param context: The security context
@@ -342,8 +368,16 @@ class BaseConnection(metaclass=abc.ABCMeta):
         """
 
     @abc.abstractmethod
-    def get_audit_list(self, context, filters=None, limit=None,
-                       marker=None, sort_key=None, sort_dir=None, eager=False):
+    def get_audit_list(
+        self,
+        context,
+        filters=None,
+        limit=None,
+        marker=None,
+        sort_key=None,
+        sort_dir=None,
+        eager=False,
+    ):
         """Get specific columns for matching audits.
 
         Return a list of the specified columns for all audits that match the
@@ -437,9 +471,16 @@ class BaseConnection(metaclass=abc.ABCMeta):
         """
 
     @abc.abstractmethod
-    def get_action_list(self, context, filters=None, limit=None,
-                        marker=None, sort_key=None, sort_dir=None,
-                        eager=False):
+    def get_action_list(
+        self,
+        context,
+        filters=None,
+        limit=None,
+        marker=None,
+        sort_key=None,
+        sort_dir=None,
+        eager=False,
+    ):
         """Get specific columns for matching actions.
 
         Return a list of the specified columns for all actions that match the
@@ -528,8 +569,15 @@ class BaseConnection(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def get_action_plan_list(
-            self, context, filters=None, limit=None,
-            marker=None, sort_key=None, sort_dir=None, eager=False):
+        self,
+        context,
+        filters=None,
+        limit=None,
+        marker=None,
+        sort_key=None,
+        sort_dir=None,
+        eager=False,
+    ):
         """Get specific columns for matching action plans.
 
         Return a list of the specified columns for all action plans that
@@ -607,9 +655,16 @@ class BaseConnection(metaclass=abc.ABCMeta):
         """
 
     @abc.abstractmethod
-    def get_efficacy_indicator_list(self, context, filters=None, limit=None,
-                                    marker=None, sort_key=None, sort_dir=None,
-                                    eager=False):
+    def get_efficacy_indicator_list(
+        self,
+        context,
+        filters=None,
+        limit=None,
+        marker=None,
+        sort_key=None,
+        sort_dir=None,
+        eager=False,
+    ):
         """Get specific columns for matching efficacy indicators.
 
         Return a list of the specified columns for all efficacy indicators that
@@ -651,8 +706,9 @@ class BaseConnection(metaclass=abc.ABCMeta):
         """
 
     @abc.abstractmethod
-    def get_efficacy_indicator_by_id(self, context, efficacy_indicator_id,
-                                     eager=False):
+    def get_efficacy_indicator_by_id(
+        self, context, efficacy_indicator_id, eager=False
+    ):
         """Return an efficacy indicator given its ID.
 
         :param context: The security context
@@ -663,8 +719,9 @@ class BaseConnection(metaclass=abc.ABCMeta):
         """
 
     @abc.abstractmethod
-    def get_efficacy_indicator_by_uuid(self, context, efficacy_indicator_uuid,
-                                       eager=False):
+    def get_efficacy_indicator_by_uuid(
+        self, context, efficacy_indicator_uuid, eager=False
+    ):
         """Return an efficacy indicator given its UUID.
 
         :param context: The security context
@@ -675,8 +732,9 @@ class BaseConnection(metaclass=abc.ABCMeta):
         """
 
     @abc.abstractmethod
-    def get_efficacy_indicator_by_name(self, context, efficacy_indicator_name,
-                                       eager=False):
+    def get_efficacy_indicator_by_name(
+        self, context, efficacy_indicator_name, eager=False
+    ):
         """Return an efficacy indicator given its name.
 
         :param context: The security context
@@ -706,8 +764,16 @@ class BaseConnection(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def get_scoring_engine_list(
-            self, context, columns=None, filters=None, limit=None,
-            marker=None, sort_key=None, sort_dir=None, eager=False):
+        self,
+        context,
+        columns=None,
+        filters=None,
+        limit=None,
+        marker=None,
+        sort_key=None,
+        sort_dir=None,
+        eager=False,
+    ):
         """Get specific columns for matching scoring engines.
 
         Return a list of the specified columns for all scoring engines that
@@ -738,8 +804,9 @@ class BaseConnection(metaclass=abc.ABCMeta):
         """
 
     @abc.abstractmethod
-    def get_scoring_engine_by_id(self, context, scoring_engine_id,
-                                 eager=False):
+    def get_scoring_engine_by_id(
+        self, context, scoring_engine_id, eager=False
+    ):
         """Return a scoring engine by its id.
 
         :param context: The security context
@@ -750,8 +817,9 @@ class BaseConnection(metaclass=abc.ABCMeta):
         """
 
     @abc.abstractmethod
-    def get_scoring_engine_by_uuid(self, context, scoring_engine_uuid,
-                                   eager=False):
+    def get_scoring_engine_by_uuid(
+        self, context, scoring_engine_uuid, eager=False
+    ):
         """Return a scoring engine by its uuid.
 
         :param context: The security context
@@ -762,8 +830,9 @@ class BaseConnection(metaclass=abc.ABCMeta):
         """
 
     @abc.abstractmethod
-    def get_scoring_engine_by_name(self, context, scoring_engine_name,
-                                   eager=False):
+    def get_scoring_engine_by_name(
+        self, context, scoring_engine_name, eager=False
+    ):
         """Return a scoring engine by its name.
 
         :param context: The security context
@@ -792,8 +861,16 @@ class BaseConnection(metaclass=abc.ABCMeta):
         """
 
     @abc.abstractmethod
-    def get_service_list(self, context, filters=None, limit=None, marker=None,
-                         sort_key=None, sort_dir=None, eager=False):
+    def get_service_list(
+        self,
+        context,
+        filters=None,
+        limit=None,
+        marker=None,
+        sort_key=None,
+        sort_dir=None,
+        eager=False,
+    ):
         """Get specific columns for matching services.
 
         Return a list of the specified columns for all services that

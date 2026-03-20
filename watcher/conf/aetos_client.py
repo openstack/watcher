@@ -16,29 +16,45 @@
 from oslo_config import cfg
 
 
-aetos_client = cfg.OptGroup(name='aetos_client',
-                            title='Configuration Options for Aetos',
-                            help="See https://docs.openstack.org/watcher/"
-                                 "latest/datasources/aetos.html for "
-                                 "details on how these options are used.")
+aetos_client = cfg.OptGroup(
+    name='aetos_client',
+    title='Configuration Options for Aetos',
+    help="See https://docs.openstack.org/watcher/"
+    "latest/datasources/aetos.html for "
+    "details on how these options are used.",
+)
 
 AETOS_CLIENT_OPTS = [
-    cfg.StrOpt('interface',
-               default='public',
-               choices=['public', 'internal', 'admin',
-                        'publicURL', 'internalURL', 'adminURL'],
-               help="Type of endpoint to use in keystoneclient."),
-    cfg.StrOpt('region_name',
-               help="Region in Identity service catalog to use for "
-                    "communication with the OpenStack service."),
-    cfg.StrOpt('fqdn_label',
-               default='fqdn',
-               help="The label that Prometheus uses to store the fqdn of "
-                    "exporters. Defaults to 'fqdn'."),
-    cfg.StrOpt('instance_uuid_label',
-               default='resource',
-               help="The label that Prometheus uses to store the uuid of "
-                    "OpenStack instances. Defaults to 'resource'."),
+    cfg.StrOpt(
+        'interface',
+        default='public',
+        choices=[
+            'public',
+            'internal',
+            'admin',
+            'publicURL',
+            'internalURL',
+            'adminURL',
+        ],
+        help="Type of endpoint to use in keystoneclient.",
+    ),
+    cfg.StrOpt(
+        'region_name',
+        help="Region in Identity service catalog to use for "
+        "communication with the OpenStack service.",
+    ),
+    cfg.StrOpt(
+        'fqdn_label',
+        default='fqdn',
+        help="The label that Prometheus uses to store the fqdn of "
+        "exporters. Defaults to 'fqdn'.",
+    ),
+    cfg.StrOpt(
+        'instance_uuid_label',
+        default='resource',
+        help="The label that Prometheus uses to store the uuid of "
+        "OpenStack instances. Defaults to 'resource'.",
+    ),
 ]
 
 

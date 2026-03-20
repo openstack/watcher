@@ -67,8 +67,9 @@ class Service(base.APIBase):
 
     def _set_status(self, id):
         service = objects.Service.get(pecan.request.context, id)
-        last_heartbeat = (service.last_seen_up or service.updated_at or
-                          service.created_at)
+        last_heartbeat = (
+            service.last_seen_up or service.updated_at or service.created_at
+        )
         if isinstance(last_heartbeat, str):
             # NOTE(russellb) If this service came in over rpc via
             # conductor, then the timestamp will be a string and needs to be
@@ -81,12 +82,17 @@ class Service(base.APIBase):
         elapsed = timeutils.delta_seconds(last_heartbeat, timeutils.utcnow())
         is_up = abs(elapsed) <= CONF.service_down_time
         if not is_up:
-            LOG.warning('Seems service %(name)s on host %(host)s is down. '
-                        'Last heartbeat was %(lhb)s.'
-                        'Elapsed time is %(el)s',
-                        {'name': service.name,
-                         'host': service.host,
-                         'lhb': str(last_heartbeat), 'el': str(elapsed)})
+            LOG.warning(
+                'Seems service %(name)s on host %(host)s is down. '
+                'Last heartbeat was %(lhb)s.'
+                'Elapsed time is %(el)s',
+                {
+                    'name': service.name,
+                    'host': service.host,
+                    'lhb': str(last_heartbeat),
+                    'el': str(elapsed),
+                },
+            )
             self._status = objects.service.ServiceStatus.FAILED
         else:
             self._status = objects.service.ServiceStatus.ACTIVE
@@ -103,8 +109,9 @@ class Service(base.APIBase):
     last_seen_up = wtypes.wsattr(datetime.datetime, readonly=True)
     """Time when Watcher service sent latest heartbeat."""
 
-    status = wtypes.wsproperty(wtypes.text, _get_status, _set_status,
-                               mandatory=True)
+    status = wtypes.wsproperty(
+        wtypes.text, _get_status, _set_status, mandatory=True
+    )
 
     links = wtypes.wsattr([link.Link], readonly=True)
     """A list containing a self link."""
@@ -116,34 +123,39 @@ class Service(base.APIBase):
         self.fields = []
         for field in fields:
             self.fields.append(field)
-            setattr(self, field, kwargs.get(
-                field if field != 'status' else 'id', wtypes.Unset))
+            setattr(
+                self,
+                field,
+                kwargs.get(field if field != 'status' else 'id', wtypes.Unset),
+            )
 
     @staticmethod
     def _convert_with_links(service, url, expand=True):
         if not expand:
-            service.unset_fields_except(
-                ['id', 'name', 'host', 'status'])
+            service.unset_fields_except(['id', 'name', 'host', 'status'])
 
         service.links = [
             link.Link.make_link('self', url, 'services', str(service.id)),
-            link.Link.make_link('bookmark', url, 'services', str(service.id),
-                                bookmark=True)]
+            link.Link.make_link(
+                'bookmark', url, 'services', str(service.id), bookmark=True
+            ),
+        ]
         return service
 
     @classmethod
     def convert_with_links(cls, service, expand=True):
         service = Service(**service.as_dict())
         hide_fields_in_newer_versions(service)
-        return cls._convert_with_links(
-            service, pecan.request.host_url, expand)
+        return cls._convert_with_links(service, pecan.request.host_url, expand)
 
     @classmethod
     def sample(cls, expand=True):
-        sample = cls(id=1,
-                     name='watcher-applier',
-                     host='Controller',
-                     last_seen_up=datetime.datetime(2016, 1, 1))
+        sample = cls(
+            id=1,
+            name='watcher-applier',
+            host='Controller',
+            last_seen_up=datetime.datetime(2016, 1, 1),
+        )
         return cls._convert_with_links(sample, 'http://localhost:9322', expand)
 
 
@@ -158,13 +170,14 @@ class ServiceCollection(collection.Collection):
         self._type = 'services'
 
     @staticmethod
-    def convert_with_links(services, limit, url=None, expand=False,
-                           **kwargs):
+    def convert_with_links(services, limit, url=None, expand=False, **kwargs):
         service_collection = ServiceCollection()
         service_collection.services = [
-            Service.convert_with_links(g, expand) for g in services]
+            Service.convert_with_links(g, expand) for g in services
+        ]
         service_collection.next = service_collection.get_next(
-            limit, url=url, marker_field='id', **kwargs)
+            limit, url=url, marker_field='id', **kwargs
+        )
         return service_collection
 
     @classmethod
@@ -180,32 +193,43 @@ class ServicesController(rest.RestController):
     def __init__(self):
         super().__init__()
 
-    _custom_actions = {
-        'detail': ['GET'],
-    }
+    _custom_actions = {'detail': ['GET']}
 
-    def _get_services_collection(self, marker, limit, sort_key, sort_dir,
-                                 expand=False, resource_url=None):
-        api_utils.validate_sort_key(
-            sort_key, list(objects.Service.fields))
+    def _get_services_collection(
+        self,
+        marker,
+        limit,
+        sort_key,
+        sort_dir,
+        expand=False,
+        resource_url=None,
+    ):
+        api_utils.validate_sort_key(sort_key, list(objects.Service.fields))
         limit = api_utils.validate_limit(limit)
         api_utils.validate_sort_dir(sort_dir)
 
         marker_obj = None
         if marker:
-            marker_obj = objects.Service.get(
-                pecan.request.context, marker)
+            marker_obj = objects.Service.get(pecan.request.context, marker)
 
-        sort_db_key = (sort_key if sort_key in objects.Service.fields
-                       else None)
+        sort_db_key = sort_key if sort_key in objects.Service.fields else None
 
         services = objects.Service.list(
-            pecan.request.context, limit, marker_obj,
-            sort_key=sort_db_key, sort_dir=sort_dir)
+            pecan.request.context,
+            limit,
+            marker_obj,
+            sort_key=sort_db_key,
+            sort_dir=sort_dir,
+        )
 
         return ServiceCollection.convert_with_links(
-            services, limit, url=resource_url, expand=expand,
-            sort_key=sort_key, sort_dir=sort_dir)
+            services,
+            limit,
+            url=resource_url,
+            expand=expand,
+            sort_key=sort_key,
+            sort_dir=sort_dir,
+        )
 
     @wsme_pecan.wsexpose(ServiceCollection, int, int, wtypes.text, wtypes.text)
     def get_all(self, marker=None, limit=None, sort_key='id', sort_dir='asc'):
@@ -217,8 +241,7 @@ class ServicesController(rest.RestController):
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         """
         context = pecan.request.context
-        policy.enforce(context, 'service:get_all',
-                       action='service:get_all')
+        policy.enforce(context, 'service:get_all', action='service:get_all')
 
         return self._get_services_collection(marker, limit, sort_key, sort_dir)
 
@@ -232,8 +255,7 @@ class ServicesController(rest.RestController):
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         """
         context = pecan.request.context
-        policy.enforce(context, 'service:detail',
-                       action='service:detail')
+        policy.enforce(context, 'service:detail', action='service:detail')
         # NOTE(lucasagomes): /detail should only work against collections
         parent = pecan.request.path.split('/')[:-1][-1]
         if parent != "services":
@@ -242,7 +264,8 @@ class ServicesController(rest.RestController):
         resource_url = '/'.join(['services', 'detail'])
 
         return self._get_services_collection(
-            marker, limit, sort_key, sort_dir, expand, resource_url)
+            marker, limit, sort_key, sort_dir, expand, resource_url
+        )
 
     @wsme_pecan.wsexpose(Service, wtypes.text)
     def get_one(self, service):
@@ -252,7 +275,8 @@ class ServicesController(rest.RestController):
         """
         context = pecan.request.context
         rpc_service = api_utils.get_resource('Service', service)
-        policy.enforce(context, 'service:get', rpc_service,
-                       action='service:get')
+        policy.enforce(
+            context, 'service:get', rpc_service, action='service:get'
+        )
 
         return Service.convert_with_links(rpc_service)

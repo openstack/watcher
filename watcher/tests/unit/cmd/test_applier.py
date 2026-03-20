@@ -39,7 +39,8 @@ class TestApplier(base.BaseTestCase):
         _fake_parse_method = types.MethodType(_fake_parse, self.conf)
         self.conf._parse_cli_opts = _fake_parse_method
         p_heartbeat = mock.patch.object(
-            watcher_service.ServiceHeartbeat, "send_beat")
+            watcher_service.ServiceHeartbeat, "send_beat"
+        )
         self.m_heartbeat = p_heartbeat.start()
         self.addCleanup(p_heartbeat.stop)
 

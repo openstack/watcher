@@ -31,8 +31,9 @@ LOG = log.getLogger(__name__)
 warnings.simplefilter("once")
 
 
-@removals.removed_class("PrometheusHelper", version="2026.1",
-                        removal_version="2027.1")
+@removals.removed_class(
+    "PrometheusHelper", version="2026.1", removal_version="2027.1"
+)
 class PrometheusHelper(prometheus_base.PrometheusBase):
     """PrometheusHelper class for retrieving metrics from Prometheus server
 
@@ -70,13 +71,16 @@ class PrometheusHelper(prometheus_base.PrometheusBase):
         _port = CONF.prometheus_client.port
         if not _host:
             raise exception.MissingParameter(
-                message=(_(
-                    "prometheus host must be set in watcher.conf "
-                    "under the [prometheus_client] section. Can't initialise "
-                    "the datasource without valid host."))
+                message=(
+                    _(
+                        "prometheus host must be set in watcher.conf "
+                        "under the [prometheus_client] section. "
+                        "Can't initialise "
+                        "the datasource without valid host."
+                    )
+                )
             )
-        the_client = prometheus_client.PrometheusAPIClient(
-            f"{_host}:{_port}")
+        the_client = prometheus_client.PrometheusAPIClient(f"{_host}:{_port}")
 
         # check if tls options or basic_auth options are set and use them
         prometheus_user = CONF.prometheus_client.username
@@ -84,12 +88,13 @@ class PrometheusHelper(prometheus_base.PrometheusBase):
         prometheus_ca_cert = CONF.prometheus_client.cafile
         prometheus_client_cert = CONF.prometheus_client.certfile
         prometheus_client_key = CONF.prometheus_client.keyfile
-        if (prometheus_ca_cert):
+        if prometheus_ca_cert:
             the_client.set_ca_cert(prometheus_ca_cert)
-            if (prometheus_client_cert and prometheus_client_key):
+            if prometheus_client_cert and prometheus_client_key:
                 the_client.set_client_cert(
-                    prometheus_client_cert, prometheus_client_key)
-        if (prometheus_user and prometheus_pass):
+                    prometheus_client_cert, prometheus_client_key
+                )
+        if prometheus_user and prometheus_pass:
             the_client.set_basic_auth(prometheus_user, prometheus_pass)
 
         return the_client

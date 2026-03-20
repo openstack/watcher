@@ -30,7 +30,7 @@ NOTIFY_LEVELS = {
     wfields.NotificationPriority.INFO: 1,
     wfields.NotificationPriority.WARNING: 2,
     wfields.NotificationPriority.ERROR: 3,
-    wfields.NotificationPriority.CRITICAL: 4
+    wfields.NotificationPriority.CRITICAL: 4,
 }
 
 
@@ -58,7 +58,6 @@ class NotificationObject(base.WatcherObject):
 
 @base.WatcherObjectRegistry.register_notification
 class EventType(NotificationObject):
-
     # Version 1.0: Initial version
     # Version 1.1: Added STRATEGY action in NotificationAction enum
     # Version 1.2: Added PLANNER action in NotificationAction enum
@@ -82,6 +81,7 @@ class EventType(NotificationObject):
 @base.WatcherObjectRegistry.register_if(False)
 class NotificationPayloadBase(NotificationObject):
     """Base class for the payload of versioned notifications."""
+
     # SCHEMA defines how to populate the payload fields. It is a dictionary
     # where every key value pair has the following format:
     # <payload_field_name>: (<data_source_name>,
@@ -169,8 +169,10 @@ class NotificationBase(NotificationObject):
         """
         if not CONF.notification_level:
             return False
-        return (NOTIFY_LEVELS[self.priority] >=
-                NOTIFY_LEVELS[CONF.notification_level])
+        return (
+            NOTIFY_LEVELS[self.priority]
+            >= NOTIFY_LEVELS[CONF.notification_level]
+        )
 
     def _emit(self, context, event_type, publisher_id, payload):
         notifier = rpc.get_notifier(publisher_id)
@@ -184,7 +186,8 @@ class NotificationBase(NotificationObject):
             return
         if not self.payload.populated:
             raise exception.NotificationPayloadError(
-                class_name=self.__class__.__name__)
+                class_name=self.__class__.__name__
+            )
         # Note(gibi): notification payload will be a newly populated object
         # therefore every field of it will look changed so this does not carry
         # any extra information so we drop this from the payload.
@@ -194,7 +197,8 @@ class NotificationBase(NotificationObject):
             context,
             event_type=self.event_type.to_notification_event_type_field(),
             publisher_id=f'{self.publisher.binary}:{self.publisher.host}',
-            payload=self.payload.obj_to_primitive())
+            payload=self.payload.obj_to_primitive(),
+        )
 
 
 def notification_sample(sample):
@@ -207,10 +211,12 @@ def notification_sample(sample):
                    doc/notification_samples/ directory in the watcher
                    repository root.
     """
+
     def wrap(cls):
         if not getattr(cls, 'samples', None):
             cls.samples = [sample]
         else:
             cls.samples.append(sample)
         return cls
+
     return wrap

@@ -20,22 +20,29 @@ from watcher.tests.unit import base
 
 
 class TestStrategyEndpoint(base.BaseTestCase):
-
     def test_collect_metrics(self):
         datasource = mock.MagicMock()
         datasource.list_metrics.return_value = ["m1", "m2"]
-        datasource.METRIC_MAP = {"metric1": "m1", "metric2": "m2",
-                                 "metric3": "m3"}
+        datasource.METRIC_MAP = {
+            "metric1": "m1",
+            "metric2": "m2",
+            "metric3": "m3",
+        }
         strategy = mock.MagicMock()
         strategy.DATASOURCE_METRICS = ["metric1", "metric2", "metric3"]
         strategy.config.datasource = "gnocchi"
         se = strategy_base.StrategyEndpoint(mock.MagicMock())
         result = se._collect_metrics(strategy, datasource)
-        expected_result = {'type': 'Metrics',
-                           'state': [{"m1": "available"},
-                                     {"m2": "available"},
-                                     {"m3": "not available"}],
-                           'mandatory': False, 'comment': ''}
+        expected_result = {
+            'type': 'Metrics',
+            'state': [
+                {"m1": "available"},
+                {"m2": "available"},
+                {"m3": "not available"},
+            ],
+            'mandatory': False,
+            'comment': '',
+        }
         self.assertEqual(expected_result, result)
 
     def test_get_datasource_status(self):
@@ -45,9 +52,12 @@ class TestStrategyEndpoint(base.BaseTestCase):
         datasource.check_availability.return_value = "available"
         se = strategy_base.StrategyEndpoint(mock.MagicMock())
         result = se._get_datasource_status(strategy, datasource)
-        expected_result = {'type': 'Datasource',
-                           'state': "gnocchi: available",
-                           'mandatory': True, 'comment': ''}
+        expected_result = {
+            'type': 'Datasource',
+            'state': "gnocchi: available",
+            'mandatory': True,
+            'comment': '',
+        }
         self.assertEqual(expected_result, result)
 
     def test_get_cdm(self):
@@ -57,9 +67,14 @@ class TestStrategyEndpoint(base.BaseTestCase):
         strategy.baremetal_model = mock.MagicMock()
         se = strategy_base.StrategyEndpoint(mock.MagicMock())
         result = se._get_cdm(strategy)
-        expected_result = {'type': 'CDM',
-                           'state': [{"compute_model": "available"},
-                                     {"storage_model": "not available"},
-                                     {"baremetal_model": "available"}],
-                           'mandatory': True, 'comment': ''}
+        expected_result = {
+            'type': 'CDM',
+            'state': [
+                {"compute_model": "available"},
+                {"storage_model": "not available"},
+                {"baremetal_model": "available"},
+            ],
+            'mandatory': True,
+            'comment': '',
+        }
         self.assertEqual(expected_result, result)

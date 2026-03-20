@@ -34,13 +34,11 @@ CONF = cfg.CONF
 
 
 class DummyEndpoint:
-
     def __init__(self, messaging):
         self._messaging = messaging
 
 
 class DummyManager:
-
     API_VERSION = '1.0'
 
     conductor_endpoints = [DummyEndpoint]
@@ -55,33 +53,31 @@ class DummyManager:
 
 
 class TestServiceHeartbeat(base.TestCase):
-
     @mock.patch.object(objects.Service, 'list')
     @mock.patch.object(objects.Service, 'create')
-    def test_send_beat_with_creating_service(self, mock_create,
-                                             mock_list):
+    def test_send_beat_with_creating_service(self, mock_create, mock_list):
         CONF.set_default('host', 'fake-fqdn')
 
         mock_list.return_value = []
         service.ServiceHeartbeat(service_name='watcher-service')
-        mock_list.assert_called_once_with(mock.ANY,
-                                          filters={'name': 'watcher-service',
-                                                   'host': 'fake-fqdn'})
+        mock_list.assert_called_once_with(
+            mock.ANY, filters={'name': 'watcher-service', 'host': 'fake-fqdn'}
+        )
         self.assertEqual(1, mock_create.call_count)
 
     @mock.patch.object(objects.Service, 'list')
     @mock.patch.object(objects.Service, 'save')
     def test_send_beat_without_creating_service(self, mock_save, mock_list):
-
-        mock_list.return_value = [objects.Service(mock.Mock(),
-                                                  name='watcher-service',
-                                                  host='controller')]
+        mock_list.return_value = [
+            objects.Service(
+                mock.Mock(), name='watcher-service', host='controller'
+            )
+        ]
         service.ServiceHeartbeat(service_name='watcher-service')
         self.assertEqual(1, mock_save.call_count)
 
 
 class TestService(base.TestCase):
-
     def setUp(self):
         super().setUp()
 
@@ -108,16 +104,14 @@ class TestService(base.TestCase):
     def test_init_service(self):
         dummy_service = service.Service(DummyManager)
         self.assertIsInstance(
-            dummy_service.conductor_topic_handler,
-            om.rpc.server.RPCServer)
+            dummy_service.conductor_topic_handler, om.rpc.server.RPCServer
+        )
 
 
 class TestServiceMonitoringBase(db_base.DbTestCase):
-
     def setUp(self):
         super().setUp()
-        fake_service = utils.get_test_service(
-            created_at=timeutils.utcnow())
+        fake_service = utils.get_test_service(created_at=timeutils.utcnow())
         self.fake_service = objects.Service(**fake_service)
 
         class DummyServiceMonitoringBase(service.ServiceMonitoringBase):
@@ -125,18 +119,18 @@ class TestServiceMonitoringBase(db_base.DbTestCase):
                 pass
 
         self.monitor = DummyServiceMonitoringBase(
-            service_name='watcher-monitored-service')
+            service_name='watcher-monitored-service'
+        )
 
     @freezegun.freeze_time("2016-10-18T09:52:05.219414")
     def test_get_service_status_up(self):
         fake_service = utils.get_test_service(
-            created_at=timeutils.utcnow(),
-            last_seen_up=timeutils.utcnow())
+            created_at=timeutils.utcnow(), last_seen_up=timeutils.utcnow()
+        )
         test_service = objects.Service(self.context, **fake_service)
         test_service.create()
 
-        status = self.monitor.get_service_status(self.context,
-                                                 test_service.id)
+        status = self.monitor.get_service_status(self.context, test_service.id)
 
         self.assertEqual(objects.service.ServiceStatus.ACTIVE, status)
 
@@ -144,13 +138,12 @@ class TestServiceMonitoringBase(db_base.DbTestCase):
     def test_get_service_status_down(self):
         past = timeutils.utcnow() - datetime.timedelta(seconds=120)
         fake_service = utils.get_test_service(
-            created_at=past,
-            last_seen_up=past)
+            created_at=past, last_seen_up=past
+        )
         test_service = objects.Service(self.context, **fake_service)
         test_service.create()
 
-        status = self.monitor.get_service_status(self.context,
-                                                 test_service.id)
+        status = self.monitor.get_service_status(self.context, test_service.id)
 
         self.assertEqual(objects.service.ServiceStatus.FAILED, status)
 
@@ -158,14 +151,12 @@ class TestServiceMonitoringBase(db_base.DbTestCase):
     def test_get_service_status_down_last_seen_up_none(self):
         past = timeutils.utcnow() - datetime.timedelta(seconds=120)
         fake_service = utils.get_test_service(
-            created_at=past,
-            updated_at=past,
-            last_seen_up=None)
+            created_at=past, updated_at=past, last_seen_up=None
+        )
         test_service = objects.Service(self.context, **fake_service)
         test_service.create()
 
-        status = self.monitor.get_service_status(self.context,
-                                                 test_service.id)
+        status = self.monitor.get_service_status(self.context, test_service.id)
 
         self.assertEqual(objects.service.ServiceStatus.FAILED, status)
 
@@ -173,14 +164,12 @@ class TestServiceMonitoringBase(db_base.DbTestCase):
     def test_get_service_status_down_updated_at_none(self):
         past = timeutils.utcnow() - datetime.timedelta(seconds=120)
         fake_service = utils.get_test_service(
-            created_at=past,
-            updated_at=None,
-            last_seen_up=None)
+            created_at=past, updated_at=None, last_seen_up=None
+        )
         test_service = objects.Service(self.context, **fake_service)
         test_service.create()
 
-        status = self.monitor.get_service_status(self.context,
-                                                 test_service.id)
+        status = self.monitor.get_service_status(self.context, test_service.id)
 
         self.assertEqual(objects.service.ServiceStatus.FAILED, status)
 
@@ -189,12 +178,12 @@ class TestServiceMonitoringBase(db_base.DbTestCase):
         """Test that string timestamps are properly converted."""
         fake_service = utils.get_test_service(
             created_at=timeutils.utcnow(),
-            last_seen_up="2016-10-18T09:52:05.219414")
+            last_seen_up="2016-10-18T09:52:05.219414",
+        )
         test_service = objects.Service(self.context, **fake_service)
         test_service.create()
 
-        status = self.monitor.get_service_status(self.context,
-                                                 test_service.id)
+        status = self.monitor.get_service_status(self.context, test_service.id)
 
         self.assertEqual(objects.service.ServiceStatus.ACTIVE, status)
 
@@ -207,46 +196,50 @@ class TestServiceMonitoringBase(db_base.DbTestCase):
         self.monitor.services_status[1] = objects.service.ServiceStatus.ACTIVE
         self.assertEqual(
             {1: objects.service.ServiceStatus.ACTIVE},
-            self.monitor.services_status
+            self.monitor.services_status,
         )
 
-    @mock.patch.object(service.ServiceMonitoringBase,
-                       'get_service_status')
+    @mock.patch.object(service.ServiceMonitoringBase, 'get_service_status')
     @mock.patch.object(objects.Service, 'list')
     def test_get_services_status_without_services_in_list(
-            self, mock_get_list, mock_service_status):
+        self, mock_get_list, mock_service_status
+    ):
         mock_get_list.return_value = []
         services_status = self.monitor.get_services_status(mock.ANY)
         self.assertEqual([], services_status)
         mock_service_status.assert_not_called()
 
-    @mock.patch.object(service.ServiceMonitoringBase,
-                       'get_service_status')
+    @mock.patch.object(service.ServiceMonitoringBase, 'get_service_status')
     @mock.patch.object(objects.Service, 'list')
     def test_get_services_status_with_services_in_list(
-            self, m_service_list, m_get_service_status):
+        self, m_service_list, m_get_service_status
+    ):
         """get_services_status returns only the services with service name."""
         # Create various services
         de_service1 = utils.get_test_service(
-            id=1, name='watcher-monitored-service', host='host1')
+            id=1, name='watcher-monitored-service', host='host1'
+        )
         de_service2 = utils.get_test_service(
-            id=2, name='watcher-monitored-service', host='host2')
+            id=2, name='watcher-monitored-service', host='host2'
+        )
         api_service = utils.get_test_service(
-            id=3, name='watcher-api', host='host3')
+            id=3, name='watcher-api', host='host3'
+        )
         applier_service = utils.get_test_service(
-            id=4, name='watcher-applier', host='host4')
+            id=4, name='watcher-applier', host='host4'
+        )
 
         m_service_list.return_value = [
             objects.Service(**de_service1),
             objects.Service(**de_service2),
             objects.Service(**api_service),
-            objects.Service(**applier_service)
+            objects.Service(**applier_service),
         ]
         m_get_service_status.side_effect = [
             objects.service.ServiceStatus.ACTIVE,
             objects.service.ServiceStatus.FAILED,
             objects.service.ServiceStatus.ACTIVE,
-            objects.service.ServiceStatus.ACTIVE
+            objects.service.ServiceStatus.ACTIVE,
         ]
 
         result = self.monitor.get_services_status(self.context)
@@ -257,14 +250,18 @@ class TestServiceMonitoringBase(db_base.DbTestCase):
             match wservice.host:
                 case 'host1':
                     self.assertEqual(
-                        'watcher-monitored-service', wservice.name)
+                        'watcher-monitored-service', wservice.name
+                    )
                     self.assertEqual(
-                        objects.service.ServiceStatus.ACTIVE, wservice.state)
+                        objects.service.ServiceStatus.ACTIVE, wservice.state
+                    )
                 case 'host2':
                     self.assertEqual(
-                        'watcher-monitored-service', wservice.name)
+                        'watcher-monitored-service', wservice.name
+                    )
                     self.assertEqual(
-                        objects.service.ServiceStatus.FAILED, wservice.state)
+                        objects.service.ServiceStatus.FAILED, wservice.state
+                    )
                 case _:
                     self.fail(f'Unexpected host: {wservice.host}')
 
@@ -272,7 +269,8 @@ class TestServiceMonitoringBase(db_base.DbTestCase):
         """Test leader election with single active service."""
         # Create service objects with state attribute
         service1 = objects.Service(
-            id=1, name='watcher-monitored-service', host='host1')
+            id=1, name='watcher-monitored-service', host='host1'
+        )
         service1.state = objects.service.ServiceStatus.ACTIVE
 
         # Test when current host is the leader
@@ -290,13 +288,16 @@ class TestServiceMonitoringBase(db_base.DbTestCase):
         # Create service objects with state attribute
         # sorted order: host1, host2, host3
         service1 = objects.Service(
-            id=1, name='watcher-monitored-service', host='host2')
+            id=1, name='watcher-monitored-service', host='host2'
+        )
         service1.state = objects.service.ServiceStatus.ACTIVE
         service2 = objects.Service(
-            id=2, name='watcher-monitored-service', host='host1')
+            id=2, name='watcher-monitored-service', host='host1'
+        )
         service2.state = objects.service.ServiceStatus.ACTIVE
         service3 = objects.Service(
-            id=3, name='watcher-monitored-service', host='host3')
+            id=3, name='watcher-monitored-service', host='host3'
+        )
         service3.state = objects.service.ServiceStatus.ACTIVE
 
         # Leader should be host1 (alphabetically first)
@@ -316,10 +317,12 @@ class TestServiceMonitoringBase(db_base.DbTestCase):
         """Test leader election ignores failed services."""
         # Create service objects with mixed states
         service1 = objects.Service(
-            id=1, name='watcher-monitored-service', host='host1')
+            id=1, name='watcher-monitored-service', host='host1'
+        )
         service1.state = objects.service.ServiceStatus.FAILED
         service2 = objects.Service(
-            id=2, name='watcher-monitored-service', host='host2')
+            id=2, name='watcher-monitored-service', host='host2'
+        )
         service2.state = objects.service.ServiceStatus.ACTIVE
 
         # Leader should be host2 (only active service)
@@ -335,10 +338,12 @@ class TestServiceMonitoringBase(db_base.DbTestCase):
         """Test leader election ignores failed services."""
         # Create service objects with mixed states
         service1 = objects.Service(
-            id=1, name='watcher-monitored-service', host='host1')
+            id=1, name='watcher-monitored-service', host='host1'
+        )
         service1.state = objects.service.ServiceStatus.FAILED
         service2 = objects.Service(
-            id=2, name='watcher-monitored-service', host='host2')
+            id=2, name='watcher-monitored-service', host='host2'
+        )
         service2.state = objects.service.ServiceStatus.ACTIVE
 
         # Leader should be host2 (only active service)
@@ -365,10 +370,12 @@ class TestServiceMonitoringBase(db_base.DbTestCase):
         """Test leader election when no services are active."""
         # Create service objects with all failed states
         service1 = objects.Service(
-            id=1, name='watcher-monitored-service', host='host1')
+            id=1, name='watcher-monitored-service', host='host1'
+        )
         service1.state = objects.service.ServiceStatus.FAILED
         service2 = objects.Service(
-            id=2, name='watcher-monitored-service', host='host2')
+            id=2, name='watcher-monitored-service', host='host2'
+        )
         service2.state = objects.service.ServiceStatus.FAILED
 
         # Should return False when no services are active

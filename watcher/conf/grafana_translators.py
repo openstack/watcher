@@ -18,26 +18,31 @@
 from oslo_config import cfg
 
 
-grafana_translators = cfg.OptGroup(name='grafana_translators',
-                                   title='Configuration Options for Grafana '
-                                   'transalators')
+grafana_translators = cfg.OptGroup(
+    name='grafana_translators',
+    title='Configuration Options for Grafana transalators',
+)
 
 GRAFANA_TRANSLATOR_INFLUX_OPTS = [
-    cfg.DictOpt('retention_periods',
-                default={
-                    'one_week': 604800,
-                    'one_month': 2592000,
-                    'five_years': 31556952
-                },
-                help="Keys are the names of retention periods in InfluxDB and "
-                     "the values should correspond with the maximum time they "
-                     "can retain in seconds. Example: {'one_day': 86400}")]
+    cfg.DictOpt(
+        'retention_periods',
+        default={
+            'one_week': 604800,
+            'one_month': 2592000,
+            'five_years': 31556952,
+        },
+        help="Keys are the names of retention periods in InfluxDB and "
+        "the values should correspond with the maximum time they "
+        "can retain in seconds. Example: {'one_day': 86400}",
+    )
+]
 
 
 def register_opts(conf):
     conf.register_group(grafana_translators)
-    conf.register_opts(GRAFANA_TRANSLATOR_INFLUX_OPTS,
-                       group=grafana_translators)
+    conf.register_opts(
+        GRAFANA_TRANSLATOR_INFLUX_OPTS, group=grafana_translators
+    )
 
 
 def list_opts():

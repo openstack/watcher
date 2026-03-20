@@ -31,9 +31,7 @@ class Sleep(base.BaseAction):
 
     The action schema is::
 
-        schema = Schema({
-         'duration': float,
-        })
+        schema = Schema({'duration': float})
 
     The `duration` is expressed in seconds.
     """
@@ -44,12 +42,7 @@ class Sleep(base.BaseAction):
     def schema(self):
         return {
             'type': 'object',
-            'properties': {
-                'duration': {
-                    'type': 'number',
-                    'minimum': 0
-                },
-            },
+            'properties': {'duration': {'type': 'number', 'minimum': 0}},
             'required': ['duration'],
             'additionalProperties': False,
         }

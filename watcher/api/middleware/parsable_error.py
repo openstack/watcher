@@ -49,17 +49,20 @@ class ParsableErrorMiddleware:
                 status_code = int(status.split(' ')[0])
                 state['status_code'] = status_code
             except (ValueError, TypeError):  # pragma: nocover
-                raise Exception(_(
-                    'ErrorDocumentMiddleware received an invalid '
-                    'status %s') % status)
+                raise Exception(
+                    _('ErrorDocumentMiddleware received an invalid status %s')
+                    % status
+                )
             else:
                 if (state['status_code'] // 100) not in (2, 3):
                     # Remove some headers so we can replace them later
                     # when we have the full error message and can
                     # compute the length.
-                    headers = [(h, v)
-                               for (h, v) in headers
-                               if h not in ('Content-Length', 'Content-Type')]
+                    headers = [
+                        (h, v)
+                        for (h, v) in headers
+                        if h not in ('Content-Length', 'Content-Type')
+                    ]
                 # Save the headers in case we need to modify them.
                 state['headers'] = headers
                 return start_response(status, headers, exc_info)
@@ -68,25 +71,31 @@ class ParsableErrorMiddleware:
         if (state['status_code'] // 100) not in (2, 3):
             req = webob.Request(environ)
             if (
-                    req.accept.best_match(
-                        ['application/json',
-                         'application/xml']) == 'application/xml'
+                req.accept.best_match(['application/json', 'application/xml'])
+                == 'application/xml'
             ):
                 try:
                     # simple check xml is valid
                     body = [
                         et.ElementTree.tostring(
                             et.ElementTree.Element(
-                                'error_message', text='\n'.join(app_iter)))]
+                                'error_message', text='\n'.join(app_iter)
+                            )
+                        )
+                    ]
                 except et.ElementTree.ParseError as err:
                     LOG.error('Error parsing HTTP response: %s', err)
-                    body = ['<error_message>{}'
-                            '</error_message>'.format(state['status_code'])]
+                    body = [
+                        '<error_message>{}</error_message>'.format(
+                            state['status_code']
+                        )
+                    ]
                 state['headers'].append(('Content-Type', 'application/xml'))
             else:
                 app_iter = [i.decode('utf-8') for i in app_iter]
-                body = [jsonutils.dumps(
-                    {'error_message': '\n'.join(app_iter)})]
+                body = [
+                    jsonutils.dumps({'error_message': '\n'.join(app_iter)})
+                ]
                 body = [item.encode('utf-8') for item in body]
                 state['headers'].append(('Content-Type', 'application/json'))
             state['headers'].append(('Content-Length', str(len(body[0]))))

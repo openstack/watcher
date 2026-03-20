@@ -44,7 +44,8 @@ class WatcherObjectRegistry(ovo_base.VersionedObjectRegistry):
             setattr(objects, cls.obj_name(), cls)
         else:
             cur_version = versionutils.convert_version_to_tuple(
-                getattr(objects, cls.obj_name()).VERSION)
+                getattr(objects, cls.obj_name()).VERSION
+            )
             if version >= cur_version:
                 setattr(objects, cls.obj_name(), cls)
 
@@ -85,8 +86,8 @@ class WatcherObject(ovo_base.VersionedObject):
 
     def as_dict(self):
         return {
-            k: getattr(self, k) for k in self.fields
-            if self.obj_attr_is_set(k)}
+            k: getattr(self, k) for k in self.fields if self.obj_attr_is_set(k)
+        }
 
 
 class WatcherObjectDictCompat(ovo_base.VersionedObjectDictCompat):
@@ -102,6 +103,7 @@ class WatcherPersistentObject:
 
     This adds the fields that we use in common for all persistent objects.
     """
+
     fields = {
         'created_at': ovo_fields.DateTimeField(nullable=True),
         'updated_at': ovo_fields.DateTimeField(nullable=True),
@@ -128,11 +130,14 @@ class WatcherPersistentObject:
         the loaded object column by column in comparison with the current
         object.
         """
-        fields = (field for field in self.fields
-                  if field not in self.object_fields)
+        fields = (
+            field for field in self.fields if field not in self.object_fields
+        )
         for field in fields:
-            if (self.obj_attr_is_set(field) and
-                    self[field] != loaded_object[field]):
+            if (
+                self.obj_attr_is_set(field)
+                and self[field] != loaded_object[field]
+            ):
                 self[field] = loaded_object[field]
 
     @staticmethod
@@ -157,8 +162,10 @@ class WatcherPersistentObject:
             context = obj._context
             loadable_fields = (
                 (obj_field, related_obj_cls, rel_id)
-                for obj_field, (related_obj_cls, rel_id)
-                in object_fields.items()
+                for obj_field, (
+                    related_obj_cls,
+                    rel_id,
+                ) in object_fields.items()
                 if obj[rel_id]
             )
             for obj_field, related_obj_cls, rel_id in loadable_fields:
@@ -166,7 +173,8 @@ class WatcherPersistentObject:
                     # The object field data was eagerly loaded alongside
                     # the main object data
                     obj[obj_field] = related_obj_cls._from_db_object(
-                        related_obj_cls(context), db_object[obj_field])
+                        related_obj_cls(context), db_object[obj_field]
+                    )
                 else:
                     # The object field data wasn't loaded yet
                     obj[obj_field] = related_obj_cls.get(context, obj[rel_id])

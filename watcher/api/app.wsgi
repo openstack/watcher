@@ -15,7 +15,6 @@
 Use this file for deploying the API service under Apache2 mod_wsgi.
 """
 
-
 # This script is deprecated and it will be removed in U release.
 # Please switch to automatically generated watcher-api-wsgi script instead.
 from watcher.api import wsgi

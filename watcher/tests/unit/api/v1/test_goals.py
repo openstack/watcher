@@ -22,10 +22,13 @@ from watcher.tests.unit.objects import utils as obj_utils
 
 
 class TestListGoal(api_base.FunctionalTest):
-
     def _assert_goal_fields(self, goal):
-        goal_fields = ['uuid', 'name', 'display_name',
-                       'efficacy_specification']
+        goal_fields = [
+            'uuid',
+            'name',
+            'display_name',
+            'efficacy_specification',
+        ]
         for field in goal_fields:
             self.assertIn(field, goal)
 
@@ -44,8 +47,9 @@ class TestListGoal(api_base.FunctionalTest):
 
     def test_get_one_by_name(self):
         goal = obj_utils.create_test_goal(self.context)
-        response = self.get_json(urlparse.quote(
-            '/goals/{}'.format(goal['name'])))
+        response = self.get_json(
+            urlparse.quote('/goals/{}'.format(goal['name']))
+        )
         self.assertEqual(goal.uuid, response['uuid'])
         self._assert_goal_fields(response)
 
@@ -54,13 +58,14 @@ class TestListGoal(api_base.FunctionalTest):
         goal.soft_delete()
         response = self.get_json(
             '/goals/{}'.format(goal['uuid']),
-            headers={'X-Show-Deleted': 'True'})
+            headers={'X-Show-Deleted': 'True'},
+        )
         self.assertEqual(goal.uuid, response['uuid'])
         self._assert_goal_fields(response)
 
         response = self.get_json(
-            '/goals/{}'.format(goal['uuid']),
-            expect_errors=True)
+            '/goals/{}'.format(goal['uuid']), expect_errors=True
+        )
         self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
 
     def test_detail(self):
@@ -71,17 +76,20 @@ class TestListGoal(api_base.FunctionalTest):
 
     def test_detail_against_single(self):
         goal = obj_utils.create_test_goal(self.context)
-        response = self.get_json(f'/goals/{goal.uuid}/detail',
-                                 expect_errors=True)
+        response = self.get_json(
+            f'/goals/{goal.uuid}/detail', expect_errors=True
+        )
         self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
 
     def test_many(self):
         goal_list = []
         for idx in range(1, 6):
             goal = obj_utils.create_test_goal(
-                self.context, id=idx,
+                self.context,
+                id=idx,
                 uuid=utils.generate_uuid(),
-                name=f'GOAL_{idx}')
+                name=f'GOAL_{idx}',
+            )
             goal_list.append(goal.uuid)
         response = self.get_json('/goals')
         self.assertGreater(len(response['goals']), 2)
@@ -90,13 +98,19 @@ class TestListGoal(api_base.FunctionalTest):
         goal_list = []
         for id_ in [1, 2, 3]:
             goal = obj_utils.create_test_goal(
-                self.context, id=id_, uuid=utils.generate_uuid(),
-                name=f'GOAL_{id_}')
+                self.context,
+                id=id_,
+                uuid=utils.generate_uuid(),
+                name=f'GOAL_{id_}',
+            )
             goal_list.append(goal.uuid)
         for id_ in [4, 5]:
             goal = obj_utils.create_test_goal(
-                self.context, id=id_, uuid=utils.generate_uuid(),
-                name=f'GOAL_{id_}')
+                self.context,
+                id=id_,
+                uuid=utils.generate_uuid(),
+                name=f'GOAL_{id_}',
+            )
             goal.soft_delete()
         response = self.get_json('/goals')
         self.assertEqual(3, len(response['goals']))
@@ -106,18 +120,22 @@ class TestListGoal(api_base.FunctionalTest):
     def test_goals_collection_links(self):
         for idx in range(1, 6):
             obj_utils.create_test_goal(
-                self.context, id=idx,
+                self.context,
+                id=idx,
                 uuid=utils.generate_uuid(),
-                name=f'GOAL_{idx}')
+                name=f'GOAL_{idx}',
+            )
         response = self.get_json('/goals/?limit=2')
         self.assertEqual(2, len(response['goals']))
 
     def test_goals_collection_links_default_limit(self):
         for idx in range(1, 6):
             obj_utils.create_test_goal(
-                self.context, id=idx,
+                self.context,
+                id=idx,
                 uuid=utils.generate_uuid(),
-                name=f'GOAL_{idx}')
+                name=f'GOAL_{idx}',
+            )
         cfg.CONF.set_override('max_limit', 3, 'api')
         response = self.get_json('/goals')
         self.assertEqual(3, len(response['goals']))
@@ -126,9 +144,11 @@ class TestListGoal(api_base.FunctionalTest):
         goal_list = []
         for idx in range(1, 6):
             goal = obj_utils.create_test_goal(
-                self.context, id=idx,
+                self.context,
+                id=idx,
                 uuid=utils.generate_uuid(),
-                name=f'GOAL_{idx}')
+                name=f'GOAL_{idx}',
+            )
             goal_list.append(goal.uuid)
 
         response = self.get_json('/goals/?sort_key=uuid')
@@ -139,52 +159,59 @@ class TestListGoal(api_base.FunctionalTest):
 
     def test_sort_key_validation(self):
         response = self.get_json(
-            '/goals?sort_key={}'.format('bad_name'),
-            expect_errors=True)
+            '/goals?sort_key={}'.format('bad_name'), expect_errors=True
+        )
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
 
 
 class TestGoalPolicyEnforcement(api_base.FunctionalTest):
-
     def _common_policy_check(self, rule, func, *arg, **kwarg):
-        self.policy.set_rules({
-            "admin_api": "(role:admin or role:administrator)",
-            "default": "rule:admin_api",
-            rule: "rule:default"})
+        self.policy.set_rules(
+            {
+                "admin_api": "(role:admin or role:administrator)",
+                "default": "rule:admin_api",
+                rule: "rule:default",
+            }
+        )
         response = func(*arg, **kwarg)
         self.assertEqual(HTTPStatus.FORBIDDEN, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(
             f"Policy doesn't allow {rule} to be performed.",
-            jsonutils.loads(response.json['error_message'])['faultstring'])
+            jsonutils.loads(response.json['error_message'])['faultstring'],
+        )
 
     def test_policy_disallow_get_all(self):
         self._common_policy_check(
-            "goal:get_all", self.get_json, '/goals',
-            expect_errors=True)
+            "goal:get_all", self.get_json, '/goals', expect_errors=True
+        )
 
     def test_policy_disallow_get_one(self):
         goal = obj_utils.create_test_goal(self.context)
         self._common_policy_check(
-            "goal:get", self.get_json,
+            "goal:get",
+            self.get_json,
             f'/goals/{goal.uuid}',
-            expect_errors=True)
+            expect_errors=True,
+        )
 
     def test_policy_disallow_detail(self):
         self._common_policy_check(
-            "goal:detail", self.get_json,
-            '/goals/detail',
-            expect_errors=True)
+            "goal:detail", self.get_json, '/goals/detail', expect_errors=True
+        )
 
 
-class TestGoalPolicyEnforcementWithAdminContext(TestListGoal,
-                                                api_base.AdminRoleTest):
-
+class TestGoalPolicyEnforcementWithAdminContext(
+    TestListGoal, api_base.AdminRoleTest
+):
     def setUp(self):
         super().setUp()
-        self.policy.set_rules({
-            "admin_api": "(role:admin or role:administrator)",
-            "default": "rule:admin_api",
-            "goal:detail": "rule:default",
-            "goal:get_all": "rule:default",
-            "goal:get_one": "rule:default"})
+        self.policy.set_rules(
+            {
+                "admin_api": "(role:admin or role:administrator)",
+                "default": "rule:admin_api",
+                "goal:detail": "rule:default",
+                "goal:get_all": "rule:default",
+                "goal:get_one": "rule:default",
+            }
+        )

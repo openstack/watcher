@@ -37,7 +37,8 @@ class TestMaasNode(base.TestCase):
         self._maas_client = mock.Mock()
 
         self._node = maas.MaasNode(
-            self._wrapped_node, self._nova_node, self._maas_client)
+            self._wrapped_node, self._nova_node, self._maas_client
+        )
 
     def test_get_power_state(self):
         if not maas_enum:
@@ -48,23 +49,23 @@ class TestMaasNode(base.TestCase):
             maas_enum.PowerState.OFF,
             maas_enum.PowerState.ERROR,
             maas_enum.PowerState.UNKNOWN,
-            'SomeOtherState')
+            'SomeOtherState',
+        )
 
         expected_states = (
             m_constants.PowerState.ON,
             m_constants.PowerState.OFF,
             m_constants.PowerState.ERROR,
             m_constants.PowerState.UNKNOWN,
-            m_constants.PowerState.UNKNOWN)
+            m_constants.PowerState.UNKNOWN,
+        )
 
         for expected_state in expected_states:
             actual_state = self._node.get_power_state()
             self.assertEqual(expected_state, actual_state)
 
     def test_get_id(self):
-        self.assertEqual(
-            self._wrapped_node.system_id,
-            self._node.get_id())
+        self.assertEqual(self._wrapped_node.system_id, self._node.get_id())
 
     def test_power_on(self):
         self._node.power_on()
@@ -92,18 +93,17 @@ class TestMaasHelper(base.TestCase):
         ctrl_fqdn = "ctrl-1"
 
         mock_machines = [
-            mock.Mock(fqdn=compute_fqdn,
-                      system_id=mock.sentinel.compute_node_id),
-            mock.Mock(fqdn=ctrl_fqdn,
-                      system_id=mock.sentinel.ctrl_node_id),
+            mock.Mock(
+                fqdn=compute_fqdn, system_id=mock.sentinel.compute_node_id
+            ),
+            mock.Mock(fqdn=ctrl_fqdn, system_id=mock.sentinel.ctrl_node_id),
         ]
-        mock_hypervisors = [
-            mock.Mock(hypervisor_hostname=compute_fqdn),
-        ]
+        mock_hypervisors = [mock.Mock(hypervisor_hostname=compute_fqdn)]
 
         self._mock_maas_client.machines.list.return_value = mock_machines
-        self._mock_nova_client.get_compute_node_list.return_value = \
+        self._mock_nova_client.get_compute_node_list.return_value = (
             mock_hypervisors
+        )
 
         out_nodes = self._helper.list_compute_nodes()
         self.assertEqual(1, len(out_nodes))
@@ -123,7 +123,8 @@ class TestMaasHelper(base.TestCase):
             mock.Mock(hypervisor_hostname="compute-01"),
         ]
         self._mock_nova_client.get_compute_node_by_hostname.return_value = (
-            mock_compute_nodes)
+            mock_compute_nodes
+        )
 
         out_node = self._helper.get_node(mock.sentinel.id)
 

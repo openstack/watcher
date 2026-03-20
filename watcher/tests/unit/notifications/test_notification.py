@@ -28,7 +28,6 @@ from watcher.tests.unit.objects import test_objects
 
 
 class TestNotificationBase(testbase.TestCase):
-
     @base.WatcherObjectRegistry.register_if(False)
     class TestObject(base.WatcherObject):
         VERSION = '1.0'
@@ -50,7 +49,7 @@ class TestNotificationBase(testbase.TestCase):
         fields = {
             'extra_field': wfields.StringField(),  # filled by ctor
             'field_1': wfields.StringField(),  # filled by the schema
-            'field_2': wfields.IntegerField(),   # filled by the schema
+            'field_2': wfields.IntegerField(),  # filled by the schema
         }
 
         def populate_schema(self, source_field):
@@ -58,11 +57,12 @@ class TestNotificationBase(testbase.TestCase):
 
     @base.WatcherObjectRegistry.register_if(False)
     class TestNotificationPayloadEmptySchema(
-            notificationbase.NotificationPayloadBase):
+        notificationbase.NotificationPayloadBase
+    ):
         VERSION = '1.0'
 
         fields = {
-            'extra_field': wfields.StringField(),  # filled by ctor
+            'extra_field': wfields.StringField()  # filled by ctor
         }
 
     @notificationbase.notification_sample('test-update-1.json')
@@ -70,16 +70,15 @@ class TestNotificationBase(testbase.TestCase):
     @base.WatcherObjectRegistry.register_if(False)
     class TestNotification(notificationbase.NotificationBase):
         VERSION = '1.0'
-        fields = {
-            'payload': wfields.ObjectField('TestNotificationPayload')
-        }
+        fields = {'payload': wfields.ObjectField('TestNotificationPayload')}
 
     @base.WatcherObjectRegistry.register_if(False)
     class TestNotificationEmptySchema(notificationbase.NotificationBase):
         VERSION = '1.0'
         fields = {
             'payload': wfields.ObjectField(
-                'TestNotificationPayloadEmptySchema')
+                'TestNotificationPayloadEmptySchema'
+            )
         }
 
     expected_payload = {
@@ -87,41 +86,51 @@ class TestNotificationBase(testbase.TestCase):
         'watcher_object.data': {
             'extra_field': 'test string',
             'field_1': 'test1',
-            'field_2': 42},
+            'field_2': 42,
+        },
         'watcher_object.version': '1.0',
-        'watcher_object.namespace': 'watcher'}
+        'watcher_object.namespace': 'watcher',
+    }
 
     def setUp(self):
         super().setUp()
 
-        self.my_obj = self.TestObject(field_1='test1',
-                                      field_2=42,
-                                      not_important_field=13)
+        self.my_obj = self.TestObject(
+            field_1='test1', field_2=42, not_important_field=13
+        )
 
-        self.payload = self.TestNotificationPayload(
-            extra_field='test string')
+        self.payload = self.TestNotificationPayload(extra_field='test string')
         self.payload.populate_schema(source_field=self.my_obj)
 
         self.notification = self.TestNotification(
             event_type=notificationbase.EventType(
                 object='test_object',
                 action=wfields.NotificationAction.UPDATE,
-                phase=wfields.NotificationPhase.START),
+                phase=wfields.NotificationPhase.START,
+            ),
             publisher=notificationbase.NotificationPublisher(
-                host='fake-host', binary='watcher-fake'),
+                host='fake-host', binary='watcher-fake'
+            ),
             priority=wfields.NotificationPriority.INFO,
-            payload=self.payload)
+            payload=self.payload,
+        )
 
-    def _verify_notification(self, mock_notifier, mock_context,
-                             expected_event_type,
-                             expected_payload):
+    def _verify_notification(
+        self,
+        mock_notifier,
+        mock_context,
+        expected_event_type,
+        expected_payload,
+    ):
         mock_notifier.prepare.assert_called_once_with(
-            publisher_id='watcher-fake:fake-host')
+            publisher_id='watcher-fake:fake-host'
+        )
         mock_notify = mock_notifier.prepare.return_value.info
         self.assertTrue(mock_notify.called)
         self.assertEqual(mock_notify.call_args[0][0], mock_context)
-        self.assertEqual(mock_notify.call_args[1]['event_type'],
-                         expected_event_type)
+        self.assertEqual(
+            mock_notify.call_args[1]['event_type'], expected_event_type
+        )
         actual_payload = mock_notify.call_args[1]['payload']
         self.assertEqual(expected_payload, actual_payload)
 
@@ -135,7 +144,8 @@ class TestNotificationBase(testbase.TestCase):
             mock_notifier,
             mock_context,
             expected_event_type='test_object.update.start',
-            expected_payload=self.expected_payload)
+            expected_payload=self.expected_payload,
+        )
 
     @mock.patch.object(rpc, 'NOTIFIER')
     def test_no_emit_notifs_disabled(self, mock_notifier):
@@ -146,11 +156,14 @@ class TestNotificationBase(testbase.TestCase):
             event_type=notificationbase.EventType(
                 object='test_object',
                 action=wfields.NotificationAction.UPDATE,
-                phase=wfields.NotificationPhase.START),
+                phase=wfields.NotificationPhase.START,
+            ),
             publisher=notificationbase.NotificationPublisher(
-                host='fake-host', binary='watcher-fake'),
+                host='fake-host', binary='watcher-fake'
+            ),
             priority=wfields.NotificationPriority.INFO,
-            payload=self.payload)
+            payload=self.payload,
+        )
 
         mock_context = mock.Mock()
         notif.emit(mock_context)
@@ -166,11 +179,14 @@ class TestNotificationBase(testbase.TestCase):
             event_type=notificationbase.EventType(
                 object='test_object',
                 action=wfields.NotificationAction.UPDATE,
-                phase=wfields.NotificationPhase.START),
+                phase=wfields.NotificationPhase.START,
+            ),
             publisher=notificationbase.NotificationPublisher(
-                host='fake-host', binary='watcher-fake'),
+                host='fake-host', binary='watcher-fake'
+            ),
             priority=wfields.NotificationPriority.INFO,
-            payload=self.payload)
+            payload=self.payload,
+        )
 
         mock_context = mock.Mock()
         notif.emit(mock_context)
@@ -181,12 +197,14 @@ class TestNotificationBase(testbase.TestCase):
     def test_emit_event_type_without_phase(self, mock_notifier):
         noti = self.TestNotification(
             event_type=notificationbase.EventType(
-                object='test_object',
-                action=wfields.NotificationAction.UPDATE),
+                object='test_object', action=wfields.NotificationAction.UPDATE
+            ),
             publisher=notificationbase.NotificationPublisher(
-                host='fake-host', binary='watcher-fake'),
+                host='fake-host', binary='watcher-fake'
+            ),
             priority=wfields.NotificationPriority.INFO,
-            payload=self.payload)
+            payload=self.payload,
+        )
 
         mock_context = mock.Mock()
         mock_context.to_dict.return_value = {}
@@ -196,38 +214,46 @@ class TestNotificationBase(testbase.TestCase):
             mock_notifier,
             mock_context,
             expected_event_type='test_object.update',
-            expected_payload=self.expected_payload)
+            expected_payload=self.expected_payload,
+        )
 
     @mock.patch.object(rpc, 'NOTIFIER')
     def test_not_possible_to_emit_if_not_populated(self, mock_notifier):
         non_populated_payload = self.TestNotificationPayload(
-            extra_field='test string')
+            extra_field='test string'
+        )
         noti = self.TestNotification(
             event_type=notificationbase.EventType(
-                object='test_object',
-                action=wfields.NotificationAction.UPDATE),
+                object='test_object', action=wfields.NotificationAction.UPDATE
+            ),
             publisher=notificationbase.NotificationPublisher(
-                host='fake-host', binary='watcher-fake'),
+                host='fake-host', binary='watcher-fake'
+            ),
             priority=wfields.NotificationPriority.INFO,
-            payload=non_populated_payload)
+            payload=non_populated_payload,
+        )
 
         mock_context = mock.Mock()
-        self.assertRaises(exception.NotificationPayloadError,
-                          noti.emit, mock_context)
+        self.assertRaises(
+            exception.NotificationPayloadError, noti.emit, mock_context
+        )
         self.assertFalse(mock_notifier.called)
 
     @mock.patch.object(rpc, 'NOTIFIER')
     def test_empty_schema(self, mock_notifier):
         non_populated_payload = self.TestNotificationPayloadEmptySchema(
-            extra_field='test string')
+            extra_field='test string'
+        )
         noti = self.TestNotificationEmptySchema(
             event_type=notificationbase.EventType(
-                object='test_object',
-                action=wfields.NotificationAction.UPDATE),
+                object='test_object', action=wfields.NotificationAction.UPDATE
+            ),
             publisher=notificationbase.NotificationPublisher(
-                host='fake-host', binary='watcher-fake'),
+                host='fake-host', binary='watcher-fake'
+            ),
             priority=wfields.NotificationPriority.INFO,
-            payload=non_populated_payload)
+            payload=non_populated_payload,
+        )
 
         mock_context = mock.Mock()
         mock_context.to_dict.return_value = {}
@@ -241,7 +267,9 @@ class TestNotificationBase(testbase.TestCase):
                 'watcher_object.name': 'TestNotificationPayloadEmptySchema',
                 'watcher_object.data': {'extra_field': 'test string'},
                 'watcher_object.version': '1.0',
-                'watcher_object.namespace': 'watcher'})
+                'watcher_object.namespace': 'watcher',
+            },
+        )
 
     def test_sample_decorator(self):
         self.assertEqual(2, len(self.TestNotification.samples))
@@ -295,8 +323,7 @@ expected_notification_fingerprints = {
     'ServiceUpdateNotification': '1.0-9b69de0724fda8310d05e18418178866',
     'ServicePayload': '1.0-9c5a9bc51e6606e0ec3cf95baf698f4f',
     'ServiceStatusUpdatePayload': '1.0-1a1b606bf14a2c468800c2b010801ce5',
-    'ServiceUpdatePayload': '1.0-e0e9812a45958974693a723a2c820c3f'
-
+    'ServiceUpdatePayload': '1.0-e0e9812a45958974693a723a2c820c3f',
 }
 
 
@@ -307,20 +334,27 @@ class TestNotificationObjectVersions(testbase.TestCase):
 
     def test_versions(self):
         checker = fixture.ObjectVersionChecker(
-            test_objects.get_watcher_objects())
+            test_objects.get_watcher_objects()
+        )
         expected_notification_fingerprints.update(
-            test_objects.expected_object_fingerprints)
+            test_objects.expected_object_fingerprints
+        )
         expected, actual = checker.test_hashes(
-            expected_notification_fingerprints)
-        self.assertEqual(expected, actual,
-                         'Some notification objects have changed; please make '
-                         'sure the versions have been bumped, and then update '
-                         'their hashes here.')
+            expected_notification_fingerprints
+        )
+        self.assertEqual(
+            expected,
+            actual,
+            'Some notification objects have changed; please make '
+            'sure the versions have been bumped, and then update '
+            'their hashes here.',
+        )
 
     def test_notification_payload_version_depends_on_the_schema(self):
         @base.WatcherObjectRegistry.register_if(False)
         class TestNotificationPayload(
-                notificationbase.NotificationPayloadBase):
+            notificationbase.NotificationPayloadBase
+        ):
             VERSION = '1.0'
 
             SCHEMA = {
@@ -331,15 +365,15 @@ class TestNotificationObjectVersions(testbase.TestCase):
             fields = {
                 'extra_field': wfields.StringField(),  # filled by ctor
                 'field_1': wfields.StringField(),  # filled by the schema
-                'field_2': wfields.IntegerField(),   # filled by the schema
+                'field_2': wfields.IntegerField(),  # filled by the schema
             }
 
         checker = fixture.ObjectVersionChecker(
-            {'TestNotificationPayload': (TestNotificationPayload,)})
+            {'TestNotificationPayload': (TestNotificationPayload,)}
+        )
 
         old_hash = checker.get_hashes(extra_data_func=get_extra_data)
-        TestNotificationPayload.SCHEMA['field_3'] = ('source_field',
-                                                     'field_3')
+        TestNotificationPayload.SCHEMA['field_3'] = ('source_field', 'field_3')
         new_hash = checker.get_hashes(extra_data_func=get_extra_data)
 
         self.assertNotEqual(old_hash, new_hash)
@@ -351,8 +385,7 @@ def get_extra_data(obj_class):
     # Get the SCHEMA items to add to the fingerprint
     # if we are looking at a notification
     if issubclass(obj_class, notificationbase.NotificationPayloadBase):
-        schema_data = collections.OrderedDict(
-            sorted(obj_class.SCHEMA.items()))
+        schema_data = collections.OrderedDict(sorted(obj_class.SCHEMA.items()))
 
         extra_data += (schema_data,)
 

@@ -35,11 +35,9 @@ CONF = cfg.CONF
 class TerseActionPlanPayload(notificationbase.NotificationPayloadBase):
     SCHEMA = {
         'uuid': ('action_plan', 'uuid'),
-
         'state': ('action_plan', 'state'),
         'global_efficacy': ('action_plan', 'global_efficacy'),
         'status_message': ('action_plan', 'status_message'),
-
         'created_at': ('action_plan', 'created_at'),
         'updated_at': ('action_plan', 'updated_at'),
         'deleted_at': ('action_plan', 'deleted_at'),
@@ -57,16 +55,13 @@ class TerseActionPlanPayload(notificationbase.NotificationPayloadBase):
         'audit_uuid': wfields.UUIDField(),
         'strategy_uuid': wfields.UUIDField(nullable=True),
         'status_message': wfields.StringField(nullable=True),
-
         'created_at': wfields.DateTimeField(nullable=True),
         'updated_at': wfields.DateTimeField(nullable=True),
         'deleted_at': wfields.DateTimeField(nullable=True),
     }
 
     def __init__(self, action_plan, audit=None, strategy=None, **kwargs):
-        super().__init__(audit=audit,
-                         strategy=strategy,
-                         **kwargs)
+        super().__init__(audit=audit, strategy=strategy, **kwargs)
         self.populate_schema(action_plan=action_plan)
 
 
@@ -74,11 +69,9 @@ class TerseActionPlanPayload(notificationbase.NotificationPayloadBase):
 class ActionPlanPayload(TerseActionPlanPayload):
     SCHEMA = {
         'uuid': ('action_plan', 'uuid'),
-
         'state': ('action_plan', 'state'),
         'global_efficacy': ('action_plan', 'global_efficacy'),
         'status_message': ('action_plan', 'status_message'),
-
         'created_at': ('action_plan', 'created_at'),
         'updated_at': ('action_plan', 'updated_at'),
         'deleted_at': ('action_plan', 'deleted_at'),
@@ -101,8 +94,7 @@ class ActionPlanPayload(TerseActionPlanPayload):
         if strategy and not kwargs.get('strategy_uuid'):
             kwargs['strategy_uuid'] = strategy.uuid
 
-        super().__init__(
-            action_plan, audit=audit, strategy=strategy, **kwargs)
+        super().__init__(action_plan, audit=audit, strategy=strategy, **kwargs)
 
 
 @base.WatcherObjectRegistry.register_notification
@@ -128,9 +120,8 @@ class ActionPlanCreatePayload(ActionPlanPayload):
 
     def __init__(self, action_plan, audit, strategy):
         super().__init__(
-            action_plan=action_plan,
-            audit=audit,
-            strategy=strategy)
+            action_plan=action_plan, audit=audit, strategy=strategy
+        )
 
 
 @base.WatcherObjectRegistry.register_notification
@@ -140,7 +131,7 @@ class ActionPlanUpdatePayload(ActionPlanPayload):
     # Version 1.2: Added 'status_message' field
     VERSION = '1.2'
     fields = {
-        'state_update': wfields.ObjectField('ActionPlanStateUpdatePayload'),
+        'state_update': wfields.ObjectField('ActionPlanStateUpdatePayload')
     }
 
     def __init__(self, action_plan, state_update, audit, strategy):
@@ -148,7 +139,8 @@ class ActionPlanUpdatePayload(ActionPlanPayload):
             action_plan=action_plan,
             state_update=state_update,
             audit=audit,
-            strategy=strategy)
+            strategy=strategy,
+        )
 
 
 @base.WatcherObjectRegistry.register_notification
@@ -157,16 +149,12 @@ class ActionPlanActionPayload(ActionPlanPayload):
     # Version 1.1: Changed global_efficacy_type
     # Version 1.2: Added 'status_message' field
     VERSION = '1.2'
-    fields = {
-        'fault': wfields.ObjectField('ExceptionPayload', nullable=True),
-    }
+    fields = {'fault': wfields.ObjectField('ExceptionPayload', nullable=True)}
 
     def __init__(self, action_plan, audit, strategy, **kwargs):
         super().__init__(
-            action_plan=action_plan,
-            audit=audit,
-            strategy=strategy,
-            **kwargs)
+            action_plan=action_plan, audit=audit, strategy=strategy, **kwargs
+        )
 
 
 @base.WatcherObjectRegistry.register_notification
@@ -179,9 +167,8 @@ class ActionPlanDeletePayload(ActionPlanPayload):
 
     def __init__(self, action_plan, audit, strategy):
         super().__init__(
-            action_plan=action_plan,
-            audit=audit,
-            strategy=strategy)
+            action_plan=action_plan, audit=audit, strategy=strategy
+        )
 
 
 @base.WatcherObjectRegistry.register_notification
@@ -190,16 +177,12 @@ class ActionPlanCancelPayload(ActionPlanPayload):
     # Version 1.1: Changed global_efficacy_type
     # Version 1.2: Added 'status_message' field
     VERSION = '1.2'
-    fields = {
-        'fault': wfields.ObjectField('ExceptionPayload', nullable=True),
-    }
+    fields = {'fault': wfields.ObjectField('ExceptionPayload', nullable=True)}
 
     def __init__(self, action_plan, audit, strategy, **kwargs):
         super().__init__(
-            action_plan=action_plan,
-            audit=audit,
-            strategy=strategy,
-            **kwargs)
+            action_plan=action_plan, audit=audit, strategy=strategy, **kwargs
+        )
 
 
 @notificationbase.notification_sample('action_plan-execution-error.json')
@@ -210,9 +193,7 @@ class ActionPlanActionNotification(notificationbase.NotificationBase):
     # Version 1.0: Initial version
     VERSION = '1.0'
 
-    fields = {
-        'payload': wfields.ObjectField('ActionPlanActionPayload')
-    }
+    fields = {'payload': wfields.ObjectField('ActionPlanActionPayload')}
 
 
 @notificationbase.notification_sample('action_plan-create.json')
@@ -221,9 +202,7 @@ class ActionPlanCreateNotification(notificationbase.NotificationBase):
     # Version 1.0: Initial version
     VERSION = '1.0'
 
-    fields = {
-        'payload': wfields.ObjectField('ActionPlanCreatePayload')
-    }
+    fields = {'payload': wfields.ObjectField('ActionPlanCreatePayload')}
 
 
 @notificationbase.notification_sample('action_plan-update.json')
@@ -232,9 +211,7 @@ class ActionPlanUpdateNotification(notificationbase.NotificationBase):
     # Version 1.0: Initial version
     VERSION = '1.0'
 
-    fields = {
-        'payload': wfields.ObjectField('ActionPlanUpdatePayload')
-    }
+    fields = {'payload': wfields.ObjectField('ActionPlanUpdatePayload')}
 
 
 @notificationbase.notification_sample('action_plan-delete.json')
@@ -243,9 +220,7 @@ class ActionPlanDeleteNotification(notificationbase.NotificationBase):
     # Version 1.0: Initial version
     VERSION = '1.0'
 
-    fields = {
-        'payload': wfields.ObjectField('ActionPlanDeletePayload')
-    }
+    fields = {'payload': wfields.ObjectField('ActionPlanDeletePayload')}
 
 
 @notificationbase.notification_sample('action_plan-cancel-error.json')
@@ -256,9 +231,7 @@ class ActionPlanCancelNotification(notificationbase.NotificationBase):
     # Version 1.0: Initial version
     VERSION = '1.0'
 
-    fields = {
-        'payload': wfields.ObjectField('ActionPlanCancelPayload')
-    }
+    fields = {'payload': wfields.ObjectField('ActionPlanCancelPayload')}
 
 
 def _get_common_payload(action_plan):
@@ -269,15 +242,19 @@ def _get_common_payload(action_plan):
         strategy = action_plan.strategy
     except NotImplementedError:
         raise exception.EagerlyLoadedActionPlanRequired(
-            action_plan=action_plan.uuid)
+            action_plan=action_plan.uuid
+        )
 
     goal = objects.Goal.get(
-        wcontext.make_context(show_deleted=True), audit.goal_id)
+        wcontext.make_context(show_deleted=True), audit.goal_id
+    )
     audit_payload = audit_notifications.TerseAuditPayload(
-        audit=audit, goal_uuid=goal.uuid)
+        audit=audit, goal_uuid=goal.uuid
+    )
 
     strategy_payload = strategy_notifications.StrategyPayload(
-        strategy=strategy)
+        strategy=strategy
+    )
 
     return audit_payload, strategy_payload
 
@@ -287,26 +264,26 @@ def send_create(context, action_plan, service='infra-optim', host=None):
     audit_payload, strategy_payload = _get_common_payload(action_plan)
 
     versioned_payload = ActionPlanCreatePayload(
-        action_plan=action_plan,
-        audit=audit_payload,
-        strategy=strategy_payload,
+        action_plan=action_plan, audit=audit_payload, strategy=strategy_payload
     )
 
     notification = ActionPlanCreateNotification(
         priority=wfields.NotificationPriority.INFO,
         event_type=notificationbase.EventType(
-            object='action_plan',
-            action=wfields.NotificationAction.CREATE),
+            object='action_plan', action=wfields.NotificationAction.CREATE
+        ),
         publisher=notificationbase.NotificationPublisher(
-            host=host or CONF.host,
-            binary=service),
-        payload=versioned_payload)
+            host=host or CONF.host, binary=service
+        ),
+        payload=versioned_payload,
+    )
 
     notification.emit(context)
 
 
-def send_update(context, action_plan, service='infra-optim',
-                host=None, old_state=None):
+def send_update(
+    context, action_plan, service='infra-optim', host=None, old_state=None
+):
     """Emit an action_plan.update notification."""
     audit_payload, strategy_payload = _get_common_payload(action_plan)
 
@@ -314,9 +291,11 @@ def send_update(context, action_plan, service='infra-optim',
         old_state=old_state,
         state=action_plan.state if old_state else None,
         status_message=(
-            action_plan.status_message if old_state and
-            action_plan.status_message else None)
-        )
+            action_plan.status_message
+            if old_state and action_plan.status_message
+            else None
+        ),
+    )
 
     versioned_payload = ActionPlanUpdatePayload(
         action_plan=action_plan,
@@ -328,12 +307,13 @@ def send_update(context, action_plan, service='infra-optim',
     notification = ActionPlanUpdateNotification(
         priority=wfields.NotificationPriority.INFO,
         event_type=notificationbase.EventType(
-            object='action_plan',
-            action=wfields.NotificationAction.UPDATE),
+            object='action_plan', action=wfields.NotificationAction.UPDATE
+        ),
         publisher=notificationbase.NotificationPublisher(
-            host=host or CONF.host,
-            binary=service),
-        payload=versioned_payload)
+            host=host or CONF.host, binary=service
+        ),
+        payload=versioned_payload,
+    )
 
     notification.emit(context)
 
@@ -343,27 +323,32 @@ def send_delete(context, action_plan, service='infra-optim', host=None):
     audit_payload, strategy_payload = _get_common_payload(action_plan)
 
     versioned_payload = ActionPlanDeletePayload(
-        action_plan=action_plan,
-        audit=audit_payload,
-        strategy=strategy_payload,
+        action_plan=action_plan, audit=audit_payload, strategy=strategy_payload
     )
 
     notification = ActionPlanDeleteNotification(
         priority=wfields.NotificationPriority.INFO,
         event_type=notificationbase.EventType(
-            object='action_plan',
-            action=wfields.NotificationAction.DELETE),
+            object='action_plan', action=wfields.NotificationAction.DELETE
+        ),
         publisher=notificationbase.NotificationPublisher(
-            host=host or CONF.host,
-            binary=service),
-        payload=versioned_payload)
+            host=host or CONF.host, binary=service
+        ),
+        payload=versioned_payload,
+    )
 
     notification.emit(context)
 
 
-def send_action_notification(context, action_plan, action, phase=None,
-                             priority=wfields.NotificationPriority.INFO,
-                             service='infra-optim', host=None):
+def send_action_notification(
+    context,
+    action_plan,
+    action,
+    phase=None,
+    priority=wfields.NotificationPriority.INFO,
+    service='infra-optim',
+    host=None,
+):
     """Emit an action_plan action notification."""
     audit_payload, strategy_payload = _get_common_payload(action_plan)
 
@@ -381,20 +366,26 @@ def send_action_notification(context, action_plan, action, phase=None,
     notification = ActionPlanActionNotification(
         priority=priority,
         event_type=notificationbase.EventType(
-            object='action_plan',
-            action=action,
-            phase=phase),
+            object='action_plan', action=action, phase=phase
+        ),
         publisher=notificationbase.NotificationPublisher(
-            host=host or CONF.host,
-            binary=service),
-        payload=versioned_payload)
+            host=host or CONF.host, binary=service
+        ),
+        payload=versioned_payload,
+    )
 
     notification.emit(context)
 
 
-def send_cancel_notification(context, action_plan, action, phase=None,
-                             priority=wfields.NotificationPriority.INFO,
-                             service='infra-optim', host=None):
+def send_cancel_notification(
+    context,
+    action_plan,
+    action,
+    phase=None,
+    priority=wfields.NotificationPriority.INFO,
+    service='infra-optim',
+    host=None,
+):
     """Emit an action_plan cancel notification."""
     audit_payload, strategy_payload = _get_common_payload(action_plan)
 
@@ -412,12 +403,12 @@ def send_cancel_notification(context, action_plan, action, phase=None,
     notification = ActionPlanCancelNotification(
         priority=priority,
         event_type=notificationbase.EventType(
-            object='action_plan',
-            action=action,
-            phase=phase),
+            object='action_plan', action=action, phase=phase
+        ),
         publisher=notificationbase.NotificationPublisher(
-            host=host or CONF.host,
-            binary=service),
-        payload=versioned_payload)
+            host=host or CONF.host, binary=service
+        ),
+        payload=versioned_payload,
+    )
 
     notification.emit(context)

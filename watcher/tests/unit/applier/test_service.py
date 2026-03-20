@@ -20,29 +20,32 @@ from watcher.common import service as watcher_service
 from watcher.tests.unit import base
 
 
-@mock.patch.object(service_monitor.ApplierMonitor, '__init__',
-                   return_value=None)
+@mock.patch.object(
+    service_monitor.ApplierMonitor, '__init__', return_value=None
+)
 @mock.patch.object(watcher_service.Service, '__init__', return_value=None)
 class TestApplierService(base.TestCase):
-
     @mock.patch.object(service_monitor.ApplierMonitor, 'start')
     @mock.patch.object(watcher_service.Service, 'start')
-    def test_applier_service_start(self, svc_start, svc_mon_start,
-                                   svc_init, svc_mon_init):
+    def test_applier_service_start(
+        self, svc_start, svc_mon_start, svc_init, svc_mon_init
+    ):
         ap_service = service.ApplierService()
         ap_service.start()
 
         # Creates a DecisionEngineMonitor instance
-        self.assertIsInstance(ap_service.service_monitor,
-                              service_monitor.ApplierMonitor)
+        self.assertIsInstance(
+            ap_service.service_monitor, service_monitor.ApplierMonitor
+        )
 
         svc_start.assert_called()
         svc_mon_start.assert_called()
 
     @mock.patch.object(service_monitor.ApplierMonitor, 'stop')
     @mock.patch.object(watcher_service.Service, 'stop')
-    def test_applier_service_stop(self, svc_stop, svc_mon_stop,
-                                  svc_init, svc_mon_init):
+    def test_applier_service_stop(
+        self, svc_stop, svc_mon_stop, svc_init, svc_mon_init
+    ):
         ap_service = service.ApplierService()
         ap_service.stop()
 
@@ -51,8 +54,9 @@ class TestApplierService(base.TestCase):
 
     @mock.patch.object(service_monitor.ApplierMonitor, 'wait')
     @mock.patch.object(watcher_service.Service, 'wait')
-    def test_applier_service_wait(self, svc_wait, svc_mon_wait,
-                                  svc_init, svc_mon_init):
+    def test_applier_service_wait(
+        self, svc_wait, svc_mon_wait, svc_init, svc_mon_init
+    ):
         ap_service = service.ApplierService()
         ap_service.wait()
 
@@ -61,8 +65,9 @@ class TestApplierService(base.TestCase):
 
     @mock.patch.object(service_monitor.ApplierMonitor, 'reset')
     @mock.patch.object(watcher_service.Service, 'reset')
-    def test_applier_service_reset(self, svc_reset, svc_mon_reset,
-                                   svc_init, svc_mon_init):
+    def test_applier_service_reset(
+        self, svc_reset, svc_mon_reset, svc_init, svc_mon_init
+    ):
         ap_service = service.ApplierService()
         ap_service.reset()
 

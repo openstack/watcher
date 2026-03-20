@@ -25,7 +25,6 @@ from watcher.decision_engine.model.collector import base
 
 
 class FakerModelCollector(base.BaseClusterDataModelCollector):
-
     def __init__(self, config=None, osc=None, audit_scope=None):
         if config is None:
             config = mock.Mock()
@@ -83,27 +82,39 @@ class FakeGnocchiMetrics:
     def __init__(self, model):
         self.model = model
 
-    def mock_get_statistics(self, resource=None, resource_type=None,
-                            meter_name=None, period=300, aggregate='mean',
-                            granularity=300):
+    def mock_get_statistics(
+        self,
+        resource=None,
+        resource_type=None,
+        meter_name=None,
+        period=300,
+        aggregate='mean',
+        granularity=300,
+    ):
         if meter_name == 'host_cpu_usage':
             return self.get_compute_node_cpu_util(
-                resource, period, aggregate, granularity)
+                resource, period, aggregate, granularity
+            )
         elif meter_name == 'host_ram_usage':
             return self.get_compute_node_ram_util(
-                resource, period, aggregate, granularity)
+                resource, period, aggregate, granularity
+            )
         elif meter_name == 'instance_cpu_usage':
             return self.get_instance_cpu_util(
-                resource, period, aggregate, granularity)
+                resource, period, aggregate, granularity
+            )
         elif meter_name == 'instance_ram_usage':
             return self.get_instance_ram_util(
-                resource, period, aggregate, granularity)
+                resource, period, aggregate, granularity
+            )
         elif meter_name == 'instance_root_disk_size':
             return self.get_instance_disk_root_size(
-                resource, period, aggregate, granularity)
+                resource, period, aggregate, granularity
+            )
 
-    def get_compute_node_cpu_util(self, resource, period,
-                                  aggregate, granularity):
+    def get_compute_node_cpu_util(
+        self, resource, period, aggregate, granularity
+    ):
         """Calculates node utilization dynamically.
 
         node CPU utilization should consider
@@ -117,13 +128,15 @@ class FakeGnocchiMetrics:
         util_sum = 0.0
         for instance in instances:
             total_cpu_util = instance.vcpus * self.get_instance_cpu_util(
-                instance, period, aggregate, granularity)
+                instance, period, aggregate, granularity
+            )
             util_sum += total_cpu_util / 100.0
         util_sum /= node.vcpus
         return util_sum * 100.0
 
-    def get_compute_node_ram_util(self, resource, period, aggregate,
-                                  granularity):
+    def get_compute_node_ram_util(
+        self, resource, period, aggregate, granularity
+    ):
         # Returns mock host ram usage in KB based on the allocated
         # instances.
         node = self.model.get_node_by_uuid(resource.uuid)
@@ -131,12 +144,12 @@ class FakeGnocchiMetrics:
         util_sum = 0.0
         for instance in instances:
             util_sum += self.get_instance_ram_util(
-                instance, period, aggregate, granularity)
+                instance, period, aggregate, granularity
+            )
         return util_sum / 1024
 
     @staticmethod
-    def get_instance_cpu_util(resource, period, aggregate,
-                              granularity):
+    def get_instance_cpu_util(resource, period, aggregate, granularity):
         instance_cpu_util = dict()
         instance_cpu_util['INSTANCE_0'] = 10
         instance_cpu_util['INSTANCE_1'] = 30
@@ -151,8 +164,7 @@ class FakeGnocchiMetrics:
         return instance_cpu_util[str(resource.uuid)]
 
     @staticmethod
-    def get_instance_ram_util(resource, period, aggregate,
-                              granularity):
+    def get_instance_ram_util(resource, period, aggregate, granularity):
         instance_ram_util = dict()
         instance_ram_util['INSTANCE_0'] = 1
         instance_ram_util['INSTANCE_1'] = 2
@@ -167,8 +179,7 @@ class FakeGnocchiMetrics:
         return instance_ram_util[str(resource.uuid)]
 
     @staticmethod
-    def get_instance_disk_root_size(resource, period, aggregate,
-                                    granularity):
+    def get_instance_disk_root_size(resource, period, aggregate, granularity):
         instance_disk_util = dict()
         instance_disk_util['INSTANCE_0'] = 10
         instance_disk_util['INSTANCE_1'] = 15

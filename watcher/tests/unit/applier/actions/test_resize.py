@@ -25,7 +25,6 @@ from watcher.tests.unit import base
 
 
 class TestResize(base.TestCase):
-
     INSTANCE_UUID = "94ae2f92-b7fd-4da7-9e97-f13504ae98c4"
 
     def setUp(self):
@@ -39,9 +38,11 @@ class TestResize(base.TestCase):
         self.r_osc_cls.return_value = self.r_osc
 
         r_openstack_clients = mock.patch.object(
-            clients, "OpenStackClients", self.r_osc_cls)
+            clients, "OpenStackClients", self.r_osc_cls
+        )
         r_nova_helper = mock.patch.object(
-            nova_helper, "NovaHelper", self.r_helper_cls)
+            nova_helper, "NovaHelper", self.r_helper_cls
+        )
 
         r_openstack_clients.start()
         r_nova_helper.start()
@@ -57,40 +58,49 @@ class TestResize(base.TestCase):
         self.action.input_parameters = self.input_parameters
 
     def test_parameters(self):
-        params = {baction.BaseAction.RESOURCE_ID:
-                  self.INSTANCE_UUID,
-                  self.action.FLAVOR: 'x1'}
+        params = {
+            baction.BaseAction.RESOURCE_ID: self.INSTANCE_UUID,
+            self.action.FLAVOR: 'x1',
+        }
         self.action.input_parameters = params
         self.assertTrue(self.action.validate_parameters())
 
     def test_parameters_exception_empty_fields(self):
-        parameters = {baction.BaseAction.RESOURCE_ID:
-                      self.INSTANCE_UUID,
-                      self.action.FLAVOR: None}
+        parameters = {
+            baction.BaseAction.RESOURCE_ID: self.INSTANCE_UUID,
+            self.action.FLAVOR: None,
+        }
         self.action.input_parameters = parameters
-        self.assertRaises(jsonschema.ValidationError,
-                          self.action.validate_parameters)
+        self.assertRaises(
+            jsonschema.ValidationError, self.action.validate_parameters
+        )
 
     def test_parameters_exception_flavor(self):
-        parameters = {baction.BaseAction.RESOURCE_ID:
-                      self.INSTANCE_UUID,
-                      self.action.FLAVOR: None}
+        parameters = {
+            baction.BaseAction.RESOURCE_ID: self.INSTANCE_UUID,
+            self.action.FLAVOR: None,
+        }
         self.action.input_parameters = parameters
-        self.assertRaises(jsonschema.ValidationError,
-                          self.action.validate_parameters)
+        self.assertRaises(
+            jsonschema.ValidationError, self.action.validate_parameters
+        )
 
     def test_parameters_exception_resource_id(self):
-        parameters = {baction.BaseAction.RESOURCE_ID: "EFEF",
-                      self.action.FLAVOR: 'x1'}
+        parameters = {
+            baction.BaseAction.RESOURCE_ID: "EFEF",
+            self.action.FLAVOR: 'x1',
+        }
         self.action.input_parameters = parameters
-        self.assertRaises(jsonschema.ValidationError,
-                          self.action.validate_parameters)
+        self.assertRaises(
+            jsonschema.ValidationError, self.action.validate_parameters
+        )
 
     def test_execute_resize(self):
         self.r_helper.find_instance.return_value = self.INSTANCE_UUID
         self.action.execute()
         self.r_helper.resize_instance.assert_called_once_with(
-            instance_id=self.INSTANCE_UUID, flavor='x1')
+            instance_id=self.INSTANCE_UUID, flavor='x1'
+        )
 
     def test_pre_condition_success(self):
         """Test pre_condition succeeds when instance and flavor exist"""
@@ -106,7 +116,8 @@ class TestResize(base.TestCase):
         self.assertRaisesRegex(
             exception.ActionSkipped,
             f"Instance {self.INSTANCE_UUID} not found",
-            self.action.pre_condition)
+            self.action.pre_condition,
+        )
 
     def test_pre_condition_flavor_not_found(self):
         """Test pre_condition fails when flavor doesn't exist"""
@@ -116,7 +127,8 @@ class TestResize(base.TestCase):
         self.assertRaisesRegex(
             exception.ActionExecutionFailure,
             "Flavor x1 not found",
-            self.action.pre_condition)
+            self.action.pre_condition,
+        )
 
     def test_execute_resize_failure_instance_not_found(self):
         # Resize fails but instance doesn't exist (idempotent)
@@ -128,7 +140,7 @@ class TestResize(base.TestCase):
         self.assertRaisesRegex(
             exception.InstanceNotFound,
             f"The instance '{self.INSTANCE_UUID}' could not be found",
-            self.action.execute
+            self.action.execute,
         )
 
         # Should check instance existence

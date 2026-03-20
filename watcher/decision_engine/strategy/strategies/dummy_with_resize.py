@@ -51,25 +51,32 @@ class DummyWithResize(base.DummyBaseStrategy):
     def do_execute(self, audit=None):
         para1 = self.input_parameters.para1
         para2 = self.input_parameters.para2
-        LOG.debug("Executing Dummy strategy with para1=%(p1)f, para2=%(p2)s",
-                  {'p1': para1, 'p2': para2})
+        LOG.debug(
+            "Executing Dummy strategy with para1=%(p1)f, para2=%(p2)s",
+            {'p1': para1, 'p2': para2},
+        )
         parameters = {'message': 'hello World'}
-        self.solution.add_action(action_type=self.NOP,
-                                 input_parameters=parameters)
+        self.solution.add_action(
+            action_type=self.NOP, input_parameters=parameters
+        )
 
         parameters = {'message': 'Welcome'}
-        self.solution.add_action(action_type=self.NOP,
-                                 input_parameters=parameters)
+        self.solution.add_action(
+            action_type=self.NOP, input_parameters=parameters
+        )
 
-        self.solution.add_action(action_type=self.SLEEP,
-                                 input_parameters={'duration': 5.0})
+        self.solution.add_action(
+            action_type=self.SLEEP, input_parameters={'duration': 5.0}
+        )
         self.solution.add_action(
             action_type='migrate',
             resource_id='b199db0c-1408-4d52-b5a5-5ca14de0ff36',
             input_parameters={
                 'source_node': 'compute2',
                 'destination_node': 'compute3',
-                'migration_type': 'live'})
+                'migration_type': 'live',
+            },
+        )
 
         self.solution.add_action(
             action_type='migrate',
@@ -77,12 +84,13 @@ class DummyWithResize(base.DummyBaseStrategy):
             input_parameters={
                 'source_node': 'compute2',
                 'destination_node': 'compute3',
-                'migration_type': 'live'}
+                'migration_type': 'live',
+            },
         )
         self.solution.add_action(
             action_type='resize',
             resource_id='8db1b3c1-7938-4c34-8c03-6de14b874f8f',
-            input_parameters={'flavor': 'x2'}
+            input_parameters={'flavor': 'x2'},
         )
 
     def post_execute(self):
@@ -115,7 +123,7 @@ class DummyWithResize(base.DummyBaseStrategy):
                 "para2": {
                     "description": "string parameter example",
                     "type": "string",
-                    "default": "hello"
+                    "default": "hello",
                 },
-            },
+            }
         }

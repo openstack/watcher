@@ -22,15 +22,15 @@ from watcher.conf import paths
 
 
 _DEFAULT_SQL_CONNECTION = 'sqlite:///{}'.format(
-    paths.state_path_def('watcher.sqlite'))
+    paths.state_path_def('watcher.sqlite')
+)
 
-database = cfg.OptGroup(name='database',
-                        title='Configuration Options for database')
+database = cfg.OptGroup(
+    name='database', title='Configuration Options for database'
+)
 
 SQL_OPTS = [
-    cfg.StrOpt('mysql_engine',
-               default='InnoDB',
-               help='MySQL engine to use.')
+    cfg.StrOpt('mysql_engine', default='InnoDB', help='MySQL engine to use.')
 ]
 
 

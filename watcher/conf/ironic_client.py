@@ -18,21 +18,35 @@
 from oslo_config import cfg
 
 
-ironic_client = cfg.OptGroup(name='ironic_client',
-                             title='Configuration Options for Ironic')
+ironic_client = cfg.OptGroup(
+    name='ironic_client', title='Configuration Options for Ironic'
+)
 
 IRONIC_CLIENT_OPTS = [
-    cfg.StrOpt('api_version',
-               default='1',
-               help='Version of Ironic API to use in ironicclient.'),
-    cfg.StrOpt('endpoint_type',
-               default='publicURL',
-               choices=['public', 'internal', 'admin',
-                        'publicURL', 'internalURL', 'adminURL'],
-               help='Type of endpoint to use in ironicclient.'),
-    cfg.StrOpt('region_name',
-               help='Region in Identity service catalog to use for '
-                    'communication with the OpenStack service.')]
+    cfg.StrOpt(
+        'api_version',
+        default='1',
+        help='Version of Ironic API to use in ironicclient.',
+    ),
+    cfg.StrOpt(
+        'endpoint_type',
+        default='publicURL',
+        choices=[
+            'public',
+            'internal',
+            'admin',
+            'publicURL',
+            'internalURL',
+            'adminURL',
+        ],
+        help='Type of endpoint to use in ironicclient.',
+    ),
+    cfg.StrOpt(
+        'region_name',
+        help='Region in Identity service catalog to use for '
+        'communication with the OpenStack service.',
+    ),
+]
 
 
 def register_opts(conf):

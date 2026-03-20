@@ -29,7 +29,6 @@ LOG = log.getLogger(__name__)
 
 
 class CinderHelper:
-
     def __init__(self, osc=None):
         """:param osc: an OpenStackClients instance"""
         self.osc = osc if osc else clients.OpenStackClients()
@@ -41,8 +40,11 @@ class CinderHelper:
     def get_storage_node_by_name(self, name):
         """Get storage node by name(host@backendname)"""
         try:
-            storages = [storage for storage in self.get_storage_node_list()
-                        if storage.host == name]
+            storages = [
+                storage
+                for storage in self.get_storage_node_list()
+                if storage.host == name
+            ]
             if len(storages) != 1:
                 raise exception.StorageNodeNotFound(name=name)
             return storages[0]
@@ -56,8 +58,11 @@ class CinderHelper:
     def get_storage_pool_by_name(self, name):
         """Get pool by name(host@backend#poolname)"""
         try:
-            pools = [pool for pool in self.get_storage_pool_list()
-                     if pool.name == name]
+            pools = [
+                pool
+                for pool in self.get_storage_pool_list()
+                if pool.name == name
+            ]
             if len(pools) != 1:
                 raise exception.PoolNotFound(name=name)
             return pools[0]
@@ -73,19 +78,22 @@ class CinderHelper:
 
     def get_volume_snapshots_list(self):
         return self.cinder.volume_snapshots.list(
-            search_opts={'all_tenants': True})
+            search_opts={'all_tenants': True}
+        )
 
     def get_volume_type_by_backendname(self, backendname):
         """Return a list of volume type"""
         volume_type_list = self.get_volume_type_list()
 
-        volume_type = [volume_type.name for volume_type in volume_type_list
-                       if volume_type.extra_specs.get(
-                           'volume_backend_name') == backendname]
+        volume_type = [
+            volume_type.name
+            for volume_type in volume_type_list
+            if volume_type.extra_specs.get('volume_backend_name')
+            == backendname
+        ]
         return volume_type
 
     def get_volume(self, volume):
-
         if isinstance(volume, Volume):
             volume = volume.id
 
@@ -141,7 +149,10 @@ class CinderHelper:
                 LOG.debug(
                     "property %s with value %s does not match value "
                     "%s from pool %s",
-                    field_name, field_value, pool_value, pool['name']
+                    field_name,
+                    field_value,
+                    pool_value,
+                    pool['name'],
                 )
                 return False
         return True
@@ -191,9 +202,11 @@ class CinderHelper:
             time.sleep(retry_interval)
             if getattr(volume, 'migration_status') == 'error':
                 host_name = getattr(volume, 'os-vol-host-attr:host')
-                error_msg = ("Volume migration error : "
-                             f"volume {volume.id} is now on host "
-                             f"'{host_name}'.")
+                error_msg = (
+                    "Volume migration error : "
+                    f"volume {volume.id} is now on host "
+                    f"'{host_name}'."
+                )
                 LOG.error(error_msg)
                 return False
 
@@ -207,14 +220,17 @@ class CinderHelper:
                     return False
         else:
             host_name = getattr(volume, 'os-vol-host-attr:host')
-            error_msg = ("Volume migration error : "
-                         f"volume {volume.id} is now on host '{host_name}'.")
+            error_msg = (
+                "Volume migration error : "
+                f"volume {volume.id} is now on host '{host_name}'."
+            )
             LOG.error(error_msg)
             return False
         LOG.debug(
             "Volume migration succeeded : "
             "volume %(volume)s is now on host '%(host)s'.",
-            {'volume': volume.id, 'host': host_name})
+            {'volume': volume.id, 'host': host_name},
+        )
         return True
 
     def check_retyped(self, volume, dst_type, retry_interval=10):
@@ -223,8 +239,9 @@ class CinderHelper:
         # A volume retype is correct when the type is the dst_type
         # and the status is available or in-use. Otherwise, it is
         # in retyping status or the action failed
-        while (volume.volume_type != dst_type or
-               volume.status not in valid_status):
+        while (
+            volume.volume_type != dst_type or volume.status not in valid_status
+        ):
             # Retype is not finished successfully, checking if the
             # retype is still ongoing or failed. If status is not
             # `retyping` it means something went wrong.
@@ -233,14 +250,20 @@ class CinderHelper:
                     "Volume retype failed : "
                     "volume %(volume)s has now type '%(type)s' and "
                     "status %(status)s",
-                    {'volume': volume.id, 'type': volume.volume_type,
-                     'status': volume.status})
+                    {
+                        'volume': volume.id,
+                        'type': volume.volume_type,
+                        'status': volume.status,
+                    },
+                )
                 # If migration_status is in error, a likely reason why the
                 # retype failed is some problem in the migration. Report it in
                 # the logs if migration_status is error.
                 if volume.migration_status == 'error':
-                    LOG.error("Volume migration error on volume %(volume)s.",
-                              {'volume': volume.id})
+                    LOG.error(
+                        "Volume migration error on volume %(volume)s.",
+                        {'volume': volume.id},
+                    )
                 return False
 
             LOG.debug('Waiting the retype of %s', volume)
@@ -250,7 +273,8 @@ class CinderHelper:
         LOG.debug(
             "Volume retype succeeded : "
             "volume %(volume)s has now type '%(type)s'.",
-            {'volume': volume.id, 'type': dst_type})
+            {'volume': volume.id, 'type': dst_type},
+        )
 
         return True
 
@@ -265,19 +289,21 @@ class CinderHelper:
                     _(
                         "Volume type '%(volume_type)s' is not compatible with "
                         "destination pool '%(pool_name)s'"
-                    ) % {
+                    )
+                    % {
                         'volume_type': volume.volume_type,
-                        'pool_name': dest_node
-                        }
+                        'pool_name': dest_node,
+                    }
                 )
             )
 
         source_node = getattr(volume, 'os-vol-host-attr:host')
-        LOG.debug("Volume %(volume)s found on host '%(host)s'.",
-                  {'volume': volume.id, 'host': source_node})
+        LOG.debug(
+            "Volume %(volume)s found on host '%(host)s'.",
+            {'volume': volume.id, 'host': source_node},
+        )
 
-        self.cinder.volumes.migrate_volume(
-            volume, dest_node, False, True)
+        self.cinder.volumes.migrate_volume(volume, dest_node, False, True)
 
         return self.check_migrated(volume)
 
@@ -286,20 +312,22 @@ class CinderHelper:
         volume = self.get_volume(volume)
         if volume.volume_type == dest_type:
             raise exception.Invalid(
-                message=(_("Volume type must be different for retyping")))
+                message=(_("Volume type must be different for retyping"))
+            )
 
         source_node = getattr(volume, 'os-vol-host-attr:host')
         LOG.debug(
             "Volume %(volume)s found on host '%(host)s'.",
-            {'volume': volume.id, 'host': source_node})
+            {'volume': volume.id, 'host': source_node},
+        )
 
-        self.cinder.volumes.retype(
-            volume, dest_type, "on-demand")
+        self.cinder.volumes.retype(volume, dest_type, "on-demand")
 
         return self.check_retyped(volume, dest_type)
 
-    def create_volume(self, cinder, volume,
-                      dest_type, retry=120, retry_interval=10):
+    def create_volume(
+        self, cinder, volume, dest_type, retry=120, retry_interval=10
+    ):
         """Create volume of volume with dest_type using cinder"""
         volume = self.get_volume(volume)
         LOG.debug("start creating new volume")
@@ -307,7 +335,8 @@ class CinderHelper:
             getattr(volume, 'size'),
             name=getattr(volume, 'name'),
             volume_type=dest_type,
-            availability_zone=getattr(volume, 'availability_zone'))
+            availability_zone=getattr(volume, 'availability_zone'),
+        )
         while getattr(new_volume, 'status') != 'available' and retry:
             new_volume = cinder.volumes.get(new_volume.id)
             LOG.debug('Waiting volume creation of %s', new_volume)
@@ -316,8 +345,9 @@ class CinderHelper:
             LOG.debug("retry count: %s", retry)
 
         if getattr(new_volume, 'status') != 'available':
-            error_msg = (_("Failed to create volume '%(volume)s. ") %
-                         {'volume': new_volume.id})
+            error_msg = _("Failed to create volume '%(volume)s. ") % {
+                'volume': new_volume.id
+            }
             raise Exception(error_msg)
 
         LOG.debug("Volume %s was created successfully.", new_volume)
@@ -329,6 +359,7 @@ class CinderHelper:
         self.cinder.volumes.delete(volume)
         result = self.check_volume_deleted(volume)
         if not result:
-            error_msg = (_("Failed to delete volume '%(volume)s. ") %
-                         {'volume': volume.id})
+            error_msg = _("Failed to delete volume '%(volume)s. ") % {
+                'volume': volume.id
+            }
             raise Exception(error_msg)

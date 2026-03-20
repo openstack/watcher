@@ -51,7 +51,8 @@ class ModelRoot(nx.DiGraph, base.Model):
     def extended_attributes_enabled(self):
         if self._extended_attributes_enabled is None:
             self._extended_attributes_enabled = (
-                CONF.compute_model.enable_extended_attributes)
+                CONF.compute_model.enable_extended_attributes
+            )
         return self._extended_attributes_enabled
 
     @extended_attributes_enabled.setter
@@ -62,13 +63,15 @@ class ModelRoot(nx.DiGraph, base.Model):
     def assert_node(obj):
         if not isinstance(obj, element.ComputeNode):
             raise exception.IllegalArgumentException(
-                message=_("'obj' argument type is not valid: %s") % type(obj))
+                message=_("'obj' argument type is not valid: %s") % type(obj)
+            )
 
     @staticmethod
     def assert_instance(obj):
         if not isinstance(obj, element.Instance):
             raise exception.IllegalArgumentException(
-                message=_("'obj' argument type is not valid"))
+                message=_("'obj' argument type is not valid")
+            )
 
     @lockutils.synchronized("model_root")
     def add_node(self, node):
@@ -154,8 +157,11 @@ class ModelRoot(nx.DiGraph, base.Model):
 
     @lockutils.synchronized("model_root")
     def get_all_compute_nodes(self):
-        return {uuid: cn['attr'] for uuid, cn in self.nodes(data=True)
-                if isinstance(cn['attr'], element.ComputeNode)}
+        return {
+            uuid: cn['attr']
+            for uuid, cn in self.nodes(data=True)
+            if isinstance(cn['attr'], element.ComputeNode)
+        }
 
     @lockutils.synchronized("model_root")
     def get_node_by_uuid(self, uuid):
@@ -167,9 +173,14 @@ class ModelRoot(nx.DiGraph, base.Model):
     @lockutils.synchronized("model_root")
     def get_node_by_name(self, name):
         try:
-            node_list = [cn['attr'] for uuid, cn in self.nodes(data=True)
-                         if (isinstance(cn['attr'], element.ComputeNode) and
-                         cn['attr']['hostname'] == name)]
+            node_list = [
+                cn['attr']
+                for uuid, cn in self.nodes(data=True)
+                if (
+                    isinstance(cn['attr'], element.ComputeNode)
+                    and cn['attr']['hostname'] == name
+                )
+            ]
             if node_list:
                 return node_list[0]
             else:
@@ -202,8 +213,11 @@ class ModelRoot(nx.DiGraph, base.Model):
 
     @lockutils.synchronized("model_root")
     def get_all_instances(self):
-        return {uuid: inst['attr'] for uuid, inst in self.nodes(data=True)
-                if isinstance(inst['attr'], element.Instance)}
+        return {
+            uuid: inst['attr']
+            for uuid, inst in self.nodes(data=True)
+            if isinstance(inst['attr'], element.Instance)
+        }
 
     @lockutils.synchronized("model_root")
     def get_node_instances(self, node):
@@ -229,9 +243,9 @@ class ModelRoot(nx.DiGraph, base.Model):
 
     def get_node_free_resources(self, node):
         resources_used = self.get_node_used_resources(node)
-        vcpu_free = node.vcpu_capacity-resources_used.get('vcpu')
-        memory_free = node.memory_mb_capacity-resources_used.get('memory')
-        disk_free = node.disk_gb_capacity-resources_used.get('disk')
+        vcpu_free = node.vcpu_capacity - resources_used.get('vcpu')
+        memory_free = node.memory_mb_capacity - resources_used.get('memory')
+        disk_free = node.disk_gb_capacity - resources_used.get('disk')
 
         return dict(vcpu=vcpu_free, memory=memory_free, disk=disk_free)
 
@@ -241,8 +255,9 @@ class ModelRoot(nx.DiGraph, base.Model):
     def to_xml(self):
         root = etree.Element("ModelRoot")
         # Build compute node tree
-        for cn in sorted(self.get_all_compute_nodes().values(),
-                         key=lambda cn: cn.uuid):
+        for cn in sorted(
+            self.get_all_compute_nodes().values(), key=lambda cn: cn.uuid
+        ):
             compute_node_el = cn.as_xml_element()
 
             # Build mapped instance tree
@@ -254,8 +269,9 @@ class ModelRoot(nx.DiGraph, base.Model):
             root.append(compute_node_el)
 
         # Build unmapped instance tree (i.e. not assigned to any compute node)
-        for instance in sorted(self.get_all_instances().values(),
-                               key=lambda inst: inst.uuid):
+        for instance in sorted(
+            self.get_all_instances().values(), key=lambda inst: inst.uuid
+        ):
             try:
                 self.get_node_by_instance_uuid(instance.uuid)
             except exception.ComputeResourceNotFound:
@@ -265,19 +281,23 @@ class ModelRoot(nx.DiGraph, base.Model):
 
     def to_list(self):
         ret_list = []
-        for cn in sorted(self.get_all_compute_nodes().values(),
-                         key=lambda cn: cn.uuid):
+        for cn in sorted(
+            self.get_all_compute_nodes().values(), key=lambda cn: cn.uuid
+        ):
             in_dict = {}
             for field in cn.fields:
-                new_name = "node_"+str(field)
+                new_name = "node_" + str(field)
                 try:
                     in_dict[new_name] = cn[field]
                 # NotImplementedError means field not assigned
                 # which is really not an issue as it can be an
                 # optional field
                 except NotImplementedError:
-                    LOG.debug("Attribute %s for Compute: %s is not provided",
-                              field, cn.hostname)
+                    LOG.debug(
+                        "Attribute %s for Compute: %s is not provided",
+                        field,
+                        cn.hostname,
+                    )
             node_instances = self.get_node_instances(cn)
             if not node_instances:
                 deep_in_dict = in_dict.copy()
@@ -285,12 +305,15 @@ class ModelRoot(nx.DiGraph, base.Model):
                 continue
             for instance in sorted(node_instances, key=lambda x: x.uuid):
                 for field in instance.fields:
-                    new_name = "server_"+str(field)
+                    new_name = "server_" + str(field)
                     try:
                         in_dict[new_name] = instance[field]
                     except NotImplementedError:
-                        LOG.debug("Attribute %s for Instance: %s is not "
-                                  "provided", field, instance.uuid)
+                        LOG.debug(
+                            "Attribute %s for Instance: %s is not provided",
+                            field,
+                            instance.uuid,
+                        )
                 if in_dict != {}:
                     deep_in_dict = in_dict.copy()
                     ret_list.append(deep_in_dict)
@@ -308,7 +331,8 @@ class ModelRoot(nx.DiGraph, base.Model):
         for inst in root.findall('.//Instance'):
             instance = element.Instance(**inst.attrib)
             instance.watcher_exclude = ast.literal_eval(
-                inst.attrib["watcher_exclude"])
+                inst.attrib["watcher_exclude"]
+            )
             model.add_instance(instance)
 
             parent = inst.getparent()
@@ -324,8 +348,10 @@ class ModelRoot(nx.DiGraph, base.Model):
     def is_isomorphic(cls, G1, G2):
         def node_match(node1, node2):
             return node1['attr'].as_dict() == node2['attr'].as_dict()
+
         return nx.algorithms.isomorphism.isomorph.is_isomorphic(
-            G1, G2, node_match=node_match)
+            G1, G2, node_match=node_match
+        )
 
 
 class StorageModelRoot(nx.DiGraph, base.Model):
@@ -344,19 +370,22 @@ class StorageModelRoot(nx.DiGraph, base.Model):
     def assert_node(obj):
         if not isinstance(obj, element.StorageNode):
             raise exception.IllegalArgumentException(
-                message=_("'obj' argument type is not valid: %s") % type(obj))
+                message=_("'obj' argument type is not valid: %s") % type(obj)
+            )
 
     @staticmethod
     def assert_pool(obj):
         if not isinstance(obj, element.Pool):
             raise exception.IllegalArgumentException(
-                message=_("'obj' argument type is not valid: %s") % type(obj))
+                message=_("'obj' argument type is not valid: %s") % type(obj)
+            )
 
     @staticmethod
     def assert_volume(obj):
         if not isinstance(obj, element.Volume):
             raise exception.IllegalArgumentException(
-                message=_("'obj' argument type is not valid: %s") % type(obj))
+                message=_("'obj' argument type is not valid: %s") % type(obj)
+            )
 
     @lockutils.synchronized("storage_model")
     def add_node(self, node):
@@ -466,8 +495,11 @@ class StorageModelRoot(nx.DiGraph, base.Model):
 
     @lockutils.synchronized("storage_model")
     def get_all_storage_nodes(self):
-        return {host: cn['attr'] for host, cn in self.nodes(data=True)
-                if isinstance(cn['attr'], element.StorageNode)}
+        return {
+            host: cn['attr']
+            for host, cn in self.nodes(data=True)
+            if isinstance(cn['attr'], element.StorageNode)
+        }
 
     @lockutils.synchronized("storage_model")
     def get_node_by_name(self, name):
@@ -488,8 +520,9 @@ class StorageModelRoot(nx.DiGraph, base.Model):
         try:
             return self._get_by_uuid(uuid)
         except exception.StorageResourceNotFound:
-            LOG.debug("Volume %(volume)s not found in the model",
-                      dict(volume=uuid))
+            LOG.debug(
+                "Volume %(volume)s not found in the model", dict(volume=uuid)
+            )
             raise exception.VolumeNotFound(name=uuid)
 
     def _get_by_uuid(self, uuid):
@@ -539,8 +572,11 @@ class StorageModelRoot(nx.DiGraph, base.Model):
 
     @lockutils.synchronized("storage_model")
     def get_all_volumes(self):
-        return {name: vol['attr'] for name, vol in self.nodes(data=True)
-                if isinstance(vol['attr'], element.Volume)}
+        return {
+            name: vol['attr']
+            for name, vol in self.nodes(data=True)
+            if isinstance(vol['attr'], element.Volume)
+        }
 
     @lockutils.synchronized("storage_model")
     def get_pool_volumes(self, pool):
@@ -559,8 +595,9 @@ class StorageModelRoot(nx.DiGraph, base.Model):
     def to_xml(self):
         root = etree.Element("ModelRoot")
         # Build storage node tree
-        for cn in sorted(self.get_all_storage_nodes().values(),
-                         key=lambda cn: cn.host):
+        for cn in sorted(
+            self.get_all_storage_nodes().values(), key=lambda cn: cn.host
+        ):
             storage_node_el = cn.as_xml_element()
             # Build mapped pool tree
             node_pools = self.get_node_pools(cn)
@@ -576,8 +613,9 @@ class StorageModelRoot(nx.DiGraph, base.Model):
             root.append(storage_node_el)
 
         # Build unmapped volume tree (i.e. not assigned to any pool)
-        for volume in sorted(self.get_all_volumes().values(),
-                             key=lambda vol: vol.uuid):
+        for volume in sorted(
+            self.get_all_volumes().values(), key=lambda vol: vol.uuid
+        ):
             try:
                 self.get_pool_by_volume(volume)
             except (exception.VolumeNotFound, exception.PoolNotFound):
@@ -626,12 +664,10 @@ class StorageModelRoot(nx.DiGraph, base.Model):
 
     @classmethod
     def is_isomorphic(cls, G1, G2):
-        return nx.algorithms.isomorphism.isomorph.is_isomorphic(
-            G1, G2)
+        return nx.algorithms.isomorphism.isomorph.is_isomorphic(G1, G2)
 
 
 class BaremetalModelRoot(nx.DiGraph, base.Model):
-
     """Cluster graph for an Openstack cluster: Baremetal Cluster."""
 
     def __init__(self, stale=False):
@@ -647,7 +683,8 @@ class BaremetalModelRoot(nx.DiGraph, base.Model):
     def assert_node(obj):
         if not isinstance(obj, element.IronicNode):
             raise exception.IllegalArgumentException(
-                message=_("'obj' argument type is not valid: %s") % type(obj))
+                message=_("'obj' argument type is not valid: %s") % type(obj)
+            )
 
     @lockutils.synchronized("baremetal_model")
     def add_node(self, node):
@@ -665,8 +702,11 @@ class BaremetalModelRoot(nx.DiGraph, base.Model):
 
     @lockutils.synchronized("baremetal_model")
     def get_all_ironic_nodes(self):
-        return {uuid: cn['attr'] for uuid, cn in self.nodes(data=True)
-                if isinstance(cn['attr'], element.IronicNode)}
+        return {
+            uuid: cn['attr']
+            for uuid, cn in self.nodes(data=True)
+            if isinstance(cn['attr'], element.IronicNode)
+        }
 
     @lockutils.synchronized("baremetal_model")
     def get_node_by_uuid(self, uuid):
@@ -688,8 +728,9 @@ class BaremetalModelRoot(nx.DiGraph, base.Model):
     def to_xml(self):
         root = etree.Element("ModelRoot")
         # Build Ironic node tree
-        for cn in sorted(self.get_all_ironic_nodes().values(),
-                         key=lambda cn: cn.uuid):
+        for cn in sorted(
+            self.get_all_ironic_nodes().values(), key=lambda cn: cn.uuid
+        ):
             ironic_node_el = cn.as_xml_element()
             root.append(ironic_node_el)
 
@@ -708,5 +749,4 @@ class BaremetalModelRoot(nx.DiGraph, base.Model):
 
     @classmethod
     def is_isomorphic(cls, G1, G2):
-        return nx.algorithms.isomorphism.isomorph.is_isomorphic(
-            G1, G2)
+        return nx.algorithms.isomorphism.isomorph.is_isomorphic(G1, G2)

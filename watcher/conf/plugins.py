@@ -44,7 +44,8 @@ def list_opts():
             plugin_opts = plugin_cls.get_config_opts()
             if plugin_opts:
                 plugins_opts.append(
-                    (plugin_loader.get_entry_name(plugin_name), plugin_opts))
+                    (plugin_loader.get_entry_name(plugin_name), plugin_opts)
+                )
 
     return plugins_opts
 
@@ -64,9 +65,12 @@ def show_plugins():
         plugins_map = plugin_loader.list_available()
 
         rows += [
-            (plugin_loader.get_entry_name(plugin_name),
-             plugin_name,
-             utils.get_cls_import_path(plugin_cls))
-            for plugin_name, plugin_cls in plugins_map.items()]
+            (
+                plugin_loader.get_entry_name(plugin_name),
+                plugin_name,
+                utils.get_cls_import_path(plugin_cls),
+            )
+            for plugin_name, plugin_cls in plugins_map.items()
+        ]
 
     return _show_plugins_ascii_table(rows)

@@ -31,7 +31,6 @@ class ServiceState(enum.Enum):
 
 @base.WatcherObjectRegistry.register_if(False)
 class ComputeNode(compute_resource.ComputeResource):
-
     fields = {
         "hostname": wfields.StringField(),
         "status": wfields.StringField(default=ServiceState.ENABLED.value),
@@ -53,26 +52,25 @@ class ComputeNode(compute_resource.ComputeResource):
 
     @property
     def memory_mb_capacity(self):
-        return (self.memory-self.memory_mb_reserved)*self.memory_ratio
+        return (self.memory - self.memory_mb_reserved) * self.memory_ratio
 
     @property
     def disk_gb_capacity(self):
-        return (self.disk-self.disk_gb_reserved)*self.disk_ratio
+        return (self.disk - self.disk_gb_reserved) * self.disk_ratio
 
     @property
     def vcpu_capacity(self):
-        return (self.vcpus-self.vcpu_reserved)*self.vcpu_ratio
+        return (self.vcpus - self.vcpu_reserved) * self.vcpu_ratio
 
 
 @base.WatcherObjectRegistry.register_if(False)
 class StorageNode(storage_resource.StorageResource):
-
     fields = {
         "host": wfields.StringField(),
         "zone": wfields.StringField(),
         "status": wfields.StringField(default=ServiceState.ENABLED.value),
         "state": wfields.StringField(default=ServiceState.ONLINE.value),
-        "volume_type": wfields.ListOfStringsField()
+        "volume_type": wfields.ListOfStringsField(),
     }
 
     def accept(self, visitor):
@@ -81,7 +79,6 @@ class StorageNode(storage_resource.StorageResource):
 
 @base.WatcherObjectRegistry.register_if(False)
 class Pool(storage_resource.StorageResource):
-
     fields = {
         "name": wfields.StringField(),
         "total_volumes": wfields.NonNegativeIntegerField(),
@@ -98,12 +95,11 @@ class Pool(storage_resource.StorageResource):
 
 @base.WatcherObjectRegistry.register_if(False)
 class IronicNode(baremetal_resource.BaremetalResource):
-
     fields = {
         "power_state": wfields.StringField(),
         "maintenance": wfields.BooleanField(),
         "maintenance_reason": wfields.StringField(),
-        "extra": wfields.DictField()
+        "extra": wfields.DictField(),
     }
 
     def accept(self, visitor):

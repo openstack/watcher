@@ -22,10 +22,7 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-extensions = [
-    'openstackdocstheme',
-    'os_api_ref',
-]
+extensions = ['openstackdocstheme', 'os_api_ref']
 
 # -- General configuration ----------------------------------------------------
 
@@ -60,9 +57,7 @@ html_theme = 'openstackdocs'
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-html_theme_options = {
-    "sidebar_mode": "toc",
-}
+html_theme_options = {"sidebar_mode": "toc"}
 
 # -- Options for LaTeX output -------------------------------------------------
 
@@ -70,6 +65,11 @@ html_theme_options = {
 # (source start file, target name, title, author, documentclass
 # [howto/manual]).
 latex_documents = [
-    ('index', 'Watcher.tex', 'Infrastructure Optimization API Reference',
-     'OpenStack Foundation', 'manual'),
+    (
+        'index',
+        'Watcher.tex',
+        'Infrastructure Optimization API Reference',
+        'OpenStack Foundation',
+        'manual',
+    )
 ]

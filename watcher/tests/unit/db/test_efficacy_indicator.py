@@ -25,7 +25,6 @@ from watcher.tests.unit.db import utils
 
 
 class TestDbEfficacyIndicatorFilters(base.DbTestCase):
-
     FAKE_OLDER_DATE = '2014-01-01T09:52:05.219414'
     FAKE_OLD_DATE = '2015-01-01T09:52:05.219414'
     FAKE_TODAY = '2016-02-24T09:52:05.219414'
@@ -39,77 +38,104 @@ class TestDbEfficacyIndicatorFilters(base.DbTestCase):
         self.audit_template_name = "Audit Template"
 
         self.audit_template = utils.create_test_audit_template(
-            name=self.audit_template_name, id=1, uuid=None)
+            name=self.audit_template_name, id=1, uuid=None
+        )
         self.audit = utils.create_test_audit(
-            audit_template_id=self.audit_template.id, id=1, uuid=None)
+            audit_template_id=self.audit_template.id, id=1, uuid=None
+        )
         self.action_plan = utils.create_test_action_plan(
-            audit_id=self.audit.id, id=1, uuid=None)
+            audit_id=self.audit.id, id=1, uuid=None
+        )
 
         with freezegun.freeze_time(self.FAKE_TODAY):
             self.efficacy_indicator1 = utils.create_test_efficacy_indicator(
-                action_plan_id=self.action_plan.id, id=1, uuid=None,
-                name="efficacy_indicator1", description="Test Indicator 1")
+                action_plan_id=self.action_plan.id,
+                id=1,
+                uuid=None,
+                name="efficacy_indicator1",
+                description="Test Indicator 1",
+            )
         with freezegun.freeze_time(self.FAKE_OLD_DATE):
             self.efficacy_indicator2 = utils.create_test_efficacy_indicator(
-                action_plan_id=self.action_plan.id, id=2, uuid=None,
-                name="efficacy_indicator2", description="Test Indicator 2")
+                action_plan_id=self.action_plan.id,
+                id=2,
+                uuid=None,
+                name="efficacy_indicator2",
+                description="Test Indicator 2",
+            )
         with freezegun.freeze_time(self.FAKE_OLDER_DATE):
             self.efficacy_indicator3 = utils.create_test_efficacy_indicator(
-                action_plan_id=self.action_plan.id, id=3, uuid=None,
-                name="efficacy_indicator3", description="Test Indicator 3")
+                action_plan_id=self.action_plan.id,
+                id=3,
+                uuid=None,
+                name="efficacy_indicator3",
+                description="Test Indicator 3",
+            )
 
     def _soft_delete_efficacy_indicators(self):
         with freezegun.freeze_time(self.FAKE_TODAY):
             self.dbapi.soft_delete_efficacy_indicator(
-                self.efficacy_indicator1.uuid)
+                self.efficacy_indicator1.uuid
+            )
         with freezegun.freeze_time(self.FAKE_OLD_DATE):
             self.dbapi.soft_delete_efficacy_indicator(
-                self.efficacy_indicator2.uuid)
+                self.efficacy_indicator2.uuid
+            )
         with freezegun.freeze_time(self.FAKE_OLDER_DATE):
             self.dbapi.soft_delete_efficacy_indicator(
-                self.efficacy_indicator3.uuid)
+                self.efficacy_indicator3.uuid
+            )
 
     def _update_efficacy_indicators(self):
         with freezegun.freeze_time(self.FAKE_TODAY):
             self.dbapi.update_efficacy_indicator(
                 self.efficacy_indicator1.uuid,
-                values={"description": "New description 1"})
+                values={"description": "New description 1"},
+            )
         with freezegun.freeze_time(self.FAKE_OLD_DATE):
             self.dbapi.update_efficacy_indicator(
                 self.efficacy_indicator2.uuid,
-                values={"description": "New description 2"})
+                values={"description": "New description 2"},
+            )
         with freezegun.freeze_time(self.FAKE_OLDER_DATE):
             self.dbapi.update_efficacy_indicator(
                 self.efficacy_indicator3.uuid,
-                values={"description": "New description 3"})
+                values={"description": "New description 3"},
+            )
 
     def test_get_efficacy_indicator_filter_deleted_true(self):
         with freezegun.freeze_time(self.FAKE_TODAY):
             self.dbapi.soft_delete_efficacy_indicator(
-                self.efficacy_indicator1.uuid)
+                self.efficacy_indicator1.uuid
+            )
 
         res = self.dbapi.get_efficacy_indicator_list(
-            self.context, filters={'deleted': True})
+            self.context, filters={'deleted': True}
+        )
 
         self.assertEqual([self.efficacy_indicator1['id']], [r.id for r in res])
 
     def test_get_efficacy_indicator_filter_deleted_false(self):
         with freezegun.freeze_time(self.FAKE_TODAY):
             self.dbapi.soft_delete_efficacy_indicator(
-                self.efficacy_indicator1.uuid)
+                self.efficacy_indicator1.uuid
+            )
 
         res = self.dbapi.get_efficacy_indicator_list(
-            self.context, filters={'deleted': False})
+            self.context, filters={'deleted': False}
+        )
 
-        self.assertEqual([self.efficacy_indicator2['id'],
-                          self.efficacy_indicator3['id']],
-                         [r.id for r in res])
+        self.assertEqual(
+            [self.efficacy_indicator2['id'], self.efficacy_indicator3['id']],
+            [r.id for r in res],
+        )
 
     def test_get_efficacy_indicator_filter_deleted_at_eq(self):
         self._soft_delete_efficacy_indicators()
 
         res = self.dbapi.get_efficacy_indicator_list(
-            self.context, filters={'deleted_at__eq': self.FAKE_TODAY})
+            self.context, filters={'deleted_at__eq': self.FAKE_TODAY}
+        )
 
         self.assertEqual([self.efficacy_indicator1['id']], [r.id for r in res])
 
@@ -117,27 +143,32 @@ class TestDbEfficacyIndicatorFilters(base.DbTestCase):
         self._soft_delete_efficacy_indicators()
 
         res = self.dbapi.get_efficacy_indicator_list(
-            self.context, filters={'deleted_at__lt': self.FAKE_TODAY})
+            self.context, filters={'deleted_at__lt': self.FAKE_TODAY}
+        )
 
         self.assertEqual(
             [self.efficacy_indicator2['id'], self.efficacy_indicator3['id']],
-            [r.id for r in res])
+            [r.id for r in res],
+        )
 
     def test_get_efficacy_indicator_filter_deleted_at_lte(self):
         self._soft_delete_efficacy_indicators()
 
         res = self.dbapi.get_efficacy_indicator_list(
-            self.context, filters={'deleted_at__lte': self.FAKE_OLD_DATE})
+            self.context, filters={'deleted_at__lte': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual(
             [self.efficacy_indicator2['id'], self.efficacy_indicator3['id']],
-            [r.id for r in res])
+            [r.id for r in res],
+        )
 
     def test_get_efficacy_indicator_filter_deleted_at_gt(self):
         self._soft_delete_efficacy_indicators()
 
         res = self.dbapi.get_efficacy_indicator_list(
-            self.context, filters={'deleted_at__gt': self.FAKE_OLD_DATE})
+            self.context, filters={'deleted_at__gt': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual([self.efficacy_indicator1['id']], [r.id for r in res])
 
@@ -145,50 +176,60 @@ class TestDbEfficacyIndicatorFilters(base.DbTestCase):
         self._soft_delete_efficacy_indicators()
 
         res = self.dbapi.get_efficacy_indicator_list(
-            self.context, filters={'deleted_at__gte': self.FAKE_OLD_DATE})
+            self.context, filters={'deleted_at__gte': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual(
             [self.efficacy_indicator1['id'], self.efficacy_indicator2['id']],
-            [r.id for r in res])
+            [r.id for r in res],
+        )
 
     # created_at #
 
     def test_get_efficacy_indicator_filter_created_at_eq(self):
         res = self.dbapi.get_efficacy_indicator_list(
-            self.context, filters={'created_at__eq': self.FAKE_TODAY})
+            self.context, filters={'created_at__eq': self.FAKE_TODAY}
+        )
 
         self.assertEqual([self.efficacy_indicator1['id']], [r.id for r in res])
 
     def test_get_efficacy_indicator_filter_created_at_lt(self):
         with freezegun.freeze_time(self.FAKE_TODAY):
             res = self.dbapi.get_efficacy_indicator_list(
-                self.context, filters={'created_at__lt': self.FAKE_TODAY})
+                self.context, filters={'created_at__lt': self.FAKE_TODAY}
+            )
 
         self.assertEqual(
             [self.efficacy_indicator2['id'], self.efficacy_indicator3['id']],
-            [r.id for r in res])
+            [r.id for r in res],
+        )
 
     def test_get_efficacy_indicator_filter_created_at_lte(self):
         res = self.dbapi.get_efficacy_indicator_list(
-            self.context, filters={'created_at__lte': self.FAKE_OLD_DATE})
+            self.context, filters={'created_at__lte': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual(
             [self.efficacy_indicator2['id'], self.efficacy_indicator3['id']],
-            [r.id for r in res])
+            [r.id for r in res],
+        )
 
     def test_get_efficacy_indicator_filter_created_at_gt(self):
         res = self.dbapi.get_efficacy_indicator_list(
-            self.context, filters={'created_at__gt': self.FAKE_OLD_DATE})
+            self.context, filters={'created_at__gt': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual([self.efficacy_indicator1['id']], [r.id for r in res])
 
     def test_get_efficacy_indicator_filter_created_at_gte(self):
         res = self.dbapi.get_efficacy_indicator_list(
-            self.context, filters={'created_at__gte': self.FAKE_OLD_DATE})
+            self.context, filters={'created_at__gte': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual(
             [self.efficacy_indicator1['id'], self.efficacy_indicator2['id']],
-            [r.id for r in res])
+            [r.id for r in res],
+        )
 
     # updated_at #
 
@@ -196,7 +237,8 @@ class TestDbEfficacyIndicatorFilters(base.DbTestCase):
         self._update_efficacy_indicators()
 
         res = self.dbapi.get_efficacy_indicator_list(
-            self.context, filters={'updated_at__eq': self.FAKE_TODAY})
+            self.context, filters={'updated_at__eq': self.FAKE_TODAY}
+        )
 
         self.assertEqual([self.efficacy_indicator1['id']], [r.id for r in res])
 
@@ -204,27 +246,32 @@ class TestDbEfficacyIndicatorFilters(base.DbTestCase):
         self._update_efficacy_indicators()
 
         res = self.dbapi.get_efficacy_indicator_list(
-            self.context, filters={'updated_at__lt': self.FAKE_TODAY})
+            self.context, filters={'updated_at__lt': self.FAKE_TODAY}
+        )
 
         self.assertEqual(
             [self.efficacy_indicator2['id'], self.efficacy_indicator3['id']],
-            [r.id for r in res])
+            [r.id for r in res],
+        )
 
     def test_get_efficacy_indicator_filter_updated_at_lte(self):
         self._update_efficacy_indicators()
 
         res = self.dbapi.get_efficacy_indicator_list(
-            self.context, filters={'updated_at__lte': self.FAKE_OLD_DATE})
+            self.context, filters={'updated_at__lte': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual(
             [self.efficacy_indicator2['id'], self.efficacy_indicator3['id']],
-            [r.id for r in res])
+            [r.id for r in res],
+        )
 
     def test_get_efficacy_indicator_filter_updated_at_gt(self):
         self._update_efficacy_indicators()
 
         res = self.dbapi.get_efficacy_indicator_list(
-            self.context, filters={'updated_at__gt': self.FAKE_OLD_DATE})
+            self.context, filters={'updated_at__gt': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual([self.efficacy_indicator1['id']], [r.id for r in res])
 
@@ -232,25 +279,31 @@ class TestDbEfficacyIndicatorFilters(base.DbTestCase):
         self._update_efficacy_indicators()
 
         res = self.dbapi.get_efficacy_indicator_list(
-            self.context, filters={'updated_at__gte': self.FAKE_OLD_DATE})
+            self.context, filters={'updated_at__gte': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual(
             [self.efficacy_indicator1['id'], self.efficacy_indicator2['id']],
-            [r.id for r in res])
+            [r.id for r in res],
+        )
 
 
 class DbEfficacyIndicatorTestCase(base.DbTestCase):
-
     def test_get_efficacy_indicator_list(self):
         uuids = []
         action_plan = utils.create_test_action_plan()
         for id_ in range(1, 4):
             efficacy_indicator = utils.create_test_efficacy_indicator(
-                action_plan_id=action_plan.id, id=id_, uuid=None,
-                name="efficacy_indicator", description="Test Indicator ")
+                action_plan_id=action_plan.id,
+                id=id_,
+                uuid=None,
+                name="efficacy_indicator",
+                description="Test Indicator ",
+            )
             uuids.append(str(efficacy_indicator['uuid']))
         efficacy_indicators = self.dbapi.get_efficacy_indicator_list(
-            self.context)
+            self.context
+        )
         efficacy_indicator_uuids = [ei.uuid for ei in efficacy_indicators]
         self.assertEqual(sorted(uuids), sorted(efficacy_indicator_uuids))
         for efficacy_indicator in efficacy_indicators:
@@ -263,18 +316,23 @@ class DbEfficacyIndicatorTestCase(base.DbTestCase):
         uuids = []
         for i in range(1, 4):
             efficacy_indicator = utils.create_test_efficacy_indicator(
-                id=i, uuid=w_utils.generate_uuid(),
-                action_plan_id=action_plan.id)
+                id=i,
+                uuid=w_utils.generate_uuid(),
+                action_plan_id=action_plan.id,
+            )
             uuids.append(str(efficacy_indicator['uuid']))
         efficacy_indicators = self.dbapi.get_efficacy_indicator_list(
-            self.context, eager=True)
+            self.context, eager=True
+        )
         efficacy_indicator_map = {a.uuid: a for a in efficacy_indicators}
         self.assertEqual(sorted(uuids), sorted(efficacy_indicator_map.keys()))
         eager_efficacy_indicator = efficacy_indicator_map[
-            efficacy_indicator.uuid]
+            efficacy_indicator.uuid
+        ]
         self.assertEqual(
             action_plan.as_dict(),
-            eager_efficacy_indicator.action_plan.as_dict())
+            eager_efficacy_indicator.action_plan.as_dict(),
+        )
 
     def test_get_efficacy_indicator_list_with_filters(self):
         audit = utils.create_test_audit(uuid=w_utils.generate_uuid())
@@ -283,7 +341,8 @@ class DbEfficacyIndicatorTestCase(base.DbTestCase):
             uuid=w_utils.generate_uuid(),
             audit_id=audit.id,
             first_efficacy_indicator_id=None,
-            state=objects.action_plan.State.RECOMMENDED)
+            state=objects.action_plan.State.RECOMMENDED,
+        )
 
         efficacy_indicator1 = utils.create_test_efficacy_indicator(
             id=1,
@@ -291,57 +350,63 @@ class DbEfficacyIndicatorTestCase(base.DbTestCase):
             uuid=w_utils.generate_uuid(),
             action_plan_id=action_plan['id'],
             description='Description efficacy indicator 1',
-            unit='%')
+            unit='%',
+        )
         efficacy_indicator2 = utils.create_test_efficacy_indicator(
             id=2,
             name='indicator_2',
             uuid=w_utils.generate_uuid(),
             action_plan_id=2,
             description='Description efficacy indicator 2',
-            unit='%')
+            unit='%',
+        )
         efficacy_indicator3 = utils.create_test_efficacy_indicator(
             id=3,
             name='indicator_3',
             uuid=w_utils.generate_uuid(),
             action_plan_id=action_plan['id'],
             description='Description efficacy indicator 3',
-            unit='%')
+            unit='%',
+        )
         efficacy_indicator4 = utils.create_test_efficacy_indicator(
             id=4,
             name='indicator_4',
             uuid=w_utils.generate_uuid(),
             action_plan_id=action_plan['id'],
             description='Description efficacy indicator 4',
-            unit='%')
+            unit='%',
+        )
 
         self.dbapi.soft_delete_efficacy_indicator(efficacy_indicator4['uuid'])
 
         res = self.dbapi.get_efficacy_indicator_list(
-            self.context,
-            filters={'name': 'indicator_3'})
+            self.context, filters={'name': 'indicator_3'}
+        )
         self.assertEqual([efficacy_indicator3['id']], [r.id for r in res])
 
         res = self.dbapi.get_efficacy_indicator_list(
-            self.context,
-            filters={'unit': 'kWh'})
+            self.context, filters={'unit': 'kWh'}
+        )
         self.assertEqual([], [r.id for r in res])
 
         res = self.dbapi.get_efficacy_indicator_list(
-            self.context,
-            filters={'action_plan_id': 2})
+            self.context, filters={'action_plan_id': 2}
+        )
         self.assertEqual([efficacy_indicator2['id']], [r.id for r in res])
 
         res = self.dbapi.get_efficacy_indicator_list(
-            self.context,
-            filters={'action_plan_uuid': action_plan['uuid']})
+            self.context, filters={'action_plan_uuid': action_plan['uuid']}
+        )
         self.assertEqual(
             sorted([efficacy_indicator1['id'], efficacy_indicator3['id']]),
-            sorted([r.id for r in res]))
+            sorted([r.id for r in res]),
+        )
 
     def test_get_efficacy_indicator_list_with_filter_by_uuid(self):
         efficacy_indicator = utils.create_test_efficacy_indicator()
         res = self.dbapi.get_efficacy_indicator_list(
-            self.context, filters={'uuid': efficacy_indicator.uuid})
+            self.context, filters={'uuid': efficacy_indicator.uuid}
+        )
 
         self.assertEqual(len(res), 1)
         self.assertEqual(efficacy_indicator.uuid, res[0].uuid)
@@ -349,70 +414,93 @@ class DbEfficacyIndicatorTestCase(base.DbTestCase):
     def test_get_efficacy_indicator_by_id(self):
         efficacy_indicator = utils.create_test_efficacy_indicator()
         efficacy_indicator = self.dbapi.get_efficacy_indicator_by_id(
-            self.context, efficacy_indicator.id)
+            self.context, efficacy_indicator.id
+        )
         self.assertEqual(efficacy_indicator.uuid, efficacy_indicator.uuid)
 
     def test_get_efficacy_indicator_by_uuid(self):
         efficacy_indicator = utils.create_test_efficacy_indicator()
         efficacy_indicator = self.dbapi.get_efficacy_indicator_by_uuid(
-            self.context, efficacy_indicator.uuid)
+            self.context, efficacy_indicator.uuid
+        )
         self.assertEqual(efficacy_indicator['id'], efficacy_indicator.id)
 
     def test_get_efficacy_indicator_that_does_not_exist(self):
         self.assertRaises(
             exception.EfficacyIndicatorNotFound,
-            self.dbapi.get_efficacy_indicator_by_id, self.context, 1234)
+            self.dbapi.get_efficacy_indicator_by_id,
+            self.context,
+            1234,
+        )
 
     def test_update_efficacy_indicator(self):
         efficacy_indicator = utils.create_test_efficacy_indicator()
         res = self.dbapi.update_efficacy_indicator(
             efficacy_indicator.id,
-            {'state': objects.action_plan.State.CANCELLED})
+            {'state': objects.action_plan.State.CANCELLED},
+        )
         self.assertEqual('CANCELLED', res.state)
 
     def test_update_efficacy_indicator_that_does_not_exist(self):
         self.assertRaises(
             exception.EfficacyIndicatorNotFound,
-            self.dbapi.update_efficacy_indicator, 1234, {'state': ''})
+            self.dbapi.update_efficacy_indicator,
+            1234,
+            {'state': ''},
+        )
 
     def test_update_efficacy_indicator_uuid(self):
         efficacy_indicator = utils.create_test_efficacy_indicator()
         self.assertRaises(
             exception.Invalid,
-            self.dbapi.update_efficacy_indicator, efficacy_indicator.id,
-            {'uuid': 'hello'})
+            self.dbapi.update_efficacy_indicator,
+            efficacy_indicator.id,
+            {'uuid': 'hello'},
+        )
 
     def test_destroy_efficacy_indicator(self):
         efficacy_indicator = utils.create_test_efficacy_indicator()
         self.dbapi.destroy_efficacy_indicator(efficacy_indicator['id'])
-        self.assertRaises(exception.EfficacyIndicatorNotFound,
-                          self.dbapi.get_efficacy_indicator_by_id,
-                          self.context, efficacy_indicator['id'])
+        self.assertRaises(
+            exception.EfficacyIndicatorNotFound,
+            self.dbapi.get_efficacy_indicator_by_id,
+            self.context,
+            efficacy_indicator['id'],
+        )
 
     def test_destroy_efficacy_indicator_by_uuid(self):
         uuid = w_utils.generate_uuid()
         utils.create_test_efficacy_indicator(uuid=uuid)
-        self.assertIsNotNone(self.dbapi.get_efficacy_indicator_by_uuid(
-            self.context, uuid))
+        self.assertIsNotNone(
+            self.dbapi.get_efficacy_indicator_by_uuid(self.context, uuid)
+        )
         self.dbapi.destroy_efficacy_indicator(uuid)
         self.assertRaises(
             exception.EfficacyIndicatorNotFound,
-            self.dbapi.get_efficacy_indicator_by_uuid, self.context, uuid)
+            self.dbapi.get_efficacy_indicator_by_uuid,
+            self.context,
+            uuid,
+        )
 
     def test_destroy_efficacy_indicator_that_does_not_exist(self):
-        self.assertRaises(exception.EfficacyIndicatorNotFound,
-                          self.dbapi.destroy_efficacy_indicator, 1234)
+        self.assertRaises(
+            exception.EfficacyIndicatorNotFound,
+            self.dbapi.destroy_efficacy_indicator,
+            1234,
+        )
 
     def test_create_efficacy_indicator_already_exists(self):
         uuid = w_utils.generate_uuid()
         utils.create_test_efficacy_indicator(id=1, uuid=uuid)
-        self.assertRaises(exception.EfficacyIndicatorAlreadyExists,
-                          utils.create_test_efficacy_indicator,
-                          id=2, uuid=uuid)
+        self.assertRaises(
+            exception.EfficacyIndicatorAlreadyExists,
+            utils.create_test_efficacy_indicator,
+            id=2,
+            uuid=uuid,
+        )
 
 
 class MySQLDbEfficacyIndicatorTestCase(base.MySQLDbTestCase):
-
     FAKE_OLDER_DATE = '2014-01-01T09:52:05.219414'
     FAKE_OLD_DATE = '2015-01-01T09:52:05.219414'
     FAKE_TODAY = '2016-02-24T09:52:05.219414'
@@ -426,34 +514,56 @@ class MySQLDbEfficacyIndicatorTestCase(base.MySQLDbTestCase):
         self.audit_template_name = "Audit Template"
 
         self.goal = utils.create_test_goal(
-            id=1, uuid=w_utils.generate_uuid(),
-            name="GOAL_1", display_name='Goal 1')
+            id=1,
+            uuid=w_utils.generate_uuid(),
+            name="GOAL_1",
+            display_name='Goal 1',
+        )
         self.strategy = utils.create_test_strategy(
-            id=1, uuid=w_utils.generate_uuid(),
-            name="STRATEGY_ID_1", display_name='My Strategy 1')
+            id=1,
+            uuid=w_utils.generate_uuid(),
+            name="STRATEGY_ID_1",
+            display_name='My Strategy 1',
+        )
         self.audit_template = utils.create_test_audit_template(
-            name=self.audit_template_name, id=1, uuid=None)
+            name=self.audit_template_name, id=1, uuid=None
+        )
         self.audit = utils.create_test_audit(
-            audit_template_id=self.audit_template.id, id=1, uuid=None)
+            audit_template_id=self.audit_template.id, id=1, uuid=None
+        )
         self.action_plan = utils.create_test_action_plan(
-            audit_id=self.audit.id, id=1, uuid=None)
+            audit_id=self.audit.id, id=1, uuid=None
+        )
 
         with freezegun.freeze_time(self.FAKE_TODAY):
             self.efficacy_indicator1 = utils.create_test_efficacy_indicator(
-                action_plan_id=self.action_plan.id, id=1, uuid=None,
-                name="efficacy_indicator1", description="Test Indicator 1",
-                value=0.01234567912345678)
+                action_plan_id=self.action_plan.id,
+                id=1,
+                uuid=None,
+                name="efficacy_indicator1",
+                description="Test Indicator 1",
+                value=0.01234567912345678,
+            )
         with freezegun.freeze_time(self.FAKE_OLD_DATE):
             self.efficacy_indicator2 = utils.create_test_efficacy_indicator(
-                action_plan_id=self.action_plan.id, id=2, uuid=None,
-                name="efficacy_indicator2", description="Test Indicator 2")
+                action_plan_id=self.action_plan.id,
+                id=2,
+                uuid=None,
+                name="efficacy_indicator2",
+                description="Test Indicator 2",
+            )
         with freezegun.freeze_time(self.FAKE_OLDER_DATE):
             self.efficacy_indicator3 = utils.create_test_efficacy_indicator(
-                action_plan_id=self.action_plan.id, id=3, uuid=None,
-                name="efficacy_indicator3", description="Test Indicator 3")
+                action_plan_id=self.action_plan.id,
+                id=3,
+                uuid=None,
+                name="efficacy_indicator3",
+                description="Test Indicator 3",
+            )
 
     def test_efficacy_indicator_value(self):
         db_efficacy_indicator = self.dbapi.get_efficacy_indicator_by_id(
-            self.context, 1)
+            self.context, 1
+        )
         self.assertAlmostEqual(db_efficacy_indicator.value, 0.012, places=3)
         self.assertAlmostEqual(db_efficacy_indicator.data, 0.012, places=3)

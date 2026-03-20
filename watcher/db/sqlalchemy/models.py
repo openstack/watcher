@@ -44,8 +44,10 @@ CONF = conf.CONF
 def table_args():
     engine_name = urlparse.urlparse(CONF.database.connection).scheme
     if engine_name == 'mysql':
-        return {'mysql_engine': CONF.database.mysql_engine,
-                'mysql_charset': "utf8"}
+        return {
+            'mysql_engine': CONF.database.mysql_engine,
+            'mysql_charset': "utf8",
+        }
     return None
 
 
@@ -64,7 +66,8 @@ class JsonEncodedType(TypeDecorator):
             raise TypeError(
                 f"{self.__class__.__name__} supposes to store "
                 f"{self.type.__name__} objects, but "
-                f"{type(value).__name__} given")
+                f"{type(value).__name__} given"
+            )
         serialized_value = jsonutils.dumps(value)
         return serialized_value
 
@@ -86,8 +89,9 @@ class JSONEncodedList(JsonEncodedType):
     type = list
 
 
-class WatcherBase(models.SoftDeleteMixin,
-                  models.TimestampMixin, models.ModelBase):
+class WatcherBase(
+    models.SoftDeleteMixin, models.TimestampMixin, models.ModelBase
+):
     metadata = None
 
     def as_dict(self):
@@ -123,7 +127,7 @@ class Strategy(Base):
     __table_args__ = (
         UniqueConstraint('uuid', name='uniq_strategies0uuid'),
         UniqueConstraint('name', 'deleted', name='uniq_strategies0name'),
-        table_args()
+        table_args(),
     )
     id = Column(Integer, primary_key=True, autoincrement=True)
     uuid = Column(String(36))
@@ -142,7 +146,7 @@ class AuditTemplate(Base):
     __table_args__ = (
         UniqueConstraint('uuid', name='uniq_audit_templates0uuid'),
         UniqueConstraint('name', 'deleted', name='uniq_audit_templates0name'),
-        table_args()
+        table_args(),
     )
     id = Column(Integer, primary_key=True)
     uuid = Column(String(36))
@@ -163,7 +167,7 @@ class Audit(Base):
     __table_args__ = (
         UniqueConstraint('uuid', name='uniq_audits0uuid'),
         UniqueConstraint('name', 'deleted', name='uniq_audits0name'),
-        table_args()
+        table_args(),
     )
     id = Column(Integer, primary_key=True, autoincrement=True)
     uuid = Column(String(36))
@@ -193,7 +197,7 @@ class ActionPlan(Base):
     __tablename__ = 'action_plans'
     __table_args__ = (
         UniqueConstraint('uuid', name='uniq_action_plans0uuid'),
-        table_args()
+        table_args(),
     )
     id = Column(Integer, primary_key=True, autoincrement=True)
     uuid = Column(String(36))
@@ -214,12 +218,13 @@ class Action(Base):
     __tablename__ = 'actions'
     __table_args__ = (
         UniqueConstraint('uuid', name='uniq_actions0uuid'),
-        table_args()
+        table_args(),
     )
     id = Column(Integer, primary_key=True, autoincrement=True)
     uuid = Column(String(36), nullable=False)
-    action_plan_id = Column(Integer, ForeignKey('action_plans.id'),
-                            nullable=False)
+    action_plan_id = Column(
+        Integer, ForeignKey('action_plans.id'), nullable=False
+    )
     # only for the first version
     action_type = Column(String(255), nullable=False)
     input_parameters = Column(JSONEncodedDict, nullable=True)
@@ -228,7 +233,8 @@ class Action(Base):
     status_message = Column(String(255), nullable=True)
 
     action_plan = orm.relationship(
-        ActionPlan, foreign_keys=action_plan_id, lazy=None)
+        ActionPlan, foreign_keys=action_plan_id, lazy=None
+    )
 
 
 class EfficacyIndicator(Base):
@@ -237,7 +243,7 @@ class EfficacyIndicator(Base):
     __tablename__ = 'efficacy_indicators'
     __table_args__ = (
         UniqueConstraint('uuid', name='uniq_efficacy_indicators0uuid'),
-        table_args()
+        table_args(),
     )
     id = Column(Integer, primary_key=True, autoincrement=True)
     uuid = Column(String(36))
@@ -248,11 +254,13 @@ class EfficacyIndicator(Base):
     # https://bugs.launchpad.net/watcher/+bug/2103458
     value = Column(Numeric())
     data = Column(Float())
-    action_plan_id = Column(Integer, ForeignKey('action_plans.id'),
-                            nullable=False)
+    action_plan_id = Column(
+        Integer, ForeignKey('action_plans.id'), nullable=False
+    )
 
     action_plan = orm.relationship(
-        ActionPlan, foreign_keys=action_plan_id, lazy=None)
+        ActionPlan, foreign_keys=action_plan_id, lazy=None
+    )
 
 
 class ScoringEngine(Base):
@@ -262,7 +270,7 @@ class ScoringEngine(Base):
     __table_args__ = (
         UniqueConstraint('uuid', name='uniq_scoring_engines0uuid'),
         UniqueConstraint('name', 'deleted', name='uniq_scoring_engines0name'),
-        table_args()
+        table_args(),
     )
     id = Column(Integer, primary_key=True, autoincrement=True)
     uuid = Column(String(36), nullable=False)
@@ -279,9 +287,10 @@ class Service(Base):
 
     __tablename__ = 'services'
     __table_args__ = (
-        UniqueConstraint('host', 'name', 'deleted',
-                         name="uniq_services0host0name0deleted"),
-        table_args()
+        UniqueConstraint(
+            'host', 'name', 'deleted', name="uniq_services0host0name0deleted"
+        ),
+        table_args(),
     )
     id = Column(Integer, primary_key=True)
     name = Column(String(255), nullable=False)
@@ -294,9 +303,10 @@ class ActionDescription(Base):
 
     __tablename__ = 'action_descriptions'
     __table_args__ = (
-        UniqueConstraint('action_type',
-                         name="uniq_action_description0action_type"),
-        table_args()
+        UniqueConstraint(
+            'action_type', name="uniq_action_description0action_type"
+        ),
+        table_args(),
     )
     id = Column(Integer, primary_key=True)
     action_type = Column(String(255), nullable=False)
@@ -308,16 +318,13 @@ class APScheulerJob(Base):
 
     __tablename__ = 'apscheduler_jobs'
     __table_args__ = (
-        UniqueConstraint('id',
-                         name="uniq_apscheduler_jobs0id"),
-        table_args()
+        UniqueConstraint('id', name="uniq_apscheduler_jobs0id"),
+        table_args(),
     )
     id = Column(String(191), nullable=False, primary_key=True)
     next_run_time = Column(Float(25), index=True)
     job_state = Column(LargeBinary, nullable=False)
     tag = Column(JSONEncodedDict(), nullable=True)
-    service_id = Column(Integer, ForeignKey('services.id'),
-                        nullable=False)
+    service_id = Column(Integer, ForeignKey('services.id'), nullable=False)
 
-    service = orm.relationship(
-        Service, foreign_keys=service_id, lazy=None)
+    service = orm.relationship(Service, foreign_keys=service_id, lazy=None)

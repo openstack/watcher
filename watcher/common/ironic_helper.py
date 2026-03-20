@@ -27,7 +27,6 @@ LOG = log.getLogger(__name__)
 
 
 class IronicHelper:
-
     def __init__(self, osc=None):
         """:param osc: an OpenStackClients instance"""
         self.osc = osc if osc else clients.OpenStackClients()

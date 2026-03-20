@@ -20,11 +20,13 @@ from unittest import mock
 from watcher.common.metal_helper import constants as m_constants
 
 
-def get_mock_metal_node(node_id=None,
-                        power_state=m_constants.PowerState.ON,
-                        running_vms=0,
-                        hostname=None,
-                        compute_state='up'):
+def get_mock_metal_node(
+    node_id=None,
+    power_state=m_constants.PowerState.ON,
+    running_vms=0,
+    hostname=None,
+    compute_state='up',
+):
     node_id = node_id or str(uuid.uuid4())
     # NOTE(lpetrut): the hostname is important for some of the tests,
     # which expect it to match the fake cluster model.
@@ -33,9 +35,7 @@ def get_mock_metal_node(node_id=None,
     hypervisor_node_dict = {
         'hypervisor_hostname': hostname,
         'running_vms': running_vms,
-        'service': {
-            'host': hostname,
-        },
+        'service': {'host': hostname},
         'state': compute_state,
     }
     hypervisor_node = mock.Mock(**hypervisor_node_dict)

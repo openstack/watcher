@@ -40,8 +40,9 @@ class WebhookController(rest.RestController):
         super().__init__()
         self.dc_client = rpcapi.DecisionEngineAPI()
 
-    @wsme_pecan.wsexpose(None, wtypes.text, body=types.jsontype,
-                         status_code=HTTPStatus.ACCEPTED)
+    @wsme_pecan.wsexpose(
+        None, wtypes.text, body=types.jsontype, status_code=HTTPStatus.ACCEPTED
+    )
     def post(self, audit_ident, body):
         """Trigger the given audit.
 
@@ -59,7 +60,7 @@ class WebhookController(rest.RestController):
         allowed_state = (
             objects.audit.State.PENDING,
             objects.audit.State.SUCCEEDED,
-            )
+        )
         if audit.state not in allowed_state:
             raise exception.AuditStateNotAllowed(state=audit.state)
 

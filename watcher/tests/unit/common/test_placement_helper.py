@@ -36,15 +36,14 @@ class TestPlacementHelper(base.TestCase):
         ka_loading.register_session_conf_options(CONF, _AUTH_CONF_GROUP)
         self.client = placement_helper.PlacementHelper()
         self.fake_err_msg = {
-            'errors': [{
-                'detail': 'The resource could not be found.',
-            }]
+            'errors': [{'detail': 'The resource could not be found.'}]
         }
 
     def _add_default_kwargs(self, kwargs):
         kwargs['endpoint_filter'] = {
             'service_type': 'placement',
-            'interface': CONF.placement_client.interface}
+            'interface': CONF.placement_client.interface,
+        }
         kwargs['headers'] = {'accept': 'application/json'}
         kwargs['microversion'] = CONF.placement_client.api_version
         kwargs['raise_exc'] = False
@@ -68,17 +67,20 @@ class TestPlacementHelper(base.TestCase):
         rp_uuid = uuidutils.generate_uuid()
         parent_uuid = uuidutils.generate_uuid()
 
-        fake_rp = [{'uuid': rp_uuid,
-                    'name': rp_name,
-                    'generation': 0,
-                    'parent_provider_uuid': parent_uuid}]
+        fake_rp = [
+            {
+                'uuid': rp_uuid,
+                'name': rp_name,
+                'generation': 0,
+                'parent_provider_uuid': parent_uuid,
+            }
+        ]
 
-        mock_json_data = {
-            'resource_providers': fake_rp
-        }
+        mock_json_data = {'resource_providers': fake_rp}
 
         kss_req.return_value = fake_requests.FakeResponse(
-            HTTPStatus.OK, content=jsonutils.dump_as_bytes(mock_json_data))
+            HTTPStatus.OK, content=jsonutils.dump_as_bytes(mock_json_data)
+        )
 
         result = self.client.get_resource_providers(rp_name)
 
@@ -91,17 +93,20 @@ class TestPlacementHelper(base.TestCase):
         rp_uuid = uuidutils.generate_uuid()
         parent_uuid = uuidutils.generate_uuid()
 
-        fake_rp = [{'uuid': rp_uuid,
-                    'name': 'compute',
-                    'generation': 0,
-                    'parent_provider_uuid': parent_uuid}]
+        fake_rp = [
+            {
+                'uuid': rp_uuid,
+                'name': 'compute',
+                'generation': 0,
+                'parent_provider_uuid': parent_uuid,
+            }
+        ]
 
-        mock_json_data = {
-            'resource_providers': fake_rp
-        }
+        mock_json_data = {'resource_providers': fake_rp}
 
         kss_req.return_value = fake_requests.FakeResponse(
-            HTTPStatus.OK, content=jsonutils.dump_as_bytes(mock_json_data))
+            HTTPStatus.OK, content=jsonutils.dump_as_bytes(mock_json_data)
+        )
 
         result = self.client.get_resource_providers(rp_name)
 
@@ -113,7 +118,8 @@ class TestPlacementHelper(base.TestCase):
         rp_name = 'compute'
         kss_req.return_value = fake_requests.FakeResponse(
             HTTPStatus.BAD_REQUEST,
-            content=jsonutils.dump_as_bytes(self.fake_err_msg))
+            content=jsonutils.dump_as_bytes(self.fake_err_msg),
+        )
         result = self.client.get_resource_providers(rp_name)
         self.assertIsNone(result)
 
@@ -127,7 +133,7 @@ class TestPlacementHelper(base.TestCase):
                 "min_unit": 1,
                 "reserved": 0,
                 "step_size": 1,
-                "total": 35
+                "total": 35,
             },
             "MEMORY_MB": {
                 "allocation_ratio": 1.5,
@@ -135,7 +141,7 @@ class TestPlacementHelper(base.TestCase):
                 "min_unit": 1,
                 "reserved": 512,
                 "step_size": 1,
-                "total": 5825
+                "total": 5825,
             },
             "VCPU": {
                 "allocation_ratio": 16.0,
@@ -143,16 +149,17 @@ class TestPlacementHelper(base.TestCase):
                 "min_unit": 1,
                 "reserved": 0,
                 "step_size": 1,
-                "total": 4
+                "total": 4,
             },
         }
         mock_json_data = {
             'inventories': fake_inventories,
-            "resource_provider_generation": 7
+            "resource_provider_generation": 7,
         }
 
         kss_req.return_value = fake_requests.FakeResponse(
-            HTTPStatus.OK, content=jsonutils.dump_as_bytes(mock_json_data))
+            HTTPStatus.OK, content=jsonutils.dump_as_bytes(mock_json_data)
+        )
 
         result = self.client.get_inventories(rp_uuid)
 
@@ -164,22 +171,23 @@ class TestPlacementHelper(base.TestCase):
         rp_uuid = uuidutils.generate_uuid()
         kss_req.return_value = fake_requests.FakeResponse(
             HTTPStatus.NOT_FOUND,
-            content=jsonutils.dump_as_bytes(self.fake_err_msg))
+            content=jsonutils.dump_as_bytes(self.fake_err_msg),
+        )
         result = self.client.get_inventories(rp_uuid)
         self.assertIsNone(result)
 
     def test_get_provider_traits_OK(self, kss_req):
         rp_uuid = uuidutils.generate_uuid()
 
-        fake_traits = ["CUSTOM_HW_FPGA_CLASS1",
-                       "CUSTOM_HW_FPGA_CLASS3"]
+        fake_traits = ["CUSTOM_HW_FPGA_CLASS1", "CUSTOM_HW_FPGA_CLASS3"]
         mock_json_data = {
             'traits': fake_traits,
-            "resource_provider_generation": 7
+            "resource_provider_generation": 7,
         }
 
         kss_req.return_value = fake_requests.FakeResponse(
-            HTTPStatus.OK, content=jsonutils.dump_as_bytes(mock_json_data))
+            HTTPStatus.OK, content=jsonutils.dump_as_bytes(mock_json_data)
+        )
 
         result = self.client.get_provider_traits(rp_uuid)
 
@@ -191,7 +199,8 @@ class TestPlacementHelper(base.TestCase):
         rp_uuid = uuidutils.generate_uuid()
         kss_req.return_value = fake_requests.FakeResponse(
             HTTPStatus.NOT_FOUND,
-            content=jsonutils.dump_as_bytes(self.fake_err_msg))
+            content=jsonutils.dump_as_bytes(self.fake_err_msg),
+        )
         result = self.client.get_provider_traits(rp_uuid)
         self.assertIsNone(result)
 
@@ -201,27 +210,23 @@ class TestPlacementHelper(base.TestCase):
         fake_allocations = {
             "92637880-2d79-43c6-afab-d860886c6391": {
                 "generation": 2,
-                "resources": {
-                    "DISK_GB": 5
-                }
+                "resources": {"DISK_GB": 5},
             },
             "ba8e1ef8-7fa3-41a4-9bb4-d7cb2019899b": {
                 "generation": 8,
-                "resources": {
-                    "MEMORY_MB": 512,
-                    "VCPU": 2
-                }
-            }
+                "resources": {"MEMORY_MB": 512, "VCPU": 2},
+            },
         }
         mock_json_data = {
             'allocations': fake_allocations,
             "consumer_generation": 1,
             "project_id": "7e67cbf7-7c38-4a32-b85b-0739c690991a",
-            "user_id": "067f691e-725a-451a-83e2-5c3d13e1dffc"
+            "user_id": "067f691e-725a-451a-83e2-5c3d13e1dffc",
         }
 
         kss_req.return_value = fake_requests.FakeResponse(
-            HTTPStatus.OK, content=jsonutils.dump_as_bytes(mock_json_data))
+            HTTPStatus.OK, content=jsonutils.dump_as_bytes(mock_json_data)
+        )
 
         result = self.client.get_allocations_for_consumer(c_uuid)
 
@@ -233,25 +238,23 @@ class TestPlacementHelper(base.TestCase):
         c_uuid = uuidutils.generate_uuid()
         kss_req.return_value = fake_requests.FakeResponse(
             HTTPStatus.NOT_FOUND,
-            content=jsonutils.dump_as_bytes(self.fake_err_msg))
+            content=jsonutils.dump_as_bytes(self.fake_err_msg),
+        )
         result = self.client.get_allocations_for_consumer(c_uuid)
         self.assertIsNone(result)
 
     def test_get_usages_for_resource_provider_OK(self, kss_req):
         rp_uuid = uuidutils.generate_uuid()
 
-        fake_usages = {
-            "DISK_GB": 1,
-            "MEMORY_MB": 512,
-            "VCPU": 1
-        }
+        fake_usages = {"DISK_GB": 1, "MEMORY_MB": 512, "VCPU": 1}
         mock_json_data = {
             'usages': fake_usages,
-            "resource_provider_generation": 7
+            "resource_provider_generation": 7,
         }
 
         kss_req.return_value = fake_requests.FakeResponse(
-            HTTPStatus.OK, content=jsonutils.dump_as_bytes(mock_json_data))
+            HTTPStatus.OK, content=jsonutils.dump_as_bytes(mock_json_data)
+        )
 
         result = self.client.get_usages_for_resource_provider(rp_uuid)
 
@@ -263,7 +266,8 @@ class TestPlacementHelper(base.TestCase):
         rp_uuid = uuidutils.generate_uuid()
         kss_req.return_value = fake_requests.FakeResponse(
             HTTPStatus.NOT_FOUND,
-            content=jsonutils.dump_as_bytes(self.fake_err_msg))
+            content=jsonutils.dump_as_bytes(self.fake_err_msg),
+        )
         result = self.client.get_usages_for_resource_provider(rp_uuid)
         self.assertIsNone(result)
 
@@ -272,38 +276,26 @@ class TestPlacementHelper(base.TestCase):
 
         fake_provider_summaries = {
             "a99bad54-a275-4c4f-a8a3-ac00d57e5c64": {
-                "resources": {
-                    "DISK_GB": {
-                        "used": 0,
-                        "capacity": 1900
-                    },
-                },
+                "resources": {"DISK_GB": {"used": 0, "capacity": 1900}},
                 "traits": ["MISC_SHARES_VIA_AGGREGATE"],
                 "parent_provider_uuid": None,
-                "root_provider_uuid": "a99bad54-a275-4c4f-a8a3-ac00d57e5c64"
+                "root_provider_uuid": "a99bad54-a275-4c4f-a8a3-ac00d57e5c64",
             },
             "35791f28-fb45-4717-9ea9-435b3ef7c3b3": {
                 "resources": {
-                    "VCPU": {
-                        "used": 0,
-                        "capacity": 384
-                    },
-                    "MEMORY_MB": {
-                        "used": 0,
-                        "capacity": 196608
-                    },
+                    "VCPU": {"used": 0, "capacity": 384},
+                    "MEMORY_MB": {"used": 0, "capacity": 196608},
                 },
                 "traits": ["HW_CPU_X86_SSE2", "HW_CPU_X86_AVX2"],
                 "parent_provider_uuid": None,
-                "root_provider_uuid": "35791f28-fb45-4717-9ea9-435b3ef7c3b3"
+                "root_provider_uuid": "35791f28-fb45-4717-9ea9-435b3ef7c3b3",
             },
         }
-        mock_json_data = {
-            'provider_summaries': fake_provider_summaries,
-        }
+        mock_json_data = {'provider_summaries': fake_provider_summaries}
 
         kss_req.return_value = fake_requests.FakeResponse(
-            HTTPStatus.OK, content=jsonutils.dump_as_bytes(mock_json_data))
+            HTTPStatus.OK, content=jsonutils.dump_as_bytes(mock_json_data)
+        )
 
         result = self.client.get_candidate_providers(resources)
 
@@ -315,6 +307,7 @@ class TestPlacementHelper(base.TestCase):
         rp_uuid = uuidutils.generate_uuid()
         kss_req.return_value = fake_requests.FakeResponse(
             HTTPStatus.NOT_FOUND,
-            content=jsonutils.dump_as_bytes(self.fake_err_msg))
+            content=jsonutils.dump_as_bytes(self.fake_err_msg),
+        )
         result = self.client.get_candidate_providers(rp_uuid)
         self.assertIsNone(result)

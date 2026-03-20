@@ -45,14 +45,16 @@ class WatcherObjectsMap:
     """
 
     # This is for generating the .pot translations
-    keymap = collections.OrderedDict([
-        ("goals", _("Goals")),
-        ("strategies", _("Strategies")),
-        ("audit_templates", _("Audit Templates")),
-        ("audits", _("Audits")),
-        ("action_plans", _("Action Plans")),
-        ("actions", _("Actions")),
-    ])
+    keymap = collections.OrderedDict(
+        [
+            ("goals", _("Goals")),
+            ("strategies", _("Strategies")),
+            ("audit_templates", _("Audit Templates")),
+            ("audits", _("Audits")),
+            ("action_plans", _("Action Plans")),
+            ("actions", _("Actions")),
+        ]
+    )
 
     def __init__(self):
         for attr_name in self.keys():
@@ -72,13 +74,15 @@ class WatcherObjectsMap:
         new_map = self.__class__()
 
         # Merge the 2 items dicts into a new object (and avoid dupes)
-        for attr_name, initials, others in zip(self.keys(), self.values(),
-                                               other.values()):
+        for attr_name, initials, others in zip(
+            self.keys(), self.values(), other.values()
+        ):
             # Creates a copy
             merged = initials[:]
             initials_ids = [item.id for item in initials]
-            non_dupes = [item for item in others
-                         if item.id not in initials_ids]
+            non_dupes = [
+                item for item in others if item.id not in initials_ids
+            ]
             merged += non_dupes
 
             setattr(new_map, attr_name, merged)
@@ -100,8 +104,7 @@ class WatcherObjectsMap:
         headers = list(self.keymap.values())
         headers.append(_("Total"))  # We also add a total count
         translated_headers = [
-            h.translate() if lazy_translation_enabled() else h
-            for h in headers
+            h.translate() if lazy_translation_enabled() else h for h in headers
         ]
 
         counters = [len(cat_vals) for cat_vals in self.values()] + [len(self)]
@@ -124,8 +127,14 @@ class PurgeCommand:
 
     ctx = context.make_context(show_deleted=True)
 
-    def __init__(self, age_in_days=None, max_number=None,
-                 uuid=None, exclude_orphans=False, dry_run=None):
+    def __init__(
+        self,
+        age_in_days=None,
+        max_number=None,
+        uuid=None,
+        exclude_orphans=False,
+        dry_run=None,
+    ):
         self.age_in_days = age_in_days
         self.max_number = max_number
         self.uuid = uuid
@@ -161,7 +170,8 @@ class PurgeCommand:
 
         if not goal.deleted_at:
             raise exception.NotSoftDeletedStateError(
-                name=_('Goal'), id=uuid_or_name)
+                name=_('Goal'), id=uuid_or_name
+            )
 
         return goal.uuid
 
@@ -196,37 +206,52 @@ class PurgeCommand:
 
         goal_ids = {g.id for g in goals}
         orphans.strategies = [
-            strategy for strategy in strategies
-            if strategy.goal_id not in goal_ids]
+            strategy
+            for strategy in strategies
+            if strategy.goal_id not in goal_ids
+        ]
 
-        strategy_ids = [s.id for s in (s for s in strategies
-                                       if s not in orphans.strategies)]
+        strategy_ids = [
+            s.id
+            for s in (s for s in strategies if s not in orphans.strategies)
+        ]
         orphans.audit_templates = [
-            audit_template for audit_template in audit_templates
-            if audit_template.goal_id not in goal_ids or
-            (audit_template.strategy_id and
-             audit_template.strategy_id not in strategy_ids)]
+            audit_template
+            for audit_template in audit_templates
+            if audit_template.goal_id not in goal_ids
+            or (
+                audit_template.strategy_id
+                and audit_template.strategy_id not in strategy_ids
+            )
+        ]
 
         orphans.audits = [
-            audit for audit in audits
-            if audit.goal_id not in goal_ids or
-            (audit.strategy_id and
-             audit.strategy_id not in strategy_ids)]
+            audit
+            for audit in audits
+            if audit.goal_id not in goal_ids
+            or (audit.strategy_id and audit.strategy_id not in strategy_ids)
+        ]
 
         # Objects with orphan parents are themselves orphans
-        audit_ids = [audit.id for audit in audits
-                     if audit not in orphans.audits]
+        audit_ids = [
+            audit.id for audit in audits if audit not in orphans.audits
+        ]
         orphans.action_plans = [
-            ap for ap in action_plans
-            if ap.audit_id not in audit_ids or
-            ap.strategy_id not in strategy_ids]
+            ap
+            for ap in action_plans
+            if ap.audit_id not in audit_ids
+            or ap.strategy_id not in strategy_ids
+        ]
 
         # Objects with orphan parents are themselves orphans
-        action_plan_ids = [ap.id for ap in action_plans
-                           if ap not in orphans.action_plans]
+        action_plan_ids = [
+            ap.id for ap in action_plans if ap not in orphans.action_plans
+        ]
         orphans.actions = [
-            action for action in actions
-            if action.action_plan_id not in action_plan_ids]
+            action
+            for action in actions
+            if action.action_plan_id not in action_plan_ids
+        ]
 
         LOG.debug("Orphans found:\n%s", orphans)
         LOG.info("Orphans found:\n%s", orphans.get_count_table())
@@ -246,14 +271,15 @@ class PurgeCommand:
         to_be_deleted.goals.extend(self._find_goals(filters))
         to_be_deleted.strategies.extend(self._find_strategies(filters))
         to_be_deleted.audit_templates.extend(
-            self._find_audit_templates(filters))
+            self._find_audit_templates(filters)
+        )
         to_be_deleted.audits.extend(self._find_audits(filters))
-        to_be_deleted.action_plans.extend(
-            self._find_action_plans(filters))
+        to_be_deleted.action_plans.extend(self._find_action_plans(filters))
         to_be_deleted.actions.extend(self._find_actions(filters))
 
         soft_deleted_objs = self._find_related_objects(
-            to_be_deleted, base_filters=dict(deleted=True))
+            to_be_deleted, base_filters=dict(deleted=True)
+        )
 
         LOG.debug("Soft deleted objects:\n%s", soft_deleted_objs)
 
@@ -302,20 +328,28 @@ class PurgeCommand:
     def confirmation_prompt(self):
         print(self._objects_map.get_count_table())
         raw_val = input(
-            _("There are %(count)d objects set for deletion. "
-              "Continue? [y/N]") % dict(count=len(self._objects_map)))
+            _("There are %(count)d objects set for deletion. Continue? [y/N]")
+            % dict(count=len(self._objects_map))
+        )
 
         return strutils.bool_from_string(raw_val)
 
     def delete_up_to_max_prompt(self, objects_map):
         print(objects_map.get_count_table())
-        print(_("The number of objects (%(num)s) to delete from the database "
+        print(
+            _(
+                "The number of objects (%(num)s) to delete from the database "
                 "exceeds the maximum number of objects (%(max_number)s) "
-                "specified.") % dict(max_number=self.max_number,
-                                     num=len(objects_map)))
+                "specified."
+            )
+            % dict(max_number=self.max_number, num=len(objects_map))
+        )
         raw_val = input(
-            _("Do you want to delete objects up to the specified maximum "
-              "number? [y/N]"))
+            _(
+                "Do you want to delete objects up to the specified maximum "
+                "number? [y/N]"
+            )
+        )
 
         self._delete_up_to_max = strutils.bool_from_string(raw_val)
 
@@ -334,29 +368,34 @@ class PurgeCommand:
             # strategies
             goal_ids = [goal.id]
             related_objs.strategies = [
-                strategy for strategy in self._objects_map.strategies
+                strategy
+                for strategy in self._objects_map.strategies
                 if strategy.goal_id in goal_ids
             ]
 
             # audit templates
             strategy_ids = [
-                strategy.id for strategy in related_objs.strategies]
+                strategy.id for strategy in related_objs.strategies
+            ]
             related_objs.audit_templates = [
-                at for at in self._objects_map.audit_templates
-                if at.goal_id in goal_ids or
-                (at.strategy_id and at.strategy_id in strategy_ids)
+                at
+                for at in self._objects_map.audit_templates
+                if at.goal_id in goal_ids
+                or (at.strategy_id and at.strategy_id in strategy_ids)
             ]
 
             # audits
             related_objs.audits = [
-                audit for audit in self._objects_map.audits
+                audit
+                for audit in self._objects_map.audits
                 if audit.goal_id in goal_ids
             ]
 
             # action plans
             audit_ids = [audit.id for audit in related_objs.audits]
             related_objs.action_plans = [
-                action_plan for action_plan in self._objects_map.action_plans
+                action_plan
+                for action_plan in self._objects_map.action_plans
                 if action_plan.audit_id in audit_ids
             ]
 
@@ -365,7 +404,8 @@ class PurgeCommand:
                 action_plan.id for action_plan in related_objs.action_plans
             ]
             related_objs.actions = [
-                action for action in self._objects_map.actions
+                action
+                for action in self._objects_map.actions
                 if action.action_plan_id in action_plan_ids
             ]
             aggregate.append(related_objs)
@@ -410,23 +450,33 @@ class PurgeCommand:
         LOG.info("Starting purge command")
         self._objects_map = self.find_objects_to_delete()
 
-        if (self.max_number is not None and
-                len(self._objects_map) > self.max_number):
+        if (
+            self.max_number is not None
+            and len(self._objects_map) > self.max_number
+        ):
             if self.delete_up_to_max_prompt(self._objects_map):
                 self._objects_map = self._get_objects_up_to_limit()
             else:
                 return
 
-        _orphans_note = (_(" (orphans excluded)") if self.exclude_orphans
-                         else _(" (may include orphans)"))
+        _orphans_note = (
+            _(" (orphans excluded)")
+            if self.exclude_orphans
+            else _(" (may include orphans)")
+        )
         if not self.dry_run and self.confirmation_prompt():
             self.do_delete()
             print(_("Purge results summary%s:") % _orphans_note)
             LOG.info("Purge results summary%s:", _orphans_note)
         else:
             LOG.debug(self._objects_map)
-            print(_("Here below is a table containing the objects "
-                    "that can be purged%s:") % _orphans_note)
+            print(
+                _(
+                    "Here below is a table containing the objects "
+                    "that can be purged%s:"
+                )
+                % _orphans_note
+            )
 
         LOG.info("\n%s", self._objects_map.get_count_table())
         print(self._objects_map.get_count_table())
@@ -463,8 +513,9 @@ def purge(age_in_days, max_number, goal, exclude_orphans, dry_run):
 
         uuid = PurgeCommand.get_goal_uuid(goal)
 
-        cmd = PurgeCommand(age_in_days, max_number, uuid,
-                           exclude_orphans, dry_run)
+        cmd = PurgeCommand(
+            age_in_days, max_number, uuid, exclude_orphans, dry_run
+        )
 
         cmd.execute()
 

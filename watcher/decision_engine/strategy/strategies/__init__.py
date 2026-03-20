@@ -50,14 +50,27 @@ WorkloadBalance = workload_balance.WorkloadBalance
 WorkloadStabilization = workload_stabilization.WorkloadStabilization
 UniformAirflow = uniform_airflow.UniformAirflow
 NodeResourceConsolidation = (
-    node_resource_consolidation.NodeResourceConsolidation)
+    node_resource_consolidation.NodeResourceConsolidation
+)
 NoisyNeighbor = noisy_neighbor.NoisyNeighbor
 ZoneMigration = zone_migration.ZoneMigration
 HostMaintenance = host_maintenance.HostMaintenance
 
-__all__ = ("Actuator", "BaseStrategy", "BasicConsolidation",
-           "OutletTempControl", "DummyStrategy", "DummyWithScorer",
-           "VMWorkloadConsolidation", "WorkloadBalance",
-           "WorkloadStabilization", "UniformAirflow", "NoisyNeighbor",
-           "SavingEnergy", "StorageCapacityBalance", "ZoneMigration",
-           "HostMaintenance", "NodeResourceConsolidation")
+__all__ = (
+    "Actuator",
+    "BaseStrategy",
+    "BasicConsolidation",
+    "OutletTempControl",
+    "DummyStrategy",
+    "DummyWithScorer",
+    "VMWorkloadConsolidation",
+    "WorkloadBalance",
+    "WorkloadStabilization",
+    "UniformAirflow",
+    "NoisyNeighbor",
+    "SavingEnergy",
+    "StorageCapacityBalance",
+    "ZoneMigration",
+    "HostMaintenance",
+    "NodeResourceConsolidation",
+)

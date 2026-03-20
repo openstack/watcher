@@ -24,25 +24,25 @@ from watcher.tests.unit import base
 
 
 class TestDefaultGoalLoader(base.TestCase):
-
     def setUp(self):
         super().setUp()
         self.goal_loader = default_loading.DefaultGoalLoader()
 
     def test_load_goal_with_empty_model(self):
-        self.assertRaises(
-            exception.LoadingError, self.goal_loader.load, None)
+        self.assertRaises(exception.LoadingError, self.goal_loader.load, None)
 
     def test_goal_loader(self):
         dummy_goal_name = "dummy"
         # Set up the fake Stevedore extensions
         fake_extmanager_call = extension.ExtensionManager.make_test_instance(
-            extensions=[extension.Extension(
-                name=dummy_goal_name,
-                entry_point=f"{goals.Dummy.__module__}:{goals.Dummy.__name__}",
-                plugin=goals.Dummy,
-                obj=None,
-            )],
+            extensions=[
+                extension.Extension(
+                    name=dummy_goal_name,
+                    entry_point=f"{goals.Dummy.__module__}:{goals.Dummy.__name__}",
+                    plugin=goals.Dummy,
+                    obj=None,
+                )
+            ],
             namespace="watcher_goals",
         )
 
@@ -60,15 +60,13 @@ class TestDefaultGoalLoader(base.TestCase):
 
 
 class TestLoadGoalsWithDefaultGoalLoader(base.TestCase):
-
     goal_loader = default_loading.DefaultGoalLoader()
 
     # test matrix (1 test execution per goal entry point)
     scenarios = [
-        (goal_name,
-         {"goal_name": goal_name, "goal_cls": goal_cls})
-        for goal_name, goal_cls
-        in goal_loader.list_available().items()]
+        (goal_name, {"goal_name": goal_name, "goal_cls": goal_cls})
+        for goal_name, goal_cls in goal_loader.list_available().items()
+    ]
 
     def test_load_goals(self):
         goal = self.goal_loader.load(self.goal_name)

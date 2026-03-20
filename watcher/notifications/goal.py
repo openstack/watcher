@@ -27,7 +27,6 @@ class GoalPayload(notificationbase.NotificationPayloadBase):
         'name': ('goal', 'name'),
         'display_name': ('goal', 'display_name'),
         'efficacy_specification': ('goal', 'efficacy_specification'),
-
         'created_at': ('goal', 'created_at'),
         'updated_at': ('goal', 'updated_at'),
         'deleted_at': ('goal', 'deleted_at'),
@@ -41,7 +40,6 @@ class GoalPayload(notificationbase.NotificationPayloadBase):
         'name': wfields.StringField(),
         'display_name': wfields.StringField(),
         'efficacy_specification': wfields.FlexibleListOfDictField(),
-
         'created_at': wfields.DateTimeField(nullable=True),
         'updated_at': wfields.DateTimeField(nullable=True),
         'deleted_at': wfields.DateTimeField(nullable=True),

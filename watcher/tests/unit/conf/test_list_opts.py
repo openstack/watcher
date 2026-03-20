@@ -30,17 +30,32 @@ class TestListOpts(base.TestCase):
         super().setUp()
         # These option groups will be registered using strings instead of
         # OptGroup objects this should be avoided if possible.
-        self.none_objects = ['DEFAULT', 'watcher_clients_auth',
-                             'watcher_strategies.strategy_1']
+        self.none_objects = [
+            'DEFAULT',
+            'watcher_clients_auth',
+            'watcher_strategies.strategy_1',
+        ]
 
         self.base_sections = [
-            'DEFAULT', 'api', 'database', 'watcher_decision_engine',
-            'watcher_applier', 'watcher_datasources', 'watcher_planner',
-            'nova_client', 'gnocchi_client', 'grafana_client',
-            'grafana_translators', 'cinder_client',
-            'ironic_client', 'keystone_client',
-            'neutron_client', 'watcher_clients_auth', 'collector',
-            'placement_client']
+            'DEFAULT',
+            'api',
+            'database',
+            'watcher_decision_engine',
+            'watcher_applier',
+            'watcher_datasources',
+            'watcher_planner',
+            'nova_client',
+            'gnocchi_client',
+            'grafana_client',
+            'grafana_translators',
+            'cinder_client',
+            'ironic_client',
+            'keystone_client',
+            'neutron_client',
+            'watcher_clients_auth',
+            'collector',
+            'placement_client',
+        ]
         self.opt_sections = list(dict(opts.list_opts()).keys())
 
     def _assert_name_or_group(self, actual_sections, expected_sections):
@@ -56,7 +71,8 @@ class TestListOpts(base.TestCase):
                 # new groups should use OptGroup
                 raise Exception(
                     f"Invalid option group: {section_name} should be of "
-                    "type OptGroup not string.")
+                    "type OptGroup not string."
+                )
 
         self.assertIn(section_name, expected_sections)
         self.assertTrue(len(options))
@@ -75,14 +91,17 @@ class TestListOpts(base.TestCase):
         expected_sections = self.base_sections
         # Set up the fake Stevedore extensions
         fake_extmanager_call = extension.ExtensionManager.make_test_instance(
-            extensions=[extension.Extension(
-                name=fake_strategies.FakeDummy1Strategy2.get_name(),
-                entry_point=(
-                    f"{fake_strategies.FakeDummy1Strategy2.__module__}:"
-                    f"{fake_strategies.FakeDummy1Strategy2.__name__}"),
-                plugin=fake_strategies.FakeDummy1Strategy2,
-                obj=None,
-            )],
+            extensions=[
+                extension.Extension(
+                    name=fake_strategies.FakeDummy1Strategy2.get_name(),
+                    entry_point=(
+                        f"{fake_strategies.FakeDummy1Strategy2.__module__}:"
+                        f"{fake_strategies.FakeDummy1Strategy2.__name__}"
+                    ),
+                    plugin=fake_strategies.FakeDummy1Strategy2,
+                    obj=None,
+                )
+            ],
             namespace="watcher_strategies",
         )
 
@@ -91,7 +110,8 @@ class TestListOpts(base.TestCase):
                 return fake_extmanager_call
             else:
                 return extension.ExtensionManager.make_test_instance(
-                    extensions=[], namespace=namespace)
+                    extensions=[], namespace=namespace
+                )
 
         with mock.patch.object(extension, "ExtensionManager") as m_ext_manager:
             m_ext_manager.side_effect = m_list_available
@@ -102,17 +122,21 @@ class TestListOpts(base.TestCase):
 
     def test_list_opts_with_opts(self):
         expected_sections = self.base_sections + [
-            'watcher_strategies.strategy_1']
+            'watcher_strategies.strategy_1'
+        ]
         # Set up the fake Stevedore extensions
         fake_extmanager_call = extension.ExtensionManager.make_test_instance(
-            extensions=[extension.Extension(
-                name=fake_strategies.FakeDummy1Strategy1.get_name(),
-                entry_point=(
-                    f"{fake_strategies.FakeDummy1Strategy1.__module__}:"
-                    f"{fake_strategies.FakeDummy1Strategy1.__name__}"),
-                plugin=fake_strategies.FakeDummy1Strategy1,
-                obj=None,
-            )],
+            extensions=[
+                extension.Extension(
+                    name=fake_strategies.FakeDummy1Strategy1.get_name(),
+                    entry_point=(
+                        f"{fake_strategies.FakeDummy1Strategy1.__module__}:"
+                        f"{fake_strategies.FakeDummy1Strategy1.__name__}"
+                    ),
+                    plugin=fake_strategies.FakeDummy1Strategy1,
+                    obj=None,
+                )
+            ],
             namespace="watcher_strategies",
         )
 
@@ -121,7 +145,8 @@ class TestListOpts(base.TestCase):
                 return fake_extmanager_call
             else:
                 return extension.ExtensionManager.make_test_instance(
-                    extensions=[], namespace=namespace)
+                    extensions=[], namespace=namespace
+                )
 
         with mock.patch.object(extension, "ExtensionManager") as m_ext_manager:
             m_ext_manager.side_effect = m_list_available
@@ -136,18 +161,20 @@ class TestListOpts(base.TestCase):
 
 
 class TestPlugins(base.TestCase):
-
     def test_show_plugins(self):
         # Set up the fake Stevedore extensions
         fake_extmanager_call = extension.ExtensionManager.make_test_instance(
-            extensions=[extension.Extension(
-                name=fake_strategies.FakeDummy1Strategy1.get_name(),
-                entry_point=(
-                    f"{fake_strategies.FakeDummy1Strategy1.__module__}:"
-                    f"{fake_strategies.FakeDummy1Strategy1.__name__}"),
-                plugin=fake_strategies.FakeDummy1Strategy1,
-                obj=None,
-            )],
+            extensions=[
+                extension.Extension(
+                    name=fake_strategies.FakeDummy1Strategy1.get_name(),
+                    entry_point=(
+                        f"{fake_strategies.FakeDummy1Strategy1.__module__}:"
+                        f"{fake_strategies.FakeDummy1Strategy1.__name__}"
+                    ),
+                    plugin=fake_strategies.FakeDummy1Strategy1,
+                    obj=None,
+                )
+            ],
             namespace="watcher_strategies",
         )
 
@@ -156,7 +183,8 @@ class TestPlugins(base.TestCase):
                 return fake_extmanager_call
             else:
                 return extension.ExtensionManager.make_test_instance(
-                    extensions=[], namespace=namespace)
+                    extensions=[], namespace=namespace
+                )
 
         with mock.patch.object(extension, "ExtensionManager") as m_ext_manager:
             with mock.patch.object(
@@ -165,6 +193,12 @@ class TestPlugins(base.TestCase):
                 m_ext_manager.side_effect = m_list_available
                 plugins.show_plugins()
                 m_show.assert_called_once_with(
-                    [('watcher_strategies.strategy_1', 'strategy_1',
-                      'watcher.tests.unit.decision_engine.'
-                      'fake_strategies.FakeDummy1Strategy1')])
+                    [
+                        (
+                            'watcher_strategies.strategy_1',
+                            'strategy_1',
+                            'watcher.tests.unit.decision_engine.'
+                            'fake_strategies.FakeDummy1Strategy1',
+                        )
+                    ]
+                )

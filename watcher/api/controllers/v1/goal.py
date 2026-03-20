@@ -93,14 +93,16 @@ class Goal(base.APIBase):
     @staticmethod
     def _convert_with_links(goal, url, expand=True):
         if not expand:
-            goal.unset_fields_except(['uuid', 'name', 'display_name',
-                                      'efficacy_specification'])
+            goal.unset_fields_except(
+                ['uuid', 'name', 'display_name', 'efficacy_specification']
+            )
 
-        goal.links = [link.Link.make_link('self', url,
-                                          'goals', goal.uuid),
-                      link.Link.make_link('bookmark', url,
-                                          'goals', goal.uuid,
-                                          bookmark=True)]
+        goal.links = [
+            link.Link.make_link('self', url, 'goals', goal.uuid),
+            link.Link.make_link(
+                'bookmark', url, 'goals', goal.uuid, bookmark=True
+            ),
+        ]
         return goal
 
     @classmethod
@@ -116,11 +118,15 @@ class Goal(base.APIBase):
             name='DUMMY',
             display_name='Dummy strategy',
             efficacy_specification=[
-                {'description': 'Dummy indicator', 'name': 'dummy',
-                 'schema': 'Range(min=0, max=100, min_included=True, '
-                           'max_included=True, msg=None)',
-                 'unit': '%'}
-            ])
+                {
+                    'description': 'Dummy indicator',
+                    'name': 'dummy',
+                    'schema': 'Range(min=0, max=100, min_included=True, '
+                    'max_included=True, msg=None)',
+                    'unit': '%',
+                }
+            ],
+        )
         return cls._convert_with_links(sample, 'http://localhost:9322', expand)
 
 
@@ -135,13 +141,14 @@ class GoalCollection(collection.Collection):
         self._type = 'goals'
 
     @staticmethod
-    def convert_with_links(goals, limit, url=None, expand=False,
-                           **kwargs):
+    def convert_with_links(goals, limit, url=None, expand=False, **kwargs):
         goal_collection = GoalCollection()
         goal_collection.goals = [
-            Goal.convert_with_links(g, expand) for g in goals]
+            Goal.convert_with_links(g, expand) for g in goals
+        ]
         goal_collection.next = goal_collection.get_next(
-            limit, url=url, **kwargs)
+            limit, url=url, **kwargs
+        )
         return goal_collection
 
     @classmethod
@@ -157,36 +164,49 @@ class GoalsController(rest.RestController):
     def __init__(self):
         super().__init__()
 
-    _custom_actions = {
-        'detail': ['GET'],
-    }
+    _custom_actions = {'detail': ['GET']}
 
-    def _get_goals_collection(self, marker, limit, sort_key, sort_dir,
-                              expand=False, resource_url=None):
-        api_utils.validate_sort_key(
-            sort_key, list(objects.Goal.fields))
+    def _get_goals_collection(
+        self,
+        marker,
+        limit,
+        sort_key,
+        sort_dir,
+        expand=False,
+        resource_url=None,
+    ):
+        api_utils.validate_sort_key(sort_key, list(objects.Goal.fields))
         limit = api_utils.validate_limit(limit)
         api_utils.validate_sort_dir(sort_dir)
 
         marker_obj = None
         if marker:
             marker_obj = objects.Goal.get_by_uuid(
-                pecan.request.context, marker)
+                pecan.request.context, marker
+            )
 
-        sort_db_key = (sort_key if sort_key in objects.Goal.fields
-                       else None)
+        sort_db_key = sort_key if sort_key in objects.Goal.fields else None
 
-        goals = objects.Goal.list(pecan.request.context, limit, marker_obj,
-                                  sort_key=sort_db_key, sort_dir=sort_dir)
+        goals = objects.Goal.list(
+            pecan.request.context,
+            limit,
+            marker_obj,
+            sort_key=sort_db_key,
+            sort_dir=sort_dir,
+        )
 
-        return GoalCollection.convert_with_links(goals, limit,
-                                                 url=resource_url,
-                                                 expand=expand,
-                                                 sort_key=sort_key,
-                                                 sort_dir=sort_dir)
+        return GoalCollection.convert_with_links(
+            goals,
+            limit,
+            url=resource_url,
+            expand=expand,
+            sort_key=sort_key,
+            sort_dir=sort_dir,
+        )
 
-    @wsme_pecan.wsexpose(GoalCollection, wtypes.text,
-                         int, wtypes.text, wtypes.text)
+    @wsme_pecan.wsexpose(
+        GoalCollection, wtypes.text, int, wtypes.text, wtypes.text
+    )
     def get_all(self, marker=None, limit=None, sort_key='id', sort_dir='asc'):
         """Retrieve a list of goals.
 
@@ -196,12 +216,12 @@ class GoalsController(rest.RestController):
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         """
         context = pecan.request.context
-        policy.enforce(context, 'goal:get_all',
-                       action='goal:get_all')
+        policy.enforce(context, 'goal:get_all', action='goal:get_all')
         return self._get_goals_collection(marker, limit, sort_key, sort_dir)
 
-    @wsme_pecan.wsexpose(GoalCollection, wtypes.text, int,
-                         wtypes.text, wtypes.text)
+    @wsme_pecan.wsexpose(
+        GoalCollection, wtypes.text, int, wtypes.text, wtypes.text
+    )
     def detail(self, marker=None, limit=None, sort_key='id', sort_dir='asc'):
         """Retrieve a list of goals with detail.
 
@@ -211,16 +231,16 @@ class GoalsController(rest.RestController):
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         """
         context = pecan.request.context
-        policy.enforce(context, 'goal:detail',
-                       action='goal:detail')
+        policy.enforce(context, 'goal:detail', action='goal:detail')
         # NOTE(lucasagomes): /detail should only work against collections
         parent = pecan.request.path.split('/')[:-1][-1]
         if parent != "goals":
             raise exception.HTTPNotFound
         expand = True
         resource_url = '/'.join(['goals', 'detail'])
-        return self._get_goals_collection(marker, limit, sort_key, sort_dir,
-                                          expand, resource_url)
+        return self._get_goals_collection(
+            marker, limit, sort_key, sort_dir, expand, resource_url
+        )
 
     @wsme_pecan.wsexpose(Goal, wtypes.text)
     def get_one(self, goal):

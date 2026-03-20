@@ -21,17 +21,18 @@ from watcher.tests.unit.api import base
 
 
 class TestRoot(base.FunctionalTest):
-
     def test_config_enable_webhooks_auth(self):
         acl_public_routes = ['/']
         cfg.CONF.set_override('enable_webhooks_auth', True, 'api')
         importlib.reload(api_config)
-        self.assertEqual(acl_public_routes,
-                         api_config.app['acl_public_routes'])
+        self.assertEqual(
+            acl_public_routes, api_config.app['acl_public_routes']
+        )
 
     def test_config_disable_webhooks_auth(self):
         acl_public_routes = ['/', '/v1/webhooks/.*']
         cfg.CONF.set_override('enable_webhooks_auth', False, 'api')
         importlib.reload(api_config)
-        self.assertEqual(acl_public_routes,
-                         api_config.app['acl_public_routes'])
+        self.assertEqual(
+            acl_public_routes, api_config.app['acl_public_routes']
+        )

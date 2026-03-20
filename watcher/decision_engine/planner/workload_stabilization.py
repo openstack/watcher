@@ -67,13 +67,13 @@ class WorkloadStabilizationPlanner(base.BasePlanner):
             cfg.DictOpt(
                 'weights',
                 help="These weights are used to schedule the actions",
-                default=cls.weights_dict),
+                default=cls.weights_dict,
+            )
         ]
 
-    def create_action(self,
-                      action_plan_id,
-                      action_type,
-                      input_parameters=None):
+    def create_action(
+        self, action_plan_id, action_type, input_parameters=None
+    ):
         uuid = utils.generate_uuid()
         action = {
             'uuid': uuid,
@@ -81,7 +81,7 @@ class WorkloadStabilizationPlanner(base.BasePlanner):
             'action_type': action_type,
             'input_parameters': input_parameters,
             'state': objects.action.State.PENDING,
-            'parents': None
+            'parents': None,
         }
 
         return action
@@ -103,16 +103,20 @@ class WorkloadStabilizationPlanner(base.BasePlanner):
             json_action = self.create_action(
                 action_plan_id=action_plan.id,
                 action_type=action.get('action_type'),
-                input_parameters=action.get('input_parameters'))
-            to_schedule.append((weights[action.get('action_type')],
-                                json_action))
+                input_parameters=action.get('input_parameters'),
+            )
+            to_schedule.append(
+                (weights[action.get('action_type')], json_action)
+            )
 
         self._create_efficacy_indicators(
-            context, action_plan.id, solution.efficacy_indicators)
+            context, action_plan.id, solution.efficacy_indicators
+        )
 
         # scheduling
-        scheduled = sorted(to_schedule, key=lambda weight: (weight[0]),
-                           reverse=True)
+        scheduled = sorted(
+            to_schedule, key=lambda weight: (weight[0]), reverse=True
+        )
         if len(scheduled) == 0:
             LOG.warning("The action plan is empty")
             action_plan.state = objects.action_plan.State.SUCCEEDED
@@ -124,13 +128,16 @@ class WorkloadStabilizationPlanner(base.BasePlanner):
                 a_type = action['action_type']
                 if a_type != 'turn_host_to_acpi_s3_state':
                     plugin_action = self.load_child_class(
-                        action.get("action_type"))
+                        action.get("action_type")
+                    )
                     if not plugin_action:
                         raise exception.UnsupportedActionType(
-                            action_type=action.get("action_type"))
+                            action_type=action.get("action_type")
+                        )
                     db_action = self._create_action(context, action)
                     parents = plugin_action.validate_parents(
-                        resource_action_map, action)
+                        resource_action_map, action
+                    )
                     if parents:
                         db_action.parents = parents
                         db_action.save()
@@ -146,23 +153,37 @@ class WorkloadStabilizationPlanner(base.BasePlanner):
                     host_actions = resource_action_map.get(host_to_acpi_s3)
                     action_parents = []
                     if host_actions:
-                        resize_actions = [x[0] for x in host_actions
-                                          if x[1] == 'resize']
-                        migrate_actions = [x[0] for x in host_actions
-                                           if x[1] == 'migrate']
+                        resize_actions = [
+                            x[0] for x in host_actions if x[1] == 'resize'
+                        ]
+                        migrate_actions = [
+                            x[0] for x in host_actions if x[1] == 'migrate'
+                        ]
                         resize_migration_parents = [
-                            x.parents for x in
-                            [objects.Action.get_by_uuid(context, resize_action)
-                             for resize_action in resize_actions]]
+                            x.parents
+                            for x in [
+                                objects.Action.get_by_uuid(
+                                    context, resize_action
+                                )
+                                for resize_action in resize_actions
+                            ]
+                        ]
                         # resize_migration_parents should be one level list
                         resize_migration_parents = [
-                            parent for sublist in resize_migration_parents
-                            for parent in sublist]
-                        action_parents.extend([uuid for uuid in
-                                               resize_actions])
-                        action_parents.extend([uuid for uuid in
-                                              migrate_actions if uuid not in
-                                              resize_migration_parents])
+                            parent
+                            for sublist in resize_migration_parents
+                            for parent in sublist
+                        ]
+                        action_parents.extend(
+                            [uuid for uuid in resize_actions]
+                        )
+                        action_parents.extend(
+                            [
+                                uuid
+                                for uuid in migrate_actions
+                                if uuid not in resize_migration_parents
+                            ]
+                        )
                     db_action = self._create_action(context, action)
                     db_action.parents = action_parents
                     db_action.save()
@@ -171,7 +192,8 @@ class WorkloadStabilizationPlanner(base.BasePlanner):
 
     def _create_action_plan(self, context, audit_id, solution):
         strategy = objects.Strategy.get_by_name(
-            context, solution.strategy.name)
+            context, solution.strategy.name
+        )
 
         action_plan_dict = {
             'uuid': utils.generate_uuid(),
@@ -198,7 +220,8 @@ class WorkloadStabilizationPlanner(base.BasePlanner):
                 'action_plan_id': action_plan_id,
             }
             new_efficacy_indicator = objects.EfficacyIndicator(
-                context, **efficacy_indicator_dict)
+                context, **efficacy_indicator_dict
+            )
             new_efficacy_indicator.create()
 
             efficacy_indicators.append(new_efficacy_indicator)
@@ -206,8 +229,10 @@ class WorkloadStabilizationPlanner(base.BasePlanner):
 
     def _create_action(self, context, _action):
         try:
-            LOG.debug("Creating the %s in the Watcher database",
-                      _action.get("action_type"))
+            LOG.debug(
+                "Creating the %s in the Watcher database",
+                _action.get("action_type"),
+            )
 
             new_action = objects.Action(context, **_action)
             new_action.create()
@@ -235,14 +260,13 @@ class BaseActionValidator:
     def validate_parents(self, resource_action_map, action):
         raise NotImplementedError()
 
-    def _mapping(self, resource_action_map, resource_id, action_uuid,
-                 action_type):
+    def _mapping(
+        self, resource_action_map, resource_id, action_uuid, action_type
+    ):
         if resource_id not in resource_action_map:
-            resource_action_map[resource_id] = [(action_uuid,
-                                                 action_type,)]
+            resource_action_map[resource_id] = [(action_uuid, action_type)]
         else:
-            resource_action_map[resource_id].append((action_uuid,
-                                                     action_type,))
+            resource_action_map[resource_id].append((action_uuid, action_type))
 
 
 class MigrationActionValidator(BaseActionValidator):
@@ -251,10 +275,12 @@ class MigrationActionValidator(BaseActionValidator):
     def validate_parents(self, resource_action_map, action):
         instance_uuid = action['input_parameters']['resource_id']
         host_name = action['input_parameters']['source_node']
-        self._mapping(resource_action_map, instance_uuid, action['uuid'],
-                      'migrate')
-        self._mapping(resource_action_map, host_name, action['uuid'],
-                      'migrate')
+        self._mapping(
+            resource_action_map, instance_uuid, action['uuid'], 'migrate'
+        )
+        self._mapping(
+            resource_action_map, host_name, action['uuid'], 'migrate'
+        )
 
 
 class ResizeActionValidator(BaseActionValidator):
@@ -265,9 +291,11 @@ class ResizeActionValidator(BaseActionValidator):
         instance_uuid = action['input_parameters']['resource_id']
         parent_actions = resource_action_map.get(instance_uuid)
         host_of_instance = nova.get_hostname(
-            nova.get_instance_by_uuid(instance_uuid))
-        self._mapping(resource_action_map, host_of_instance, action['uuid'],
-                      'resize')
+            nova.get_instance_by_uuid(instance_uuid)
+        )
+        self._mapping(
+            resource_action_map, host_of_instance, action['uuid'], 'resize'
+        )
         if parent_actions:
             return [x[0] for x in parent_actions]
         else:
@@ -279,8 +307,12 @@ class ChangeNovaServiceStateActionValidator(BaseActionValidator):
 
     def validate_parents(self, resource_action_map, action):
         host_name = action['input_parameters']['resource_id']
-        self._mapping(resource_action_map, host_name, action['uuid'],
-                      'change_nova_service_state')
+        self._mapping(
+            resource_action_map,
+            host_name,
+            action['uuid'],
+            'change_nova_service_state',
+        )
         return []
 
 

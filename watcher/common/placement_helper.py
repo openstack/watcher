@@ -24,7 +24,6 @@ LOG = logging.getLogger(__name__)
 
 
 class PlacementHelper:
-
     def __init__(self, osc=None):
         """:param osc: an OpenStackClients instance"""
         self.osc = osc if osc else clients.OpenStackClients()
@@ -83,8 +82,10 @@ class PlacementHelper:
         if resp.status_code == HTTPStatus.OK:
             json = resp.json()
             return json['inventories']
-        msg = ("Failed to get resource provider %(rp_uuid)s inventories. "
-               "Got %(status_code)d: %(err_text)s.")
+        msg = (
+            "Failed to get resource provider %(rp_uuid)s inventories. "
+            "Got %(status_code)d: %(err_text)s."
+        )
         args = {
             'rp_uuid': rp_uuid,
             'status_code': resp.status_code,
@@ -103,8 +104,10 @@ class PlacementHelper:
         if resp.status_code == HTTPStatus.OK:
             json = resp.json()
             return json['traits']
-        msg = ("Failed to get resource provider %(rp_uuid)s traits. "
-               "Got %(status_code)d: %(err_text)s.")
+        msg = (
+            "Failed to get resource provider %(rp_uuid)s traits. "
+            "Got %(status_code)d: %(err_text)s."
+        )
         args = {
             'rp_uuid': rp_uuid,
             'status_code': resp.status_code,
@@ -124,8 +127,10 @@ class PlacementHelper:
         if resp.status_code == HTTPStatus.OK:
             json = resp.json()
             return json['allocations']
-        msg = ("Failed to get allocations for consumer %(c_uuid)s. "
-               "Got %(status_code)d: %(err_text)s.")
+        msg = (
+            "Failed to get allocations for consumer %(c_uuid)s. "
+            "Got %(status_code)d: %(err_text)s."
+        )
         args = {
             'c_uuid': consumer_uuid,
             'status_code': resp.status_code,
@@ -145,8 +150,10 @@ class PlacementHelper:
         if resp.status_code == HTTPStatus.OK:
             json = resp.json()
             return json['usages']
-        msg = ("Failed to get resource provider %(rp_uuid)s usages. "
-               "Got %(status_code)d: %(err_text)s.")
+        msg = (
+            "Failed to get resource provider %(rp_uuid)s usages. "
+            "Got %(status_code)d: %(err_text)s."
+        )
         args = {
             'rp_uuid': rp_uuid,
             'status_code': resp.status_code,
@@ -176,7 +183,9 @@ class PlacementHelper:
             'status_code': resp.status_code,
             'err_text': self.get_error_msg(resp),
         }
-        msg = ("Failed to get allocation candidates from placement "
-               "API for resources: %(resource_request)s\n"
-               "Got %(status_code)d: %(err_text)s.")
+        msg = (
+            "Failed to get allocation candidates from placement "
+            "API for resources: %(resource_request)s\n"
+            "Got %(status_code)d: %(err_text)s."
+        )
         LOG.error(msg, args)

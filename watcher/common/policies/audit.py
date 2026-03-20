@@ -22,68 +22,38 @@ rules = [
         name=AUDIT % 'create',
         check_str=base.RULE_ADMIN_API,
         description='Create a new audit.',
-        operations=[
-            {
-                'path': '/v1/audits',
-                'method': 'POST'
-            }
-        ]
+        operations=[{'path': '/v1/audits', 'method': 'POST'}],
     ),
     policy.DocumentedRuleDefault(
         name=AUDIT % 'delete',
         check_str=base.RULE_ADMIN_API,
         description='Delete an audit.',
-        operations=[
-            {
-                'path': '/v1/audits/{audit_uuid}',
-                'method': 'DELETE'
-            }
-        ]
+        operations=[{'path': '/v1/audits/{audit_uuid}', 'method': 'DELETE'}],
     ),
     policy.DocumentedRuleDefault(
         name=AUDIT % 'detail',
         check_str=base.RULE_ADMIN_API,
         description='Retrieve audit list with details.',
-        operations=[
-            {
-                'path': '/v1/audits/detail',
-                'method': 'GET'
-            }
-        ]
+        operations=[{'path': '/v1/audits/detail', 'method': 'GET'}],
     ),
     policy.DocumentedRuleDefault(
         name=AUDIT % 'get',
         check_str=base.RULE_ADMIN_API,
         description='Get an audit.',
-        operations=[
-            {
-                'path': '/v1/audits/{audit_uuid}',
-                'method': 'GET'
-            }
-        ]
+        operations=[{'path': '/v1/audits/{audit_uuid}', 'method': 'GET'}],
     ),
     policy.DocumentedRuleDefault(
         name=AUDIT % 'get_all',
         check_str=base.RULE_ADMIN_API,
         description='Get all audits.',
-        operations=[
-            {
-                'path': '/v1/audits',
-                'method': 'GET'
-            }
-        ]
+        operations=[{'path': '/v1/audits', 'method': 'GET'}],
     ),
     policy.DocumentedRuleDefault(
         name=AUDIT % 'update',
         check_str=base.RULE_ADMIN_API,
         description='Update an audit.',
-        operations=[
-            {
-                'path': '/v1/audits/{audit_uuid}',
-                'method': 'PATCH'
-            }
-        ]
-    )
+        operations=[{'path': '/v1/audits/{audit_uuid}', 'method': 'PATCH'}],
+    ),
 ]
 
 

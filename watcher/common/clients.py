@@ -50,10 +50,12 @@ warnings.simplefilter("once")
 
 
 def get_sdk_connection(
-        conf_group: str, session: ka_session.Session | None = None,
-        context: context.RequestContext | None = None,
-        interface: str | None = None, region_name: str | None = None
-        ) -> connection.Connection:
+    conf_group: str,
+    session: ka_session.Session | None = None,
+    context: context.RequestContext | None = None,
+    interface: str | None = None,
+    region_name: str | None = None,
+) -> connection.Connection:
     """Create and return an OpenStackSDK Connection object.
 
     :param conf_group: String name of the conf group to get connection
@@ -70,9 +72,7 @@ def get_sdk_connection(
     # been loaded before. The auth plugin is only used when creating a new
     # session, but we need to ensure the auth_url config value is set to use
     # the user token from the context object
-    auth = ka_loading.load_auth_from_conf_options(
-        CONF, conf_group
-    )
+    auth = ka_loading.load_auth_from_conf_options(CONF, conf_group)
     if context is not None:
         if interface is None:
             if "valid_interfaces" in CONF[conf_group]:
@@ -90,7 +90,7 @@ def get_sdk_connection(
             project_domain_id=context.project_domain_id,
             auth_url=CONF[conf_group].auth_url,
             region_name=region_name,
-            interface=interface
+            interface=interface,
         )
         return conn
 
@@ -116,8 +116,10 @@ def check_min_nova_api_version(config_version):
     )
 
     if microversion_parse.parse_version_string(config_version) < min_required:
-        raise ValueError(f'Invalid nova.api_version {config_version}. '
-                         f'{MIN_NOVA_API_VERSION} or greater is required.')
+        raise ValueError(
+            f'Invalid nova.api_version {config_version}. '
+            f'{MIN_NOVA_API_VERSION} or greater is required.'
+        )
 
 
 class OpenStackClients:
@@ -136,11 +138,12 @@ class OpenStackClients:
         self._placement = None
 
     def _get_keystone_session(self):
-        auth = ka_loading.load_auth_from_conf_options(CONF,
-                                                      _CLIENTS_AUTH_GROUP)
-        sess = ka_loading.load_session_from_conf_options(CONF,
-                                                         _CLIENTS_AUTH_GROUP,
-                                                         auth=auth)
+        auth = ka_loading.load_auth_from_conf_options(
+            CONF, _CLIENTS_AUTH_GROUP
+        )
+        sess = ka_loading.load_session_from_conf_options(
+            CONF, _CLIENTS_AUTH_GROUP, auth=auth
+        )
         return sess
 
     @property
@@ -160,14 +163,15 @@ class OpenStackClients:
     def keystone(self):
         if self._keystone:
             return self._keystone
-        keystone_interface = self._get_client_option('keystone',
-                                                     'interface')
-        keystone_region_name = self._get_client_option('keystone',
-                                                       'region_name')
+        keystone_interface = self._get_client_option('keystone', 'interface')
+        keystone_region_name = self._get_client_option(
+            'keystone', 'region_name'
+        )
         self._keystone = keyclient.Client(
             interface=keystone_interface,
             region_name=keystone_region_name,
-            session=self.session)
+            session=self.session,
+        )
 
         return self._keystone
 
@@ -176,20 +180,25 @@ class OpenStackClients:
         if self._gnocchi:
             return self._gnocchi
 
-        gnocchiclient_version = self._get_client_option('gnocchi',
-                                                        'api_version')
-        gnocchiclient_interface = self._get_client_option('gnocchi',
-                                                          'endpoint_type')
-        gnocchiclient_region_name = self._get_client_option('gnocchi',
-                                                            'region_name')
+        gnocchiclient_version = self._get_client_option(
+            'gnocchi', 'api_version'
+        )
+        gnocchiclient_interface = self._get_client_option(
+            'gnocchi', 'endpoint_type'
+        )
+        gnocchiclient_region_name = self._get_client_option(
+            'gnocchi', 'region_name'
+        )
         adapter_options = {
             "interface": gnocchiclient_interface,
-            "region_name": gnocchiclient_region_name
+            "region_name": gnocchiclient_region_name,
         }
 
-        self._gnocchi = gnclient.Client(gnocchiclient_version,
-                                        adapter_options=adapter_options,
-                                        session=self.session)
+        self._gnocchi = gnclient.Client(
+            gnocchiclient_version,
+            adapter_options=adapter_options,
+            session=self.session,
+        )
         return self._gnocchi
 
     @exception.wrap_keystone_exception
@@ -198,13 +207,16 @@ class OpenStackClients:
             return self._cinder
 
         cinderclient_version = self._get_client_option('cinder', 'api_version')
-        cinder_endpoint_type = self._get_client_option('cinder',
-                                                       'endpoint_type')
+        cinder_endpoint_type = self._get_client_option(
+            'cinder', 'endpoint_type'
+        )
         cinder_region_name = self._get_client_option('cinder', 'region_name')
-        self._cinder = ciclient.Client(cinderclient_version,
-                                       endpoint_type=cinder_endpoint_type,
-                                       region_name=cinder_region_name,
-                                       session=self.session)
+        self._cinder = ciclient.Client(
+            cinderclient_version,
+            endpoint_type=cinder_endpoint_type,
+            region_name=cinder_region_name,
+            session=self.session,
+        )
         return self._cinder
 
     @exception.wrap_keystone_exception
@@ -216,17 +228,23 @@ class OpenStackClients:
         # the lack of documentation and CI testing. It can be marked as
         # supported or deprecated in future releases, based on improvements.
         debtcollector.deprecate(
-            ("Ironic is an experimental integration and may be "
-             "deprecated in future releases."),
-            version="2025.2", category=PendingDeprecationWarning)
+            (
+                "Ironic is an experimental integration and may be "
+                "deprecated in future releases."
+            ),
+            version="2025.2",
+            category=PendingDeprecationWarning,
+        )
 
         ironicclient_version = self._get_client_option('ironic', 'api_version')
         endpoint_type = self._get_client_option('ironic', 'endpoint_type')
         ironic_region_name = self._get_client_option('ironic', 'region_name')
-        self._ironic = irclient.get_client(ironicclient_version,
-                                           interface=endpoint_type,
-                                           region_name=ironic_region_name,
-                                           session=self.session)
+        self._ironic = irclient.get_client(
+            ironicclient_version,
+            interface=endpoint_type,
+            region_name=ironic_region_name,
+            session=self.session,
+        )
         return self._ironic
 
     def maas(self):
@@ -237,20 +255,25 @@ class OpenStackClients:
         # maintenance and support. It has eventlet code that is required to be
         # removed/replaced in future releases.
         debtcollector.deprecate(
-            ("MAAS integration is deprecated and it will be removed in a "
-             "future release."), version="2026.1", category=DeprecationWarning)
+            (
+                "MAAS integration is deprecated and it will be removed in a "
+                "future release."
+            ),
+            version="2026.1",
+            category=DeprecationWarning,
+        )
 
         if not maas_client:
             raise exception.UnsupportedError(
-                "MAAS client unavailable. Please install python-libmaas.")
+                "MAAS client unavailable. Please install python-libmaas."
+            )
 
         url = self._get_client_option('maas', 'url')
         api_key = self._get_client_option('maas', 'api_key')
         timeout = self._get_client_option('maas', 'timeout')
         self._maas = utils.async_compat_call(
-            maas_client.connect,
-            url, apikey=api_key,
-            timeout=timeout)
+            maas_client.connect, url, apikey=api_key, timeout=timeout
+        )
         return self._maas
 
     @exception.wrap_keystone_exception
@@ -258,12 +281,11 @@ class OpenStackClients:
         if self._placement:
             return self._placement
 
-        placement_version = self._get_client_option('placement',
-                                                    'api_version')
-        placement_interface = self._get_client_option('placement',
-                                                      'interface')
-        placement_region_name = self._get_client_option('placement',
-                                                        'region_name')
+        placement_version = self._get_client_option('placement', 'api_version')
+        placement_interface = self._get_client_option('placement', 'interface')
+        placement_region_name = self._get_client_option(
+            'placement', 'region_name'
+        )
         # Set accept header on every request to ensure we notify placement
         # service of our response body media type preferences.
         headers = {'accept': 'application/json'}
@@ -273,6 +295,7 @@ class OpenStackClients:
             default_microversion=placement_version,
             interface=placement_interface,
             region_name=placement_region_name,
-            additional_headers=headers)
+            additional_headers=headers,
+        )
 
         return self._placement

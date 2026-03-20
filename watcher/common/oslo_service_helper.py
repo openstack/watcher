@@ -24,10 +24,10 @@ LOG = log.getLogger(__name__)
 def init_oslo_service_backend():
     if eventlet_helper.is_patched():
         backend.init_backend(backend.BackendType.EVENTLET)
-        LOG.warning(
-            "Service is starting with Eventlet based service backend.")
+        LOG.warning("Service is starting with Eventlet based service backend.")
     else:
         backend.init_backend(backend.BackendType.THREADING)
         LOG.warning(
             "Service is starting with Threading based service backend. "
-            "This is an experimental feature, do not use it in production.")
+            "This is an experimental feature, do not use it in production."
+        )

@@ -29,11 +29,14 @@ from watcher.tests.unit.decision_engine.strategy.strategies.test_base import (
 
 
 class TestUniformAirflow(TestBaseStrategy):
-
     scenarios = [
-        ("Gnocchi",
-         {"datasource": "gnocchi",
-          "fake_datasource_cls": gnocchi_metrics.FakeGnocchiMetrics}),
+        (
+            "Gnocchi",
+            {
+                "datasource": "gnocchi",
+                "fake_datasource_cls": gnocchi_metrics.FakeGnocchiMetrics,
+            },
+        )
     ]
 
     def setUp(self):
@@ -42,21 +45,29 @@ class TestUniformAirflow(TestBaseStrategy):
         self.fake_metrics = self.fake_datasource_cls()
 
         p_datasource = mock.patch.object(
-            strategies.UniformAirflow, 'datasource_backend',
-            new_callable=mock.PropertyMock)
+            strategies.UniformAirflow,
+            'datasource_backend',
+            new_callable=mock.PropertyMock,
+        )
         self.m_datasource = p_datasource.start()
         self.addCleanup(p_datasource.stop)
 
         self.m_datasource.return_value = mock.Mock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics,
-            NAME=self.fake_metrics.NAME)
+            NAME=self.fake_metrics.NAME,
+        )
         self.strategy = strategies.UniformAirflow(
-            config=mock.Mock(datasource=self.datasource))
+            config=mock.Mock(datasource=self.datasource)
+        )
         self.strategy.input_parameters = utils.Struct()
-        self.strategy.input_parameters.update({'threshold_airflow': 400.0,
-                                               'threshold_inlet_t': 28.0,
-                                               'threshold_power': 350.0,
-                                               'period': 300})
+        self.strategy.input_parameters.update(
+            {
+                'threshold_airflow': 400.0,
+                'threshold_inlet_t': 28.0,
+                'threshold_power': 350.0,
+                'period': 300,
+            }
+        )
         self.strategy.threshold_airflow = 400
         self.strategy.threshold_inlet_t = 28
         self.strategy.threshold_power = 350
@@ -68,7 +79,8 @@ class TestUniformAirflow(TestBaseStrategy):
         self.m_c_model.return_value = model
         node = model.get_node_by_uuid('Node_0')
         cores_used, mem_used, disk_used = (
-            self.strategy.calculate_used_resource(node))
+            self.strategy.calculate_used_resource(node)
+        )
         self.assertEqual((cores_used, mem_used, disk_used), (25, 4, 40))
 
     def test_group_hosts_by_airflow(self):
@@ -90,9 +102,13 @@ class TestUniformAirflow(TestBaseStrategy):
 
         self.assertEqual(instance_to_mig[0].uuid, 'Node_0')
         self.assertEqual(len(instance_to_mig[1]), 1)
-        self.assertIn(instance_to_mig[1][0].uuid,
-                      {'cae81432-1631-4d4e-b29c-6f3acdcde906',
-                       '73b09e16-35b7-4922-804e-e8f5d9b740fc'})
+        self.assertIn(
+            instance_to_mig[1][0].uuid,
+            {
+                'cae81432-1631-4d4e-b29c-6f3acdcde906',
+                '73b09e16-35b7-4922-804e-e8f5d9b740fc',
+            },
+        )
 
     def test_choose_instance_to_migrate_all(self):
         model = self.fake_c_cluster.generate_scenario_7_with_2_nodes()
@@ -104,9 +120,13 @@ class TestUniformAirflow(TestBaseStrategy):
 
         self.assertEqual(instance_to_mig[0].uuid, 'Node_0')
         self.assertEqual(len(instance_to_mig[1]), 2)
-        self.assertEqual({'cae81432-1631-4d4e-b29c-6f3acdcde906',
-                          '73b09e16-35b7-4922-804e-e8f5d9b740fc'},
-                         {inst.uuid for inst in instance_to_mig[1]})
+        self.assertEqual(
+            {
+                'cae81432-1631-4d4e-b29c-6f3acdcde906',
+                '73b09e16-35b7-4922-804e-e8f5d9b740fc',
+            },
+            {inst.uuid for inst in instance_to_mig[1]},
+        )
 
     def test_choose_instance_notfound(self):
         model = self.fake_c_cluster.generate_scenario_7_with_2_nodes()
@@ -127,20 +147,26 @@ class TestUniformAirflow(TestBaseStrategy):
         n1, n2 = self.strategy.group_hosts_by_airflow()
         instance_to_mig = self.strategy.choose_instance_to_migrate(n1)
         dest_hosts = self.strategy.filter_destination_hosts(
-            n2, instance_to_mig[1])
+            n2, instance_to_mig[1]
+        )
 
         self.assertEqual(len(dest_hosts), 1)
         self.assertEqual(dest_hosts[0]['node'].uuid, 'Node_1')
-        self.assertIn(instance_to_mig[1][0].uuid,
-                      {'cae81432-1631-4d4e-b29c-6f3acdcde906',
-                       '73b09e16-35b7-4922-804e-e8f5d9b740fc'})
+        self.assertIn(
+            instance_to_mig[1][0].uuid,
+            {
+                'cae81432-1631-4d4e-b29c-6f3acdcde906',
+                '73b09e16-35b7-4922-804e-e8f5d9b740fc',
+            },
+        )
 
     def test_execute_no_workload(self):
         self.strategy.threshold_airflow = 300
         self.strategy.threshold_inlet_t = 25
         self.strategy.threshold_power = 300
-        model = self.fake_c_cluster.\
-            generate_scenario_4_with_1_node_no_instance()
+        model = (
+            self.fake_c_cluster.generate_scenario_4_with_1_node_no_instance()
+        )
         self.m_c_model.return_value = model
         solution = self.strategy.execute()
         self.assertEqual([], solution.actions)
@@ -153,7 +179,8 @@ class TestUniformAirflow(TestBaseStrategy):
         self.m_c_model.return_value = model
         solution = self.strategy.execute()
         actions_counter = collections.Counter(
-            [action.get('action_type') for action in solution.actions])
+            [action.get('action_type') for action in solution.actions]
+        )
 
         num_migrations = actions_counter.get("migrate", 0)
         self.assertEqual(num_migrations, 2)

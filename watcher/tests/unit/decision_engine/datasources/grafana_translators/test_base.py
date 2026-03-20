@@ -52,7 +52,7 @@ class TestGrafanaTranslatorBase(base.BaseTestCase):
             'resource_type': 'compute_node',
             'period': '120',
             'aggregate': 'mean',
-            'granularity': None
+            'granularity': None,
         }
 
 
@@ -71,17 +71,21 @@ class TestBaseGrafanaTranslator(TestGrafanaTranslatorBase):
         """Initialize InfluxDBGrafanaTranslator and check data validation"""
 
         t_base_translator = base_translator.BaseGrafanaTranslator(
-            data=self.reference_data)
+            data=self.reference_data
+        )
 
-        self.assertIsInstance(t_base_translator,
-                              base_translator.BaseGrafanaTranslator)
+        self.assertIsInstance(
+            t_base_translator, base_translator.BaseGrafanaTranslator
+        )
 
     def test_validate_data_error(self):
         """Initialize InfluxDBGrafanaTranslator and check data validation"""
 
-        self.assertRaises(exception.InvalidParameter,
-                          base_translator.BaseGrafanaTranslator,
-                          data=[])
+        self.assertRaises(
+            exception.InvalidParameter,
+            base_translator.BaseGrafanaTranslator,
+            data=[],
+        )
 
     def test_extract_attribute(self):
         """Test that an attribute can be extracted from an object"""
@@ -89,10 +93,12 @@ class TestBaseGrafanaTranslator(TestGrafanaTranslatorBase):
         m_object = mock.Mock(hostname='test')
 
         t_base_translator = base_translator.BaseGrafanaTranslator(
-            data=self.reference_data)
+            data=self.reference_data
+        )
 
-        self.assertEqual('test', t_base_translator._extract_attribute(
-            m_object, 'hostname'))
+        self.assertEqual(
+            'test', t_base_translator._extract_attribute(m_object, 'hostname')
+        )
 
     def test_extract_attribute_error(self):
         """Test error on attempt to extract none existing attribute"""
@@ -101,7 +107,10 @@ class TestBaseGrafanaTranslator(TestGrafanaTranslatorBase):
         m_object.test = mock.PropertyMock(side_effect=AttributeError)
 
         t_base_translator = base_translator.BaseGrafanaTranslator(
-            data=self.reference_data)
+            data=self.reference_data
+        )
 
-        self.assertRaises(AttributeError, t_base_translator._extract_attribute(
-            m_object, 'test'))
+        self.assertRaises(
+            AttributeError,
+            t_base_translator._extract_attribute(m_object, 'test'),
+        )

@@ -27,48 +27,54 @@ from watcher.tests.unit.decision_engine.strategy.strategies.test_base import (
 
 
 class TestHostMaintenance(TestBaseStrategy):
-
     def setUp(self):
         super().setUp()
         self.strategy = strategies.HostMaintenance(config=mock.Mock())
 
     def test_get_instance_state_str(self):
         mock_instance = mock.MagicMock(state="active")
-        self.assertEqual("active",
-                         self.strategy.get_instance_state_str(mock_instance))
+        self.assertEqual(
+            "active", self.strategy.get_instance_state_str(mock_instance)
+        )
 
         mock_instance.state = element.InstanceState("active")
-        self.assertEqual("active",
-                         self.strategy.get_instance_state_str(mock_instance))
+        self.assertEqual(
+            "active", self.strategy.get_instance_state_str(mock_instance)
+        )
 
         mock_instance.state = None
         self.assertRaises(
             exception.WatcherException,
             self.strategy.get_instance_state_str,
-            mock_instance)
+            mock_instance,
+        )
 
     def test_get_node_status_str(self):
         mock_node = mock.MagicMock(status="enabled")
-        self.assertEqual("enabled",
-                         self.strategy.get_node_status_str(mock_node))
+        self.assertEqual(
+            "enabled", self.strategy.get_node_status_str(mock_node)
+        )
 
         mock_node.status = element.ServiceState("enabled")
-        self.assertEqual("enabled",
-                         self.strategy.get_node_status_str(mock_node))
+        self.assertEqual(
+            "enabled", self.strategy.get_node_status_str(mock_node)
+        )
 
         mock_node.status = None
         self.assertRaises(
             exception.WatcherException,
             self.strategy.get_node_status_str,
-            mock_node)
+            mock_node,
+        )
 
     def test_get_node_capacity(self):
         model = self.fake_c_cluster.generate_scenario_1()
         self.m_c_model.return_value = model
         node_0 = model.get_node_by_uuid("Node_0")
         node_capacity = dict(cpu=40, ram=132, disk=250)
-        self.assertEqual(node_capacity,
-                         self.strategy.get_node_capacity(node_0))
+        self.assertEqual(
+            node_capacity, self.strategy.get_node_capacity(node_0)
+        )
 
     def test_host_fits(self):
         model = self.fake_c_cluster.generate_scenario_1()
@@ -82,11 +88,16 @@ class TestHostMaintenance(TestBaseStrategy):
         self.m_c_model.return_value = model
         node_0 = model.get_node_by_uuid('Node_0')
         self.strategy.add_action_enable_compute_node(node_0)
-        expected = [{'action_type': 'change_nova_service_state',
-                     'input_parameters': {
-                         'state': 'enabled',
-                         'resource_id': 'Node_0',
-                         'resource_name': 'hostname_0'}}]
+        expected = [
+            {
+                'action_type': 'change_nova_service_state',
+                'input_parameters': {
+                    'state': 'enabled',
+                    'resource_id': 'Node_0',
+                    'resource_name': 'hostname_0',
+                },
+            }
+        ]
         self.assertEqual(expected, self.strategy.solution.actions)
 
     def test_add_action_maintain_compute_node(self):
@@ -94,12 +105,17 @@ class TestHostMaintenance(TestBaseStrategy):
         self.m_c_model.return_value = model
         node_0 = model.get_node_by_uuid('Node_0')
         self.strategy.add_action_maintain_compute_node(node_0)
-        expected = [{'action_type': 'change_nova_service_state',
-                     'input_parameters': {
-                         'state': 'disabled',
-                         'disabled_reason': 'watcher_maintaining',
-                         'resource_id': 'Node_0',
-                         'resource_name': 'hostname_0'}}]
+        expected = [
+            {
+                'action_type': 'change_nova_service_state',
+                'input_parameters': {
+                    'state': 'disabled',
+                    'disabled_reason': 'watcher_maintaining',
+                    'resource_id': 'Node_0',
+                    'resource_name': 'hostname_0',
+                },
+            }
+        ]
         self.assertEqual(expected, self.strategy.solution.actions)
 
     def test_instance_handle(self):
@@ -108,18 +124,22 @@ class TestHostMaintenance(TestBaseStrategy):
         node_0 = model.get_node_by_uuid('Node_0')
         node_1 = model.get_node_by_uuid('Node_1')
         instance_0 = model.get_instance_by_uuid(
-
             "d000ef1f-dc19-4982-9383-087498bfde03"
         )
         self.strategy.instance_handle(instance_0, node_0, node_1)
         self.assertEqual(1, len(self.strategy.solution.actions))
-        expected = [{'action_type': 'migrate',
-                     'input_parameters': {'destination_node': node_1.hostname,
-                                          'source_node': node_0.hostname,
-                                          'migration_type': 'live',
-                                          'resource_id': instance_0.uuid,
-                                          'resource_name': instance_0.name
-                                          }}]
+        expected = [
+            {
+                'action_type': 'migrate',
+                'input_parameters': {
+                    'destination_node': node_1.hostname,
+                    'source_node': node_0.hostname,
+                    'migration_type': 'live',
+                    'resource_id': instance_0.uuid,
+                    'resource_name': instance_0.name,
+                },
+            }
+        ]
         self.assertEqual(expected, self.strategy.solution.actions)
 
     def test_instance_handle_without_dest_node(self):
@@ -131,12 +151,17 @@ class TestHostMaintenance(TestBaseStrategy):
         )
         self.strategy.instance_handle(instance_0, node_0)
         self.assertEqual(1, len(self.strategy.solution.actions))
-        expected = [{'action_type': 'migrate',
-                     'input_parameters': {'source_node': node_0.hostname,
-                                          'migration_type': 'live',
-                                          'resource_id': instance_0.uuid,
-                                          'resource_name': instance_0.name
-                                          }}]
+        expected = [
+            {
+                'action_type': 'migrate',
+                'input_parameters': {
+                    'source_node': node_0.hostname,
+                    'migration_type': 'live',
+                    'resource_id': instance_0.uuid,
+                    'resource_name': instance_0.name,
+                },
+            }
+        ]
         self.assertEqual(expected, self.strategy.solution.actions)
 
     def test_host_migration(self):
@@ -152,20 +177,28 @@ class TestHostMaintenance(TestBaseStrategy):
         )
         self.strategy.host_migration(node_0, node_1)
         self.assertEqual(2, len(self.strategy.solution.actions))
-        expected = [{'action_type': 'migrate',
-                     'input_parameters': {'destination_node': node_1.hostname,
-                                          'source_node': node_0.hostname,
-                                          'migration_type': 'live',
-                                          'resource_id': instance_0.uuid,
-                                          'resource_name': instance_0.name
-                                          }},
-                    {'action_type': 'migrate',
-                     'input_parameters': {'destination_node': node_1.hostname,
-                                          'source_node': node_0.hostname,
-                                          'migration_type': 'live',
-                                          'resource_id': instance_1.uuid,
-                                          'resource_name': instance_1.name
-                                          }}]
+        expected = [
+            {
+                'action_type': 'migrate',
+                'input_parameters': {
+                    'destination_node': node_1.hostname,
+                    'source_node': node_0.hostname,
+                    'migration_type': 'live',
+                    'resource_id': instance_0.uuid,
+                    'resource_name': instance_0.name,
+                },
+            },
+            {
+                'action_type': 'migrate',
+                'input_parameters': {
+                    'destination_node': node_1.hostname,
+                    'source_node': node_0.hostname,
+                    'migration_type': 'live',
+                    'resource_id': instance_1.uuid,
+                    'resource_name': instance_1.name,
+                },
+            },
+        ]
         self.assertIn(expected[0], self.strategy.solution.actions)
         self.assertIn(expected[1], self.strategy.solution.actions)
 
@@ -179,8 +212,9 @@ class TestHostMaintenance(TestBaseStrategy):
         # It will return true, if backup node is passed
         self.assertTrue(self.strategy.safe_maintain(node_0, node_1))
 
-        model = self.fake_c_cluster.\
-            generate_scenario_1_with_all_nodes_disable()
+        model = (
+            self.fake_c_cluster.generate_scenario_1_with_all_nodes_disable()
+        )
         self.m_c_model.return_value = model
         node_0 = model.get_node_by_uuid('Node_0')
         # It will return false, if there is no backup node
@@ -198,8 +232,7 @@ class TestHostMaintenance(TestBaseStrategy):
         self.assertRaises(exception.ComputeNodeNotFound, self.strategy.execute)
 
     def test_strategy(self):
-        model = self.fake_c_cluster. \
-            generate_scenario_9_with_3_active_plus_1_disabled_nodes()
+        model = self.fake_c_cluster.generate_scenario_9_with_3_active_plus_1_disabled_nodes()  # noqa: E501
         self.m_c_model.return_value = model
         node_2 = model.get_node_by_uuid('Node_2')
         node_3 = model.get_node_by_uuid('Node_3')
@@ -208,28 +241,41 @@ class TestHostMaintenance(TestBaseStrategy):
         result = self.strategy.pre_execute()
         self.assertIsNone(result)
 
-        self.strategy.input_parameters = {"maintenance_node": 'hostname_2',
-                                          "backup_node": 'hostname_3'}
+        self.strategy.input_parameters = {
+            "maintenance_node": 'hostname_2',
+            "backup_node": 'hostname_3',
+        }
         self.strategy.do_execute()
 
-        expected = [{'action_type': 'change_nova_service_state',
-                     'input_parameters': {
-                         'resource_id': 'Node_3',
-                         'resource_name': 'hostname_3',
-                         'state': 'enabled'}},
-                    {'action_type': 'change_nova_service_state',
-                     'input_parameters': {
-                         'resource_id': 'Node_2',
-                         'resource_name': 'hostname_2',
-                         'state': 'disabled',
-                         'disabled_reason': 'watcher_maintaining'}},
-                    {'action_type': 'migrate',
-                     'input_parameters': {
-                         'destination_node': node_3.hostname,
-                         'source_node': node_2.hostname,
-                         'migration_type': 'live',
-                         'resource_id': instance_4.uuid,
-                         'resource_name': instance_4.name}}]
+        expected = [
+            {
+                'action_type': 'change_nova_service_state',
+                'input_parameters': {
+                    'resource_id': 'Node_3',
+                    'resource_name': 'hostname_3',
+                    'state': 'enabled',
+                },
+            },
+            {
+                'action_type': 'change_nova_service_state',
+                'input_parameters': {
+                    'resource_id': 'Node_2',
+                    'resource_name': 'hostname_2',
+                    'state': 'disabled',
+                    'disabled_reason': 'watcher_maintaining',
+                },
+            },
+            {
+                'action_type': 'migrate',
+                'input_parameters': {
+                    'destination_node': node_3.hostname,
+                    'source_node': node_2.hostname,
+                    'migration_type': 'live',
+                    'resource_id': instance_4.uuid,
+                    'resource_name': instance_4.name,
+                },
+            },
+        ]
         self.assertEqual(expected, self.strategy.solution.actions)
 
         result = self.strategy.post_execute()
@@ -241,10 +287,12 @@ class TestHostMaintenance(TestBaseStrategy):
         self.strategy.input_parameters = parameters
 
         # Parameters should default to False when not provided
-        self.assertFalse(self.strategy.input_parameters.get(
-            'disable_live_migration', False))
-        self.assertFalse(self.strategy.input_parameters.get(
-            'disable_cold_migration', False))
+        self.assertFalse(
+            self.strategy.input_parameters.get('disable_live_migration', False)
+        )
+        self.assertFalse(
+            self.strategy.input_parameters.get('disable_cold_migration', False)
+        )
 
     def test_add_action_stop_instance(self):
         """Test add_action_stop_instance method"""
@@ -257,8 +305,12 @@ class TestHostMaintenance(TestBaseStrategy):
         self.strategy.add_action_stop_instance(instance_0)
 
         self.assertEqual(1, len(self.strategy.solution.actions))
-        expected = [{'action_type': 'stop', 'input_parameters': {
-            'resource_id': instance_0.uuid}}]
+        expected = [
+            {
+                'action_type': 'stop',
+                'input_parameters': {'resource_id': instance_0.uuid},
+            }
+        ]
         self.assertEqual(expected, self.strategy.solution.actions)
 
     def test_instance_handle_both_migrations_disabled_active_instance(self):
@@ -273,14 +325,18 @@ class TestHostMaintenance(TestBaseStrategy):
         self.strategy.input_parameters = {
             'maintenance_node': 'hostname_0',
             'disable_live_migration': True,
-            'disable_cold_migration': True
+            'disable_cold_migration': True,
         }
 
         self.strategy.instance_handle(instance_0, node_0)
 
         self.assertEqual(1, len(self.strategy.solution.actions))
-        expected = [{'action_type': 'stop', 'input_parameters': {
-            'resource_id': instance_0.uuid}}]
+        expected = [
+            {
+                'action_type': 'stop',
+                'input_parameters': {'resource_id': instance_0.uuid},
+            }
+        ]
         self.assertEqual(expected, self.strategy.solution.actions)
 
     def test_instance_handle_both_migrations_disabled_inactive_instance(self):
@@ -296,7 +352,7 @@ class TestHostMaintenance(TestBaseStrategy):
         self.strategy.input_parameters = {
             'maintenance_node': 'hostname_0',
             'disable_live_migration': True,
-            'disable_cold_migration': True
+            'disable_cold_migration': True,
         }
 
         self.strategy.instance_handle(instance_1, node_0)
@@ -320,14 +376,18 @@ class TestHostMaintenance(TestBaseStrategy):
         self.strategy.instance_handle(instance_0, node_0, node_1)
 
         self.assertEqual(1, len(self.strategy.solution.actions))
-        expected = [{'action_type': 'migrate',
-                     'input_parameters': {
-                         'destination_node': node_1.hostname,
-                         'source_node': node_0.hostname,
-                         'migration_type': 'cold',
-                         'resource_id': instance_0.uuid,
-                         'resource_name': instance_0.name
-                     }}]
+        expected = [
+            {
+                'action_type': 'migrate',
+                'input_parameters': {
+                    'destination_node': node_1.hostname,
+                    'source_node': node_0.hostname,
+                    'migration_type': 'cold',
+                    'resource_id': instance_0.uuid,
+                    'resource_name': instance_0.name,
+                },
+            }
+        ]
         self.assertEqual(expected, self.strategy.solution.actions)
 
     def test_instance_handle_live_migration_disabled_inactive_instance(self):
@@ -349,14 +409,18 @@ class TestHostMaintenance(TestBaseStrategy):
         self.strategy.instance_handle(instance_1, node_0, node_1)
 
         self.assertEqual(1, len(self.strategy.solution.actions))
-        expected = [{'action_type': 'migrate',
-                     'input_parameters': {
-                         'destination_node': node_1.hostname,
-                         'source_node': node_0.hostname,
-                         'migration_type': 'cold',
-                         'resource_id': instance_1.uuid,
-                         'resource_name': instance_1.name
-                     }}]
+        expected = [
+            {
+                'action_type': 'migrate',
+                'input_parameters': {
+                    'destination_node': node_1.hostname,
+                    'source_node': node_0.hostname,
+                    'migration_type': 'cold',
+                    'resource_id': instance_1.uuid,
+                    'resource_name': instance_1.name,
+                },
+            }
+        ]
         self.assertEqual(expected, self.strategy.solution.actions)
 
     def test_instance_handle_cold_migration_disabled_active_instance(self):
@@ -371,20 +435,24 @@ class TestHostMaintenance(TestBaseStrategy):
 
         self.strategy.input_parameters = {
             'maintenance_node': 'hostname_0',
-            'disable_cold_migration': True
+            'disable_cold_migration': True,
         }
 
         self.strategy.instance_handle(instance_0, node_0, node_1)
 
         self.assertEqual(1, len(self.strategy.solution.actions))
-        expected = [{'action_type': 'migrate',
-                     'input_parameters': {
-                         'destination_node': node_1.hostname,
-                         'source_node': node_0.hostname,
-                         'migration_type': 'live',
-                         'resource_id': instance_0.uuid,
-                         'resource_name': instance_0.name
-                     }}]
+        expected = [
+            {
+                'action_type': 'migrate',
+                'input_parameters': {
+                    'destination_node': node_1.hostname,
+                    'source_node': node_0.hostname,
+                    'migration_type': 'live',
+                    'resource_id': instance_0.uuid,
+                    'resource_name': instance_0.name,
+                },
+            }
+        ]
         self.assertEqual(expected, self.strategy.solution.actions)
 
     def test_instance_handle_cold_migration_disabled_inactive_instance(self):
@@ -400,7 +468,7 @@ class TestHostMaintenance(TestBaseStrategy):
 
         self.strategy.input_parameters = {
             'maintenance_node': 'hostname_0',
-            'disable_cold_migration': True
+            'disable_cold_migration': True,
         }
 
         self.strategy.instance_handle(instance_1, node_0, node_1)
@@ -418,21 +486,23 @@ class TestHostMaintenance(TestBaseStrategy):
             "d000ef1f-dc19-4982-9383-087498bfde03"
         )
 
-        self.strategy.input_parameters = {
-            'maintenance_node': 'hostname_0',
-        }
+        self.strategy.input_parameters = {'maintenance_node': 'hostname_0'}
 
         self.strategy.instance_handle(instance_0, node_0, node_1)
 
         self.assertEqual(1, len(self.strategy.solution.actions))
-        expected = [{'action_type': 'migrate',
-                     'input_parameters': {
-                         'destination_node': node_1.hostname,
-                         'source_node': node_0.hostname,
-                         'migration_type': 'live',
-                         'resource_id': instance_0.uuid,
-                         'resource_name': instance_0.name
-                     }}]
+        expected = [
+            {
+                'action_type': 'migrate',
+                'input_parameters': {
+                    'destination_node': node_1.hostname,
+                    'source_node': node_0.hostname,
+                    'migration_type': 'live',
+                    'resource_id': instance_0.uuid,
+                    'resource_name': instance_0.name,
+                },
+            }
+        ]
         self.assertEqual(expected, self.strategy.solution.actions)
 
     def test_instance_handle_no_migrations_disabled_inactive_instance(self):
@@ -446,21 +516,23 @@ class TestHostMaintenance(TestBaseStrategy):
         )
         instance_1.state = 'stopped'
 
-        self.strategy.input_parameters = {
-            'maintenance_node': 'hostname_0',
-        }
+        self.strategy.input_parameters = {'maintenance_node': 'hostname_0'}
 
         self.strategy.instance_handle(instance_1, node_0, node_1)
 
         self.assertEqual(1, len(self.strategy.solution.actions))
-        expected = [{'action_type': 'migrate',
-                     'input_parameters': {
-                         'destination_node': node_1.hostname,
-                         'source_node': node_0.hostname,
-                         'migration_type': 'cold',
-                         'resource_id': instance_1.uuid,
-                         'resource_name': instance_1.name
-                     }}]
+        expected = [
+            {
+                'action_type': 'migrate',
+                'input_parameters': {
+                    'destination_node': node_1.hostname,
+                    'source_node': node_0.hostname,
+                    'migration_type': 'cold',
+                    'resource_id': instance_1.uuid,
+                    'resource_name': instance_1.name,
+                },
+            }
+        ]
         self.assertEqual(expected, self.strategy.solution.actions)
 
     def test_host_migration_with_both_migrations_disabled(self):
@@ -479,7 +551,7 @@ class TestHostMaintenance(TestBaseStrategy):
         self.strategy.input_parameters = {
             'maintenance_node': 'hostname_0',
             'disable_live_migration': True,
-            'disable_cold_migration': True
+            'disable_cold_migration': True,
         }
 
         self.strategy.host_migration(node_0, node_1)
@@ -487,10 +559,14 @@ class TestHostMaintenance(TestBaseStrategy):
         # Should generate stop actions for all instances
         self.assertEqual(2, len(self.strategy.solution.actions))
         expected_actions = [
-            {'action_type': 'stop', 'input_parameters': {
-                'resource_id': instance_0.uuid}},
-            {'action_type': 'stop', 'input_parameters': {
-                'resource_id': instance_1.uuid}}
+            {
+                'action_type': 'stop',
+                'input_parameters': {'resource_id': instance_0.uuid},
+            },
+            {
+                'action_type': 'stop',
+                'input_parameters': {'resource_id': instance_1.uuid},
+            },
         ]
         for action in expected_actions:
             self.assertIn(action, self.strategy.solution.actions)
@@ -518,22 +594,26 @@ class TestHostMaintenance(TestBaseStrategy):
         # Should generate cold migrate actions for all instances
         self.assertEqual(2, len(self.strategy.solution.actions))
         expected_actions = [
-            {'action_type': 'migrate',
-             'input_parameters': {
-                 'destination_node': node_1.hostname,
-                 'source_node': node_0.hostname,
-                 'migration_type': 'cold',
-                 'resource_id': instance_0.uuid,
-                 'resource_name': instance_0.name
-             }},
-            {'action_type': 'migrate',
-             'input_parameters': {
-                 'destination_node': node_1.hostname,
-                 'source_node': node_0.hostname,
-                 'migration_type': 'cold',
-                 'resource_id': instance_1.uuid,
-                 'resource_name': instance_1.name
-             }}
+            {
+                'action_type': 'migrate',
+                'input_parameters': {
+                    'destination_node': node_1.hostname,
+                    'source_node': node_0.hostname,
+                    'migration_type': 'cold',
+                    'resource_id': instance_0.uuid,
+                    'resource_name': instance_0.name,
+                },
+            },
+            {
+                'action_type': 'migrate',
+                'input_parameters': {
+                    'destination_node': node_1.hostname,
+                    'source_node': node_0.hostname,
+                    'migration_type': 'cold',
+                    'resource_id': instance_1.uuid,
+                    'resource_name': instance_1.name,
+                },
+            },
         ]
         for action in expected_actions:
             self.assertIn(action, self.strategy.solution.actions)
@@ -555,7 +635,7 @@ class TestHostMaintenance(TestBaseStrategy):
             'maintenance_node': 'hostname_0',
             'backup_node': 'hostname_1',
             'disable_live_migration': True,
-            'disable_cold_migration': True
+            'disable_cold_migration': True,
         }
 
         result = self.strategy.safe_maintain(node_0, node_1)
@@ -566,17 +646,23 @@ class TestHostMaintenance(TestBaseStrategy):
         self.assertEqual(3, len(self.strategy.solution.actions))
 
         expected_actions = [
-            {'action_type': 'change_nova_service_state',
-             'input_parameters': {
-                 'resource_id': node_0.uuid,
-                 'resource_name': node_0.hostname,
-                 'state': 'disabled',
-                 'disabled_reason': 'watcher_maintaining'
-             }},
-            {'action_type': 'stop', 'input_parameters': {
-                'resource_id': instance_0.uuid}},
-            {'action_type': 'stop', 'input_parameters': {
-                'resource_id': instance_1.uuid}}
+            {
+                'action_type': 'change_nova_service_state',
+                'input_parameters': {
+                    'resource_id': node_0.uuid,
+                    'resource_name': node_0.hostname,
+                    'state': 'disabled',
+                    'disabled_reason': 'watcher_maintaining',
+                },
+            },
+            {
+                'action_type': 'stop',
+                'input_parameters': {'resource_id': instance_0.uuid},
+            },
+            {
+                'action_type': 'stop',
+                'input_parameters': {'resource_id': instance_1.uuid},
+            },
         ]
         for action in expected_actions:
             self.assertIn(action, self.strategy.solution.actions)
@@ -596,7 +682,7 @@ class TestHostMaintenance(TestBaseStrategy):
         self.strategy.input_parameters = {
             'maintenance_node': 'hostname_0',
             'disable_live_migration': True,
-            'disable_cold_migration': True
+            'disable_cold_migration': True,
         }
 
         self.strategy.try_maintain(node_0)
@@ -605,17 +691,23 @@ class TestHostMaintenance(TestBaseStrategy):
         self.assertEqual(3, len(self.strategy.solution.actions))
 
         expected_actions = [
-            {'action_type': 'change_nova_service_state',
-             'input_parameters': {
-                 'resource_id': node_0.uuid,
-                 'resource_name': node_0.hostname,
-                 'state': 'disabled',
-                 'disabled_reason': 'watcher_maintaining'
-             }},
-            {'action_type': 'stop', 'input_parameters': {
-                'resource_id': instance_0.uuid}},
-            {'action_type': 'stop', 'input_parameters': {
-                'resource_id': instance_1.uuid}}
+            {
+                'action_type': 'change_nova_service_state',
+                'input_parameters': {
+                    'resource_id': node_0.uuid,
+                    'resource_name': node_0.hostname,
+                    'state': 'disabled',
+                    'disabled_reason': 'watcher_maintaining',
+                },
+            },
+            {
+                'action_type': 'stop',
+                'input_parameters': {'resource_id': instance_0.uuid},
+            },
+            {
+                'action_type': 'stop',
+                'input_parameters': {'resource_id': instance_1.uuid},
+            },
         ]
         for action in expected_actions:
             self.assertIn(action, self.strategy.solution.actions)
@@ -628,7 +720,7 @@ class TestHostMaintenance(TestBaseStrategy):
             'maintenance_node': 'hostname_0',
             'backup_node': 'hostname_1',
             'disable_live_migration': True,
-            'disable_cold_migration': True
+            'disable_cold_migration': True,
         }
 
         self.strategy.do_execute()
@@ -637,8 +729,11 @@ class TestHostMaintenance(TestBaseStrategy):
         self.assertEqual(3, len(self.strategy.solution.actions))
 
         # Check that we have stop actions
-        stop_actions = [action for action in self.strategy.solution.actions
-                        if action['action_type'] == 'stop']
+        stop_actions = [
+            action
+            for action in self.strategy.solution.actions
+            if action['action_type'] == 'stop'
+        ]
         self.assertEqual(2, len(stop_actions))
 
     def test_strategy_with_live_migration_disabled(self):
@@ -658,9 +753,10 @@ class TestHostMaintenance(TestBaseStrategy):
 
         # Check that we have cold migrate actions
         cold_migrate_actions = [
-            action for action in self.strategy.solution.actions
-            if action['action_type'] == 'migrate' and
-            action['input_parameters']['migration_type'] == 'cold'
+            action
+            for action in self.strategy.solution.actions
+            if action['action_type'] == 'migrate'
+            and action['input_parameters']['migration_type'] == 'cold'
         ]
         self.assertEqual(2, len(cold_migrate_actions))
 
@@ -684,24 +780,33 @@ class TestHostMaintenance(TestBaseStrategy):
         self.assertEqual(3, len(self.strategy.solution.actions))
 
         expected_actions = [
-            {'action_type': 'change_nova_service_state',
-             'input_parameters': {
-                 'resource_id': node_0.uuid,
-                 'resource_name': node_0.hostname,
-                 'state': 'disabled',
-                 'disabled_reason': 'watcher_maintaining'}},
-            {'action_type': 'migrate',
-             'input_parameters': {
-                 'source_node': node_0.hostname,
-                 'migration_type': 'live',
-                 'resource_id': instance_0.uuid,
-                 'resource_name': instance_0.name}},
-            {'action_type': 'migrate',
-             'input_parameters': {
-                 'source_node': node_0.hostname,
-                 'migration_type': 'live',
-                 'resource_id': instance_1.uuid,
-                 'resource_name': instance_1.name}}
+            {
+                'action_type': 'change_nova_service_state',
+                'input_parameters': {
+                    'resource_id': node_0.uuid,
+                    'resource_name': node_0.hostname,
+                    'state': 'disabled',
+                    'disabled_reason': 'watcher_maintaining',
+                },
+            },
+            {
+                'action_type': 'migrate',
+                'input_parameters': {
+                    'source_node': node_0.hostname,
+                    'migration_type': 'live',
+                    'resource_id': instance_0.uuid,
+                    'resource_name': instance_0.name,
+                },
+            },
+            {
+                'action_type': 'migrate',
+                'input_parameters': {
+                    'source_node': node_0.hostname,
+                    'migration_type': 'live',
+                    'resource_id': instance_1.uuid,
+                    'resource_name': instance_1.name,
+                },
+            },
         ]
 
         for action in expected_actions:

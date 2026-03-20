@@ -16,19 +16,20 @@
 from oslo_config import cfg
 
 
-compute_model = cfg.OptGroup(name='compute_model',
-                             title='Configuration Options for Compute Model',
-                             help="Additional configuration options for the "
-                                  "compute model.")
+compute_model = cfg.OptGroup(
+    name='compute_model',
+    title='Configuration Options for Compute Model',
+    help="Additional configuration options for the compute model.",
+)
 
 COMPUTE_MODEL_OPTS = [
     cfg.BoolOpt(
         'enable_extended_attributes',
         default=False,
         help="Enable the collection of compute model extended attributes. "
-             "Note that some attributes require a more recent api "
-             "microversion to be configured in nova_client section."
-    ),
+        "Note that some attributes require a more recent api "
+        "microversion to be configured in nova_client section.",
+    )
 ]
 
 

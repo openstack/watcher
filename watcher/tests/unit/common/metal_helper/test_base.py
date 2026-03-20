@@ -54,25 +54,21 @@ class TestBaseMetalNode(base.TestCase):
         self._node = MockMetalNode(self._nova_node)
 
     def test_get_hypervisor_node(self):
-        self.assertEqual(
-            self._nova_node,
-            self._node.get_hypervisor_node())
+        self.assertEqual(self._nova_node, self._node.get_hypervisor_node())
 
     def test_get_hypervisor_node_missing(self):
         node = MockMetalNode()
-        self.assertRaises(
-            exception.Invalid,
-            node.get_hypervisor_node)
+        self.assertRaises(exception.Invalid, node.get_hypervisor_node)
 
     def test_get_hypervisor_hostname(self):
         self.assertEqual(
             self._nova_node.hypervisor_hostname,
-            self._node.get_hypervisor_hostname())
+            self._node.get_hypervisor_hostname(),
+        )
 
     @mock.patch.object(MockMetalNode, 'power_on')
     @mock.patch.object(MockMetalNode, 'power_off')
-    def test_set_power_state(self,
-                             mock_power_off, mock_power_on):
+    def test_set_power_state(self, mock_power_off, mock_power_on):
         self._node.set_power_state(m_constants.PowerState.ON)
         mock_power_on.assert_called_once_with()
 
@@ -82,7 +78,8 @@ class TestBaseMetalNode(base.TestCase):
         self.assertRaises(
             exception.UnsupportedActionType,
             self._node.set_power_state,
-            m_constants.PowerState.UNKNOWN)
+            m_constants.PowerState.UNKNOWN,
+        )
 
 
 class TestBaseMetalHelper(base.TestCase):

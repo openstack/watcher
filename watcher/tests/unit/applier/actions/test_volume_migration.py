@@ -29,7 +29,6 @@ from watcher.tests.unit import base
 
 
 class TestMigration(base.TestCase):
-
     VOLUME_UUID = "45a37aeb-95ab-4ddb-a305-7d9f62c2f5ba"
     INSTANCE_UUID = "45a37aec-85ab-4dda-a303-7d9f62c2f5bb"
 
@@ -53,15 +52,19 @@ class TestMigration(base.TestCase):
         self.m_k_helper_cls.return_value = self.m_k_helper
 
         m_openstack_clients = mock.patch.object(
-            clients, "OpenStackClients", self.m_osc_cls)
+            clients, "OpenStackClients", self.m_osc_cls
+        )
         m_nova_helper = mock.patch.object(
-            nova_helper, "NovaHelper", self.m_n_helper_cls)
+            nova_helper, "NovaHelper", self.m_n_helper_cls
+        )
 
         m_cinder_helper = mock.patch.object(
-            cinder_helper, "CinderHelper", self.m_c_helper_cls)
+            cinder_helper, "CinderHelper", self.m_c_helper_cls
+        )
 
         m_keystone_helper = mock.patch.object(
-            keystone_helper, "KeystoneHelper", self.m_k_helper_cls)
+            keystone_helper, "KeystoneHelper", self.m_k_helper_cls
+        )
 
         m_openstack_clients.start()
         m_nova_helper.start()
@@ -114,8 +117,9 @@ class TestMigration(base.TestCase):
         volume.availability_zone = kwargs.get('availability_zone', 'nova')
         volume.attachments = kwargs.get('attachments', [])
         volume.volume_type = kwargs.get('volume_type', 'default-type')
-        setattr(volume, 'os-vol-host-attr:host',
-                kwargs.get('host', 'current-host'))
+        setattr(
+            volume, 'os-vol-host-attr:host', kwargs.get('host', 'current-host')
+        )
         return volume
 
     @staticmethod
@@ -126,40 +130,46 @@ class TestMigration(base.TestCase):
         return instance
 
     def test_parameters_swap(self):
-        params = {baction.BaseAction.RESOURCE_ID:
-                  self.VOLUME_UUID,
-                  self.action.MIGRATION_TYPE: 'swap',
-                  self.action.DESTINATION_NODE: None,
-                  self.action.DESTINATION_TYPE: 'type-1'}
+        params = {
+            baction.BaseAction.RESOURCE_ID: self.VOLUME_UUID,
+            self.action.MIGRATION_TYPE: 'swap',
+            self.action.DESTINATION_NODE: None,
+            self.action.DESTINATION_TYPE: 'type-1',
+        }
         self.action_swap.input_parameters = params
         self.assertTrue(self.action_swap.validate_parameters)
 
     def test_parameters_migrate(self):
-        params = {baction.BaseAction.RESOURCE_ID:
-                  self.VOLUME_UUID,
-                  self.action.MIGRATION_TYPE: 'migrate',
-                  self.action.DESTINATION_NODE: 'node-1',
-                  self.action.DESTINATION_TYPE: None}
+        params = {
+            baction.BaseAction.RESOURCE_ID: self.VOLUME_UUID,
+            self.action.MIGRATION_TYPE: 'migrate',
+            self.action.DESTINATION_NODE: 'node-1',
+            self.action.DESTINATION_TYPE: None,
+        }
         self.action_migrate.input_parameters = params
         self.assertTrue(self.action_migrate.validate_parameters)
 
     def test_parameters_retype(self):
-        params = {baction.BaseAction.RESOURCE_ID:
-                  self.VOLUME_UUID,
-                  self.action.MIGRATION_TYPE: 'retype',
-                  self.action.DESTINATION_NODE: None,
-                  self.action.DESTINATION_TYPE: 'type-1'}
+        params = {
+            baction.BaseAction.RESOURCE_ID: self.VOLUME_UUID,
+            self.action.MIGRATION_TYPE: 'retype',
+            self.action.DESTINATION_NODE: None,
+            self.action.DESTINATION_TYPE: 'type-1',
+        }
         self.action_retype.input_parameters = params
         self.assertTrue(self.action_retype.validate_parameters)
 
     def test_parameters_exception_resource_id(self):
-        params = {baction.BaseAction.RESOURCE_ID: "EFEF",
-                  self.action.MIGRATION_TYPE: 'swap',
-                  self.action.DESTINATION_NODE: None,
-                  self.action.DESTINATION_TYPE: 'type-1'}
+        params = {
+            baction.BaseAction.RESOURCE_ID: "EFEF",
+            self.action.MIGRATION_TYPE: 'swap',
+            self.action.DESTINATION_NODE: None,
+            self.action.DESTINATION_TYPE: 'type-1',
+        }
         self.action_swap.input_parameters = params
-        self.assertRaises(jsonschema.ValidationError,
-                          self.action_swap.validate_parameters)
+        self.assertRaises(
+            jsonschema.ValidationError, self.action_swap.validate_parameters
+        )
 
     def test_migrate_success(self):
         volume = self.fake_volume()
@@ -168,8 +178,7 @@ class TestMigration(base.TestCase):
         result = self.action_migrate.execute()
         self.assertTrue(result)
         self.m_c_helper.migrate.assert_called_once_with(
-            volume,
-            "storage1-poolname"
+            volume, "storage1-poolname"
         )
 
     def test_retype_success(self):
@@ -179,14 +188,14 @@ class TestMigration(base.TestCase):
         result = self.action_retype.execute()
         self.assertTrue(result)
         self.m_c_helper.retype.assert_called_once_with(
-            volume,
-            "storage1-typename",
+            volume, "storage1-typename"
         )
 
     def test_can_swap_success(self):
         volume = self.fake_volume(
-            status='in-use', attachments=[
-                {'server_id': TestMigration.INSTANCE_UUID}])
+            status='in-use',
+            attachments=[{'server_id': TestMigration.INSTANCE_UUID}],
+        )
 
         instance = self.fake_instance()
         self.m_n_helper.find_instance.return_value = instance
@@ -200,10 +209,10 @@ class TestMigration(base.TestCase):
         self.assertTrue(result)
 
     def test_can_swap_fail(self):
-
         volume = self.fake_volume(
-            status='in-use', attachments=[
-                {'server_id': TestMigration.INSTANCE_UUID}])
+            status='in-use',
+            attachments=[{'server_id': TestMigration.INSTANCE_UUID}],
+        )
         instance = self.fake_instance(status='STOPPED')
         self.m_n_helper.find_instance.return_value = instance
         result = self.action_swap._can_swap(volume)
@@ -216,17 +225,20 @@ class TestMigration(base.TestCase):
 
     def test_can_swap_instance_not_found(self):
         volume = self.fake_volume(
-            status='in-use', attachments=[
-                {'server_id': TestMigration.INSTANCE_UUID}])
+            status='in-use',
+            attachments=[{'server_id': TestMigration.INSTANCE_UUID}],
+        )
         self.m_n_helper.find_instance.side_effect = (
-            exception.ComputeResourceNotFound(TestMigration.INSTANCE_UUID))
+            exception.ComputeResourceNotFound(TestMigration.INSTANCE_UUID)
+        )
         result = self.action_swap._can_swap(volume)
         self.assertFalse(result)
 
     def test_swap_success(self):
         volume = self.fake_volume(
-            status='in-use', attachments=[
-                {'server_id': TestMigration.INSTANCE_UUID}])
+            status='in-use',
+            attachments=[{'server_id': TestMigration.INSTANCE_UUID}],
+        )
         self.m_c_helper.get_volume.return_value = volume
 
         instance = self.fake_instance()
@@ -235,19 +247,20 @@ class TestMigration(base.TestCase):
         result = self.action_swap.execute()
         self.assertTrue(result)
         self.m_c_helper.migrate.assert_called_once_with(
-            volume,
-            "storage1-poolname"
+            volume, "storage1-poolname"
         )
 
     def test_pre_condition_volume_not_found(self):
-        self.m_c_helper.get_volume.side_effect = (
-            cinder_exception.NotFound('404'))
+        self.m_c_helper.get_volume.side_effect = cinder_exception.NotFound(
+            '404'
+        )
 
         # ActionSkipped is expected because the volume is not found
         self.assertRaisesRegex(
             exception.ActionSkipped,
             f"Volume {self.VOLUME_UUID} not found",
-            self.action_migrate.pre_condition)
+            self.action_migrate.pre_condition,
+        )
 
     def test_pre_condition_destination_type_not_found(self):
         volume = self.fake_volume()
@@ -259,14 +272,17 @@ class TestMigration(base.TestCase):
         fake_type_2 = mock.MagicMock()
         fake_type_2.name = "type-2"
         self.m_c_helper.get_volume_type_list.return_value = [
-            fake_type_1, fake_type_2]
+            fake_type_1,
+            fake_type_2,
+        ]
 
         # ActionExecutionFailure is expected because the destination type
         # is not found
         self.assertRaisesRegex(
             exception.ActionExecutionFailure,
             "Volume type storage1-typename not found",
-            self.action_retype.pre_condition)
+            self.action_retype.pre_condition,
+        )
 
     def test_pre_condition_destination_pool_not_found(self):
         volume = self.fake_volume()
@@ -274,14 +290,16 @@ class TestMigration(base.TestCase):
 
         # Mock get_storage_pool_by_name to raise PoolNotFound
         self.m_c_helper.get_storage_pool_by_name.side_effect = (
-            exception.PoolNotFound(name="storage1-poolname"))
+            exception.PoolNotFound(name="storage1-poolname")
+        )
 
         # ActionExecutionFailure is expected because the destination pool
         # is not found
         self.assertRaisesRegex(
             exception.ActionExecutionFailure,
             "Pool storage1-poolname not found",
-            self.action_migrate.pre_condition)
+            self.action_migrate.pre_condition,
+        )
 
     def test_pre_condition_success_with_type(self):
         volume = self.fake_volume()
@@ -293,7 +311,9 @@ class TestMigration(base.TestCase):
         fake_type_2 = mock.MagicMock()
         fake_type_2.name = "type-2"
         self.m_c_helper.get_volume_type_list.return_value = [
-            fake_type_1, fake_type_2]
+            fake_type_1,
+            fake_type_2,
+        ]
 
         # Should not raise any exception
         self.action_retype.pre_condition()
@@ -313,7 +333,8 @@ class TestMigration(base.TestCase):
         self.action_migrate.pre_condition()
         self.m_c_helper.get_volume.assert_called_once_with(self.VOLUME_UUID)
         self.m_c_helper.get_storage_pool_by_name.assert_called_once_with(
-            "storage1-poolname")
+            "storage1-poolname"
+        )
 
     def test_pre_condition_retype_same_type(self):
         # Create volume with the same type as destination
@@ -329,7 +350,8 @@ class TestMigration(base.TestCase):
         self.assertRaisesRegex(
             exception.ActionSkipped,
             "Volume type is already storage1-typename",
-            self.action_retype.pre_condition)
+            self.action_retype.pre_condition,
+        )
 
     def test_pre_condition_migrate_same_node(self):
         # Create volume on the same node as destination
@@ -345,4 +367,5 @@ class TestMigration(base.TestCase):
         self.assertRaisesRegex(
             exception.ActionSkipped,
             "Volume is already on node storage1-poolname",
-            self.action_migrate.pre_condition)
+            self.action_migrate.pre_condition,
+        )

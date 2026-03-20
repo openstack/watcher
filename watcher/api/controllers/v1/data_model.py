@@ -65,19 +65,18 @@ class DataModelController(rest.RestController):
         """
         if not utils.allow_list_datamodel():
             raise exception.NotAcceptable
-        allowed_data_model_type = [
-            'compute',
-            ]
+        allowed_data_model_type = ['compute']
         if data_model_type not in allowed_data_model_type:
             raise exception.DataModelTypeNotFound(
-                data_model_type=data_model_type)
+                data_model_type=data_model_type
+            )
         context = pecan.request.context
         de_client = rpcapi.DecisionEngineAPI()
-        policy.enforce(context, 'data_model:get_all',
-                       action='data_model:get_all')
+        policy.enforce(
+            context, 'data_model:get_all', action='data_model:get_all'
+        )
         rpc_all_data_model = de_client.get_data_model_info(
-            context,
-            data_model_type,
-            audit_uuid)
+            context, data_model_type, audit_uuid
+        )
         hide_fields_in_newer_versions(rpc_all_data_model)
         return rpc_all_data_model

@@ -27,7 +27,6 @@ LOG = log.getLogger(__name__)
 
 
 class DefaultLoader(base.BaseLoader):
-
     def __init__(self, namespace, conf=cfg.CONF):
         """Entry point loader for Watcher using Stevedore
 
@@ -43,9 +42,7 @@ class DefaultLoader(base.BaseLoader):
         try:
             LOG.debug("Loading in namespace %s => %s ", self.namespace, name)
             driver_manager = drivermanager.DriverManager(
-                namespace=self.namespace,
-                name=name,
-                invoke_on_load=False,
+                namespace=self.namespace, name=name, invoke_on_load=False
             )
 
             driver_cls = driver_manager.driver
@@ -82,13 +79,12 @@ class DefaultLoader(base.BaseLoader):
         if not config_group:
             raise exception.LoadingError(name=name)
 
-        config.update({
-            name: value for name, value in config_group.items()
-        })
+        config.update({name: value for name, value in config_group.items()})
 
         return config
 
     def list_available(self):
         extension_manager = extensionmanager.ExtensionManager(
-            namespace=self.namespace)
+            namespace=self.namespace
+        )
         return {ext.name: ext.plugin for ext in extension_manager.extensions}

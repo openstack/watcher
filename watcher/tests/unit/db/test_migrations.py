@@ -13,7 +13,7 @@
 # under the License.
 #
 
-""""Tests for database migration for Watcher.
+""" "Tests for database migration for Watcher.
 
 These are "opportunistic" tests which allow testing against all three databases
 (sqlite in memory, mysql, pg) in a properly configured unit test environment.
@@ -44,16 +44,15 @@ from watcher.tests.unit.db import utils
 LOG = logging.getLogger(__name__)
 
 
-class MySQLDbMigrationsTestCase(test_fixtures.OpportunisticDBTestMixin,
-                                base.TestCase):
-
+class MySQLDbMigrationsTestCase(
+    test_fixtures.OpportunisticDBTestMixin, base.TestCase
+):
     FIXTURE = test_fixtures.MySQLOpportunisticFixture
 
     def setUp(self):
         conn_str = "mysql+pymysql://root:insecure_slave@127.0.0.1"
         # to use mysql db
-        cfg.CONF.set_override("connection", conn_str,
-                              group="database")
+        cfg.CONF.set_override("connection", conn_str, group="database")
         super().setUp()
         self.engine = enginefacade.writer.get_engine()
         self.dbapi = dbapi.get_instance()
@@ -156,12 +155,11 @@ class MySQLDbDataMigrationsTestCase(MySQLDbMigrationsTestCase):
         metadata.reflect(bind=self.engine)
         eff_ind_table = sqlalchemy.Table('efficacy_indicators', metadata)
         with connection.begin():
-
             return connection.execute(
                 sqlalchemy.select(eff_ind_table.c.data).where(
                     eff_ind_table.c.id == id
-                    )
-                ).one()
+                )
+            ).one()
 
     def _pre_upgrade_15f7375ca737(self, connection):
         """Add data to the database before applying the 15f7375ca737 revision.
@@ -171,42 +169,65 @@ class MySQLDbDataMigrationsTestCase(MySQLDbMigrationsTestCase):
 
         """
         self.goal = utils.create_test_goal(
-            id=1, uuid=w_utils.generate_uuid(),
-            name="GOAL_1", display_name='Goal 1')
+            id=1,
+            uuid=w_utils.generate_uuid(),
+            name="GOAL_1",
+            display_name='Goal 1',
+        )
         self.strategy = utils.create_test_strategy(
-            id=1, uuid=w_utils.generate_uuid(),
-            name="STRATEGY_ID_1", display_name='My Strategy 1')
+            id=1,
+            uuid=w_utils.generate_uuid(),
+            name="STRATEGY_ID_1",
+            display_name='My Strategy 1',
+        )
         self.audit_template = utils.create_test_audit_template(
-            name="Audit Template", id=1, uuid=None)
+            name="Audit Template", id=1, uuid=None
+        )
         self._create_manual_audit(
             connection,
-            audit_template_id=self.audit_template.id, id=1, uuid=None,
-            name="AUDIT_1")
+            audit_template_id=self.audit_template.id,
+            id=1,
+            uuid=None,
+            name="AUDIT_1",
+        )
         self._create_manual_action_plan(
-            connection,
-            audit_id=1, id=1, uuid=None)
+            connection, audit_id=1, id=1, uuid=None
+        )
 
         self._create_manual_efficacy_indicator(
             connection,
-            action_plan_id=1, id=1, uuid=None,
-            name="efficacy_indicator1", description="Test Indicator 1",
-            value=1.01234567912345678)
+            action_plan_id=1,
+            id=1,
+            uuid=None,
+            name="efficacy_indicator1",
+            description="Test Indicator 1",
+            value=1.01234567912345678,
+        )
         self._create_manual_efficacy_indicator(
             connection,
-            action_plan_id=1, id=2, uuid=None,
-            name="efficacy_indicator2", description="Test Indicator 2",
-            value=2.01234567912345678)
+            action_plan_id=1,
+            id=2,
+            uuid=None,
+            name="efficacy_indicator2",
+            description="Test Indicator 2",
+            value=2.01234567912345678,
+        )
 
     def _check_15f7375ca737(self, connection):
         """Check data integrity after the database migration."""
         # check that creating a new efficacy_indicator after the migration
         # works
         utils.create_test_efficacy_indicator(
-            action_plan_id=1, id=3, uuid=None,
-            name="efficacy_indicator3", description="Test Indicator 3",
-            value=0.01234567912345678)
+            action_plan_id=1,
+            id=3,
+            uuid=None,
+            name="efficacy_indicator3",
+            description="Test Indicator 3",
+            value=0.01234567912345678,
+        )
         db_efficacy_indicator = self.dbapi.get_efficacy_indicator_by_id(
-            self.context, 3)
+            self.context, 3
+        )
         self.assertAlmostEqual(db_efficacy_indicator.value, 0.012, places=3)
         # check that the 'data' column of the efficacy_indicator created before
         # applying the revision is null for both efficacy_indicators
@@ -215,53 +236,47 @@ class MySQLDbDataMigrationsTestCase(MySQLDbMigrationsTestCase):
 
         # check that the existing data is there after the migration
         db_efficacy_indicator_1 = self.dbapi.get_efficacy_indicator_by_id(
-            self.context, 1)
-        self.assertAlmostEqual(db_efficacy_indicator_1.data,
-                               1.00, places=2)
-        self.assertAlmostEqual(db_efficacy_indicator_1.value,
-                               1.00, places=2)
+            self.context, 1
+        )
+        self.assertAlmostEqual(db_efficacy_indicator_1.data, 1.00, places=2)
+        self.assertAlmostEqual(db_efficacy_indicator_1.value, 1.00, places=2)
         self.assertEqual(db_efficacy_indicator_1.name, "efficacy_indicator1")
         # check that the 'data' column of the efficacy_indicator1 is now the
         # same as the 'value' column, i.e the data migration on load worked
         eff_ind_1_data = self._read_efficacy_indicator(connection, 1)[0]
-        self.assertAlmostEqual(eff_ind_1_data,
-                               1.00, places=2)
+        self.assertAlmostEqual(eff_ind_1_data, 1.00, places=2)
 
         # check that getting the efficacy_indicator using the
         # get_efficacy_indicator_list method reports the correct values
         efficacy_indicators = self.dbapi.get_efficacy_indicator_list(
-            self.context)
+            self.context
+        )
         self.assertEqual(len(efficacy_indicators), 3)
         self.assertEqual(efficacy_indicators[0].id, 1)
-        self.assertAlmostEqual(efficacy_indicators[0].value,
-                               1.00, places=3)
+        self.assertAlmostEqual(efficacy_indicators[0].value, 1.00, places=3)
         self.assertEqual(efficacy_indicators[1].id, 2)
-        self.assertAlmostEqual(efficacy_indicators[1].value,
-                               2.00, places=3)
+        self.assertAlmostEqual(efficacy_indicators[1].value, 2.00, places=3)
 
         self.assertEqual(efficacy_indicators[2].id, 3)
-        self.assertAlmostEqual(efficacy_indicators[2].value,
-                               0.012, places=3)
+        self.assertAlmostEqual(efficacy_indicators[2].value, 0.012, places=3)
         # check that the 'data' column of the efficacy_indicator1 is now the
         # same as the 'value' column, i.e the data migration on load worked
         # after the call to get_efficacy_indicator_list
         eff_ind_2_data = self._read_efficacy_indicator(connection, 2)[0]
-        self.assertAlmostEqual(eff_ind_2_data,
-                               2.00, places=2)
+        self.assertAlmostEqual(eff_ind_2_data, 2.00, places=2)
 
     def _check_7150a7d8f228(self, connection):
         """Check new columen status_message have been created."""
         self.assertTrue(
             oslodbutils.column_exists(
-                connection, "action_plans", "status_message")
+                connection, "action_plans", "status_message"
+            )
         )
         self.assertTrue(
-            oslodbutils.column_exists(
-                connection, "actions", "status_message")
+            oslodbutils.column_exists(connection, "actions", "status_message")
         )
         self.assertTrue(
-            oslodbutils.column_exists(
-                connection, "audits", "status_message")
+            oslodbutils.column_exists(connection, "audits", "status_message")
         )
 
     def test_migration_revisions(self):

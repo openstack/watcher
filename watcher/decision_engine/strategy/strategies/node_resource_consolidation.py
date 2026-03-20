@@ -87,15 +87,15 @@ class NodeResourceConsolidation(base.ServerConsolidationBaseStrategy):
             "properties": {
                 "host_choice": {
                     "description": "The way to select the server migration "
-                                   "destination node. The value 'auto' "
-                                   "means that Nova scheduler selects "
-                                   "the destination node, and 'specify' "
-                                   "means the strategy specifies the "
-                                   "destination.",
+                    "destination node. The value 'auto' "
+                    "means that Nova scheduler selects "
+                    "the destination node, and 'specify' "
+                    "means the strategy specifies the "
+                    "destination.",
                     "type": "string",
-                    "default": 'auto'
-                },
-            },
+                    "default": 'auto',
+                }
+            }
         }
 
     def check_resources(self, servers, destination):
@@ -107,7 +107,8 @@ class NodeResourceConsolidation(base.ServerConsolidationBaseStrategy):
         for server in servers:
             # just vcpu and memory, do not consider disk
             if free_res['vcpu'] >= server.vcpus and (
-                    free_res['memory'] >= server.memory):
+                free_res['memory'] >= server.memory
+            ):
                 free_res['vcpu'] -= server.vcpus
                 free_res['memory'] -= server.memory
                 dest_flag = True
@@ -121,8 +122,10 @@ class NodeResourceConsolidation(base.ServerConsolidationBaseStrategy):
             return dest_node
         sorted_nodes = sorted(
             destinations,
-            key=lambda x: self.compute_model.get_node_free_resources(
-                x)['vcpu'])
+            key=lambda x: self.compute_model.get_node_free_resources(x)[
+                'vcpu'
+            ],
+        )
         for dest in sorted_nodes:
             if self.check_resources([server], dest):
                 if self.compute_model.migrate_instance(server, source, dest):
@@ -137,13 +140,14 @@ class NodeResourceConsolidation(base.ServerConsolidationBaseStrategy):
         for node in sources:
             servers = self.compute_model.get_node_instances(node)
             sorted_servers = sorted(
-                servers,
-                key=lambda x: x.vcpus,
-                reverse=True)
+                servers, key=lambda x: x.vcpus, reverse=True
+            )
             for server in sorted_servers:
-                parameters = {'migration_type': 'live',
-                              'source_node': node.hostname,
-                              'resource_name': server.name}
+                parameters = {
+                    'migration_type': 'live',
+                    'source_node': node.hostname,
+                    'resource_name': server.name,
+                }
                 action_flag = False
                 if self.host_choice != 'auto':
                     # specify destination host
@@ -158,24 +162,28 @@ class NodeResourceConsolidation(base.ServerConsolidationBaseStrategy):
                     self.solution.add_action(
                         action_type=self.MIGRATION,
                         resource_id=server.uuid,
-                        input_parameters=parameters)
+                        input_parameters=parameters,
+                    )
 
     def add_change_node_state_actions(self, nodes, status):
-        if status not in (element.ServiceState.DISABLED.value,
-                          element.ServiceState.ENABLED.value):
+        if status not in (
+            element.ServiceState.DISABLED.value,
+            element.ServiceState.ENABLED.value,
+        ):
             raise exception.IllegalArgumentException(
-                message=_("The node status is not defined"))
+                message=_("The node status is not defined")
+            )
         changed_nodes = []
         for node in nodes:
             if node.status != status:
-                parameters = {'state': status,
-                              'resource_name': node.hostname}
+                parameters = {'state': status, 'resource_name': node.hostname}
                 if status == element.ServiceState.DISABLED.value:
                     parameters['disabled_reason'] = self.REASON_FOR_DISABLE
                 self.solution.add_action(
                     action_type=self.CHANGE_NOVA_SERVICE_STATE,
                     resource_id=node.uuid,
-                    input_parameters=parameters)
+                    input_parameters=parameters,
+                )
                 node.status = status
                 changed_nodes.append(node)
 
@@ -186,19 +194,19 @@ class NodeResourceConsolidation(base.ServerConsolidationBaseStrategy):
         # just for continuous audit
         nodes_failed = []
         if self.audit is None or (
-                self.audit.audit_type ==
-                objects.audit.AuditType.ONESHOT.value):
+            self.audit.audit_type == objects.audit.AuditType.ONESHOT.value
+        ):
             return nodes_failed
         filters = {'audit_uuid': self.audit.uuid}
-        actions = objects.action.Action.list(
-            self.ctx,
-            filters=filters)
+        actions = objects.action.Action.list(self.ctx, filters=filters)
         for action in actions:
             if action.state == objects.action.State.FAILED and (
-                    action.action_type == self.MIGRATION):
+                action.action_type == self.MIGRATION
+            ):
                 server_uuid = action.input_parameters.get('resource_id')
                 node = self.compute_model.get_node_by_instance_uuid(
-                    server_uuid)
+                    server_uuid
+                )
                 if node not in nodes_failed:
                     nodes_failed.append(node)
 
@@ -212,8 +220,10 @@ class NodeResourceConsolidation(base.ServerConsolidationBaseStrategy):
         LOG.info("nodes: %s migration failed", nodes_failed)
         sorted_nodes = sorted(
             nodes,
-            key=lambda x: self.compute_model.get_node_used_resources(
-                x)['vcpu'])
+            key=lambda x: self.compute_model.get_node_used_resources(x)[
+                'vcpu'
+            ],
+        )
         for node in sorted_nodes:
             if node in dest_nodes:
                 break
@@ -273,17 +283,17 @@ class NodeResourceConsolidation(base.ServerConsolidationBaseStrategy):
         if self.host_choice == 'auto':
             # disable compute node to avoid to be select by Nova scheduler
             nodes_disabled = self.add_change_node_state_actions(
-                free_nodes+source_nodes, element.ServiceState.DISABLED.value)
+                free_nodes + source_nodes, element.ServiceState.DISABLED.value
+            )
         self.add_migrate_actions(source_nodes, dest_nodes)
         if nodes_disabled:
             # restore disabled compute node after migration
             self.add_change_node_state_actions(
-                nodes_disabled, element.ServiceState.ENABLED.value)
+                nodes_disabled, element.ServiceState.ENABLED.value
+            )
 
     def post_execute(self):
-        """Post-execution phase
-
-        """
+        """Post-execution phase"""
         self.solution.set_efficacy_indicators(
             compute_nodes_count=self.compute_nodes_count,
             released_compute_nodes_count=self.number_of_released_nodes,

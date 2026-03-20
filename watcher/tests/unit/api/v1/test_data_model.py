@@ -27,33 +27,32 @@ from watcher.tests.unit.decision_engine.model import faker_cluster_state
 
 
 class TestListDataModel(api_base.FunctionalTest):
-
     def setUp(self):
         super().setUp()
         p_dcapi = mock.patch.object(deapi, 'DecisionEngineAPI')
         self.mock_dcapi = p_dcapi.start()
         self.fake_response = {'context': [{'server_uuid': 'fake_uuid'}]}
-        self.mock_dcapi().get_data_model_info.return_value = (
-            self.fake_response)
+        self.mock_dcapi().get_data_model_info.return_value = self.fake_response
         self.addCleanup(p_dcapi.stop)
 
     def test_get_all(self):
         response = self.get_json(
             '/data_model/?data_model_type=compute',
-            headers={'OpenStack-API-Version': 'infra-optim 1.3'})
+            headers={'OpenStack-API-Version': 'infra-optim 1.3'},
+        )
         self.assertEqual(self.fake_response, response)
 
     def test_get_all_not_acceptable(self):
         response = self.get_json(
             '/data_model/?data_model_type=compute',
             headers={'OpenStack-API-Version': 'infra-optim 1.2'},
-            expect_errors=True)
+            expect_errors=True,
+        )
         self.assertEqual(HTTPStatus.NOT_ACCEPTABLE, response.status_int)
 
 
 @ddt.ddt
 class TestListDataModelResponse(api_base.FunctionalTest):
-
     NODE_FIELDS_1_3 = [
         'node_disabled_reason',
         'node_hostname',
@@ -68,7 +67,7 @@ class TestListDataModelResponse(api_base.FunctionalTest):
         'node_memory_ratio',
         'node_vcpu_ratio',
         'node_disk_ratio',
-        'node_uuid'
+        'node_uuid',
     ]
 
     # Map of API version to expected node fields
@@ -88,12 +87,12 @@ class TestListDataModelResponse(api_base.FunctionalTest):
         'server_metadata',
         'server_project_id',
         'server_locked',
-        'server_uuid'
+        'server_uuid',
     ]
 
     SERVER_FIELDS_1_6 = [
         'server_pinned_az',
-        'server_flavor_extra_specs'
+        'server_flavor_extra_specs',
     ] + SERVER_FIELDS_1_3
 
     # Map of API version to expected server fields
@@ -119,7 +118,8 @@ class TestListDataModelResponse(api_base.FunctionalTest):
         infra_max_version = 'infra-optim ' + version
         response = self.get_json(
             '/data_model/?data_model_type=compute',
-            headers={'OpenStack-API-Version': infra_max_version})
+            headers={'OpenStack-API-Version': infra_max_version},
+        )
 
         server_info = response.get("context")[0]
         expected_keys = self.NODE_FIELDS_MAP[version]
@@ -137,18 +137,19 @@ class TestListDataModelResponse(api_base.FunctionalTest):
         infra_max_version = 'infra-optim ' + version
         response = self.get_json(
             '/data_model/?data_model_type=compute',
-            headers={'OpenStack-API-Version': infra_max_version})
+            headers={'OpenStack-API-Version': infra_max_version},
+        )
 
         server_info = response.get("context")[0]
-        expected_keys = (self.NODE_FIELDS_MAP[version] +
-                         self.SERVER_FIELDS_MAP[version])
+        expected_keys = (
+            self.NODE_FIELDS_MAP[version] + self.SERVER_FIELDS_MAP[version]
+        )
 
         self.assertEqual(len(response.get("context")), 2)
         self.assertEqual(set(expected_keys), set(server_info.keys()))
 
 
 class TestDataModelPolicyEnforcement(api_base.FunctionalTest):
-
     def setUp(self):
         super().setUp()
         p_dcapi = mock.patch.object(deapi, 'DecisionEngineAPI')
@@ -156,31 +157,40 @@ class TestDataModelPolicyEnforcement(api_base.FunctionalTest):
         self.addCleanup(p_dcapi.stop)
 
     def _common_policy_check(self, rule, func, *arg, **kwarg):
-        self.policy.set_rules({
-            "admin_api": "(role:admin or role:administrator)",
-            "default": "rule:admin_api",
-            rule: "rule:default"})
+        self.policy.set_rules(
+            {
+                "admin_api": "(role:admin or role:administrator)",
+                "default": "rule:admin_api",
+                rule: "rule:default",
+            }
+        )
         response = func(*arg, **kwarg)
         self.assertEqual(HTTPStatus.FORBIDDEN, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(
             f"Policy doesn't allow {rule} to be performed.",
-            jsonutils.loads(response.json['error_message'])['faultstring'])
+            jsonutils.loads(response.json['error_message'])['faultstring'],
+        )
 
     def test_policy_disallow_get_all(self):
         self._common_policy_check(
-            "data_model:get_all", self.get_json,
+            "data_model:get_all",
+            self.get_json,
             "/data_model/?data_model_type=compute",
             headers={'OpenStack-API-Version': 'infra-optim 1.3'},
-            expect_errors=True)
+            expect_errors=True,
+        )
 
 
 class TestDataModelEnforcementWithAdminContext(
-        TestListDataModel, api_base.AdminRoleTest):
-
+    TestListDataModel, api_base.AdminRoleTest
+):
     def setUp(self):
         super().setUp()
-        self.policy.set_rules({
-            "admin_api": "(role:admin or role:administrator)",
-            "default": "rule:admin_api",
-            "data_model:get_all": "rule:default"})
+        self.policy.set_rules(
+            {
+                "admin_api": "(role:admin or role:administrator)",
+                "default": "rule:admin_api",
+                "data_model:get_all": "rule:default",
+            }
+        )

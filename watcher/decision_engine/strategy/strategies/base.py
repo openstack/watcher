@@ -64,13 +64,18 @@ class StrategyEndpoint:
     def _collect_metrics(self, strategy, datasource):
         metrics = []
         if not datasource:
-            return {'type': 'Metrics', 'state': metrics,
-                    'mandatory': False, 'comment': ''}
+            return {
+                'type': 'Metrics',
+                'state': metrics,
+                'mandatory': False,
+                'comment': '',
+            }
         else:
             ds_metrics = datasource.list_metrics()
             if ds_metrics is None:
                 raise exception.DataSourceNotAvailable(
-                    datasource=datasource.NAME)
+                    datasource=datasource.NAME
+                )
             else:
                 for metric in strategy.DATASOURCE_METRICS:
                     original_metric_name = datasource.METRIC_MAP.get(metric)
@@ -78,17 +83,24 @@ class StrategyEndpoint:
                         metrics.append({original_metric_name: 'available'})
                     else:
                         metrics.append({original_metric_name: 'not available'})
-        return {'type': 'Metrics', 'state': metrics,
-                'mandatory': False, 'comment': ''}
+        return {
+            'type': 'Metrics',
+            'state': metrics,
+            'mandatory': False,
+            'comment': '',
+        }
 
     def _get_datasource_status(self, strategy, datasource):
         if not datasource:
             state = "Datasource is not presented for this strategy"
         else:
             state = f"{datasource.NAME}: {datasource.check_availability()}"
-        return {'type': 'Datasource',
-                'state': state,
-                'mandatory': True, 'comment': ''}
+        return {
+            'type': 'Datasource',
+            'state': state,
+            'mandatory': True,
+            'comment': '',
+        }
 
     def _get_cdm(self, strategy):
         models = []
@@ -99,8 +111,12 @@ class StrategyEndpoint:
                 models.append({model: 'not available'})
             else:
                 models.append({model: 'available'})
-        return {'type': 'CDM', 'state': models,
-                'mandatory': True, 'comment': ''}
+        return {
+            'type': 'CDM',
+            'state': models,
+            'mandatory': True,
+            'comment': '',
+        }
 
     def get_strategy_info(self, context, strategy_name):
         strategy = loading.DefaultStrategyLoader().load(strategy_name)
@@ -112,8 +128,9 @@ class StrategyEndpoint:
                 datasource = getattr(strategy, strategy.config.datasource)
         except (AttributeError, IndexError):
             datasource = []
-        available_datasource = self._get_datasource_status(strategy,
-                                                           datasource)
+        available_datasource = self._get_datasource_status(
+            strategy, datasource
+        )
         available_metrics = self._collect_metrics(strategy, datasource)
         available_cdm = self._get_cdm(strategy)
         return [available_datasource, available_metrics, available_cdm]
@@ -206,10 +223,11 @@ class BaseStrategy(loadable.Loadable, metaclass=abc.ABCMeta):
             cfg.ListOpt(
                 "datasources",
                 help="Datasources to use in order to query the needed metrics."
-                     " This option overrides the global preference."
-                     f" options: {datasources_ops}",
+                " This option overrides the global preference."
+                f" options: {datasources_ops}",
                 item_type=cfg.types.String(choices=datasources_ops),
-                default=None)
+                default=None,
+            )
         ]
 
     @abc.abstractmethod
@@ -242,8 +260,8 @@ class BaseStrategy(loadable.Loadable, metaclass=abc.ABCMeta):
     def _pre_execute(self):
         """Base Pre-execution phase
 
-         This will perform basic pre execution operations most strategies
-         should perform.
+        This will perform basic pre execution operations most strategies
+        should perform.
         """
 
         LOG.info("Initializing %s", self.get_display_name())
@@ -284,11 +302,14 @@ class BaseStrategy(loadable.Loadable, metaclass=abc.ABCMeta):
         """
         if self._compute_model is None:
             collector = self.collector_manager.get_cluster_model_collector(
-                'compute', osc=self.osc)
+                'compute', osc=self.osc
+            )
             audit_scope_handler = collector.get_audit_scope_handler(
-                audit_scope=self.audit_scope)
+                audit_scope=self.audit_scope
+            )
             self._compute_model = audit_scope_handler.get_scoped_model(
-                collector.get_latest_cluster_data_model())
+                collector.get_latest_cluster_data_model()
+            )
 
         if not self._compute_model:
             raise exception.ClusterStateNotDefined()
@@ -307,11 +328,14 @@ class BaseStrategy(loadable.Loadable, metaclass=abc.ABCMeta):
         """
         if self._storage_model is None:
             collector = self.collector_manager.get_cluster_model_collector(
-                'storage', osc=self.osc)
+                'storage', osc=self.osc
+            )
             audit_scope_handler = collector.get_audit_scope_handler(
-                audit_scope=self.audit_scope)
+                audit_scope=self.audit_scope
+            )
             self._storage_model = audit_scope_handler.get_scoped_model(
-                collector.get_latest_cluster_data_model())
+                collector.get_latest_cluster_data_model()
+            )
 
         if not self._storage_model:
             raise exception.ClusterStateNotDefined()
@@ -330,11 +354,14 @@ class BaseStrategy(loadable.Loadable, metaclass=abc.ABCMeta):
         """
         if self._baremetal_model is None:
             collector = self.collector_manager.get_cluster_model_collector(
-                'baremetal', osc=self.osc)
+                'baremetal', osc=self.osc
+            )
             audit_scope_handler = collector.get_audit_scope_handler(
-                audit_scope=self.audit_scope)
+                audit_scope=self.audit_scope
+            )
             self._baremetal_model = audit_scope_handler.get_scoped_model(
-                collector.get_latest_cluster_data_model())
+                collector.get_latest_cluster_data_model()
+            )
 
         if not self._baremetal_model:
             raise exception.ClusterStateNotDefined()
@@ -356,7 +383,6 @@ class BaseStrategy(loadable.Loadable, metaclass=abc.ABCMeta):
     @property
     def datasource_backend(self):
         if not self._datasource_backend:
-
             # Load the global preferred datasources order but override it
             # if the strategy has a specific datasources config
             datasources = CONF.watcher_datasources
@@ -364,8 +390,7 @@ class BaseStrategy(loadable.Loadable, metaclass=abc.ABCMeta):
                 datasources = self.config
 
             self._datasource_backend = ds_manager.DataSourceManager(
-                config=datasources,
-                osc=self.osc
+                config=datasources, osc=self.osc
             ).get_backend(self.DATASOURCE_METRICS)
         return self._datasource_backend
 
@@ -444,36 +469,38 @@ class BaseStrategy(loadable.Loadable, metaclass=abc.ABCMeta):
             if instance.metadata:
                 try:
                     optimize = strutils.bool_from_string(
-                        instance.metadata.get('optimize'))
+                        instance.metadata.get('optimize')
+                    )
                 except ValueError:
                     optimize = False
             if optimize:
                 instances_to_migrate.append(instance)
         return instances_to_migrate
 
-    def add_action_migrate(self,
-                           instance,
-                           migration_type,
-                           source_node,
-                           destination_node):
-        parameters = {'migration_type': migration_type,
-                      'source_node': source_node.hostname,
-                      'destination_node': destination_node.hostname,
-                      'resource_name': instance.name}
-        self.solution.add_action(action_type=self.MIGRATION,
-                                 resource_id=instance.uuid,
-                                 input_parameters=parameters)
+    def add_action_migrate(
+        self, instance, migration_type, source_node, destination_node
+    ):
+        parameters = {
+            'migration_type': migration_type,
+            'source_node': source_node.hostname,
+            'destination_node': destination_node.hostname,
+            'resource_name': instance.name,
+        }
+        self.solution.add_action(
+            action_type=self.MIGRATION,
+            resource_id=instance.uuid,
+            input_parameters=parameters,
+        )
 
 
 class DummyBaseStrategy(BaseStrategy, metaclass=abc.ABCMeta):
-
     @classmethod
     def get_goal_name(cls):
         return "dummy"
 
     @classmethod
     def get_config_opts(cls):
-        """Override base class config options as do not use datasource """
+        """Override base class config options as do not use datasource"""
 
         return []
 
@@ -493,7 +520,6 @@ class UnclassifiedStrategy(BaseStrategy, metaclass=abc.ABCMeta):
 
 
 class ServerConsolidationBaseStrategy(BaseStrategy, metaclass=abc.ABCMeta):
-
     REASON_FOR_DISABLE = 'watcher_disabled'
 
     @classmethod
@@ -502,14 +528,12 @@ class ServerConsolidationBaseStrategy(BaseStrategy, metaclass=abc.ABCMeta):
 
 
 class ThermalOptimizationBaseStrategy(BaseStrategy, metaclass=abc.ABCMeta):
-
     @classmethod
     def get_goal_name(cls):
         return "thermal_optimization"
 
 
 class WorkloadStabilizationBaseStrategy(BaseStrategy, metaclass=abc.ABCMeta):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._planner = 'workload_stabilization'
@@ -520,40 +544,36 @@ class WorkloadStabilizationBaseStrategy(BaseStrategy, metaclass=abc.ABCMeta):
 
 
 class NoisyNeighborBaseStrategy(BaseStrategy, metaclass=abc.ABCMeta):
-
     @classmethod
     def get_goal_name(cls):
         return "noisy_neighbor"
 
 
 class SavingEnergyBaseStrategy(BaseStrategy, metaclass=abc.ABCMeta):
-
     @classmethod
     def get_goal_name(cls):
         return "saving_energy"
 
     @classmethod
     def get_config_opts(cls):
-        """Override base class config options as do not use datasource """
+        """Override base class config options as do not use datasource"""
 
         return []
 
 
 class ZoneMigrationBaseStrategy(BaseStrategy, metaclass=abc.ABCMeta):
-
     @classmethod
     def get_goal_name(cls):
         return "hardware_maintenance"
 
     @classmethod
     def get_config_opts(cls):
-        """Override base class config options as do not use datasource """
+        """Override base class config options as do not use datasource"""
 
         return []
 
 
 class HostMaintenanceBaseStrategy(BaseStrategy, metaclass=abc.ABCMeta):
-
     REASON_FOR_MAINTAINING = 'watcher_maintaining'
 
     @classmethod
@@ -562,6 +582,6 @@ class HostMaintenanceBaseStrategy(BaseStrategy, metaclass=abc.ABCMeta):
 
     @classmethod
     def get_config_opts(cls):
-        """Override base class config options as do not use datasource """
+        """Override base class config options as do not use datasource"""
 
         return []

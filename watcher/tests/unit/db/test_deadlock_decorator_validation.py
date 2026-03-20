@@ -48,9 +48,11 @@ class ASTMethodAnalyzer:
         for dec in method_node.decorator_list:
             # @oslo_db_api.retry_on_deadlock
             if isinstance(dec, ast.Attribute):
-                if (isinstance(dec.value, ast.Name) and
-                        dec.value.id == 'oslo_db_api' and
-                        dec.attr == 'retry_on_deadlock'):
+                if (
+                    isinstance(dec.value, ast.Name)
+                    and dec.value.id == 'oslo_db_api'
+                    and dec.attr == 'retry_on_deadlock'
+                ):
                     return True
             # @retry_on_deadlock (if imported directly)
             elif isinstance(dec, ast.Name):
@@ -74,8 +76,10 @@ class ASTMethodAnalyzer:
             if isinstance(node, ast.Call):
                 # self.method_name()
                 if isinstance(node.func, ast.Attribute):
-                    if (isinstance(node.func.value, ast.Name) and
-                            node.func.value.id == 'self'):
+                    if (
+                        isinstance(node.func.value, ast.Name)
+                        and node.func.value.id == 'self'
+                    ):
                         called.add(node.func.attr)
         return called
 
@@ -93,7 +97,7 @@ class ASTMethodAnalyzer:
                     'has_decorator': self._has_retry_decorator(item),
                     'uses_write': self._uses_session_for_write(item),
                     'calls': self._get_called_methods(item),
-                    'is_public': not item.name.startswith('_')
+                    'is_public': not item.name.startswith('_'),
                 }
 
         return methods
@@ -120,7 +124,7 @@ class ASTMethodAnalyzer:
                     'direct': True,
                     'indirect': False,
                     'call_chain': [name, '_session_for_write()'],
-                    'protected': info['has_decorator']
+                    'protected': info['has_decorator'],
                 }
 
         # Iterative fixed-point: propagate to callers
@@ -147,9 +151,10 @@ class ASTMethodAnalyzer:
                             result[name] = {
                                 'direct': False,
                                 'indirect': True,
-                                'call_chain': ([name] +
-                                               result[called]['call_chain']),
-                                'protected': info['has_decorator']
+                                'call_chain': (
+                                    [name] + result[called]['call_chain']
+                                ),
+                                'protected': info['has_decorator'],
                             }
                             changed = True
                             break
@@ -199,7 +204,7 @@ class TestRetryOnDeadlockDecorator(base.TestCase):
                 violation = {
                     'method': method_name,
                     'direct': usage_info['direct'],
-                    'call_chain': call_chain
+                    'call_chain': call_chain,
                 }
                 violations.append(violation)
 
@@ -215,7 +220,8 @@ class TestRetryOnDeadlockDecorator(base.TestCase):
                 usage_type = "directly" if v['direct'] else "indirectly via"
                 msg_parts.append(
                     "  - {}() - uses {}: {}".format(
-                        v['method'], usage_type, v['call_chain'])
+                        v['method'], usage_type, v['call_chain']
+                    )
                 )
             msg_parts.append(
                 "\nNote: Methods calling decorated helpers (_create, "
@@ -248,11 +254,12 @@ class TestRetryOnDeadlockDecorator(base.TestCase):
         for method_name in known_decorated:
             method_info = self.analyzer.methods.get(method_name)
             self.assertIsNotNone(
-                method_info,
-                f"AST analyzer should find {method_name}()")
+                method_info, f"AST analyzer should find {method_name}()"
+            )
             self.assertTrue(
                 method_info['has_decorator'],
-                f"{method_name}() should have @retry_on_deadlock decorator")
+                f"{method_name}() should have @retry_on_deadlock decorator",
+            )
 
     def test_ast_analyzer_detects_write_session_usage(self):
         """Verify AST analyzer detects _session_for_write() usage."""
@@ -274,8 +281,10 @@ class TestRetryOnDeadlockDecorator(base.TestCase):
                 method_name,
                 write_users,
                 f"AST analyzer should detect {method_name}() uses "
-                "_session_for_write()")
+                "_session_for_write()",
+            )
             # Verify it's marked as direct usage
             self.assertTrue(
                 write_users[method_name]['direct'],
-                f"{method_name}() should be marked as direct user")
+                f"{method_name}() should be marked as direct user",
+            )

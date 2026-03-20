@@ -42,15 +42,18 @@ class DummyScoringContainer(base.ScoringEngineContainer):
             SimpleFunctionScorer(
                 'dummy_min_scorer',
                 'Dummy Scorer calculating the minimum value',
-                min),
+                min,
+            ),
             SimpleFunctionScorer(
                 'dummy_max_scorer',
                 'Dummy Scorer calculating the maximum value',
-                max),
+                max,
+            ),
             SimpleFunctionScorer(
                 'dummy_avg_scorer',
                 'Dummy Scorer calculating the average value',
-                lambda x: float(sum(x)) / len(x)),
+                lambda x: float(sum(x)) / len(x),
+            ),
         ]
 
 

@@ -31,120 +31,149 @@ from watcher.tests.unit.db import base
 from watcher.tests.unit.objects import utils as obj_utils
 
 
-class TestTaskFlowActionContainer(test_utils.NovaResourcesMixin,
-                                  base.DbTestCase):
+class TestTaskFlowActionContainer(
+    test_utils.NovaResourcesMixin, base.DbTestCase
+):
     def setUp(self):
         super().setUp()
         self.engine = tflow.DefaultWorkFlowEngine(
             config=mock.Mock(),
             context=self.context,
-            applier_manager=mock.MagicMock())
+            applier_manager=mock.MagicMock(),
+        )
         obj_utils.create_test_goal(self.context)
         self.strategy = obj_utils.create_test_strategy(self.context)
         self.audit = obj_utils.create_test_audit(
-            self.context, strategy_id=self.strategy.id)
+            self.context, strategy_id=self.strategy.id
+        )
 
     def test_execute(self):
         action_plan = obj_utils.create_test_action_plan(
-            self.context, audit_id=self.audit.id,
+            self.context,
+            audit_id=self.audit.id,
             strategy_id=self.strategy.id,
-            state=objects.action_plan.State.ONGOING)
+            state=objects.action_plan.State.ONGOING,
+        )
 
         action = obj_utils.create_test_action(
-            self.context, action_plan_id=action_plan.id,
+            self.context,
+            action_plan_id=action_plan.id,
             state=objects.action.State.ONGOING,
             action_type='nop',
-            input_parameters={'message': 'hello World'})
+            input_parameters={'message': 'hello World'},
+        )
         action_container = tflow.TaskFlowActionContainer(
-            db_action=action,
-            engine=self.engine)
+            db_action=action, engine=self.engine
+        )
 
         action_container.execute()
 
         obj_action = objects.Action.get_by_uuid(
-            self.engine.context, action.uuid)
+            self.engine.context, action.uuid
+        )
         self.assertEqual(obj_action.state, objects.action.State.SUCCEEDED)
 
     def test_execute_with_failed_execute(self):
-
         mock_connection = self.useFixture(
             fixtures.MockPatch("watcher.common.clients.get_sdk_connection")
         ).mock.return_value
         instance = "31b9dd5c-b1fd-4f61-9b68-a47096326dac"
         mock_connection.compute.get_server.side_effect = [
             self.create_openstacksdk_server(id=instance),
-            sdk_exc.NotFoundException()
+            sdk_exc.NotFoundException(),
         ]
         action_plan = obj_utils.create_test_action_plan(
-            self.context, audit_id=self.audit.id,
+            self.context,
+            audit_id=self.audit.id,
             strategy_id=self.strategy.id,
-            state=objects.action_plan.State.ONGOING)
+            state=objects.action_plan.State.ONGOING,
+        )
 
         action = obj_utils.create_test_action(
-            self.context, action_plan_id=action_plan.id,
+            self.context,
+            action_plan_id=action_plan.id,
             state=objects.action.State.ONGOING,
             action_type='migrate',
-            input_parameters={"resource_id":
-                              instance,
-                              "migration_type": "live",
-                              "destination_node": "host2",
-                              "source_node": "host1"})
+            input_parameters={
+                "resource_id": instance,
+                "migration_type": "live",
+                "destination_node": "host2",
+                "source_node": "host1",
+            },
+        )
         action_container = tflow.TaskFlowActionContainer(
-            db_action=action,
-            engine=self.engine)
+            db_action=action, engine=self.engine
+        )
 
         result = action_container.execute()
         self.assertFalse(result)
 
         obj_action = objects.Action.get_by_uuid(
-            self.engine.context, action.uuid)
+            self.engine.context, action.uuid
+        )
         self.assertEqual(obj_action.state, objects.action.State.FAILED)
-        self.assertEqual(obj_action.status_message, "Action failed in execute:"
-                         " The action 10a47dd1-4874-4298-91cf-eff046dbdb8d "
-                         "execution failed.")
+        self.assertEqual(
+            obj_action.status_message,
+            "Action failed in execute:"
+            " The action 10a47dd1-4874-4298-91cf-eff046dbdb8d "
+            "execution failed.",
+        )
 
     def test_pre_execute(self):
         action_plan = obj_utils.create_test_action_plan(
-            self.context, audit_id=self.audit.id,
+            self.context,
+            audit_id=self.audit.id,
             strategy_id=self.strategy.id,
-            state=objects.action_plan.State.ONGOING)
+            state=objects.action_plan.State.ONGOING,
+        )
         action = obj_utils.create_test_action(
-            self.context, action_plan_id=action_plan.id,
+            self.context,
+            action_plan_id=action_plan.id,
             state=objects.action.State.PENDING,
             action_type='nop',
-            input_parameters={'message': 'hello World'})
+            input_parameters={'message': 'hello World'},
+        )
         action_container = tflow.TaskFlowActionContainer(
-            db_action=action,
-            engine=self.engine)
+            db_action=action, engine=self.engine
+        )
 
         action_container.pre_execute()
         obj_action = objects.Action.get_by_uuid(
-            self.engine.context, action.uuid)
+            self.engine.context, action.uuid
+        )
         self.assertEqual(obj_action.state, objects.action.State.PENDING)
         self.assertIsNone(obj_action.status_message)
 
     def test_pre_execute_with_failed_pre_condition(self):
         action_plan = obj_utils.create_test_action_plan(
-            self.context, audit_id=self.audit.id,
+            self.context,
+            audit_id=self.audit.id,
             strategy_id=self.strategy.id,
-            state=objects.action_plan.State.ONGOING)
+            state=objects.action_plan.State.ONGOING,
+        )
         action = obj_utils.create_test_action(
-            self.context, action_plan_id=action_plan.id,
+            self.context,
+            action_plan_id=action_plan.id,
             state=objects.action.State.PENDING,
             action_type='nop',
-            input_parameters={'message': 'hello World',
-                              'fail_pre_condition': True})
+            input_parameters={
+                'message': 'hello World',
+                'fail_pre_condition': True,
+            },
+        )
         action_container = tflow.TaskFlowActionContainer(
-            db_action=action,
-            engine=self.engine)
+            db_action=action, engine=self.engine
+        )
 
         action_container.pre_execute()
         obj_action = objects.Action.get_by_uuid(
-            self.engine.context, action.uuid)
+            self.engine.context, action.uuid
+        )
         self.assertEqual(obj_action.state, objects.action.State.FAILED)
         self.assertEqual(
             obj_action.status_message,
-            "Action failed in pre_condition: Failed in pre_condition")
+            "Action failed in pre_condition: Failed in pre_condition",
+        )
 
     @mock.patch.object(nop.Nop, "pre_condition")
     def test_pre_execute_with_failed_exception(self, m_pre_condition):
@@ -152,72 +181,96 @@ class TestTaskFlowActionContainer(test_utils.NovaResourcesMixin,
         # should only include the type of the exception.
         m_pre_condition.side_effect = Exception("Third party exception")
         action_plan = obj_utils.create_test_action_plan(
-            self.context, audit_id=self.audit.id,
+            self.context,
+            audit_id=self.audit.id,
             strategy_id=self.strategy.id,
-            state=objects.action_plan.State.ONGOING)
+            state=objects.action_plan.State.ONGOING,
+        )
         action = obj_utils.create_test_action(
-            self.context, action_plan_id=action_plan.id,
+            self.context,
+            action_plan_id=action_plan.id,
             state=objects.action.State.PENDING,
             action_type='nop',
-            input_parameters={'message': 'hello World',
-                              'fail_pre_condition': True})
+            input_parameters={
+                'message': 'hello World',
+                'fail_pre_condition': True,
+            },
+        )
         action_container = tflow.TaskFlowActionContainer(
-            db_action=action,
-            engine=self.engine)
+            db_action=action, engine=self.engine
+        )
 
         action_container.pre_execute()
         obj_action = objects.Action.get_by_uuid(
-            self.engine.context, action.uuid)
+            self.engine.context, action.uuid
+        )
         self.assertEqual(obj_action.state, objects.action.State.FAILED)
         self.assertEqual(
             obj_action.status_message,
-            "Action failed in pre_condition: Exception")
+            "Action failed in pre_condition: Exception",
+        )
 
     def test_pre_execute_with_skipped(self):
         action_plan = obj_utils.create_test_action_plan(
-            self.context, audit_id=self.audit.id,
+            self.context,
+            audit_id=self.audit.id,
             strategy_id=self.strategy.id,
-            state=objects.action_plan.State.ONGOING)
+            state=objects.action_plan.State.ONGOING,
+        )
         action = obj_utils.create_test_action(
-            self.context, action_plan_id=action_plan.id,
+            self.context,
+            action_plan_id=action_plan.id,
             state=objects.action.State.PENDING,
             action_type='nop',
-            input_parameters={'message': 'hello World',
-                              'skip_pre_condition': True})
+            input_parameters={
+                'message': 'hello World',
+                'skip_pre_condition': True,
+            },
+        )
         action_container = tflow.TaskFlowActionContainer(
-            db_action=action,
-            engine=self.engine)
+            db_action=action, engine=self.engine
+        )
 
         action_container.pre_execute()
         obj_action = objects.Action.get_by_uuid(
-            self.engine.context, action.uuid)
+            self.engine.context, action.uuid
+        )
         self.assertEqual(obj_action.state, objects.action.State.SKIPPED)
-        self.assertEqual(obj_action.status_message,
-                         "Action was skipped automatically: "
-                         "Skipped in pre_condition")
+        self.assertEqual(
+            obj_action.status_message,
+            "Action was skipped automatically: Skipped in pre_condition",
+        )
 
     def test_post_execute_with_failed_post_condition(self):
         action_plan = obj_utils.create_test_action_plan(
-            self.context, audit_id=self.audit.id,
+            self.context,
+            audit_id=self.audit.id,
             strategy_id=self.strategy.id,
-            state=objects.action_plan.State.ONGOING)
+            state=objects.action_plan.State.ONGOING,
+        )
         action = obj_utils.create_test_action(
-            self.context, action_plan_id=action_plan.id,
+            self.context,
+            action_plan_id=action_plan.id,
             state=objects.action.State.ONGOING,
             action_type='nop',
-            input_parameters={'message': 'hello World',
-                              'fail_post_condition': True})
+            input_parameters={
+                'message': 'hello World',
+                'fail_post_condition': True,
+            },
+        )
         action_container = tflow.TaskFlowActionContainer(
-            db_action=action,
-            engine=self.engine)
+            db_action=action, engine=self.engine
+        )
 
         action_container.post_execute()
         obj_action = objects.Action.get_by_uuid(
-            self.engine.context, action.uuid)
+            self.engine.context, action.uuid
+        )
         self.assertEqual(obj_action.state, objects.action.State.FAILED)
         self.assertEqual(
             obj_action.status_message,
-            "Action failed in post_condition: Failed in post_condition")
+            "Action failed in post_condition: Failed in post_condition",
+        )
 
     def test_pre_execute_with_cancel_action_plan(self):
         """Test that actions are cancelled in the pre_execute method.
@@ -227,21 +280,26 @@ class TestTaskFlowActionContainer(test_utils.NovaResourcesMixin,
         """
 
         action_plan = obj_utils.create_test_action_plan(
-            self.context, audit_id=self.audit.id,
+            self.context,
+            audit_id=self.audit.id,
             strategy_id=self.strategy.id,
-            state=objects.action_plan.State.CANCELLING)
+            state=objects.action_plan.State.CANCELLING,
+        )
         action = obj_utils.create_test_action(
-            self.context, action_plan_id=action_plan.id,
+            self.context,
+            action_plan_id=action_plan.id,
             state=objects.action.State.PENDING,
             action_type='nop',
-            input_parameters={'message': 'hello World'})
+            input_parameters={'message': 'hello World'},
+        )
 
         action_container = tflow.TaskFlowActionContainer(
-            db_action=action,
-            engine=self.engine)
+            db_action=action, engine=self.engine
+        )
 
-        self.assertRaises(exception.ActionPlanCancelled,
-                          action_container.pre_execute)
+        self.assertRaises(
+            exception.ActionPlanCancelled, action_container.pre_execute
+        )
 
     def test_execute_with_cancel_action_plan(self):
         """Test that actions are not cancelled in the execute method.
@@ -252,68 +310,85 @@ class TestTaskFlowActionContainer(test_utils.NovaResourcesMixin,
         """
 
         action_plan = obj_utils.create_test_action_plan(
-            self.context, audit_id=self.audit.id,
+            self.context,
+            audit_id=self.audit.id,
             strategy_id=self.strategy.id,
-            state=objects.action_plan.State.CANCELLING)
+            state=objects.action_plan.State.CANCELLING,
+        )
         action = obj_utils.create_test_action(
-            self.context, action_plan_id=action_plan.id,
+            self.context,
+            action_plan_id=action_plan.id,
             state=objects.action.State.PENDING,
             action_type='nop',
-            input_parameters={'message': 'hello World'})
+            input_parameters={'message': 'hello World'},
+        )
 
         action_container = tflow.TaskFlowActionContainer(
-            db_action=action,
-            engine=self.engine)
+            db_action=action, engine=self.engine
+        )
 
         result = action_container.execute()
         self.assertTrue(result)
 
         obj_action = objects.Action.get_by_uuid(
-            self.engine.context, action.uuid)
+            self.engine.context, action.uuid
+        )
         self.assertEqual(obj_action.state, objects.action.State.SUCCEEDED)
 
     @mock.patch('watcher.applier.workflow_engine.default.LOG')
     def test_execute_without_rollback(self, mock_log):
         action_plan = obj_utils.create_test_action_plan(
-            self.context, audit_id=self.audit.id,
+            self.context,
+            audit_id=self.audit.id,
             strategy_id=self.strategy.id,
-            state=objects.action_plan.State.ONGOING)
+            state=objects.action_plan.State.ONGOING,
+        )
 
         action = obj_utils.create_test_action(
-            self.context, action_plan_id=action_plan.id,
+            self.context,
+            action_plan_id=action_plan.id,
             state=objects.action.State.FAILED,
             action_type='nop',
-            input_parameters={'message': 'hello World'})
+            input_parameters={'message': 'hello World'},
+        )
         action_container = tflow.TaskFlowActionContainer(
-            db_action=action,
-            engine=self.engine)
+            db_action=action, engine=self.engine
+        )
 
-        cfg.CONF.set_override("rollback_when_actionplan_failed", False,
-                              group="watcher_applier")
+        cfg.CONF.set_override(
+            "rollback_when_actionplan_failed", False, group="watcher_applier"
+        )
         action_name = f"action_type:{action.action_type} uuid:{action.uuid}"
-        expected_log = ('Failed actionplan rollback option is turned off, '
-                        'and the following action will be skipped: %s')
+        expected_log = (
+            'Failed actionplan rollback option is turned off, '
+            'and the following action will be skipped: %s'
+        )
         action_container.revert()
         mock_log.info.assert_called_once_with(expected_log, action_name)
 
     @mock.patch('watcher.applier.workflow_engine.default.LOG')
     def test_execute_with_rollback(self, mock_log):
         action_plan = obj_utils.create_test_action_plan(
-            self.context, audit_id=self.audit.id,
+            self.context,
+            audit_id=self.audit.id,
             strategy_id=self.strategy.id,
-            state=objects.action_plan.State.ONGOING)
+            state=objects.action_plan.State.ONGOING,
+        )
 
         action = obj_utils.create_test_action(
-            self.context, action_plan_id=action_plan.id,
+            self.context,
+            action_plan_id=action_plan.id,
             state=objects.action.State.FAILED,
             action_type='nop',
-            input_parameters={'message': 'hello World'})
+            input_parameters={'message': 'hello World'},
+        )
         action_container = tflow.TaskFlowActionContainer(
-            db_action=action,
-            engine=self.engine)
+            db_action=action, engine=self.engine
+        )
 
-        cfg.CONF.set_override("rollback_when_actionplan_failed", True,
-                              group="watcher_applier")
+        cfg.CONF.set_override(
+            "rollback_when_actionplan_failed", True, group="watcher_applier"
+        )
         action_name = f"action_type:{action.action_type} uuid:{action.uuid}"
         expected_log = 'Revert action: %s'
         action_container.revert()
@@ -322,22 +397,27 @@ class TestTaskFlowActionContainer(test_utils.NovaResourcesMixin,
     @mock.patch.object(tflow.TaskFlowActionContainer, 'do_revert')
     def test_execute_with_rollback_skipped_action(self, mock_do_revert):
         action_plan = obj_utils.create_test_action_plan(
-            self.context, audit_id=self.audit.id,
+            self.context,
+            audit_id=self.audit.id,
             strategy_id=self.strategy.id,
-            state=objects.action_plan.State.ONGOING)
+            state=objects.action_plan.State.ONGOING,
+        )
 
         action = obj_utils.create_test_action(
-            self.context, action_plan_id=action_plan.id,
+            self.context,
+            action_plan_id=action_plan.id,
             state=objects.action.State.SKIPPED,
             action_type='nop',
-            input_parameters={'message': 'hello World'})
+            input_parameters={'message': 'hello World'},
+        )
 
         action_container = tflow.TaskFlowActionContainer(
-            db_action=action,
-            engine=self.engine)
+            db_action=action, engine=self.engine
+        )
 
-        cfg.CONF.set_override("rollback_when_actionplan_failed", True,
-                              group="watcher_applier")
+        cfg.CONF.set_override(
+            "rollback_when_actionplan_failed", True, group="watcher_applier"
+        )
 
         action_container.revert()
 
@@ -348,19 +428,23 @@ class TestTaskFlowActionContainer(test_utils.NovaResourcesMixin,
     def test_fail_action_with_reason(self, mock_notification, mock_log):
         """Test _fail_action method with phase and reason."""
         action_plan = obj_utils.create_test_action_plan(
-            self.context, audit_id=self.audit.id,
+            self.context,
+            audit_id=self.audit.id,
             strategy_id=self.strategy.id,
-            state=objects.action_plan.State.ONGOING)
+            state=objects.action_plan.State.ONGOING,
+        )
 
         action = obj_utils.create_test_action(
-            self.context, action_plan_id=action_plan.id,
+            self.context,
+            action_plan_id=action_plan.id,
             state=objects.action.State.ONGOING,
             action_type='nop',
-            input_parameters={'message': 'hello World'})
+            input_parameters={'message': 'hello World'},
+        )
 
         action_container = tflow.TaskFlowActionContainer(
-            db_action=action,
-            engine=self.engine)
+            db_action=action, engine=self.engine
+        )
 
         # Call _fail_action with a phase and reason
         phase = "execute"
@@ -369,7 +453,8 @@ class TestTaskFlowActionContainer(test_utils.NovaResourcesMixin,
 
         # Verify the action state is set to FAILED
         obj_action = objects.Action.get_by_uuid(
-            self.engine.context, action.uuid)
+            self.engine.context, action.uuid
+        )
         self.assertEqual(obj_action.state, objects.action.State.FAILED)
 
         # Verify status_message is set correctly
@@ -379,7 +464,8 @@ class TestTaskFlowActionContainer(test_utils.NovaResourcesMixin,
         # Verify LOG.error was called
         mock_log.error.assert_called_once_with(
             'The workflow engine has failed to execute the action: %s',
-            action.uuid)
+            action.uuid,
+        )
 
         # Verify notification was sent with correct parameters
         mock_notification.assert_called_once_with(
@@ -387,7 +473,7 @@ class TestTaskFlowActionContainer(test_utils.NovaResourcesMixin,
             mock.ANY,  # action object - checked separately below
             objects.fields.NotificationAction.EXECUTION,
             objects.fields.NotificationPhase.ERROR,
-            priority=objects.fields.NotificationPriority.ERROR
+            priority=objects.fields.NotificationPriority.ERROR,
         )
         call_args = mock_notification.call_args
         self.assertEqual(call_args[0][1].uuid, action.uuid)
@@ -398,19 +484,23 @@ class TestTaskFlowActionContainer(test_utils.NovaResourcesMixin,
     def test_fail_action_without_reason(self, mock_notification, mock_log):
         """Test _fail_action method without a reason."""
         action_plan = obj_utils.create_test_action_plan(
-            self.context, audit_id=self.audit.id,
+            self.context,
+            audit_id=self.audit.id,
             strategy_id=self.strategy.id,
-            state=objects.action_plan.State.ONGOING)
+            state=objects.action_plan.State.ONGOING,
+        )
 
         action = obj_utils.create_test_action(
-            self.context, action_plan_id=action_plan.id,
+            self.context,
+            action_plan_id=action_plan.id,
             state=objects.action.State.ONGOING,
             action_type='nop',
-            input_parameters={'message': 'hello World'})
+            input_parameters={'message': 'hello World'},
+        )
 
         action_container = tflow.TaskFlowActionContainer(
-            db_action=action,
-            engine=self.engine)
+            db_action=action, engine=self.engine
+        )
 
         # Call _fail_action with only phase, no reason
         phase = "pre_condition"
@@ -418,7 +508,8 @@ class TestTaskFlowActionContainer(test_utils.NovaResourcesMixin,
 
         # Verify the action state is set to FAILED
         obj_action = objects.Action.get_by_uuid(
-            self.engine.context, action.uuid)
+            self.engine.context, action.uuid
+        )
         self.assertEqual(obj_action.state, objects.action.State.FAILED)
 
         # Verify status_message is not set when no reason is provided
@@ -427,4 +518,5 @@ class TestTaskFlowActionContainer(test_utils.NovaResourcesMixin,
         # Verify LOG.error was called
         mock_log.error.assert_called_once_with(
             'The workflow engine has failed to execute the action: %s',
-            action.uuid)
+            action.uuid,
+        )

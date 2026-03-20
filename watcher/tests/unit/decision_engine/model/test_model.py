@@ -29,7 +29,6 @@ from watcher.tests.unit.decision_engine.model import faker_cluster_state
 
 
 class TestModel(base.TestCase):
-
     def load_data(self, filename):
         cwd = os.path.abspath(os.path.dirname(__file__))
         data_folder = os.path.join(cwd, "data")
@@ -69,17 +68,24 @@ class TestModel(base.TestCase):
     @mock.patch('watcher.decision_engine.model.model_root.LOG')
     def test_get_model_to_list(self, mock_log, mock_instances, mock_nodes):
         fake_compute_node = element.ComputeNode(
-            uuid='fake_node_uuid', hostname="hostname0")
-        fake_instance = element.Instance(
-            uuid='fake_instance_uuid')
+            uuid='fake_node_uuid', hostname="hostname0"
+        )
+        fake_instance = element.Instance(uuid='fake_instance_uuid')
 
         mock_nodes.return_value = {'fake_node_uuid': fake_compute_node}
         mock_instances.return_value = [fake_instance]
 
         expected_keys = [
-            'server_uuid', 'node_uuid', 'node_state', 'node_hostname',
-            'node_status', 'server_flavor_extra_specs', 'server_locked',
-            'server_pinned_az', 'server_state', 'server_watcher_exclude'
+            'server_uuid',
+            'node_uuid',
+            'node_state',
+            'node_hostname',
+            'node_status',
+            'server_flavor_extra_specs',
+            'server_locked',
+            'server_pinned_az',
+            'server_state',
+            'server_watcher_exclude',
         ]
 
         result = model_root.ModelRoot().to_list()
@@ -89,19 +95,25 @@ class TestModel(base.TestCase):
         self.assertEqual(sorted(expected_keys), sorted(result_keys))
 
         mock_log.debug.assert_any_call(
-            'Attribute %s for Instance: %s is not provided', 'name',
-            'fake_instance_uuid'
+            'Attribute %s for Instance: %s is not provided',
+            'name',
+            'fake_instance_uuid',
         )
         mock_log.debug.assert_any_call(
-            'Attribute %s for Compute: %s is not provided', 'memory',
-            'hostname0'
+            'Attribute %s for Compute: %s is not provided',
+            'memory',
+            'hostname0',
         )
 
         # test compute node has no instance
         mock_instances.return_value = []
 
-        expected_keys = ['node_hostname', 'node_status',
-                         'node_state', 'node_uuid']
+        expected_keys = [
+            'node_hostname',
+            'node_status',
+            'node_state',
+            'node_uuid',
+        ]
 
         result = model_root.ModelRoot().to_list()
         self.assertEqual(1, len(result))
@@ -117,7 +129,8 @@ class TestModel(base.TestCase):
         self.assertEqual(len(model_list), 8)
         self.assertEqual(
             model_list[0]['server_uuid'],
-            'd000ef1f-dc19-4982-9383-087498bfde03')
+            'd000ef1f-dc19-4982-9383-087498bfde03',
+        )
 
     def test_model_to_xml_all_fields(self):
         struct_str = self.load_data('scenario_2_with_metrics.xml')
@@ -159,8 +172,9 @@ class TestModel(base.TestCase):
         model.add_node(node)
         self.assertEqual(node, model.get_node_by_uuid(uuid_))
         model.remove_node(node)
-        self.assertRaises(exception.ComputeNodeNotFound,
-                          model.get_node_by_uuid, uuid_)
+        self.assertRaises(
+            exception.ComputeNodeNotFound, model.get_node_by_uuid, uuid_
+        )
 
     def test_get_all_compute_nodes(self):
         model = model_root.ModelRoot()
@@ -210,8 +224,9 @@ class TestModel(base.TestCase):
         model.add_node(node)
 
         fake_name = 'fake_node'
-        self.assertRaises(exception.ComputeNodeNotFound,
-                          model.get_node_by_name, fake_name)
+        self.assertRaises(
+            exception.ComputeNodeNotFound, model.get_node_by_name, fake_name
+        )
 
     def test_node_from_uuid_raise(self):
         model = model_root.ModelRoot()
@@ -221,8 +236,9 @@ class TestModel(base.TestCase):
         model.add_node(node)
 
         uuid2 = f"{uuidutils.generate_uuid()}"
-        self.assertRaises(exception.ComputeNodeNotFound,
-                          model.get_node_by_uuid, uuid2)
+        self.assertRaises(
+            exception.ComputeNodeNotFound, model.get_node_by_uuid, uuid2
+        )
 
     def test_remove_node_raise(self):
         model = model_root.ModelRoot()
@@ -235,8 +251,9 @@ class TestModel(base.TestCase):
         node2 = element.ComputeNode(id=2)
         node2.uuid = uuid2
 
-        self.assertRaises(exception.ComputeNodeNotFound,
-                          model.remove_node, node2)
+        self.assertRaises(
+            exception.ComputeNodeNotFound, model.remove_node, node2
+        )
 
     def test_assert_node_raise(self):
         model = model_root.ModelRoot()
@@ -244,19 +261,26 @@ class TestModel(base.TestCase):
         node = element.ComputeNode(id=1)
         node.uuid = uuid_
         model.add_node(node)
-        self.assertRaises(exception.IllegalArgumentException,
-                          model.assert_node, "objet_qcq")
+        self.assertRaises(
+            exception.IllegalArgumentException, model.assert_node, "objet_qcq"
+        )
 
     def test_instance_from_uuid_raise(self):
         fake_cluster = faker_cluster_state.FakerModelCollector()
         model = fake_cluster.generate_scenario_1()
-        self.assertRaises(exception.InstanceNotFound,
-                          model.get_instance_by_uuid, "valeur_qcq")
+        self.assertRaises(
+            exception.InstanceNotFound,
+            model.get_instance_by_uuid,
+            "valeur_qcq",
+        )
 
     def test_assert_instance_raise(self):
         model = model_root.ModelRoot()
-        self.assertRaises(exception.IllegalArgumentException,
-                          model.assert_instance, "valeur_qcq")
+        self.assertRaises(
+            exception.IllegalArgumentException,
+            model.assert_instance,
+            "valeur_qcq",
+        )
 
     def test_get_node_instances(self):
         fake_cluster = faker_cluster_state.FakerModelCollector()
@@ -296,7 +320,6 @@ class TestModel(base.TestCase):
 
 
 class TestStorageModel(base.TestCase):
-
     def load_data(self, filename):
         cwd = os.path.abspath(os.path.dirname(__file__))
         data_folder = os.path.join(cwd, "data")
@@ -320,7 +343,8 @@ class TestStorageModel(base.TestCase):
         expected_struct_str = self.load_data('storage_scenario_1.xml')
         model2 = model_root.StorageModelRoot.from_xml(expected_struct_str)
         self.assertTrue(
-            model_root.StorageModelRoot.is_isomorphic(model2, model1))
+            model_root.StorageModelRoot.is_isomorphic(model2, model1)
+        )
 
     def test_build_model_from_xml(self):
         fake_cluster = faker_cluster_state.FakerStorageModelCollector()
@@ -335,23 +359,26 @@ class TestStorageModel(base.TestCase):
         model = model_root.StorageModelRoot()
         node = element.StorageNode(host="host@backend")
         model.add_node(node)
-        self.assertRaises(exception.IllegalArgumentException,
-                          model.assert_node, "obj")
+        self.assertRaises(
+            exception.IllegalArgumentException, model.assert_node, "obj"
+        )
 
     def test_assert_pool_raise(self):
         model = model_root.StorageModelRoot()
         pool = element.Pool(name="host@backend#pool")
         model.add_pool(pool)
-        self.assertRaises(exception.IllegalArgumentException,
-                          model.assert_pool, "obj")
+        self.assertRaises(
+            exception.IllegalArgumentException, model.assert_pool, "obj"
+        )
 
     def test_assert_volume_raise(self):
         model = model_root.StorageModelRoot()
         uuid_ = f"{uuidutils.generate_uuid()}"
         volume = element.Volume(uuid=uuid_)
         model.add_volume(volume)
-        self.assertRaises(exception.IllegalArgumentException,
-                          model.assert_volume, "obj")
+        self.assertRaises(
+            exception.IllegalArgumentException, model.assert_volume, "obj"
+        )
 
     def test_add_node(self):
         model = model_root.StorageModelRoot()
@@ -374,8 +401,9 @@ class TestStorageModel(base.TestCase):
         model.add_node(node)
         self.assertEqual(node, model.get_node_by_name(hostname))
         model.remove_node(node)
-        self.assertRaises(exception.StorageNodeNotFound,
-                          model.get_node_by_name, hostname)
+        self.assertRaises(
+            exception.StorageNodeNotFound, model.get_node_by_name, hostname
+        )
 
     def test_remove_pool(self):
         model = model_root.StorageModelRoot()
@@ -384,8 +412,9 @@ class TestStorageModel(base.TestCase):
         model.add_pool(pool)
         self.assertEqual(pool, model.get_pool_by_pool_name(pool_name))
         model.remove_pool(pool)
-        self.assertRaises(exception.PoolNotFound,
-                          model.get_pool_by_pool_name, pool_name)
+        self.assertRaises(
+            exception.PoolNotFound, model.get_pool_by_pool_name, pool_name
+        )
 
     def test_map_unmap_pool(self):
         model = model_root.StorageModelRoot()
@@ -416,8 +445,9 @@ class TestStorageModel(base.TestCase):
         model.add_volume(volume)
         self.assertEqual(volume, model.get_volume_by_uuid(uuid_))
         model.remove_volume(volume)
-        self.assertRaises(exception.VolumeNotFound,
-                          model.get_volume_by_uuid, uuid_)
+        self.assertRaises(
+            exception.VolumeNotFound, model.get_volume_by_uuid, uuid_
+        )
 
     def test_map_unmap_volume(self):
         model = model_root.StorageModelRoot()
@@ -497,7 +527,6 @@ class TestStorageModel(base.TestCase):
 
 
 class TestBaremetalModel(base.TestCase):
-
     def load_data(self, filename):
         cwd = os.path.abspath(os.path.dirname(__file__))
         data_folder = os.path.join(cwd, "data")
@@ -518,7 +547,8 @@ class TestBaremetalModel(base.TestCase):
         expected_struct_str = self.load_data('ironic_scenario_1.xml')
         model2 = model_root.BaremetalModelRoot.from_xml(expected_struct_str)
         self.assertTrue(
-            model_root.BaremetalModelRoot.is_isomorphic(model2, model1))
+            model_root.BaremetalModelRoot.is_isomorphic(model2, model1)
+        )
 
     def test_build_model_from_xml(self):
         fake_cluster = faker_cluster_state.FakerBaremetalModelCollector()
@@ -534,8 +564,9 @@ class TestBaremetalModel(base.TestCase):
         node_uuid = uuidutils.generate_uuid()
         node = element.IronicNode(uuid=node_uuid)
         model.add_node(node)
-        self.assertRaises(exception.IllegalArgumentException,
-                          model.assert_node, "obj")
+        self.assertRaises(
+            exception.IllegalArgumentException, model.assert_node, "obj"
+        )
 
     def test_add_node(self):
         model = model_root.BaremetalModelRoot()
@@ -551,8 +582,9 @@ class TestBaremetalModel(base.TestCase):
         model.add_node(node)
         self.assertEqual(node, model.get_node_by_uuid(node_uuid))
         model.remove_node(node)
-        self.assertRaises(exception.IronicNodeNotFound,
-                          model.get_node_by_uuid, node_uuid)
+        self.assertRaises(
+            exception.IronicNodeNotFound, model.get_node_by_uuid, node_uuid
+        )
 
     def test_get_all_ironic_nodes(self):
         model = model_root.BaremetalModelRoot()

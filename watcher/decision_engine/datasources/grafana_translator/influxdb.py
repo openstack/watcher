@@ -51,27 +51,40 @@ class InfluxDBGrafanaTranslator(BaseGrafanaTranslator):
 
         if retention_period is None:
             retention_period = max(available_periods)[0]
-            LOG.warning("Longest retention period is to short for desired"
-                        " period")
+            LOG.warning(
+                "Longest retention period is to short for desired period"
+            )
 
         try:
             resource = self._extract_attribute(
-                data['resource'], data['attribute'])
+                data['resource'], data['attribute']
+            )
         except AttributeError:
-            LOG.error("Resource: %s does not contain attribute %s",
-                      data['resource'], data['attribute'])
+            LOG.error(
+                "Resource: %s does not contain attribute %s",
+                data['resource'],
+                data['attribute'],
+            )
             raise
 
         # Granularity is optional if it is None the minimal value for InfluxDB
         # will be 1
-        granularity = \
+        granularity = (
             data['granularity'] if data['granularity'] is not None else 1
+        )
 
-        return {'db': data['db'],
-                'epoch': 'ms',
-                'q': self._query_format(
-                    data['query'], data['aggregate'], resource, data['period'],
-                    granularity, retention_period)}
+        return {
+            'db': data['db'],
+            'epoch': 'ms',
+            'q': self._query_format(
+                data['query'],
+                data['aggregate'],
+                resource,
+                data['period'],
+                granularity,
+                retention_period,
+            ),
+        }
 
     def extract_result(self, raw_results):
         """"""
@@ -83,7 +96,11 @@ class InfluxDBGrafanaTranslator(BaseGrafanaTranslator):
             index_aggregate = result['columns'].index(self._data['aggregate'])
             return result['values'][0][index_aggregate]
         except KeyError:
-            LOG.error("Could not extract %s for the resource: %s",
-                      self._data['metric'], self._data['resource'])
+            LOG.error(
+                "Could not extract %s for the resource: %s",
+                self._data['metric'],
+                self._data['resource'],
+            )
             raise exception.NoSuchMetricForHost(
-                metric=self._data['metric'], host=self._data['resource'])
+                metric=self._data['metric'], host=self._data['resource']
+            )

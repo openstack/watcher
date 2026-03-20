@@ -35,18 +35,19 @@ class PrometheusBase(base.DataSourceBase):
     to provide the appropriate client configuration.
     """
 
-    METRIC_MAP = dict(host_cpu_usage='node_cpu_seconds_total',
-                      host_ram_usage='node_memory_MemAvailable_bytes',
-                      host_outlet_temp=None,
-                      host_inlet_temp=None,
-                      host_airflow=None,
-                      host_power=None,
-                      instance_cpu_usage='ceilometer_cpu',
-                      instance_ram_usage='ceilometer_memory_usage',
-                      instance_ram_allocated='instance.memory',
-                      instance_l3_cache_usage=None,
-                      instance_root_disk_size='instance.disk',
-                      )
+    METRIC_MAP = dict(
+        host_cpu_usage='node_cpu_seconds_total',
+        host_ram_usage='node_memory_MemAvailable_bytes',
+        host_outlet_temp=None,
+        host_inlet_temp=None,
+        host_airflow=None,
+        host_power=None,
+        instance_cpu_usage='ceilometer_cpu',
+        instance_ram_usage='ceilometer_memory_usage',
+        instance_ram_allocated='instance.memory',
+        instance_l3_cache_usage=None,
+        instance_root_disk_size='instance.disk',
+    )
     AGGREGATES_MAP = dict(mean='avg', max='max', min='min', count='avg')
 
     def __init__(self):
@@ -64,9 +65,7 @@ class PrometheusBase(base.DataSourceBase):
         """
         self.prometheus = self._setup_prometheus_client()
         self.prometheus_fqdn_label = self._get_fqdn_label()
-        self.prometheus_fqdn_labels = (
-            self._build_prometheus_fqdn_labels()
-        )
+        self.prometheus_fqdn_labels = self._build_prometheus_fqdn_labels()
         self.prometheus_host_instance_map = (
             self._build_prometheus_host_instance_map()
         )
@@ -115,8 +114,9 @@ class PrometheusBase(base.DataSourceBase):
                 {'foo.example.com', 'bar.example.com'}
                 {'foo', 'bar'}
         """
-        prometheus_targets = self.prometheus._get(
-            "targets?state=active")['data']['activeTargets']
+        prometheus_targets = self.prometheus._get("targets?state=active")[
+            'data'
+        ]['activeTargets']
         # >>> prometheus_targets[0]['labels']
         # {'fqdn': 'marios-env-again.controlplane.domain',
         #  'instance': 'localhost:9100', 'job': 'node'}
@@ -124,13 +124,14 @@ class PrometheusBase(base.DataSourceBase):
         for target in prometheus_targets:
             if target.get('labels', {}).get(self.prometheus_fqdn_label):
                 fqdn_instance_labels.add(
-                    target['labels'].get(self.prometheus_fqdn_label))
+                    target['labels'].get(self.prometheus_fqdn_label)
+                )
 
         if not fqdn_instance_labels:
             LOG.error(
                 "Could not create fqdn labels list from Prometheus "
                 "targets config. Prometheus returned the following: %s",
-                prometheus_targets
+                prometheus_targets,
             )
             return set()
         return fqdn_instance_labels
@@ -150,19 +151,23 @@ class PrometheusBase(base.DataSourceBase):
                 {'foo': 'foo.example.com', 'bar': 'bar.example.com'}
         """
         if not self.prometheus_fqdn_labels:
-            LOG.error("Cannot build host_instance_map without "
-                      "fqdn_instance_labels")
+            LOG.error(
+                "Cannot build host_instance_map without fqdn_instance_labels"
+            )
             return {}
         host_instance_map = {
-            host: fqdn for (host, fqdn) in (
+            host: fqdn
+            for (host, fqdn) in (
                 (fqdn.split('.')[0], fqdn)
                 for fqdn in self.prometheus_fqdn_labels
                 if '.' in fqdn
             )
         }
         if not host_instance_map:
-            LOG.warning("Creating empty host instance map. Are the keys "
-                        "in prometheus_fqdn_labels valid fqdn?")
+            LOG.warning(
+                "Creating empty host instance map. Are the keys "
+                "in prometheus_fqdn_labels valid fqdn?"
+            )
             return {}
         return host_instance_map
 
@@ -178,6 +183,7 @@ class PrometheusBase(base.DataSourceBase):
         :param node_name: the watcher node.hostname
         :return String for the prometheus instance label and None if not found
         """
+
         def _query_maps(node):
             if node in self.prometheus_fqdn_labels:
                 return node
@@ -187,17 +193,18 @@ class PrometheusBase(base.DataSourceBase):
         instance_label = _query_maps(node_name)
         # refresh the fqdn and host instance maps and retry
         if not instance_label:
-            self.prometheus_fqdn_labels = (
-                self._build_prometheus_fqdn_labels()
-            )
+            self.prometheus_fqdn_labels = self._build_prometheus_fqdn_labels()
             self.prometheus_host_instance_map = (
                 self._build_prometheus_host_instance_map()
             )
             instance_label = _query_maps(node_name)
 
         if not instance_label:
-            LOG.error("Cannot query prometheus without instance label. "
-                      "Could not resolve %s", node_name)
+            LOG.error(
+                "Cannot query prometheus without instance label. "
+                "Could not resolve %s",
+                node_name,
+            )
             return None
         return instance_label
 
@@ -208,19 +215,26 @@ class PrometheusBase(base.DataSourceBase):
         aggregate to use in queries, from the given watcher aggregate
         """
         if watcher_aggregate == 'count':
-            LOG.warning('Prometheus data source does not currently support '
-                        ' the count aggregate. Proceeding with mean (avg).')
+            LOG.warning(
+                'Prometheus data source does not currently support '
+                ' the count aggregate. Proceeding with mean (avg).'
+            )
         promql_aggregate = self.AGGREGATES_MAP.get(watcher_aggregate)
         if not promql_aggregate:
             raise exception.InvalidParameter(
-                message=(_("Unknown Watcher aggregate %s. This does not "
-                           "resolve to any valid prometheus query aggregate.")
-                         % watcher_aggregate)
+                message=(
+                    _(
+                        "Unknown Watcher aggregate %s. This does not "
+                        "resolve to any valid prometheus query aggregate."
+                    )
+                    % watcher_aggregate
+                )
             )
         return promql_aggregate
 
-    def _build_prometheus_query(self, aggregate, meter, instance_label,
-                                period, resource=None):
+    def _build_prometheus_query(
+        self, aggregate, meter, instance_label, period, resource=None
+    ):
         """Build and return the prometheus query string with the given args
 
         This function builds and returns the string query that will be sent
@@ -256,15 +270,26 @@ class PrometheusBase(base.DataSourceBase):
         """
         query_args = None
         uuid_label_key = self._get_instance_uuid_label()
-        if (meter is None or aggregate is None or instance_label is None or
-                period is None):
+        if (
+            meter is None
+            or aggregate is None
+            or instance_label is None
+            or period is None
+        ):
             raise exception.InvalidParameter(
-                message=(_(
-                    "Cannot build prometheus query without args. "
-                    "You provided: meter %(mtr)s, aggregate %(agg)s, "
-                    "instance_label %(inst)s, period %(prd)s")
-                    % {'mtr': meter, 'agg': aggregate,
-                       'inst': instance_label, 'prd': period})
+                message=(
+                    _(
+                        "Cannot build prometheus query without args. "
+                        "You provided: meter %(mtr)s, aggregate %(agg)s, "
+                        "instance_label %(inst)s, period %(prd)s"
+                    )
+                    % {
+                        'mtr': meter,
+                        'agg': aggregate,
+                        'inst': instance_label,
+                        'prd': period,
+                    }
+                )
             )
 
         if meter == 'node_cpu_seconds_total':
@@ -299,7 +324,7 @@ class PrometheusBase(base.DataSourceBase):
             if not vcpus:
                 LOG.warning(
                     "instance vcpu count not set for instance %s, assuming 1",
-                    instance_label
+                    instance_label,
                 )
                 vcpus = 1
             query_args = (
@@ -317,9 +342,9 @@ class PrometheusBase(base.DataSourceBase):
     def check_availability(self):
         """check if Prometheus server is available for queries
 
-         Performs HTTP get on the prometheus API /status/runtimeinfo endpoint.
-         The prometheus_client will raise a PrometheuAPIClientError if the
-         call is unsuccessful, which is caught here and a warning logged.
+        Performs HTTP get on the prometheus API /status/runtimeinfo endpoint.
+        The prometheus_client will raise a PrometheuAPIClientError if the
+        call is unsuccessful, which is caught here and a warning logged.
         """
         try:
             self.prometheus._get("status/runtimeinfo")
@@ -347,10 +372,15 @@ class PrometheusBase(base.DataSourceBase):
             return set()
         return set(response['data'])
 
-    def statistic_aggregation(self, resource=None, resource_type=None,
-                              meter_name=None, period=300, aggregate='mean',
-                              granularity=300):
-
+    def statistic_aggregation(
+        self,
+        resource=None,
+        resource_type=None,
+        meter_name=None,
+        period=300,
+        aggregate='mean',
+        granularity=300,
+    ):
         meter = self._get_meter(meter_name)
         query_args = ''
         instance_label = ''
@@ -360,7 +390,8 @@ class PrometheusBase(base.DataSourceBase):
         # specific key value.
         if resource_type == 'compute_node':
             instance_label = self._resolve_prometheus_instance_label(
-                resource.hostname)
+                resource.hostname
+            )
         elif resource_type == 'instance':
             instance_label = resource.uuid
             # For ram_allocated and root_disk size metrics there are no valid
@@ -373,7 +404,8 @@ class PrometheusBase(base.DataSourceBase):
         else:
             LOG.warning(
                 "Prometheus data source does not currently support "
-                "resource_type %s", resource_type
+                "resource_type %s",
+                resource_type,
             )
             return None
 
@@ -386,29 +418,40 @@ class PrometheusBase(base.DataSourceBase):
             return None
 
         result = self.query_retry(
-            self.prometheus.query, query_args,
+            self.prometheus.query,
+            query_args,
             ignored_exc=prometheus_client.PrometheusAPIClientError,
         )
 
         return float(result[0].value) if result else None
 
-    def statistic_series(self, resource=None, resource_type=None,
-                         meter_name=None, start_time=None, end_time=None,
-                         granularity=300):
+    def statistic_series(
+        self,
+        resource=None,
+        resource_type=None,
+        meter_name=None,
+        start_time=None,
+        end_time=None,
+        granularity=300,
+    ):
         raise NotImplementedError(
-            _('Prometheus helper currently does not support statistic_series. '
-              'This can be considered for future enhancement.'))
+            _(
+                'Prometheus helper currently does not support '
+                'statistic_series. '
+                'This can be considered for future enhancement.'
+            )
+        )
 
     def _invert_max_min_aggregate(self, agg):
         """Invert max and min for node/host metric queries from node-exporter
 
-            because we query for 'idle'/'unused' cpu and memory.
-            For Watcher 'max cpu used' we query for prometheus 'min idle time'.
-            For Watcher 'max memory used' we retrieve min 'unused'/'available'
-            memory from Prometheus. This internal function is used exclusively
-            by get_host_cpu_usage and get_host_ram_usage.
-            :param agg: the metric collection aggregate
-            :return: a String aggregate
+        because we query for 'idle'/'unused' cpu and memory.
+        For Watcher 'max cpu used' we query for prometheus 'min idle time'.
+        For Watcher 'max memory used' we retrieve min 'unused'/'available'
+        memory from Prometheus. This internal function is used exclusively
+        by get_host_cpu_usage and get_host_ram_usage.
+        :param agg: the metric collection aggregate
+        :return: a String aggregate
 
         """
         if agg == 'max':
@@ -417,8 +460,9 @@ class PrometheusBase(base.DataSourceBase):
             return 'max'
         return agg
 
-    def get_host_cpu_usage(self, resource, period=300,
-                           aggregate="mean", granularity=None):
+    def get_host_cpu_usage(
+        self, resource, period=300, aggregate="mean", granularity=None
+    ):
         """Query prometheus for node_cpu_seconds_total
 
         This calculates the host cpu usage and returns it as a percentage
@@ -429,48 +473,77 @@ class PrometheusBase(base.DataSourceBase):
         """
         aggregate = self._invert_max_min_aggregate(aggregate)
         cpu_usage = self.statistic_aggregation(
-            resource, 'compute_node',
-            'host_cpu_usage', period=period,
-            granularity=granularity, aggregate=aggregate)
+            resource,
+            'compute_node',
+            'host_cpu_usage',
+            period=period,
+            granularity=granularity,
+            aggregate=aggregate,
+        )
         return float(cpu_usage) if cpu_usage else None
 
-    def get_host_ram_usage(self, resource, period=300,
-                           aggregate="mean", granularity=None):
+    def get_host_ram_usage(
+        self, resource, period=300, aggregate="mean", granularity=None
+    ):
         aggregate = self._invert_max_min_aggregate(aggregate)
         ram_usage = self.statistic_aggregation(
-            resource, 'compute_node',
-            'host_ram_usage', period=period,
-            granularity=granularity, aggregate=aggregate)
+            resource,
+            'compute_node',
+            'host_ram_usage',
+            period=period,
+            granularity=granularity,
+            aggregate=aggregate,
+        )
         return float(ram_usage) if ram_usage else None
 
-    def get_instance_ram_usage(self, resource, period=300,
-                               aggregate="mean", granularity=None):
+    def get_instance_ram_usage(
+        self, resource, period=300, aggregate="mean", granularity=None
+    ):
         ram_usage = self.statistic_aggregation(
-            resource, 'instance',
-            'instance_ram_usage', period=period,
-            granularity=granularity, aggregate=aggregate)
+            resource,
+            'instance',
+            'instance_ram_usage',
+            period=period,
+            granularity=granularity,
+            aggregate=aggregate,
+        )
         return ram_usage
 
-    def get_instance_cpu_usage(self, resource, period=300,
-                               aggregate="mean", granularity=None):
+    def get_instance_cpu_usage(
+        self, resource, period=300, aggregate="mean", granularity=None
+    ):
         cpu_usage = self.statistic_aggregation(
-            resource, 'instance',
-            'instance_cpu_usage', period=period,
-            granularity=granularity, aggregate=aggregate)
+            resource,
+            'instance',
+            'instance_cpu_usage',
+            period=period,
+            granularity=granularity,
+            aggregate=aggregate,
+        )
         return cpu_usage
 
-    def get_instance_ram_allocated(self, resource, period=300,
-                                   aggregate="mean", granularity=None):
+    def get_instance_ram_allocated(
+        self, resource, period=300, aggregate="mean", granularity=None
+    ):
         ram_allocated = self.statistic_aggregation(
-            resource, 'instance',
-            'instance_ram_allocated', period=period,
-            granularity=granularity, aggregate=aggregate)
+            resource,
+            'instance',
+            'instance_ram_allocated',
+            period=period,
+            granularity=granularity,
+            aggregate=aggregate,
+        )
         return ram_allocated
 
-    def get_instance_root_disk_size(self, resource, period=300,
-                                    aggregate="mean", granularity=None):
+    def get_instance_root_disk_size(
+        self, resource, period=300, aggregate="mean", granularity=None
+    ):
         root_disk_size = self.statistic_aggregation(
-            resource, 'instance',
-            'instance_root_disk_size', period=period,
-            granularity=granularity, aggregate=aggregate)
+            resource,
+            'instance',
+            'instance_root_disk_size',
+            period=period,
+            granularity=granularity,
+            aggregate=aggregate,
+        )
         return root_disk_size

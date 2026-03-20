@@ -119,9 +119,9 @@ LOG = log.getLogger(__name__)
 CONF = cfg.CONF
 
 
-class BaseClusterDataModelCollector(loadable.LoadableSingleton,
-                                    metaclass=abc.ABCMeta):
-
+class BaseClusterDataModelCollector(
+    loadable.LoadableSingleton, metaclass=abc.ABCMeta
+):
     STALE_MODEL = model_root.ModelRoot(stale=True)
 
     def __init__(self, config, osc=None):
@@ -177,7 +177,8 @@ class BaseClusterDataModelCollector(loadable.LoadableSingleton,
                 'period',
                 default=3600,
                 help='The time interval (in seconds) between each '
-                     'synchronization of the model'),
+                'synchronization of the model',
+            )
         ]
 
     def get_latest_cluster_data_model(self):
@@ -199,7 +200,6 @@ class BaseClusterDataModelCollector(loadable.LoadableSingleton,
 
 
 class BaseModelBuilder:
-
     def call_retry(self, f, *args, **kwargs):
         """Attempts to call external service
 
@@ -221,9 +221,13 @@ class BaseModelBuilder:
             except Exception as e:
                 LOG.exception(e)
                 self.call_retry_reset(e)
-                LOG.warning("Retry %d of %d, error while calling service "
-                            "retry in %s seconds",
-                            i+1, num_retries, interval)
+                LOG.warning(
+                    "Retry %d of %d, error while calling service "
+                    "retry in %s seconds",
+                    i + 1,
+                    num_retries,
+                    interval,
+                )
                 time.sleep(interval)
         raise
 

@@ -33,8 +33,8 @@ class TestDataModelEndpoint(unittest.TestCase):
         audit_uuid = utils.generate_uuid()
 
         result = self.endpoint_instance.get_audit_scope(
-            context=None,
-            audit=audit_uuid)
+            context=None, audit=audit_uuid
+        )
         self.assertEqual('fake_scope', result)
 
     @mock.patch.object(audit.Audit, 'get_by_name')
@@ -46,7 +46,8 @@ class TestDataModelEndpoint(unittest.TestCase):
             exception.InvalidIdentity,
             self.endpoint_instance.get_audit_scope,
             context=None,
-            audit=audit_name)
+            audit=audit_name,
+        )
 
     @mock.patch.object(manager, 'CollectorManager', mock.Mock())
     def test_get_data_model_info(self):

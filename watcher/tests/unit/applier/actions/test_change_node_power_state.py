@@ -29,7 +29,6 @@ COMPUTE_NODE = "compute-1"
 
 
 class TestChangeNodePowerState(base.TestCase):
-
     def setUp(self):
         super().setUp()
 
@@ -47,43 +46,45 @@ class TestChangeNodePowerState(base.TestCase):
             baction.BaseAction.RESOURCE_ID: COMPUTE_NODE,
             "state": m_constants.PowerState.ON.value,
         }
-        self.action = change_node_power_state.ChangeNodePowerState(
-            mock.Mock())
+        self.action = change_node_power_state.ChangeNodePowerState(mock.Mock())
         self.action.input_parameters = self.input_parameters
 
     def test_parameters_down(self):
         self.action.input_parameters = {
             baction.BaseAction.RESOURCE_ID: COMPUTE_NODE,
-            self.action.STATE:
-                m_constants.PowerState.OFF.value}
+            self.action.STATE: m_constants.PowerState.OFF.value,
+        }
         self.assertTrue(self.action.validate_parameters())
 
     def test_parameters_up(self):
         self.action.input_parameters = {
             baction.BaseAction.RESOURCE_ID: COMPUTE_NODE,
-            self.action.STATE:
-                m_constants.PowerState.ON.value}
+            self.action.STATE: m_constants.PowerState.ON.value,
+        }
         self.assertTrue(self.action.validate_parameters())
 
     def test_parameters_exception_wrong_state(self):
         self.action.input_parameters = {
             baction.BaseAction.RESOURCE_ID: COMPUTE_NODE,
-            self.action.STATE: 'error'}
-        self.assertRaises(jsonschema.ValidationError,
-                          self.action.validate_parameters)
+            self.action.STATE: 'error',
+        }
+        self.assertRaises(
+            jsonschema.ValidationError, self.action.validate_parameters
+        )
 
     def test_parameters_resource_id_empty(self):
         self.action.input_parameters = {
-            self.action.STATE:
-                m_constants.PowerState.ON.value,
+            self.action.STATE: m_constants.PowerState.ON.value
         }
-        self.assertRaises(jsonschema.ValidationError,
-                          self.action.validate_parameters)
+        self.assertRaises(
+            jsonschema.ValidationError, self.action.validate_parameters
+        )
 
     def test_parameters_applies_add_extra(self):
         self.action.input_parameters = {"extra": "failed"}
-        self.assertRaises(jsonschema.ValidationError,
-                          self.action.validate_parameters)
+        self.assertRaises(
+            jsonschema.ValidationError, self.action.validate_parameters
+        )
 
     def test_change_service_state_pre_condition(self):
         try:
@@ -98,13 +99,14 @@ class TestChangeNodePowerState(base.TestCase):
             self.fail(exc)
 
     def test_execute_node_service_state_with_poweron_target(self):
-        self.action.input_parameters["state"] = (
-            m_constants.PowerState.ON.value)
+        self.action.input_parameters["state"] = m_constants.PowerState.ON.value
         mock_nodes = [
             fake_metal_helper.get_mock_metal_node(
-                power_state=m_constants.PowerState.OFF),
+                power_state=m_constants.PowerState.OFF
+            ),
             fake_metal_helper.get_mock_metal_node(
-                power_state=m_constants.PowerState.ON)
+                power_state=m_constants.PowerState.ON
+            ),
         ]
         self._metal_helper.get_node.side_effect = mock_nodes
 
@@ -112,19 +114,24 @@ class TestChangeNodePowerState(base.TestCase):
         self.assertTrue(result)
 
         mock_nodes[0].set_power_state.assert_called_once_with(
-            m_constants.PowerState.ON.value)
+            m_constants.PowerState.ON.value
+        )
 
     def test_execute_change_node_state_with_poweroff_target(self):
         self.action.input_parameters["state"] = (
-            m_constants.PowerState.OFF.value)
+            m_constants.PowerState.OFF.value
+        )
 
         mock_nodes = [
             fake_metal_helper.get_mock_metal_node(
-                power_state=m_constants.PowerState.ON),
+                power_state=m_constants.PowerState.ON
+            ),
             fake_metal_helper.get_mock_metal_node(
-                power_state=m_constants.PowerState.ON),
+                power_state=m_constants.PowerState.ON
+            ),
             fake_metal_helper.get_mock_metal_node(
-                power_state=m_constants.PowerState.OFF)
+                power_state=m_constants.PowerState.OFF
+            ),
         ]
         self._metal_helper.get_node.side_effect = mock_nodes
 
@@ -132,39 +139,47 @@ class TestChangeNodePowerState(base.TestCase):
         self.assertTrue(result)
 
         mock_nodes[0].set_power_state.assert_called_once_with(
-            m_constants.PowerState.OFF.value)
+            m_constants.PowerState.OFF.value
+        )
 
     def test_revert_change_node_state_with_poweron_target(self):
-        self.action.input_parameters["state"] = (
-            m_constants.PowerState.ON.value)
+        self.action.input_parameters["state"] = m_constants.PowerState.ON.value
 
         mock_nodes = [
             fake_metal_helper.get_mock_metal_node(
-                power_state=m_constants.PowerState.ON),
+                power_state=m_constants.PowerState.ON
+            ),
             fake_metal_helper.get_mock_metal_node(
-                power_state=m_constants.PowerState.ON),
+                power_state=m_constants.PowerState.ON
+            ),
             fake_metal_helper.get_mock_metal_node(
-                power_state=m_constants.PowerState.OFF)
+                power_state=m_constants.PowerState.OFF
+            ),
         ]
         self._metal_helper.get_node.side_effect = mock_nodes
 
         self.action.revert()
 
         mock_nodes[0].set_power_state.assert_called_once_with(
-            m_constants.PowerState.OFF.value)
+            m_constants.PowerState.OFF.value
+        )
 
     def test_revert_change_node_state_with_poweroff_target(self):
         self.action.input_parameters["state"] = (
-            m_constants.PowerState.OFF.value)
+            m_constants.PowerState.OFF.value
+        )
         mock_nodes = [
             fake_metal_helper.get_mock_metal_node(
-                power_state=m_constants.PowerState.OFF),
+                power_state=m_constants.PowerState.OFF
+            ),
             fake_metal_helper.get_mock_metal_node(
-                power_state=m_constants.PowerState.ON)
+                power_state=m_constants.PowerState.ON
+            ),
         ]
         self._metal_helper.get_node.side_effect = mock_nodes
 
         self.action.revert()
 
         mock_nodes[0].set_power_state.assert_called_once_with(
-            m_constants.PowerState.ON.value)
+            m_constants.PowerState.ON.value
+        )

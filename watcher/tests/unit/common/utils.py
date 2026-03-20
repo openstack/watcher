@@ -45,7 +45,8 @@ class NovaResourcesMixin:
             'metadata': kwargs.pop('metadata', {}),
             'availability_zone': kwargs.pop('availability_zone', None),
             'pinned_availability_zone': kwargs.pop(
-                'pinned_availability_zone', None),
+                'pinned_availability_zone', None
+            ),
         }
         server_info.update(kwargs)
         return server.Server(**server_info)
@@ -140,8 +141,6 @@ class NovaResourcesMixin:
         :param kwargs: migration attributes
         :returns: openstack.compute.v2.server_migration.ServerMigration object
         """
-        migration_info = {
-            'id': kwargs.pop('id', 'migration-id'),
-        }
+        migration_info = {'id': kwargs.pop('id', 'migration-id')}
         migration_info.update(kwargs)
         return server_migration.ServerMigration(**migration_info)

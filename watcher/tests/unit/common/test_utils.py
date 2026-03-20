@@ -38,7 +38,8 @@ class TestCommonUtils(base.TestCase):
             IOError,
             utils.async_compat_call,
             self.test_coro,
-            raise_exc=OSError('fake error'))
+            raise_exc=OSError('fake error'),
+        )
 
     def test_async_compat_timeout(self):
         # Timeout not reached.
@@ -50,4 +51,6 @@ class TestCommonUtils(base.TestCase):
             asyncio.TimeoutError,
             utils.async_compat_call,
             self.test_coro,
-            sleep=0.5, timeout=0.1)
+            sleep=0.5,
+            timeout=0.1,
+        )

@@ -29,7 +29,6 @@ from watcher.tests.unit.objects import utils
 
 @freezegun.freeze_time('2016-10-18T09:52:05.219414')
 class TestActionPlanNotification(base.DbTestCase):
-
     def setUp(self):
         super().setUp()
         p_get_notifier = mock.patch.object(rpc, 'get_notifier')
@@ -44,34 +43,35 @@ class TestActionPlanNotification(base.DbTestCase):
         m_get_notifier.side_effect = fake_get_notifier
 
     def test_service_failed(self):
-        service = utils.get_test_service(mock.Mock(),
-                                         created_at=timeutils.utcnow())
+        service = utils.get_test_service(
+            mock.Mock(), created_at=timeutils.utcnow()
+        )
         state = w_service.ServiceStatus.FAILED
-        notifications.service.send_service_update(mock.MagicMock(),
-                                                  service,
-                                                  state,
-                                                  host='node0')
+        notifications.service.send_service_update(
+            mock.MagicMock(), service, state, host='node0'
+        )
         notification = self.m_notifier.warning.call_args[1]
         payload = notification['payload']
         self.assertEqual("infra-optim:node0", self.m_notifier.publisher_id)
-        self.assertDictEqual({
-            'watcher_object.data': {
-                'last_seen_up': '2016-09-22T08:32:06Z',
-                'name': 'watcher-service',
-                'sevice_host': 'controller',
-                'status_update': {
-                    'watcher_object.data': {
-                        'old_state': 'ACTIVE',
-                        'state': 'FAILED'
+        self.assertDictEqual(
+            {
+                'watcher_object.data': {
+                    'last_seen_up': '2016-09-22T08:32:06Z',
+                    'name': 'watcher-service',
+                    'sevice_host': 'controller',
+                    'status_update': {
+                        'watcher_object.data': {
+                            'old_state': 'ACTIVE',
+                            'state': 'FAILED',
+                        },
+                        'watcher_object.name': 'ServiceStatusUpdatePayload',
+                        'watcher_object.namespace': 'watcher',
+                        'watcher_object.version': '1.0',
                     },
-                    'watcher_object.name': 'ServiceStatusUpdatePayload',
-                    'watcher_object.namespace': 'watcher',
-                    'watcher_object.version': '1.0'
-                }
+                },
+                'watcher_object.name': 'ServiceUpdatePayload',
+                'watcher_object.namespace': 'watcher',
+                'watcher_object.version': '1.0',
             },
-            'watcher_object.name': 'ServiceUpdatePayload',
-            'watcher_object.namespace': 'watcher',
-            'watcher_object.version': '1.0'
-        },
-            payload
+            payload,
         )

@@ -25,7 +25,6 @@ CONF = cfg.CONF
 
 @base.WatcherObjectRegistry.register_notification
 class ServicePayload(notificationbase.NotificationPayloadBase):
-
     SCHEMA = {
         'sevice_host': ('failed_service', 'host'),
         'name': ('failed_service', 'name'),
@@ -42,7 +41,9 @@ class ServicePayload(notificationbase.NotificationPayloadBase):
     def __init__(self, failed_service, status_update, **kwargs):
         super().__init__(
             failed_service=failed_service,
-            status_update=status_update, **kwargs)
+            status_update=status_update,
+            **kwargs,
+        )
         self.populate_schema(failed_service=failed_service)
 
 
@@ -61,13 +62,13 @@ class ServiceUpdatePayload(ServicePayload):
     # Version 1.0: Initial version
     VERSION = '1.0'
     fields = {
-        'status_update': wfields.ObjectField('ServiceStatusUpdatePayload'),
+        'status_update': wfields.ObjectField('ServiceStatusUpdatePayload')
     }
 
     def __init__(self, failed_service, status_update):
         super().__init__(
-            failed_service=failed_service,
-            status_update=status_update)
+            failed_service=failed_service, status_update=status_update
+        )
 
 
 @notificationbase.notification_sample('service-update.json')
@@ -76,38 +77,38 @@ class ServiceUpdateNotification(notificationbase.NotificationBase):
     # Version 1.0: Initial version
     VERSION = '1.0'
 
-    fields = {
-        'payload': wfields.ObjectField('ServiceUpdatePayload')
-    }
+    fields = {'payload': wfields.ObjectField('ServiceUpdatePayload')}
 
 
-def send_service_update(context, failed_service, state,
-                        service='infra-optim',
-                        host=None):
+def send_service_update(
+    context, failed_service, state, service='infra-optim', host=None
+):
     """Emit an service failed notification."""
     if state == o_service.ServiceStatus.FAILED:
         priority = wfields.NotificationPriority.WARNING
         status_update = ServiceStatusUpdatePayload(
             old_state=o_service.ServiceStatus.ACTIVE,
-            state=o_service.ServiceStatus.FAILED)
+            state=o_service.ServiceStatus.FAILED,
+        )
     else:
         priority = wfields.NotificationPriority.INFO
         status_update = ServiceStatusUpdatePayload(
             old_state=o_service.ServiceStatus.FAILED,
-            state=o_service.ServiceStatus.ACTIVE)
+            state=o_service.ServiceStatus.ACTIVE,
+        )
     versioned_payload = ServiceUpdatePayload(
-        failed_service=failed_service,
-        status_update=status_update
+        failed_service=failed_service, status_update=status_update
     )
 
     notification = ServiceUpdateNotification(
         priority=priority,
         event_type=notificationbase.EventType(
-            object='service',
-            action=wfields.NotificationAction.UPDATE),
+            object='service', action=wfields.NotificationAction.UPDATE
+        ),
         publisher=notificationbase.NotificationPublisher(
-            host=host or CONF.host,
-            binary=service),
-        payload=versioned_payload)
+            host=host or CONF.host, binary=service
+        ),
+        payload=versioned_payload,
+    )
 
     notification.emit(context)

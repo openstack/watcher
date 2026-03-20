@@ -19,7 +19,6 @@ import abc
 
 
 class NotificationEndpoint(metaclass=abc.ABCMeta):
-
     def __init__(self, collector):
         super().__init__()
         self.collector = collector

@@ -36,8 +36,7 @@ def main():
     watcher_service.prepare_service(sys.argv, CONF)
     gmr.register_gmr_plugins()
 
-    LOG.info('Starting Watcher Decision Engine service in PID %s',
-             os.getpid())
+    LOG.info('Starting Watcher Decision Engine service in PID %s', os.getpid())
 
     syncer = sync.Syncer()
     syncer.sync()

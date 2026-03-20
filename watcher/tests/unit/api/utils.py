@@ -36,28 +36,31 @@ class FakeMemcache:
     _cache = {
         f'tokens/{ADMIN_TOKEN}': {
             'access': {
-                'token': {'id': ADMIN_TOKEN,
-                          'expires': '2100-09-11T00:00:00'},
-                'user': {'id': 'user_id1',
-                         'name': 'user_name1',
-                         'tenantId': '123i2910',
-                         'tenantName': 'mytenant',
-                         'roles': [{'name': 'admin'}]
-                         },
+                'token': {'id': ADMIN_TOKEN, 'expires': '2100-09-11T00:00:00'},
+                'user': {
+                    'id': 'user_id1',
+                    'name': 'user_name1',
+                    'tenantId': '123i2910',
+                    'tenantName': 'mytenant',
+                    'roles': [{'name': 'admin'}],
+                },
             }
         },
         f'tokens/{MEMBER_TOKEN}': {
             'access': {
-                'token': {'id': MEMBER_TOKEN,
-                          'expires': '2100-09-11T00:00:00'},
-                'user': {'id': 'user_id2',
-                         'name': 'user-good',
-                         'tenantId': 'project-good',
-                         'tenantName': 'goodies',
-                         'roles': [{'name': 'Member'}]
-                         }
+                'token': {
+                    'id': MEMBER_TOKEN,
+                    'expires': '2100-09-11T00:00:00',
+                },
+                'user': {
+                    'id': 'user_id2',
+                    'name': 'user-good',
+                    'tenantId': 'project-good',
+                    'tenantName': 'goodies',
+                    'roles': [{'name': 'Member'}],
+                },
             }
-        }
+        },
     }
 
     def __init__(self):
@@ -77,9 +80,7 @@ class FakeMemcache:
 def remove_internal(values, internal):
     # NOTE(yuriyz): internal attributes should not be posted, except uuid
     int_attr = [attr.lstrip('/') for attr in internal if attr != '/uuid']
-    return {
-        k: v for (k, v) in values.items() if k not in int_attr
-    }
+    return {k: v for (k, v) in values.items() if k not in int_attr}
 
 
 def audit_post_data(**kw):

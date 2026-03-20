@@ -26,9 +26,11 @@ class ServiceStatus:
 
 
 @base.WatcherObjectRegistry.register
-class Service(base.WatcherPersistentObject, base.WatcherObject,
-              base.WatcherObjectDictCompat):
-
+class Service(
+    base.WatcherPersistentObject,
+    base.WatcherObject,
+    base.WatcherObjectDictCompat,
+):
     # Version 1.0: Initial version
     VERSION = '1.0'
 
@@ -39,7 +41,8 @@ class Service(base.WatcherPersistentObject, base.WatcherObject,
         'name': wfields.StringField(),
         'host': wfields.StringField(),
         'last_seen_up': wfields.DateTimeField(
-            tzinfo_aware=False, nullable=True),
+            tzinfo_aware=False, nullable=True
+        ),
     }
 
     @base.remotable_classmethod
@@ -76,8 +79,15 @@ class Service(base.WatcherPersistentObject, base.WatcherObject,
         return service
 
     @base.remotable_classmethod
-    def list(cls, context, limit=None, marker=None, filters=None,
-             sort_key=None, sort_dir=None):
+    def list(
+        cls,
+        context,
+        limit=None,
+        marker=None,
+        filters=None,
+        sort_key=None,
+        sort_dir=None,
+    ):
         """Return a list of :class:`Service` objects.
 
         :param context: Security context. NOTE: This should only
@@ -99,7 +109,8 @@ class Service(base.WatcherPersistentObject, base.WatcherObject,
             limit=limit,
             marker=marker,
             sort_key=sort_key,
-            sort_dir=sort_dir)
+            sort_dir=sort_dir,
+        )
 
         return [cls._from_db_object(cls(context), obj) for obj in db_services]
 
@@ -132,13 +143,16 @@ class Service(base.WatcherPersistentObject, base.WatcherObject,
         """
         current = self.get(self._context, service_id=self.id)
         for field in self.fields:
-            if (hasattr(self, base.get_attrname(field)) and
-                    self[field] != current[field]):
+            if (
+                hasattr(self, base.get_attrname(field))
+                and self[field] != current[field]
+            ):
                 self[field] = current[field]
 
     def soft_delete(self):
         """Soft Delete the :class:`Service` from the DB."""
         db_obj = self.dbapi.soft_delete_service(self.id)
         obj = self._from_db_object(
-            self.__class__(self._context), db_obj, eager=False)
+            self.__class__(self._context), db_obj, eager=False
+        )
         self.obj_refresh(obj)

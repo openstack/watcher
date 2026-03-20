@@ -36,10 +36,9 @@ class NodeResourceConsolidationPlanner(base.BasePlanner):
     - This is a proof of concept that is not meant to be used in production
     """
 
-    def create_action(self,
-                      action_plan_id,
-                      action_type,
-                      input_parameters=None):
+    def create_action(
+        self, action_plan_id, action_type, input_parameters=None
+    ):
         uuid = utils.generate_uuid()
         action = {
             'uuid': uuid,
@@ -47,7 +46,7 @@ class NodeResourceConsolidationPlanner(base.BasePlanner):
             'action_type': action_type,
             'input_parameters': input_parameters,
             'state': objects.action.State.PENDING,
-            'parents': None
+            'parents': None,
         }
 
         return action
@@ -72,11 +71,13 @@ class NodeResourceConsolidationPlanner(base.BasePlanner):
             json_action = self.create_action(
                 action_plan_id=action_plan.id,
                 action_type=action_type,
-                input_parameters=parameters)
+                input_parameters=parameters,
+            )
             # classing actions
             if action_type == 'change_nova_service_state':
                 if parameters.get('state') == (
-                        element.ServiceState.DISABLED.value):
+                    element.ServiceState.DISABLED.value
+                ):
                     node_disabled_actions.append(json_action)
                 else:
                     node_enabled_actions.append(json_action)
@@ -88,7 +89,8 @@ class NodeResourceConsolidationPlanner(base.BasePlanner):
                     node_migrate_actions[source_node] = [json_action]
             else:
                 raise exception.UnsupportedActionType(
-                    action_type=action.get("action_type"))
+                    action_type=action.get("action_type")
+                )
 
         # creating actions
         mig_parents = []
@@ -110,13 +112,15 @@ class NodeResourceConsolidationPlanner(base.BasePlanner):
             self._create_action(context, action)
 
         self._create_efficacy_indicators(
-            context, action_plan.id, solution.efficacy_indicators)
+            context, action_plan.id, solution.efficacy_indicators
+        )
 
         return action_plan
 
     def _create_action_plan(self, context, audit_id, solution):
         strategy = objects.Strategy.get_by_name(
-            context, solution.strategy.name)
+            context, solution.strategy.name
+        )
 
         action_plan_dict = {
             'uuid': utils.generate_uuid(),
@@ -143,7 +147,8 @@ class NodeResourceConsolidationPlanner(base.BasePlanner):
                 'action_plan_id': action_plan_id,
             }
             new_efficacy_indicator = objects.EfficacyIndicator(
-                context, **efficacy_indicator_dict)
+                context, **efficacy_indicator_dict
+            )
             new_efficacy_indicator.create()
 
             efficacy_indicators.append(new_efficacy_indicator)
@@ -151,8 +156,10 @@ class NodeResourceConsolidationPlanner(base.BasePlanner):
 
     def _create_action(self, context, _action):
         try:
-            LOG.debug("Creating the %s in the Watcher database",
-                      _action.get("action_type"))
+            LOG.debug(
+                "Creating the %s in the Watcher database",
+                _action.get("action_type"),
+            )
 
             new_action = objects.Action(context, **_action)
             new_action.create()

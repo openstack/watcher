@@ -23,13 +23,14 @@ from watcher.tests.unit import base
 
 
 class TestGmrPlugin(base.TestCase):
-
     @mock.patch.object(manager.CollectorManager, "get_collectors")
     def test_show_models(self, m_get_collectors):
         m_to_string = mock.Mock(return_value="<TESTMODEL />")
         m_get_collectors.return_value = {
             "test_model": mock.Mock(
-                cluster_data_model=mock.Mock(to_string=m_to_string))}
+                cluster_data_model=mock.Mock(to_string=m_to_string)
+            )
+        }
         output = gmr.show_models()
         self.assertEqual(1, m_to_string.call_count)
         self.assertIn("<TESTMODEL />", output)

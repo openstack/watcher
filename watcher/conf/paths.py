@@ -21,18 +21,25 @@ from oslo_config import cfg
 
 
 PATH_OPTS = [
-    cfg.StrOpt('pybasedir',
-               default=os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                                    '../')),
-               help='Directory where the watcher python module is installed.'),
-    cfg.StrOpt('bindir',
-               default='$pybasedir/bin',
-               help='Directory where watcher binaries are installed.',
-               deprecated_for_removal=True,
-               deprecated_reason='This option has no effect'),
-    cfg.StrOpt('state_path',
-               default='$pybasedir',
-               help="Top-level directory for maintaining watcher's state."),
+    cfg.StrOpt(
+        'pybasedir',
+        default=os.path.abspath(
+            os.path.join(os.path.dirname(__file__), '../')
+        ),
+        help='Directory where the watcher python module is installed.',
+    ),
+    cfg.StrOpt(
+        'bindir',
+        default='$pybasedir/bin',
+        help='Directory where watcher binaries are installed.',
+        deprecated_for_removal=True,
+        deprecated_reason='This option has no effect',
+    ),
+    cfg.StrOpt(
+        'state_path',
+        default='$pybasedir',
+        help="Top-level directory for maintaining watcher's state.",
+    ),
 ]
 
 

@@ -40,7 +40,6 @@ class BaseMetaClass(service.Singleton, abc.ABCMeta):
 
 
 class BaseAuditHandler(metaclass=BaseMetaClass):
-
     @abc.abstractmethod
     def execute(self, audit, request_context):
         raise NotImplementedError()
@@ -59,7 +58,6 @@ class BaseAuditHandler(metaclass=BaseMetaClass):
 
 
 class AuditHandler(BaseAuditHandler, metaclass=abc.ABCMeta):
-
     def __init__(self):
         super().__init__()
         self._strategy_context = default_context.DefaultStrategyContext()
@@ -81,29 +79,36 @@ class AuditHandler(BaseAuditHandler, metaclass=abc.ABCMeta):
     def do_execute(self, audit, request_context):
         # execute the strategy
         solution = self.strategy_context.execute_strategy(
-            audit, request_context)
+            audit, request_context
+        )
 
         return solution
 
     def do_schedule(self, request_context, audit, solution):
         try:
             notifications.audit.send_action_notification(
-                request_context, audit,
+                request_context,
+                audit,
                 action=fields.NotificationAction.PLANNER,
-                phase=fields.NotificationPhase.START)
+                phase=fields.NotificationPhase.START,
+            )
             planner = self.get_planner(solution)
             action_plan = planner.schedule(request_context, audit.id, solution)
             notifications.audit.send_action_notification(
-                request_context, audit,
+                request_context,
+                audit,
                 action=fields.NotificationAction.PLANNER,
-                phase=fields.NotificationPhase.END)
+                phase=fields.NotificationPhase.END,
+            )
             return action_plan
         except Exception:
             notifications.audit.send_action_notification(
-                request_context, audit,
+                request_context,
+                audit,
                 action=fields.NotificationAction.PLANNER,
                 priority=fields.NotificationPriority.ERROR,
-                phase=fields.NotificationPhase.ERROR)
+                phase=fields.NotificationPhase.ERROR,
+            )
             raise
 
     @staticmethod
@@ -117,10 +122,12 @@ class AuditHandler(BaseAuditHandler, metaclass=abc.ABCMeta):
     def check_ongoing_action_plans(request_context):
         a_plan_filters = {'state': objects.action_plan.State.ONGOING}
         ongoing_action_plans = objects.ActionPlan.list(
-            request_context, filters=a_plan_filters)
+            request_context, filters=a_plan_filters
+        )
         if ongoing_action_plans:
             raise exception.ActionPlanIsOngoing(
-                action_plan=ongoing_action_plans[0].uuid)
+                action_plan=ongoing_action_plans[0].uuid
+            )
 
     def pre_execute(self, audit, request_context):
         LOG.debug("Trigger audit %s", audit.uuid)
@@ -131,7 +138,8 @@ class AuditHandler(BaseAuditHandler, metaclass=abc.ABCMeta):
         # check current state of the audit right before moving to ONGOING
         # to avoid race conditions
         audit = objects.Audit.get_by_uuid(
-            request_context, audit.uuid, eager=True)
+            request_context, audit.uuid, eager=True
+        )
         if audit.state == objects.audit.State.CANCELLED:
             raise exception.AuditCancelled(uuid=audit.uuid)
         # Write hostname that will execute this audit.
@@ -142,8 +150,9 @@ class AuditHandler(BaseAuditHandler, metaclass=abc.ABCMeta):
     def post_execute(self, audit, solution, request_context):
         action_plan = self.do_schedule(request_context, audit, solution)
         if audit.auto_trigger:
-            self.applier_client.launch_action_plan(request_context,
-                                                   action_plan.uuid)
+            self.applier_client.launch_action_plan(
+                request_context, action_plan.uuid
+            )
 
     def execute(self, audit, request_context):
         try:

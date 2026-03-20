@@ -34,7 +34,6 @@ volume_uuid_mapping = {
 
 
 class FakerModelCollector(base.BaseClusterDataModelCollector):
-
     def __init__(self, config=None, osc=None, audit_scope=None):
         if config is None:
             config = mock.Mock(period=777)
@@ -71,7 +70,7 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
         # number max of instance per node
         node_instance_count = 7
         # total number of virtual machine
-        instance_count = (node_count * node_instance_count)
+        instance_count = node_count * node_instance_count
 
         for id_ in range(0, node_count):
             node_uuid = f"Node_{id_}"
@@ -110,9 +109,8 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
                 "disk": 20,
                 "disk_capacity": 20,
                 "vcpus": 10,
-                "metadata":
-                    '{"optimize": true,"top": "floor","nested": {"x": "y"}}',
-                "project_id": project_id
+                "metadata": '{"optimize": true,"top": "floor","nested": {"x": "y"}}',  # noqa: E501
+                "project_id": project_id,
             }
 
             instance = element.Instance(**instance_attributes)
@@ -169,7 +167,8 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
 
     def generate_scenario_9_with_3_active_plus_1_disabled_nodes(self):
         return self.load_model(
-            'scenario_9_with_3_active_plus_1_disabled_nodes.xml')
+            'scenario_9_with_3_active_plus_1_disabled_nodes.xml'
+        )
 
     def generate_scenario_10(self):
         return self.load_model('scenario_10.xml')
@@ -182,7 +181,6 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
 
 
 class FakerStorageModelCollector(base.BaseClusterDataModelCollector):
-
     def __init__(self, config=None, osc=None, audit_scope=None):
         if config is None:
             config = mock.Mock(period=777)
@@ -211,7 +209,6 @@ class FakerStorageModelCollector(base.BaseClusterDataModelCollector):
         return self._cluster_data_model or self.build_scenario_1()
 
     def build_scenario_1(self):
-
         model = modelroot.StorageModelRoot()
         # number of nodes
         node_count = 2
@@ -280,14 +277,13 @@ class FakerStorageModelCollector(base.BaseClusterDataModelCollector):
                 "size": 40,
                 "status": "in-use",
                 "uuid": uuid,
-                "attachments":
-                    '[{"server_id": "server","attachment_id": "attachment"}]',
+                "attachments": '[{"server_id": "server","attachment_id": "attachment"}]',  # noqa: E501
                 "name": name,
                 "multiattach": 'True',
                 "snapshot_id": uuid,
                 "project_id": "91FFFE30-78A0-4152-ACD2-8310FF274DC9",
                 "metadata": '{"readonly": false,"attached_mode": "rw"}',
-                "bootable": 'False'
+                "bootable": 'False',
             }
             volume = element.Volume(**volume_attributes)
             model.add_volume(volume)
@@ -316,7 +312,6 @@ class FakerStorageModelCollector(base.BaseClusterDataModelCollector):
 
 
 class FakerBaremetalModelCollector(base.BaseClusterDataModelCollector):
-
     def __init__(self, config=None, osc=None):
         if config is None:
             config = mock.Mock(period=777)
@@ -356,7 +351,7 @@ class FakerBaremetalModelCollector(base.BaseClusterDataModelCollector):
                 "power_state": "power on",
                 "maintenance": "false",
                 "maintenance_reason": "null",
-                "extra": {"compute_node_id": i}
+                "extra": {"compute_node_id": i},
             }
             node = element.IronicNode(**node_attributes)
             model.add_node(node)
@@ -368,7 +363,6 @@ class FakerBaremetalModelCollector(base.BaseClusterDataModelCollector):
 
 
 class FakerEmptyModelCollector(base.BaseClusterDataModelCollector):
-
     def __init__(self, config=None, osc=None):
         if config is None:
             config = mock.Mock(period=777)

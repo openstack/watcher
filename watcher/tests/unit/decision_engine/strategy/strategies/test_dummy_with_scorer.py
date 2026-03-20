@@ -24,7 +24,6 @@ from watcher.tests.unit.decision_engine.strategy.strategies.test_base import (
 
 
 class TestDummyWithScorer(TestBaseStrategy):
-
     def setUp(self):
         super().setUp()
         self.strategy = strategies.DummyWithScorer(config=mock.Mock())

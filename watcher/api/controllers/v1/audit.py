@@ -84,7 +84,6 @@ def hide_fields_in_newer_versions(obj):
 
 
 class AuditPostType(wtypes.Base):
-
     name = wtypes.wsattr(wtypes.text, mandatory=False)
 
     audit_template_uuid = wtypes.wsattr(types.uuid, mandatory=False)
@@ -95,11 +94,13 @@ class AuditPostType(wtypes.Base):
 
     audit_type = wtypes.wsattr(wtypes.text, mandatory=True)
 
-    state = wtypes.wsattr(wtypes.text, readonly=True,
-                          default=objects.audit.State.PENDING)
+    state = wtypes.wsattr(
+        wtypes.text, readonly=True, default=objects.audit.State.PENDING
+    )
 
-    parameters = wtypes.wsattr({wtypes.text: types.jsontype}, mandatory=False,
-                               default={})
+    parameters = wtypes.wsattr(
+        {wtypes.text: types.jsontype}, mandatory=False, default={}
+    )
     interval = wtypes.wsattr(types.interval_or_cron, mandatory=False)
 
     scope = wtypes.wsattr(types.jsontype, readonly=True)
@@ -120,28 +121,35 @@ class AuditPostType(wtypes.Base):
             raise exception.AuditTypeNotFound(audit_type=self.audit_type)
 
         if not self.audit_template_uuid and not self.goal:
-            message = _(
-                'A valid goal or audit_template_id must be provided')
+            message = _('A valid goal or audit_template_id must be provided')
             raise exception.Invalid(message)
 
-        if (self.audit_type == objects.audit.AuditType.ONESHOT.value and
-                self.interval not in (wtypes.Unset, None)):
+        if (
+            self.audit_type == objects.audit.AuditType.ONESHOT.value
+            and self.interval not in (wtypes.Unset, None)
+        ):
             raise exception.AuditIntervalNotAllowed(audit_type=self.audit_type)
 
-        if (self.audit_type == objects.audit.AuditType.CONTINUOUS.value and
-                self.interval in (wtypes.Unset, None)):
+        if (
+            self.audit_type == objects.audit.AuditType.CONTINUOUS.value
+            and self.interval in (wtypes.Unset, None)
+        ):
             raise exception.AuditIntervalNotSpecified(
-                audit_type=self.audit_type)
+                audit_type=self.audit_type
+            )
 
         if self.audit_template_uuid and self.goal:
-            raise exception.Invalid('Either audit_template_uuid '
-                                    'or goal should be provided.')
+            raise exception.Invalid(
+                'Either audit_template_uuid or goal should be provided.'
+            )
 
-        if (self.audit_type == objects.audit.AuditType.ONESHOT.value and
-                (self.start_time not in (wtypes.Unset, None) or
-                    self.end_time not in (wtypes.Unset, None))):
+        if self.audit_type == objects.audit.AuditType.ONESHOT.value and (
+            self.start_time not in (wtypes.Unset, None)
+            or self.end_time not in (wtypes.Unset, None)
+        ):
             raise exception.AuditStartEndTimeNotAllowed(
-                audit_type=self.audit_type)
+                audit_type=self.audit_type
+            )
 
         if not api_utils.allow_start_end_audit_time():
             for field in ('start_time', 'end_time'):
@@ -154,11 +162,14 @@ class AuditPostType(wtypes.Base):
         if self.audit_template_uuid:
             try:
                 audit_template = objects.AuditTemplate.get(
-                    context, self.audit_template_uuid)
+                    context, self.audit_template_uuid
+                )
             except exception.AuditTemplateNotFound:
                 raise exception.Invalid(
-                    message=_('The audit template UUID or name specified is '
-                              'invalid'))
+                    message=_(
+                        'The audit template UUID or name specified is invalid'
+                    )
+                )
             at2a = {
                 'goal': 'goal_id',
                 'strategy': 'strategy_id',
@@ -178,12 +189,14 @@ class AuditPostType(wtypes.Base):
         # Note: If audit name was not provided, used a default name
         if not self.name:
             if self.strategy:
-                strategy = _get_object_by_value(context, objects.Strategy,
-                                                self.strategy)
+                strategy = _get_object_by_value(
+                    context, objects.Strategy, self.strategy
+                )
                 self.name = f"{strategy.name}-{timeutils.utcnow().isoformat()}"
             elif self.audit_template_uuid:
                 audit_template = objects.AuditTemplate.get(
-                    context, self.audit_template_uuid)
+                    context, self.audit_template_uuid
+                )
                 timestamp = timeutils.utcnow().isoformat()
                 self.name = f"{audit_template.name}-{timestamp}"
             else:
@@ -191,8 +204,7 @@ class AuditPostType(wtypes.Base):
                 self.name = f"{goal.name}-{timeutils.utcnow().isoformat()}"
         # No more than 63 characters
         if len(self.name) > 63:
-            LOG.warning("Audit: %s length exceeds 63 characters",
-                        self.name)
+            LOG.warning("Audit: %s length exceeds 63 characters", self.name)
             self.name = self.name[0:63]
 
         return Audit(
@@ -206,11 +218,11 @@ class AuditPostType(wtypes.Base):
             auto_trigger=self.auto_trigger,
             start_time=self.start_time,
             end_time=self.end_time,
-            force=self.force)
+            force=self.force,
+        )
 
 
 class AuditPatchType(types.JsonPatchType):
-
     @staticmethod
     def mandatory_attrs():
         return ['/audit_template_uuid', '/type']
@@ -225,19 +237,21 @@ class AuditPatchType(types.JsonPatchType):
 
     @staticmethod
     def validate(patch):
-
         def is_new_state_none(p):
             return p.path == '/state' and p.op == 'replace' and p.value is None
 
-        serialized_patch = {'path': patch.path,
-                            'op': patch.op,
-                            'value': patch.value}
-        if (patch.path in AuditPatchType.mandatory_attrs() or
-                is_new_state_none(patch)):
+        serialized_patch = {
+            'path': patch.path,
+            'op': patch.op,
+            'value': patch.value,
+        }
+        if patch.path in AuditPatchType.mandatory_attrs() or is_new_state_none(
+            patch
+        ):
             msg = _("%(field)s can't be updated.")
             raise exception.PatchError(
-                patch=serialized_patch,
-                reason=msg % dict(field=patch.path))
+                patch=serialized_patch, reason=msg % dict(field=patch.path)
+            )
         return types.JsonPatchType.validate(patch)
 
 
@@ -247,6 +261,7 @@ class Audit(base.APIBase):
     This class enforces type checking and value constraints, and converts
     between the internal object model and the API representation of an audit.
     """
+
     _goal_uuid = None
     _goal_name = None
     _strategy_uuid = None
@@ -258,11 +273,9 @@ class Audit(base.APIBase):
         goal = None
         try:
             if utils.is_uuid_like(value) or utils.is_int_like(value):
-                goal = objects.Goal.get(
-                    pecan.request.context, value)
+                goal = objects.Goal.get(pecan.request.context, value)
             else:
-                goal = objects.Goal.get_by_name(
-                    pecan.request.context, value)
+                goal = objects.Goal.get_by_name(pecan.request.context, value)
         except exception.GoalNotFound:
             pass
         if goal:
@@ -295,11 +308,11 @@ class Audit(base.APIBase):
         strategy = None
         try:
             if utils.is_uuid_like(value) or utils.is_int_like(value):
-                strategy = objects.Strategy.get(
-                    pecan.request.context, value)
+                strategy = objects.Strategy.get(pecan.request.context, value)
             else:
                 strategy = objects.Strategy.get_by_name(
-                    pecan.request.context, value)
+                    pecan.request.context, value
+                )
         except exception.StrategyNotFound:
             pass
         if strategy:
@@ -339,19 +352,23 @@ class Audit(base.APIBase):
     """This audit state"""
 
     goal_uuid = wtypes.wsproperty(
-        wtypes.text, _get_goal_uuid, _set_goal_uuid, mandatory=True)
+        wtypes.text, _get_goal_uuid, _set_goal_uuid, mandatory=True
+    )
     """Goal UUID the audit refers to"""
 
     goal_name = wtypes.wsproperty(
-        wtypes.text, _get_goal_name, _set_goal_name, mandatory=False)
+        wtypes.text, _get_goal_name, _set_goal_name, mandatory=False
+    )
     """The name of the goal this audit refers to"""
 
     strategy_uuid = wtypes.wsproperty(
-        wtypes.text, _get_strategy_uuid, _set_strategy_uuid, mandatory=False)
+        wtypes.text, _get_strategy_uuid, _set_strategy_uuid, mandatory=False
+    )
     """Strategy UUID the audit refers to"""
 
     strategy_name = wtypes.wsproperty(
-        wtypes.text, _get_strategy_name, _set_strategy_name, mandatory=False)
+        wtypes.text, _get_strategy_name, _set_strategy_name, mandatory=False
+    )
     """The name of the strategy this audit refers to"""
 
     parameters = {wtypes.text: types.jsontype}
@@ -401,33 +418,40 @@ class Audit(base.APIBase):
         self.fields.append('goal_id')
         self.fields.append('strategy_id')
         fields.append('goal_uuid')
-        setattr(self, 'goal_uuid', kwargs.get('goal_id',
-                wtypes.Unset))
+        setattr(self, 'goal_uuid', kwargs.get('goal_id', wtypes.Unset))
         fields.append('goal_name')
-        setattr(self, 'goal_name', kwargs.get('goal_id',
-                wtypes.Unset))
+        setattr(self, 'goal_name', kwargs.get('goal_id', wtypes.Unset))
         fields.append('strategy_uuid')
-        setattr(self, 'strategy_uuid', kwargs.get('strategy_id',
-                wtypes.Unset))
+        setattr(self, 'strategy_uuid', kwargs.get('strategy_id', wtypes.Unset))
         fields.append('strategy_name')
-        setattr(self, 'strategy_name', kwargs.get('strategy_id',
-                wtypes.Unset))
+        setattr(self, 'strategy_name', kwargs.get('strategy_id', wtypes.Unset))
 
     @staticmethod
     def _convert_with_links(audit, url, expand=True):
         if not expand:
-            audit.unset_fields_except(['uuid', 'name', 'audit_type', 'state',
-                                       'goal_uuid', 'interval', 'scope',
-                                       'strategy_uuid', 'goal_name',
-                                       'strategy_name', 'auto_trigger',
-                                       'next_run_time'])
+            audit.unset_fields_except(
+                [
+                    'uuid',
+                    'name',
+                    'audit_type',
+                    'state',
+                    'goal_uuid',
+                    'interval',
+                    'scope',
+                    'strategy_uuid',
+                    'goal_name',
+                    'strategy_name',
+                    'auto_trigger',
+                    'next_run_time',
+                ]
+            )
 
-        audit.links = [link.Link.make_link('self', url,
-                                           'audits', audit.uuid),
-                       link.Link.make_link('bookmark', url,
-                                           'audits', audit.uuid,
-                                           bookmark=True)
-                       ]
+        audit.links = [
+            link.Link.make_link('self', url, 'audits', audit.uuid),
+            link.Link.make_link(
+                'bookmark', url, 'audits', audit.uuid, bookmark=True
+            ),
+        ]
 
         return audit
 
@@ -439,19 +463,21 @@ class Audit(base.APIBase):
 
     @classmethod
     def sample(cls, expand=True):
-        sample = cls(uuid='27e3153e-d5bf-4b7e-b517-fb518e17f34c',
-                     name='My Audit',
-                     audit_type='ONESHOT',
-                     state='PENDING',
-                     created_at=timeutils.utcnow(),
-                     deleted_at=None,
-                     updated_at=timeutils.utcnow(),
-                     interval='7200',
-                     scope=[],
-                     auto_trigger=False,
-                     next_run_time=timeutils.utcnow(),
-                     start_time=timeutils.utcnow(),
-                     end_time=timeutils.utcnow())
+        sample = cls(
+            uuid='27e3153e-d5bf-4b7e-b517-fb518e17f34c',
+            name='My Audit',
+            audit_type='ONESHOT',
+            state='PENDING',
+            created_at=timeutils.utcnow(),
+            deleted_at=None,
+            updated_at=timeutils.utcnow(),
+            interval='7200',
+            scope=[],
+            auto_trigger=False,
+            next_run_time=timeutils.utcnow(),
+            start_time=timeutils.utcnow(),
+            end_time=timeutils.utcnow(),
+        )
 
         sample.goal_id = '7ae81bb3-dec3-4289-8d6c-da80bd8001ae'
         sample.strategy_id = '7ae81bb3-dec3-4289-8d6c-da80bd8001ff'
@@ -470,11 +496,13 @@ class AuditCollection(collection.Collection):
         self._type = 'audits'
 
     @staticmethod
-    def convert_with_links(rpc_audits, limit, url=None, expand=False,
-                           **kwargs):
+    def convert_with_links(
+        rpc_audits, limit, url=None, expand=False, **kwargs
+    ):
         collection = AuditCollection()
-        collection.audits = [Audit.convert_with_links(p, expand)
-                             for p in rpc_audits]
+        collection.audits = [
+            Audit.convert_with_links(p, expand) for p in rpc_audits
+        ]
         collection.next = collection.get_next(limit, url=url, **kwargs)
         return collection
 
@@ -492,26 +520,37 @@ class AuditsController(rest.RestController):
         super().__init__()
         self.dc_client = rpcapi.DecisionEngineAPI()
 
-    _custom_actions = {
-        'detail': ['GET'],
-    }
+    _custom_actions = {'detail': ['GET']}
 
-    def _get_audits_collection(self, marker, limit,
-                               sort_key, sort_dir, expand=False,
-                               resource_url=None, goal=None,
-                               strategy=None):
-        additional_fields = ["goal_uuid", "goal_name", "strategy_uuid",
-                             "strategy_name"]
+    def _get_audits_collection(
+        self,
+        marker,
+        limit,
+        sort_key,
+        sort_dir,
+        expand=False,
+        resource_url=None,
+        goal=None,
+        strategy=None,
+    ):
+        additional_fields = [
+            "goal_uuid",
+            "goal_name",
+            "strategy_uuid",
+            "strategy_name",
+        ]
 
         api_utils.validate_sort_key(
-            sort_key, list(objects.Audit.fields) + additional_fields)
+            sort_key, list(objects.Audit.fields) + additional_fields
+        )
         limit = api_utils.validate_limit(limit)
         api_utils.validate_sort_dir(sort_dir)
 
         marker_obj = None
         if marker:
-            marker_obj = objects.Audit.get_by_uuid(pecan.request.context,
-                                                   marker)
+            marker_obj = objects.Audit.get_by_uuid(
+                pecan.request.context, marker
+            )
 
         filters = {}
         if goal:
@@ -528,30 +567,54 @@ class AuditsController(rest.RestController):
                 # TODO(michaelgugino): add method to get goal by name.
                 filters['strategy_name'] = strategy
 
-        need_api_sort = api_utils.check_need_api_sort(sort_key,
-                                                      additional_fields)
-        sort_db_key = (sort_key if not need_api_sort
-                       else None)
+        need_api_sort = api_utils.check_need_api_sort(
+            sort_key, additional_fields
+        )
+        sort_db_key = sort_key if not need_api_sort else None
 
-        audits = objects.Audit.list(pecan.request.context,
-                                    limit,
-                                    marker_obj, sort_key=sort_db_key,
-                                    sort_dir=sort_dir, filters=filters)
+        audits = objects.Audit.list(
+            pecan.request.context,
+            limit,
+            marker_obj,
+            sort_key=sort_db_key,
+            sort_dir=sort_dir,
+            filters=filters,
+        )
 
         audits_collection = AuditCollection.convert_with_links(
-            audits, limit, url=resource_url, expand=expand,
-            sort_key=sort_key, sort_dir=sort_dir)
+            audits,
+            limit,
+            url=resource_url,
+            expand=expand,
+            sort_key=sort_key,
+            sort_dir=sort_dir,
+        )
 
         if need_api_sort:
-            api_utils.make_api_sort(audits_collection.audits, sort_key,
-                                    sort_dir)
+            api_utils.make_api_sort(
+                audits_collection.audits, sort_key, sort_dir
+            )
 
         return audits_collection
 
-    @wsme_pecan.wsexpose(AuditCollection, types.uuid, int, wtypes.text,
-                         wtypes.text, wtypes.text, wtypes.text)
-    def get_all(self, marker=None, limit=None, sort_key='id', sort_dir='asc',
-                goal=None, strategy=None):
+    @wsme_pecan.wsexpose(
+        AuditCollection,
+        types.uuid,
+        int,
+        wtypes.text,
+        wtypes.text,
+        wtypes.text,
+        wtypes.text,
+    )
+    def get_all(
+        self,
+        marker=None,
+        limit=None,
+        sort_key='id',
+        sort_dir='asc',
+        goal=None,
+        strategy=None,
+    ):
         """Retrieve a list of audits.
 
         :param marker: pagination marker for large data sets.
@@ -563,17 +626,18 @@ class AuditsController(rest.RestController):
         """
 
         context = pecan.request.context
-        policy.enforce(context, 'audit:get_all',
-                       action='audit:get_all')
+        policy.enforce(context, 'audit:get_all', action='audit:get_all')
 
-        return self._get_audits_collection(marker, limit, sort_key,
-                                           sort_dir, goal=goal,
-                                           strategy=strategy)
+        return self._get_audits_collection(
+            marker, limit, sort_key, sort_dir, goal=goal, strategy=strategy
+        )
 
-    @wsme_pecan.wsexpose(AuditCollection, wtypes.text, types.uuid, int,
-                         wtypes.text, wtypes.text)
-    def detail(self, goal=None, marker=None, limit=None,
-               sort_key='id', sort_dir='asc'):
+    @wsme_pecan.wsexpose(
+        AuditCollection, wtypes.text, types.uuid, int, wtypes.text, wtypes.text
+    )
+    def detail(
+        self, goal=None, marker=None, limit=None, sort_key='id', sort_dir='asc'
+    ):
         """Retrieve a list of audits with detail.
 
         :param goal: goal UUID or name to filter by
@@ -583,8 +647,7 @@ class AuditsController(rest.RestController):
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         """
         context = pecan.request.context
-        policy.enforce(context, 'audit:detail',
-                       action='audit:detail')
+        policy.enforce(context, 'audit:detail', action='audit:detail')
         # NOTE(lucasagomes): /detail should only work against collections
         parent = pecan.request.path.split('/')[:-1][-1]
         if parent != "audits":
@@ -592,10 +655,9 @@ class AuditsController(rest.RestController):
 
         expand = True
         resource_url = '/'.join(['audits', 'detail'])
-        return self._get_audits_collection(marker, limit,
-                                           sort_key, sort_dir, expand,
-                                           resource_url,
-                                           goal=goal)
+        return self._get_audits_collection(
+            marker, limit, sort_key, sort_dir, expand, resource_url, goal=goal
+        )
 
     @wsme_pecan.wsexpose(Audit, wtypes.text)
     def get_one(self, audit):
@@ -609,39 +671,46 @@ class AuditsController(rest.RestController):
 
         return Audit.convert_with_links(rpc_audit)
 
-    @wsme_pecan.wsexpose(Audit, body=AuditPostType,
-                         status_code=HTTPStatus.CREATED)
+    @wsme_pecan.wsexpose(
+        Audit, body=AuditPostType, status_code=HTTPStatus.CREATED
+    )
     def post(self, audit_p):
         """Create a new audit.
 
         :param audit_p: an audit within the request body.
         """
         context = pecan.request.context
-        policy.enforce(context, 'audit:create',
-                       action='audit:create')
+        policy.enforce(context, 'audit:create', action='audit:create')
         audit = audit_p.as_audit(context)
 
         strategy_uuid = audit.strategy_uuid
         no_schema = True
         if strategy_uuid is not None:
             # validate parameter when predefined strategy in audit template
-            strategy = objects.Strategy.get(pecan.request.context,
-                                            strategy_uuid)
+            strategy = objects.Strategy.get(
+                pecan.request.context, strategy_uuid
+            )
             schema = strategy.parameters_spec
             if schema:
                 # validate input parameter with default value feedback
                 no_schema = False
                 try:
                     utils.StrictDefaultValidatingDraft4Validator(
-                        schema).validate(audit.parameters)
+                        schema
+                    ).validate(audit.parameters)
                 except jsonschema.exceptions.ValidationError as e:
                     raise exception.Invalid(
-                        _('Invalid parameters for strategy: %s') % e)
+                        _('Invalid parameters for strategy: %s') % e
+                    )
 
         if no_schema and audit.parameters:
-            raise exception.Invalid(_('Specify parameters but no predefined '
-                                      'strategy for audit, or no '
-                                      'parameter spec in predefined strategy'))
+            raise exception.Invalid(
+                _(
+                    'Specify parameters but no predefined '
+                    'strategy for audit, or no '
+                    'parameter spec in predefined strategy'
+                )
+            )
 
         audit_dict = audit.as_dict()
         # convert local time to UTC time
@@ -649,10 +718,12 @@ class AuditsController(rest.RestController):
         end_time_value = audit_dict.get('end_time')
         if start_time_value:
             audit_dict['start_time'] = start_time_value.astimezone(
-                timezone.utc).replace(tzinfo=None)
+                timezone.utc
+            ).replace(tzinfo=None)
         if end_time_value:
             audit_dict['end_time'] = end_time_value.astimezone(
-                timezone.utc).replace(tzinfo=None)
+                timezone.utc
+            ).replace(tzinfo=None)
 
         new_audit = objects.Audit(context, **audit_dict)
         new_audit.create()
@@ -675,10 +746,10 @@ class AuditsController(rest.RestController):
         :param patch: a json PATCH document to apply to this audit.
         """
         context = pecan.request.context
-        audit_to_update = api_utils.get_resource(
-            'Audit', audit, eager=True)
-        policy.enforce(context, 'audit:update', audit_to_update,
-                       action='audit:update')
+        audit_to_update = api_utils.get_resource('Audit', audit, eager=True)
+        policy.enforce(
+            context, 'audit:update', audit_to_update, action='audit:update'
+        )
 
         try:
             audit_dict = audit_to_update.as_dict()
@@ -686,21 +757,27 @@ class AuditsController(rest.RestController):
             initial_state = audit_dict['state']
             new_state = api_utils.get_patch_value(patch, 'state')
             if not api_utils.check_audit_state_transition(
-                    patch, initial_state):
-                error_message = _("State transition not allowed: "
-                                  "(%(initial_state)s -> %(new_state)s)")
+                patch, initial_state
+            ):
+                error_message = _(
+                    "State transition not allowed: "
+                    "(%(initial_state)s -> %(new_state)s)"
+                )
                 raise exception.PatchError(
                     patch=patch,
-                    reason=error_message % dict(
-                        initial_state=initial_state, new_state=new_state))
+                    reason=error_message
+                    % dict(initial_state=initial_state, new_state=new_state),
+                )
 
             patch_path = api_utils.get_patch_key(patch, 'path')
             if patch_path in ('start_time', 'end_time'):
                 patch_value = api_utils.get_patch_value(patch, patch_path)
                 # convert string format to UTC time
-                new_patch_value = wutils.parse_isodatetime(
-                    patch_value).astimezone(
-                        timezone.utc).replace(tzinfo=None)
+                new_patch_value = (
+                    wutils.parse_isodatetime(patch_value)
+                    .astimezone(timezone.utc)
+                    .replace(tzinfo=None)
+                )
                 api_utils.set_patch_value(patch, patch_path, new_patch_value)
 
             audit = Audit(**api_utils.apply_jsonpatch(audit_dict, patch))
@@ -729,16 +806,16 @@ class AuditsController(rest.RestController):
         :param audit: UUID or name of an audit.
         """
         context = pecan.request.context
-        audit_to_delete = api_utils.get_resource(
-            'Audit', audit, eager=True)
-        policy.enforce(context, 'audit:delete', audit_to_delete,
-                       action='audit:delete')
+        audit_to_delete = api_utils.get_resource('Audit', audit, eager=True)
+        policy.enforce(
+            context, 'audit:delete', audit_to_delete, action='audit:delete'
+        )
 
         initial_state = audit_to_delete.state
         new_state = objects.audit.State.DELETED
-        if not objects.audit.AuditStateTransitionManager(
-                ).check_transition(initial_state, new_state):
-            raise exception.DeleteError(
-                state=initial_state)
+        if not objects.audit.AuditStateTransitionManager().check_transition(
+            initial_state, new_state
+        ):
+            raise exception.DeleteError(state=initial_state)
 
         audit_to_delete.soft_delete()

@@ -70,9 +70,14 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
     """
 
     AGGREGATE = 'mean'
-    DATASOURCE_METRICS = ['instance_ram_allocated', 'instance_cpu_usage',
-                          'instance_ram_usage', 'instance_root_disk_size',
-                          'host_cpu_usage', 'host_ram_usage']
+    DATASOURCE_METRICS = [
+        'instance_ram_allocated',
+        'instance_cpu_usage',
+        'instance_ram_usage',
+        'instance_root_disk_size',
+        'host_cpu_usage',
+        'host_ram_usage',
+    ]
 
     MIGRATION = "migrate"
     CHANGE_NOVA_SERVICE_STATE = "change_nova_service_state"
@@ -86,7 +91,8 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         # Host metric adjustments that take into account planned
         # migrations.
         self.host_metric_delta = collections.defaultdict(
-            lambda: collections.defaultdict(int))
+            lambda: collections.defaultdict(int)
+        )
 
     @classmethod
     def get_name(cls):
@@ -115,27 +121,31 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
             "properties": {
                 "period": {
                     "description": "The time interval in seconds for "
-                                   "getting statistic aggregation",
+                    "getting statistic aggregation",
                     "type": "number",
-                    "default": 3600
+                    "default": 3600,
                 },
                 "granularity": {
                     "description": "The time between two measures in an "
-                                   "aggregated timeseries of a metric.",
+                    "aggregated timeseries of a metric.",
                     "type": "number",
-                    "default": 300
+                    "default": 300,
                 },
             }
         }
 
     def get_available_compute_nodes(self):
-        default_node_scope = [element.ServiceState.ENABLED.value,
-                              element.ServiceState.DISABLED.value]
+        default_node_scope = [
+            element.ServiceState.ENABLED.value,
+            element.ServiceState.DISABLED.value,
+        ]
         nodes = self.compute_model.get_all_compute_nodes().items()
-        return {uuid: cn for uuid, cn in
-                nodes
-                if cn.state == element.ServiceState.ONLINE.value and
-                cn.status in default_node_scope}
+        return {
+            uuid: cn
+            for uuid, cn in nodes
+            if cn.state == element.ServiceState.ONLINE.value
+            and cn.status in default_node_scope
+        }
 
     def get_instance_state_str(self, instance):
         """Get instance state in string format.
@@ -147,10 +157,11 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         elif isinstance(instance.state, element.InstanceState):
             return instance.state.value
         else:
-            LOG.error('Unexpected instance state type, '
-                      'state=%(state)s, state_type=%(st)s.',
-                      dict(state=instance.state,
-                           st=type(instance.state)))
+            LOG.error(
+                'Unexpected instance state type, '
+                'state=%(state)s, state_type=%(st)s.',
+                dict(state=instance.state, st=type(instance.state)),
+            )
             raise exception.WatcherException
 
     def get_node_status_str(self, node):
@@ -163,10 +174,11 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         elif isinstance(node.status, element.ServiceState):
             return node.status.value
         else:
-            LOG.error('Unexpected node status type, '
-                      'status=%(status)s, status_type=%(st)s.',
-                      dict(status=node.status,
-                           st=type(node.status)))
+            LOG.error(
+                'Unexpected node status type, '
+                'status=%(status)s, status_type=%(st)s.',
+                dict(status=node.status, st=type(node.status)),
+            )
             raise exception.WatcherException
 
     def add_action_enable_compute_node(self, node):
@@ -175,12 +187,15 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         :param node: node object
         :return: None
         """
-        params = {'state': element.ServiceState.ENABLED.value,
-                  'resource_name': node.hostname}
+        params = {
+            'state': element.ServiceState.ENABLED.value,
+            'resource_name': node.hostname,
+        }
         self.solution.add_action(
             action_type=self.CHANGE_NOVA_SERVICE_STATE,
             resource_id=node.uuid,
-            input_parameters=params)
+            input_parameters=params,
+        )
         self.number_of_released_nodes -= 1
 
     def add_action_disable_node(self, node):
@@ -189,13 +204,16 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         :param node: node object
         :return: None
         """
-        params = {'state': element.ServiceState.DISABLED.value,
-                  'disabled_reason': self.REASON_FOR_DISABLE,
-                  'resource_name': node.hostname}
+        params = {
+            'state': element.ServiceState.DISABLED.value,
+            'disabled_reason': self.REASON_FOR_DISABLE,
+            'resource_name': node.hostname,
+        }
         self.solution.add_action(
             action_type=self.CHANGE_NOVA_SERVICE_STATE,
             resource_id=node.uuid,
-            input_parameters=params)
+            input_parameters=params,
+        )
         self.number_of_released_nodes += 1
 
     def add_migration(self, instance, source_node, destination_node):
@@ -207,47 +225,56 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         :return: None
         """
         instance_state_str = self.get_instance_state_str(instance)
-        if instance_state_str in (element.InstanceState.ACTIVE.value,
-                                  element.InstanceState.PAUSED.value):
+        if instance_state_str in (
+            element.InstanceState.ACTIVE.value,
+            element.InstanceState.PAUSED.value,
+        ):
             migration_type = migration.Migrate.LIVE_MIGRATION
         elif instance_state_str == element.InstanceState.STOPPED.value:
             migration_type = migration.Migrate.COLD_MIGRATION
         else:
             LOG.error(
                 'Cannot live migrate: instance_uuid=%(instance_uuid)s, '
-                'state=%(instance_state)s.', dict(
+                'state=%(instance_state)s.',
+                dict(
                     instance_uuid=instance.uuid,
-                    instance_state=instance_state_str))
+                    instance_state=instance_state_str,
+                ),
+            )
             return
 
         # Here will makes repeated actions to enable the same compute node,
         # when migrating VMs to the destination node which is disabled.
         # Whether should we remove the same actions in the solution???
         destination_node_status_str = self.get_node_status_str(
-            destination_node)
+            destination_node
+        )
         if destination_node_status_str == element.ServiceState.DISABLED.value:
             self.add_action_enable_compute_node(destination_node)
 
         if self.compute_model.migrate_instance(
-                instance, source_node, destination_node):
+            instance, source_node, destination_node
+        ):
             self.add_action_migrate(
-                instance,
-                migration_type,
-                source_node,
-                destination_node)
+                instance, migration_type, source_node, destination_node
+            )
             self.number_of_migrations += 1
 
             instance_util = self.get_instance_utilization(instance)
             self.host_metric_delta[source_node.hostname]['cpu'] -= (
-                instance_util['cpu'])
+                instance_util['cpu']
+            )
             # We'll deduce the vm allocated memory.
             self.host_metric_delta[source_node.hostname]['ram'] -= (
-                instance.memory)
+                instance.memory
+            )
 
             self.host_metric_delta[destination_node.hostname]['cpu'] += (
-                instance_util['cpu'])
+                instance_util['cpu']
+            )
             self.host_metric_delta[destination_node.hostname]['ram'] += (
-                instance.memory)
+                instance.memory
+            )
 
     def disable_unused_nodes(self):
         """Generate actions for disabling unused nodes.
@@ -255,9 +282,10 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         :return: None
         """
         for node in self.get_available_compute_nodes().values():
-            if (len(self.compute_model.get_node_instances(node)) == 0 and
-                    node.status !=
-                    element.ServiceState.DISABLED.value):
+            if (
+                len(self.compute_model.get_node_instances(node)) == 0
+                and node.status != element.ServiceState.DISABLED.value
+            ):
                 self.add_action_disable_node(node)
 
     def get_instance_utilization(self, instance):
@@ -275,40 +303,63 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
             return self.datasource_instance_data_cache.get(instance.uuid)
 
         instance_cpu_util = self.datasource_backend.get_instance_cpu_usage(
-            resource=instance, period=self.period,
-            aggregate=self.AGGREGATE, granularity=self.granularity)
+            resource=instance,
+            period=self.period,
+            aggregate=self.AGGREGATE,
+            granularity=self.granularity,
+        )
         instance_ram_util = self.datasource_backend.get_instance_ram_usage(
-            resource=instance, period=self.period,
-            aggregate=self.AGGREGATE, granularity=self.granularity)
+            resource=instance,
+            period=self.period,
+            aggregate=self.AGGREGATE,
+            granularity=self.granularity,
+        )
         if not instance_ram_util:
             instance_ram_util = (
                 self.datasource_backend.get_instance_ram_allocated(
-                    resource=instance, period=self.period,
-                    aggregate=self.AGGREGATE, granularity=self.granularity))
+                    resource=instance,
+                    period=self.period,
+                    aggregate=self.AGGREGATE,
+                    granularity=self.granularity,
+                )
+            )
         instance_disk_util = (
             self.datasource_backend.get_instance_root_disk_size(
-                resource=instance, period=self.period,
-                aggregate=self.AGGREGATE, granularity=self.granularity))
+                resource=instance,
+                period=self.period,
+                aggregate=self.AGGREGATE,
+                granularity=self.granularity,
+            )
+        )
 
         if instance_cpu_util:
-            total_cpu_utilization = (
-                instance.vcpus * (instance_cpu_util / 100.0))
+            total_cpu_utilization = instance.vcpus * (
+                instance_cpu_util / 100.0
+            )
         else:
             total_cpu_utilization = instance.vcpus
 
         if not instance_ram_util:
             instance_ram_util = instance.memory
-            LOG.warning('No values returned by %s for memory.resident, '
-                        'use instance flavor ram value', instance.uuid)
+            LOG.warning(
+                'No values returned by %s for memory.resident, '
+                'use instance flavor ram value',
+                instance.uuid,
+            )
 
         if not instance_disk_util:
             instance_disk_util = instance.disk
-            LOG.warning('No values returned by %s for disk.root.size, '
-                        'use instance flavor disk value', instance.uuid)
+            LOG.warning(
+                'No values returned by %s for disk.root.size, '
+                'use instance flavor disk value',
+                instance.uuid,
+            )
 
         self.datasource_instance_data_cache[instance.uuid] = dict(
-            cpu=total_cpu_utilization, ram=instance_ram_util,
-            disk=instance_disk_util)
+            cpu=total_cpu_utilization,
+            ram=instance_ram_util,
+            disk=instance_disk_util,
+        )
         return self.datasource_instance_data_cache.get(instance.uuid)
 
     def _get_node_total_utilization(self, node):
@@ -316,14 +367,13 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
             return self.datasource_node_data_cache[node.hostname]
 
         cpu = self.datasource_backend.get_host_cpu_usage(
-            node, self.period, self.AGGREGATE,
-            self.granularity)
+            node, self.period, self.AGGREGATE, self.granularity
+        )
         ram = self.datasource_backend.get_host_ram_usage(
-            node, self.period, self.AGGREGATE,
-            self.granularity)
+            node, self.period, self.AGGREGATE, self.granularity
+        )
 
-        self.datasource_node_data_cache[node.hostname] = dict(
-            cpu=cpu, ram=ram)
+        self.datasource_node_data_cache[node.hostname] = dict(cpu=cpu, ram=ram)
         return self.datasource_node_data_cache[node.hostname]
 
     def get_node_utilization(self, node):
@@ -338,13 +388,11 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         node_disk_util = 0
         node_cpu_util = 0
         for instance in node_instances:
-            instance_util = self.get_instance_utilization(
-                instance)
+            instance_util = self.get_instance_utilization(instance)
             node_cpu_util += instance_util['cpu']
             node_ram_util += instance_util['ram']
             node_disk_util += instance_util['disk']
-            LOG.debug("instance utilization: %s %s",
-                      instance, instance_util)
+            LOG.debug("instance utilization: %s %s", instance, instance_util)
 
         total_node_util = self._get_node_total_utilization(node)
         total_node_cpu_util = total_node_util['cpu'] or 0
@@ -367,13 +415,19 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
             "total host ram: %s, "
             "node delta usage: %s.",
             node,
-            node_cpu_util, node_ram_util, node_disk_util,
-            total_node_cpu_util, total_node_ram_util,
-            self.host_metric_delta[node.hostname])
+            node_cpu_util,
+            node_ram_util,
+            node_disk_util,
+            total_node_cpu_util,
+            total_node_ram_util,
+            self.host_metric_delta[node.hostname],
+        )
 
-        return dict(cpu=max(node_cpu_util, total_node_cpu_util),
-                    ram=max(node_ram_util, total_node_ram_util),
-                    disk=node_disk_util)
+        return dict(
+            cpu=max(node_cpu_util, total_node_cpu_util),
+            ram=max(node_ram_util, total_node_ram_util),
+            disk=node_disk_util,
+        )
 
     def get_node_capacity(self, node):
         """Collect cpu, ram and disk capacity of a node.
@@ -381,8 +435,11 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         :param node: node object
         :return: dict(cpu(cores), ram(MB), disk(B))
         """
-        return dict(cpu=node.vcpu_capacity, ram=node.memory_mb_capacity,
-                    disk=node.disk_gb_capacity)
+        return dict(
+            cpu=node.vcpu_capacity,
+            ram=node.memory_mb_capacity,
+            disk=node.disk_gb_capacity,
+        )
 
     def get_relative_node_utilization(self, node):
         """Return relative node utilization.
@@ -430,8 +487,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         :return: [True, False]
         """
         node_capacity = self.get_node_capacity(node)
-        node_utilization = self.get_node_utilization(
-            node)
+        node_utilization = self.get_node_utilization(node)
         metrics = ['cpu']
         for m in metrics:
             if node_utilization[m] > node_capacity[m] * cc[m]:
@@ -452,14 +508,23 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         instance_utilization = self.get_instance_utilization(instance)
         metrics = ['cpu', 'ram', 'disk']
         for m in metrics:
-            fits = (instance_utilization[m] + node_utilization[m] <=
-                    node_capacity[m] * cc[m])
+            fits = (
+                instance_utilization[m] + node_utilization[m]
+                <= node_capacity[m] * cc[m]
+            )
             LOG.debug(
                 "Instance fits: %s, metric: %s, instance: %s, "
                 "node: %s, instance utilization: %s, "
                 "node utilization: %s, node capacity: %s, cc: %s",
-                fits, m, instance, node, instance_utilization[m],
-                node_utilization[m], node_capacity[m], cc[m])
+                fits,
+                m,
+                instance,
+                node,
+                instance_utilization[m],
+                node_utilization[m],
+                node_capacity[m],
+                cc[m],
+            )
             if not fits:
                 return False
         return True
@@ -479,31 +544,40 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
           in a new VM placement.
         """
         migrate_actions = (
-            a for a in self.solution.actions if a[
-                'action_type'] == self.MIGRATION)
+            a
+            for a in self.solution.actions
+            if a['action_type'] == self.MIGRATION
+        )
         instance_to_be_migrated = (
-            a['input_parameters']['resource_id'] for a in migrate_actions)
+            a['input_parameters']['resource_id'] for a in migrate_actions
+        )
         instance_uuids = list(set(instance_to_be_migrated))
         for instance_uuid in instance_uuids:
             actions = list(
-                a for a in self.solution.actions if a[
-                    'input_parameters'][
-                        'resource_id'] == instance_uuid)
+                a
+                for a in self.solution.actions
+                if a['input_parameters']['resource_id'] == instance_uuid
+            )
             if len(actions) > 1:
                 src_name = actions[0]['input_parameters']['source_node']
                 dst_name = actions[-1]['input_parameters']['destination_node']
                 for a in actions:
                     self.solution.actions.remove(a)
                     self.number_of_migrations -= 1
-                LOG.info("Optimized migrations: %s. "
-                         "Source: %s, destination: %s", actions,
-                         src_name, dst_name)
+                LOG.info(
+                    "Optimized migrations: %s. Source: %s, destination: %s",
+                    actions,
+                    src_name,
+                    dst_name,
+                )
                 src_node = self.compute_model.get_node_by_name(src_name)
                 dst_node = self.compute_model.get_node_by_name(dst_name)
                 instance = self.compute_model.get_instance_by_uuid(
-                    instance_uuid)
+                    instance_uuid
+                )
                 if self.compute_model.migrate_instance(
-                        instance, dst_node, src_node):
+                    instance, dst_node, src_node
+                ):
                     self.add_migration(instance, src_node, dst_node)
 
     def offload_phase(self, cc):
@@ -526,37 +600,46 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         """
         sorted_nodes = sorted(
             self.get_available_compute_nodes().values(),
-            key=lambda x: self.get_node_utilization(x)['cpu'])
+            key=lambda x: self.get_node_utilization(x)['cpu'],
+        )
         for node in reversed(sorted_nodes):
             if self.is_overloaded(node, cc):
                 for instance in sorted(
-                        self.compute_model.get_node_instances(node),
-                        key=lambda x: self.get_instance_utilization(
-                            x)['cpu']
+                    self.compute_model.get_node_instances(node),
+                    key=lambda x: self.get_instance_utilization(x)['cpu'],
                 ):
-                    LOG.info("Node %s overloaded, attempting to reduce load.",
-                             node)
+                    LOG.info(
+                        "Node %s overloaded, attempting to reduce load.", node
+                    )
                     # skip exclude instance when migrating
                     if instance.watcher_exclude:
-                        LOG.debug("Instance is excluded by scope, "
-                                  "skipped: %s", instance.uuid)
+                        LOG.debug(
+                            "Instance is excluded by scope, skipped: %s",
+                            instance.uuid,
+                        )
                         continue
                     for destination_node in reversed(sorted_nodes):
-                        if self.instance_fits(
-                                instance, destination_node, cc):
-                            LOG.info("Offload: found fitting "
-                                     "destination (%s) for instance: %s. "
-                                     "Planning migration.",
-                                     destination_node, instance.uuid)
-                            self.add_migration(instance, node,
-                                               destination_node)
+                        if self.instance_fits(instance, destination_node, cc):
+                            LOG.info(
+                                "Offload: found fitting "
+                                "destination (%s) for instance: %s. "
+                                "Planning migration.",
+                                destination_node,
+                                instance.uuid,
+                            )
+                            self.add_migration(
+                                instance, node, destination_node
+                            )
                             break
                     if not self.is_overloaded(node, cc):
                         LOG.info("Node %s no longer overloaded.", node)
                         break
                     else:
-                        LOG.info("Node still overloaded (%s), "
-                                 "continuing offload phase.", node)
+                        LOG.info(
+                            "Node still overloaded (%s), "
+                            "continuing offload phase.",
+                            node,
+                        )
 
     def consolidation_phase(self, cc):
         """Perform consolidation phase.
@@ -574,30 +657,35 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         """
         sorted_nodes = sorted(
             self.get_available_compute_nodes().values(),
-            key=lambda x: self.get_node_utilization(x)['cpu'])
+            key=lambda x: self.get_node_utilization(x)['cpu'],
+        )
         asc = 0
         for node in sorted_nodes:
             instances = sorted(
                 self.compute_model.get_node_instances(node),
-                key=lambda x: self.get_instance_utilization(x)['cpu'])
+                key=lambda x: self.get_instance_utilization(x)['cpu'],
+            )
             for instance in reversed(instances):
                 # skip exclude instance when migrating
                 if instance.watcher_exclude:
-                    LOG.debug("Instance is excluded by scope, "
-                              "skipped: %s", instance.uuid)
+                    LOG.debug(
+                        "Instance is excluded by scope, skipped: %s",
+                        instance.uuid,
+                    )
                     continue
                 dsc = len(sorted_nodes) - 1
                 for destination_node in reversed(sorted_nodes):
                     if asc >= dsc:
                         break
-                    if self.instance_fits(
-                            instance, destination_node, cc):
-                        LOG.info("Consolidation: found fitting "
-                                 "destination (%s) for instance: %s. "
-                                 "Planning migration.",
-                                 destination_node, instance.uuid)
-                        self.add_migration(instance, node,
-                                           destination_node)
+                    if self.instance_fits(instance, destination_node, cc):
+                        LOG.info(
+                            "Consolidation: found fitting "
+                            "destination (%s) for instance: %s. "
+                            "Planning migration.",
+                            destination_node,
+                            instance.uuid,
+                        )
+                        self.add_migration(instance, node, destination_node)
                         break
                     dsc -= 1
             asc += 1
@@ -638,21 +726,18 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
 
         rcu_after = self.get_relative_cluster_utilization()
         info = {
-            "compute_nodes_count": len(
-                self.get_available_compute_nodes()),
+            "compute_nodes_count": len(self.get_available_compute_nodes()),
             'number_of_migrations': self.number_of_migrations,
-            'number_of_released_nodes':
-                self.number_of_released_nodes,
+            'number_of_released_nodes': self.number_of_released_nodes,
             'relative_cluster_utilization_before': str(rcu),
-            'relative_cluster_utilization_after': str(rcu_after)
+            'relative_cluster_utilization_after': str(rcu_after),
         }
 
         LOG.debug(info)
 
     def post_execute(self):
         self.solution.set_efficacy_indicators(
-            compute_nodes_count=len(
-                self.get_available_compute_nodes()),
+            compute_nodes_count=len(self.get_available_compute_nodes()),
             released_compute_nodes_count=self.number_of_released_nodes,
             instance_migrations_count=self.number_of_migrations,
         )

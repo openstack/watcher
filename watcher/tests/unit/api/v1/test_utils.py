@@ -25,7 +25,6 @@ CONF = cfg.CONF
 
 
 class TestApiUtils(base.TestCase):
-
     def test_validate_limit(self):
         limit = utils.validate_limit(10)
         self.assertEqual(10, 10)
@@ -48,9 +47,9 @@ class TestApiUtils(base.TestCase):
             self.fail(exc)
 
         # invalid sort_dir parameter
-        self.assertRaises(wsme.exc.ClientSideError,
-                          utils.validate_sort_dir,
-                          'fake-sort')
+        self.assertRaises(
+            wsme.exc.ClientSideError, utils.validate_sort_dir, 'fake-sort'
+        )
 
     def test_validate_search_filters(self):
         allowed_fields = ["allowed", "authorized"]
@@ -67,5 +66,8 @@ class TestApiUtils(base.TestCase):
         test_filters = {"allowed": 1, "unauthorized": 2}
 
         self.assertRaises(
-            wsme.exc.ClientSideError, utils.validate_search_filters,
-            test_filters, allowed_fields)
+            wsme.exc.ClientSideError,
+            utils.validate_search_filters,
+            test_filters,
+            allowed_fields,
+        )

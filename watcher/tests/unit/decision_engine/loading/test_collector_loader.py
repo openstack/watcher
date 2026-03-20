@@ -27,16 +27,17 @@ from watcher.tests.unit.decision_engine.model import faker_cluster_state
 
 
 class TestClusterDataModelCollectorLoader(base.TestCase):
-
     def setUp(self):
         super().setUp()
         self.useFixture(conf_fixture.ConfReloadFixture())
         self.collector_loader = (
-            default_loading.ClusterDataModelCollectorLoader())
+            default_loading.ClusterDataModelCollectorLoader()
+        )
 
     def test_load_collector_with_empty_model(self):
         self.assertRaises(
-            exception.LoadingError, self.collector_loader.load, None)
+            exception.LoadingError, self.collector_loader.load, None
+        )
 
     def test_collector_loader(self):
         fake_driver = "fake"
@@ -46,31 +47,37 @@ class TestClusterDataModelCollectorLoader(base.TestCase):
                 name=fake_driver,
                 entry_point=(
                     f"{faker_cluster_state.FakerModelCollector.__module__}:"
-                    f"{faker_cluster_state.FakerModelCollector.__name__}"),
+                    f"{faker_cluster_state.FakerModelCollector.__name__}"
+                ),
                 plugin=faker_cluster_state.FakerModelCollector,
                 obj=None,
             ),
             namespace="watcher_cluster_data_model_collectors",
         )
 
-        with mock.patch.object(drivermanager,
-                               "DriverManager") as m_driver_manager:
+        with mock.patch.object(
+            drivermanager, "DriverManager"
+        ) as m_driver_manager:
             m_driver_manager.return_value = fake_driver_call
             loaded_collector = self.collector_loader.load("fake")
 
         self.assertIsInstance(
-            loaded_collector, faker_cluster_state.FakerModelCollector)
+            loaded_collector, faker_cluster_state.FakerModelCollector
+        )
 
 
 class TestLoadClusterDataModelCollectors(base.TestCase):
-
     collector_loader = default_loading.ClusterDataModelCollectorLoader()
 
     scenarios = [
-        (collector_name,
-         {"collector_name": collector_name, "collector_cls": collector_cls})
-        for collector_name, collector_cls
-        in collector_loader.list_available().items()]
+        (
+            collector_name,
+            {"collector_name": collector_name, "collector_cls": collector_cls},
+        )
+        for collector_name, collector_cls in (
+            collector_loader.list_available().items()
+        )
+    ]
 
     def setUp(self):
         super().setUp()

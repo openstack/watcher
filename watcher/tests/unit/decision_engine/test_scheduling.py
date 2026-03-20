@@ -35,21 +35,25 @@ from watcher.tests.unit.objects import utils as obj_utils
 
 
 class TestCancelOngoingAudits(db_base.DbTestCase):
-
     def setUp(self):
         super().setUp()
         p_audit_notifications = mock.patch.object(
-            notifications, 'audit', autospec=True)
+            notifications, 'audit', autospec=True
+        )
         self.m_audit_notifications = p_audit_notifications.start()
         self.addCleanup(p_audit_notifications.stop)
 
         self.goal = obj_utils.create_test_goal(
-            self.context, id=1, name=dummy_strategy.DummyStrategy.get_name())
+            self.context, id=1, name=dummy_strategy.DummyStrategy.get_name()
+        )
         self.strategy = obj_utils.create_test_strategy(
-            self.context, name=dummy_strategy.DummyStrategy.get_name(),
-            goal_id=self.goal.id)
+            self.context,
+            name=dummy_strategy.DummyStrategy.get_name(),
+            goal_id=self.goal.id,
+        )
         audit_template = obj_utils.create_test_audit_template(
-            self.context, strategy_id=self.strategy.id)
+            self.context, strategy_id=self.strategy.id
+        )
         self.audit = obj_utils.create_test_audit(
             self.context,
             id=999,
@@ -60,7 +64,8 @@ class TestCancelOngoingAudits(db_base.DbTestCase):
             audit_type=objects.audit.AuditType.ONESHOT.value,
             goal=self.goal,
             hostname='hostname1',
-            state=objects.audit.State.ONGOING)
+            state=objects.audit.State.ONGOING,
+        )
         cfg.CONF.set_override("host", "hostname1")
 
     @mock.patch.object(objects.audit.Audit, 'save')
@@ -78,22 +83,24 @@ class TestCancelOngoingAudits(db_base.DbTestCase):
 @mock.patch.object(objects.audit.Audit, 'save')
 @mock.patch.object(objects.audit.Audit, 'list')
 class TestDecisionEngineSchedulingService(base.TestCase):
-
     def setUp(self):
         super().setUp()
         self.fake_keystone = self.useFixture(watcher_fixtures.KeystoneClient())
 
+    @mock.patch.object(default_loading.ClusterDataModelCollectorLoader, 'load')
     @mock.patch.object(
-        default_loading.ClusterDataModelCollectorLoader, 'load')
-    @mock.patch.object(
-        default_loading.ClusterDataModelCollectorLoader, 'list_available')
+        default_loading.ClusterDataModelCollectorLoader, 'list_available'
+    )
     @mock.patch.object(background.BackgroundScheduler, 'start')
-    def test_start_de_scheduling_service(self, m_start, m_list_available,
-                                         m_load, m_list, m_save):
+    def test_start_de_scheduling_service(
+        self, m_start, m_list_available, m_load, m_list, m_save
+    ):
         m_list_available.return_value = {
-            'fake': faker_cluster_state.FakerModelCollector}
+            'fake': faker_cluster_state.FakerModelCollector
+        }
         fake_collector = faker_cluster_state.FakerModelCollector(
-            config=mock.Mock(period=777))
+            config=mock.Mock(period=777)
+        )
         m_load.return_value = fake_collector
 
         scheduler = scheduling.DecisionEngineSchedulingService()

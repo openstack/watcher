@@ -32,13 +32,18 @@ gettext.install('watcher')
 
 
 @base.WatcherObjectRegistry.register
-class MyObj(base.WatcherPersistentObject, base.WatcherObject,
-            base.WatcherObjectDictCompat):
+class MyObj(
+    base.WatcherPersistentObject,
+    base.WatcherObject,
+    base.WatcherObjectDictCompat,
+):
     VERSION = '1.5'
 
-    fields = {'foo': fields.IntegerField(),
-              'bar': fields.StringField(),
-              'missing': fields.StringField()}
+    fields = {
+        'foo': fields.IntegerField(),
+        'bar': fields.StringField(),
+        'missing': fields.StringField(),
+    }
 
     def obj_load_attr(self, attrname):
         setattr(self, attrname, 'loaded!')
@@ -113,33 +118,44 @@ def things_temporarily_local():
 
 class _TestObject:
     def test_hydration_type_error(self):
-        primitive = {'watcher_object.name': 'MyObj',
-                     'watcher_object.namespace': 'watcher',
-                     'watcher_object.version': '1.5',
-                     'watcher_object.data': {'foo': 'a'}}
+        primitive = {
+            'watcher_object.name': 'MyObj',
+            'watcher_object.namespace': 'watcher',
+            'watcher_object.version': '1.5',
+            'watcher_object.data': {'foo': 'a'},
+        }
         self.assertRaises(ValueError, MyObj.obj_from_primitive, primitive)
 
     def test_hydration(self):
-        primitive = {'watcher_object.name': 'MyObj',
-                     'watcher_object.namespace': 'watcher',
-                     'watcher_object.version': '1.5',
-                     'watcher_object.data': {'foo': 1}}
+        primitive = {
+            'watcher_object.name': 'MyObj',
+            'watcher_object.namespace': 'watcher',
+            'watcher_object.version': '1.5',
+            'watcher_object.data': {'foo': 1},
+        }
         obj = MyObj.obj_from_primitive(primitive)
         self.assertEqual(1, obj.foo)
 
     def test_hydration_bad_ns(self):
-        primitive = {'watcher_object.name': 'MyObj',
-                     'watcher_object.namespace': 'foo',
-                     'watcher_object.version': '1.5',
-                     'watcher_object.data': {'foo': 1}}
-        self.assertRaises(object_exception.UnsupportedObjectError,
-                          MyObj.obj_from_primitive, primitive)
+        primitive = {
+            'watcher_object.name': 'MyObj',
+            'watcher_object.namespace': 'foo',
+            'watcher_object.version': '1.5',
+            'watcher_object.data': {'foo': 1},
+        }
+        self.assertRaises(
+            object_exception.UnsupportedObjectError,
+            MyObj.obj_from_primitive,
+            primitive,
+        )
 
     def test_dehydration(self):
-        expected = {'watcher_object.name': 'MyObj',
-                    'watcher_object.namespace': 'watcher',
-                    'watcher_object.version': '1.5',
-                    'watcher_object.data': {'foo': 1}}
+        expected = {
+            'watcher_object.name': 'MyObj',
+            'watcher_object.namespace': 'watcher',
+            'watcher_object.version': '1.5',
+            'watcher_object.data': {'foo': 1},
+        }
         obj = MyObj(self.context)
         obj.foo = 1
         obj.obj_reset_changes()
@@ -164,6 +180,7 @@ class _TestObject:
 
         def fail():
             obj.foo = 'a'
+
         self.assertRaises(ValueError, fail)
 
     def test_load(self):
@@ -172,26 +189,35 @@ class _TestObject:
 
     def test_load_in_base(self):
         @base.WatcherObjectRegistry.register_if(False)
-        class Foo(base.WatcherPersistentObject, base.WatcherObject,
-                  base.WatcherObjectDictCompat):
+        class Foo(
+            base.WatcherPersistentObject,
+            base.WatcherObject,
+            base.WatcherObjectDictCompat,
+        ):
             fields = {'foobar': fields.IntegerField()}
+
         obj = Foo(self.context)
 
         self.assertRaisesRegex(
-            NotImplementedError, "Cannot load 'foobar' in the base class",
-            getattr, obj, 'foobar')
+            NotImplementedError,
+            "Cannot load 'foobar' in the base class",
+            getattr,
+            obj,
+            'foobar',
+        )
 
     def test_loaded_in_primitive(self):
         obj = MyObj(self.context)
         obj.foo = 1
         obj.obj_reset_changes()
         self.assertEqual('loaded!', obj.bar)
-        expected = {'watcher_object.name': 'MyObj',
-                    'watcher_object.namespace': 'watcher',
-                    'watcher_object.version': '1.5',
-                    'watcher_object.changes': ['bar'],
-                    'watcher_object.data': {'foo': 1,
-                                            'bar': 'loaded!'}}
+        expected = {
+            'watcher_object.name': 'MyObj',
+            'watcher_object.namespace': 'watcher',
+            'watcher_object.version': '1.5',
+            'watcher_object.changes': ['bar'],
+            'watcher_object.data': {'foo': 1, 'bar': 'loaded!'},
+        }
         self.assertEqual(expected, obj.obj_to_primitive())
 
     def test_changes_in_primitive(self):
@@ -206,8 +232,12 @@ class _TestObject:
         self.assertEqual(set(), obj2.obj_what_changed())
 
     def test_unknown_objtype(self):
-        self.assertRaises(object_exception.UnsupportedObjectError,
-                          base.WatcherObject.obj_class_from_name, 'foo', '1.0')
+        self.assertRaises(
+            object_exception.UnsupportedObjectError,
+            base.WatcherObject.obj_class_from_name,
+            'foo',
+            '1.0',
+        )
 
     def test_with_alternate_context(self):
         ctxt1 = context.RequestContext('foo', 'foo')
@@ -219,8 +249,9 @@ class _TestObject:
     def test_orphaned_object(self):
         obj = MyObj.query(self.context)
         obj._context = None
-        self.assertRaises(object_exception.OrphanedObjectError,
-                          obj.update_test)
+        self.assertRaises(
+            object_exception.OrphanedObjectError, obj.update_test
+        )
 
     def test_changed_1(self):
         obj = MyObj.query(self.context)
@@ -274,22 +305,26 @@ class _TestObject:
         obj = MyObj(self.context)
         obj.created_at = dt
         obj.updated_at = dt
-        expected = {'watcher_object.name': 'MyObj',
-                    'watcher_object.namespace': 'watcher',
-                    'watcher_object.version': '1.5',
-                    'watcher_object.changes':
-                        ['created_at', 'updated_at'],
-                    'watcher_object.data':
-                        {'created_at': datatime.stringify(dt),
-                         'updated_at': datatime.stringify(dt),
-                         }
-                    }
+        expected = {
+            'watcher_object.name': 'MyObj',
+            'watcher_object.namespace': 'watcher',
+            'watcher_object.version': '1.5',
+            'watcher_object.changes': ['created_at', 'updated_at'],
+            'watcher_object.data': {
+                'created_at': datatime.stringify(dt),
+                'updated_at': datatime.stringify(dt),
+            },
+        }
         actual = obj.obj_to_primitive()
         # watcher_object.changes is built from a set and order is undefined
-        self.assertEqual(sorted(expected['watcher_object.changes']),
-                         sorted(actual['watcher_object.changes']))
-        del expected[
-            'watcher_object.changes'], actual['watcher_object.changes']
+        self.assertEqual(
+            sorted(expected['watcher_object.changes']),
+            sorted(actual['watcher_object.changes']),
+        )
+        del (
+            expected['watcher_object.changes'],
+            actual['watcher_object.changes'],
+        )
         self.assertEqual(expected, actual)
 
     def test_contains(self):
@@ -323,18 +358,22 @@ class _TestObject:
         self.assertRaises(AttributeError, obj.get, 'nothing', 3)
 
     def test_object_inheritance(self):
-        base_fields = (
-            list(base.WatcherObject.fields) +
-            list(base.WatcherPersistentObject.fields))
+        base_fields = list(base.WatcherObject.fields) + list(
+            base.WatcherPersistentObject.fields
+        )
         myobj_fields = ['foo', 'bar', 'missing'] + base_fields
         myobj3_fields = ['new_field']
         self.assertTrue(issubclass(WatcherTestSubclassedObject, MyObj))
         self.assertEqual(len(myobj_fields), len(MyObj.fields))
         self.assertEqual(set(myobj_fields), set(MyObj.fields.keys()))
-        self.assertEqual(len(myobj_fields) + len(myobj3_fields),
-                         len(WatcherTestSubclassedObject.fields))
-        self.assertEqual(set(myobj_fields) | set(myobj3_fields),
-                         set(WatcherTestSubclassedObject.fields.keys()))
+        self.assertEqual(
+            len(myobj_fields) + len(myobj3_fields),
+            len(WatcherTestSubclassedObject.fields),
+        )
+        self.assertEqual(
+            set(myobj_fields) | set(myobj3_fields),
+            set(WatcherTestSubclassedObject.fields.keys()),
+        )
 
     def test_get_changes(self):
         obj = MyObj(self.context)
@@ -348,8 +387,11 @@ class _TestObject:
 
     def test_obj_fields(self):
         @base.WatcherObjectRegistry.register_if(False)
-        class TestObj(base.WatcherPersistentObject, base.WatcherObject,
-                      base.WatcherObjectDictCompat):
+        class TestObj(
+            base.WatcherPersistentObject,
+            base.WatcherObject,
+            base.WatcherObjectDictCompat,
+        ):
             fields = {'foo': fields.IntegerField()}
             obj_extra_fields = ['bar']
 
@@ -358,16 +400,22 @@ class _TestObject:
                 return 'this is bar'
 
         obj = TestObj(self.context)
-        self.assertEqual({'created_at', 'updated_at', 'deleted_at',
-                          'foo', 'bar'},
-                         set(obj.obj_fields))
+        self.assertEqual(
+            {'created_at', 'updated_at', 'deleted_at', 'foo', 'bar'},
+            set(obj.obj_fields),
+        )
 
     def test_refresh_object(self):
         @base.WatcherObjectRegistry.register_if(False)
-        class TestObj(base.WatcherPersistentObject, base.WatcherObject,
-                      base.WatcherObjectDictCompat):
-            fields = {'foo': fields.IntegerField(),
-                      'bar': fields.StringField()}
+        class TestObj(
+            base.WatcherPersistentObject,
+            base.WatcherObject,
+            base.WatcherObjectDictCompat,
+        ):
+            fields = {
+                'foo': fields.IntegerField(),
+                'bar': fields.StringField(),
+            }
 
         obj = TestObj(self.context)
         current_obj = TestObj(self.context)
@@ -387,8 +435,11 @@ class _TestObject:
 
     def test_assign_value_without_DictCompat(self):
         class TestObj(base.WatcherObject):
-            fields = {'foo': fields.IntegerField(),
-                      'bar': fields.StringField()}
+            fields = {
+                'foo': fields.IntegerField(),
+                'bar': fields.StringField(),
+            }
+
         obj = TestObj(self.context)
         obj.foo = 10
         err_message = ''
@@ -397,8 +448,10 @@ class _TestObject:
         except TypeError as e:
             err_message = str(e)
         finally:
-            self.assertIn("'TestObj' object does not support item assignment",
-                          err_message)
+            self.assertIn(
+                "'TestObj' object does not support item assignment",
+                err_message,
+            )
 
 
 class TestObject(_LocalTest, _TestObject):
@@ -419,7 +472,7 @@ expected_object_fingerprints = {
     'ScoringEngine': '1.0-4abbe833544000728e17bd9e83f97576',
     'Service': '1.0-4b35b99ada9677a882c9de2b30212f35',
     'MyObj': '1.5-23c516d1e842f365f694e688d34e47c3',
-    'ActionDescription': '1.0-5761a3d16651046e7a0c357b57a6583e'
+    'ActionDescription': '1.0-5761a3d16651046e7a0c357b57a6583e',
 }
 
 
@@ -435,30 +488,33 @@ def get_watcher_objects():
     watcher_classes = {}
     for name in all_classes:
         objclasses = all_classes[name]
-        if (objclasses[0].OBJ_PROJECT_NAMESPACE !=
-                base.WatcherObject.OBJ_PROJECT_NAMESPACE):
+        if (
+            objclasses[0].OBJ_PROJECT_NAMESPACE
+            != base.WatcherObject.OBJ_PROJECT_NAMESPACE
+        ):
             continue
         watcher_classes[name] = objclasses
     return watcher_classes
 
 
 class TestObjectVersions(test_base.TestCase):
-
     def test_object_version_check(self):
         classes = base.WatcherObjectRegistry.obj_classes()
         checker = object_fixture.ObjectVersionChecker(obj_classes=classes)
         # Compute the difference between actual fingerprints and
         # expect fingerprints. expect = actual = {} if there is no change.
         expect, actual = checker.test_hashes(expected_object_fingerprints)
-        self.assertEqual(expect, actual,
-                         "Some objects fields or remotable methods have been "
-                         "modified. Please make sure the version of those "
-                         "objects have been bumped and then update "
-                         "expected_object_fingerprints with the new hashes. ")
+        self.assertEqual(
+            expect,
+            actual,
+            "Some objects fields or remotable methods have been "
+            "modified. Please make sure the version of those "
+            "objects have been bumped and then update "
+            "expected_object_fingerprints with the new hashes. ",
+        )
 
 
 class TestObjectSerializer(test_base.TestCase):
-
     def test_object_serialization(self):
         obj_ser = base.WatcherObjectSerializer()
         obj = MyObj(self.context)
@@ -483,12 +539,17 @@ class TestObjectSerializer(test_base.TestCase):
                 self.assertIsInstance(item, MyObj)
 
     @mock.patch('watcher.objects.base.WatcherObject.indirection_api')
-    def _test_deserialize_entity_newer(self, obj_version, backported_to,
-                                       mock_indirection_api,
-                                       my_version='1.6'):
+    def _test_deserialize_entity_newer(
+        self,
+        obj_version,
+        backported_to,
+        mock_indirection_api,
+        my_version='1.6',
+    ):
         obj_ser = base.WatcherObjectSerializer()
-        mock_indirection_api.object_backport_versions.return_value \
-            = 'backported'
+        mock_indirection_api.object_backport_versions.return_value = (
+            'backported'
+        )
 
         @base.WatcherObjectRegistry.register
         class MyTestObj(MyObj):
@@ -500,12 +561,14 @@ class TestObjectSerializer(test_base.TestCase):
         result = obj_ser.deserialize_entity(self.context, primitive)
         if backported_to is None:
             self.assertFalse(
-                mock_indirection_api.object_backport_versions.called)
+                mock_indirection_api.object_backport_versions.called
+            )
         else:
             self.assertEqual('backported', result)
             versions = object_base.obj_tree_get_versions('MyTestObj')
             mock_indirection_api.object_backport_versions.assert_called_with(
-                self.context, primitive, versions)
+                self.context, primitive, versions
+            )
 
     def test_deserialize_entity_newer_version_backports(self):
         "Test object with unsupported (newer) version"
@@ -529,7 +592,6 @@ class TestObjectSerializer(test_base.TestCase):
 
 
 class TestRegistry(test_base.TestCase):
-
     @mock.patch('watcher.objects.base.objects')
     def test_hook_chooses_newer_properly(self, mock_objects):
         mock_objects.MyObj.VERSION = MyObj.VERSION

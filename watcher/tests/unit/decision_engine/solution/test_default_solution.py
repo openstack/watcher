@@ -21,44 +21,50 @@ from watcher.tests.unit import base
 
 
 class TestDefaultSolution(base.TestCase):
-
     def test_default_solution(self):
         solution = default.DefaultSolution(
             goal=mock.Mock(),
-            strategy=strategies.DummyStrategy(config=mock.Mock()))
-        parameters = {
-            "source_node": "server1",
-            "destination_node": "server2",
-        }
-        solution.add_action(action_type="nop",
-                            resource_id="b199db0c-1408-4d52-b5a5-5ca14de0ff36",
-                            input_parameters=parameters)
+            strategy=strategies.DummyStrategy(config=mock.Mock()),
+        )
+        parameters = {"source_node": "server1", "destination_node": "server2"}
+        solution.add_action(
+            action_type="nop",
+            resource_id="b199db0c-1408-4d52-b5a5-5ca14de0ff36",
+            input_parameters=parameters,
+        )
         self.assertEqual(1, len(solution.actions))
         expected_action_type = "nop"
         expected_parameters = {
             "source_node": "server1",
             "destination_node": "server2",
-            "resource_id": "b199db0c-1408-4d52-b5a5-5ca14de0ff36"
+            "resource_id": "b199db0c-1408-4d52-b5a5-5ca14de0ff36",
         }
-        self.assertEqual(expected_action_type,
-                         solution.actions[0].get('action_type'))
-        self.assertEqual(expected_parameters,
-                         solution.actions[0].get('input_parameters'))
+        self.assertEqual(
+            expected_action_type, solution.actions[0].get('action_type')
+        )
+        self.assertEqual(
+            expected_parameters, solution.actions[0].get('input_parameters')
+        )
         self.assertEqual('weight', solution.strategy.planner)
 
     def test_default_solution_with_no_input_parameters(self):
         solution = default.DefaultSolution(
             goal=mock.Mock(),
-            strategy=strategies.DummyStrategy(config=mock.Mock()))
-        solution.add_action(action_type="nop",
-                            resource_id="b199db0c-1408-4d52-b5a5-5ca14de0ff36")
+            strategy=strategies.DummyStrategy(config=mock.Mock()),
+        )
+        solution.add_action(
+            action_type="nop",
+            resource_id="b199db0c-1408-4d52-b5a5-5ca14de0ff36",
+        )
         self.assertEqual(1, len(solution.actions))
         expected_action_type = "nop"
         expected_parameters = {
             "resource_id": "b199db0c-1408-4d52-b5a5-5ca14de0ff36"
         }
-        self.assertEqual(expected_action_type,
-                         solution.actions[0].get('action_type'))
-        self.assertEqual(expected_parameters,
-                         solution.actions[0].get('input_parameters'))
+        self.assertEqual(
+            expected_action_type, solution.actions[0].get('action_type')
+        )
+        self.assertEqual(
+            expected_parameters, solution.actions[0].get('input_parameters')
+        )
         self.assertEqual('weight', solution.strategy.planner)

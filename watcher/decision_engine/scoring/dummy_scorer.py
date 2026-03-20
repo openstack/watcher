@@ -149,21 +149,28 @@ class DummyScorer(base.ScoringEngine):
         if flist[self.PROCESSOR_TIME_PERC] >= 80:
             workload = self.WORKLOAD_CPU
             cpu_prob = 100.0
-        elif flist[self.MEM_PAGE_READS_PER_SEC] >= 1000 \
-                and flist[self.MEM_PAGE_WRITES_PER_SEC] >= 1000:
+        elif (
+            flist[self.MEM_PAGE_READS_PER_SEC] >= 1000
+            and flist[self.MEM_PAGE_WRITES_PER_SEC] >= 1000
+        ):
             workload = self.WORKLOAD_MEM
             mem_prob = 100.0
-        elif flist[self.DISK_READ_BYTES_PER_SEC] >= 50*units.Mi \
-                and flist[self.DISK_WRITE_BYTES_PER_SEC] >= 50*units.Mi:
+        elif (
+            flist[self.DISK_READ_BYTES_PER_SEC] >= 50 * units.Mi
+            and flist[self.DISK_WRITE_BYTES_PER_SEC] >= 50 * units.Mi
+        ):
             workload = self.WORKLOAD_DISK
             disk_prob = 100.0
         else:
             idle_prob = 100.0
             if flist[self.PROCESSOR_TIME_PERC] >= 40:
                 cpu_prob = 50.0
-            if flist[self.MEM_PAGE_READS_PER_SEC] >= 500 \
-                    or flist[self.MEM_PAGE_WRITES_PER_SEC] >= 500:
+            if (
+                flist[self.MEM_PAGE_READS_PER_SEC] >= 500
+                or flist[self.MEM_PAGE_WRITES_PER_SEC] >= 500
+            ):
                 mem_prob = 50.0
 
         return jsonutils.dumps(
-            [workload, idle_prob, cpu_prob, mem_prob, disk_prob])
+            [workload, idle_prob, cpu_prob, mem_prob, disk_prob]
+        )

@@ -23,7 +23,6 @@ from watcher.api.controllers import link
 
 
 class Collection(base.APIBase):
-
     next = wtypes.text
     """A link to retrieve the next subset of the collection"""
 
@@ -45,5 +44,6 @@ class Collection(base.APIBase):
         marker = getattr(self.collection[-1], marker_field)
         next_args = f'?{q_args}limit={limit:d}&marker={marker}'
 
-        return link.Link.make_link('next', pecan.request.host_url,
-                                   resource_url, next_args).href
+        return link.Link.make_link(
+            'next', pecan.request.host_url, resource_url, next_args
+        ).href

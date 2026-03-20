@@ -46,7 +46,8 @@ class DatabaseWriteLock(fixtures.Fixture):
         if lock_timeout is not None and lock_timeout <= 0:
             raise ValueError(
                 "lock_timeout must be None or a positive number, "
-                f"got {lock_timeout}")
+                f"got {lock_timeout}"
+            )
         self.lock_timeout = lock_timeout
         self._db_write_lock = threading.RLock()  # Reentrant lock
 
@@ -61,12 +62,14 @@ class DatabaseWriteLock(fixtures.Fixture):
             # Acquire the lock before entering the database session
             acquired = self._db_write_lock.acquire(
                 blocking=True,
-                timeout=self.lock_timeout if self.lock_timeout else -1)
+                timeout=self.lock_timeout if self.lock_timeout else -1,
+            )
 
             if not acquired:
                 raise RuntimeError(
                     f"Failed to acquire database write lock within "
-                    f"{self.lock_timeout} seconds")
+                    f"{self.lock_timeout} seconds"
+                )
 
             try:
                 # Enter the original writer session context
@@ -77,5 +80,8 @@ class DatabaseWriteLock(fixtures.Fixture):
                 self._db_write_lock.release()
 
         # Patch _session_for_write in watcher's db api
-        self.useFixture(fixtures.MockPatchObject(
-            db_api, '_session_for_write', locked_session_for_write))
+        self.useFixture(
+            fixtures.MockPatchObject(
+                db_api, '_session_for_write', locked_session_for_write
+            )
+        )

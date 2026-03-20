@@ -22,12 +22,7 @@ rules = [
         name=AUDIT_TEMPLATE % 'create',
         check_str=base.RULE_ADMIN_API,
         description='Create an audit template.',
-        operations=[
-            {
-                'path': '/v1/audit_templates',
-                'method': 'POST'
-            }
-        ]
+        operations=[{'path': '/v1/audit_templates', 'method': 'POST'}],
     ),
     policy.DocumentedRuleDefault(
         name=AUDIT_TEMPLATE % 'delete',
@@ -36,20 +31,15 @@ rules = [
         operations=[
             {
                 'path': '/v1/audit_templates/{audit_template_uuid}',
-                'method': 'DELETE'
+                'method': 'DELETE',
             }
-        ]
+        ],
     ),
     policy.DocumentedRuleDefault(
         name=AUDIT_TEMPLATE % 'detail',
         check_str=base.RULE_ADMIN_API,
         description='Retrieve a list of audit templates with details.',
-        operations=[
-            {
-                'path': '/v1/audit_templates/detail',
-                'method': 'GET'
-            }
-        ]
+        operations=[{'path': '/v1/audit_templates/detail', 'method': 'GET'}],
     ),
     policy.DocumentedRuleDefault(
         name=AUDIT_TEMPLATE % 'get',
@@ -58,20 +48,15 @@ rules = [
         operations=[
             {
                 'path': '/v1/audit_templates/{audit_template_uuid}',
-                'method': 'GET'
+                'method': 'GET',
             }
-        ]
+        ],
     ),
     policy.DocumentedRuleDefault(
         name=AUDIT_TEMPLATE % 'get_all',
         check_str=base.RULE_ADMIN_API,
         description='Get a list of all audit templates.',
-        operations=[
-            {
-                'path': '/v1/audit_templates',
-                'method': 'GET'
-            }
-        ]
+        operations=[{'path': '/v1/audit_templates', 'method': 'GET'}],
     ),
     policy.DocumentedRuleDefault(
         name=AUDIT_TEMPLATE % 'update',
@@ -80,10 +65,10 @@ rules = [
         operations=[
             {
                 'path': '/v1/audit_templates/{audit_template_uuid}',
-                'method': 'PATCH'
+                'method': 'PATCH',
             }
-        ]
-    )
+        ],
+    ),
 ]
 
 

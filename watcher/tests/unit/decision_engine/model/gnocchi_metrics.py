@@ -23,9 +23,15 @@ class FakeGnocchiMetrics:
     def empty_one_metric(self, emptytype):
         self.emptytype = emptytype
 
-    def mock_get_statistics(self, resource=None, resource_type=None,
-                            meter_name=None, period=None, aggregate='mean',
-                            granularity=None):
+    def mock_get_statistics(
+        self,
+        resource=None,
+        resource_type=None,
+        meter_name=None,
+        period=None,
+        aggregate='mean',
+        granularity=None,
+    ):
         result = 0
         if meter_name == 'host_cpu_usage':
             result = self.get_usage_compute_node_cpu(resource)
@@ -45,8 +51,14 @@ class FakeGnocchiMetrics:
             result = self.get_average_usage_instance_memory(resource)
         return result
 
-    def mock_get_statistics_nn(self, resource=None, meter_name=None,
-                               period=None, aggregate='mean', granularity=300):
+    def mock_get_statistics_nn(
+        self,
+        resource=None,
+        meter_name=None,
+        period=None,
+        aggregate='mean',
+        granularity=300,
+    ):
         """Statistics for noisy neighbor strategy
 
         Signature should match DataSourceBase.get_instance_l3_cache_usage
@@ -59,9 +71,15 @@ class FakeGnocchiMetrics:
             result = self.get_average_l3_cache_previous(resource)
         return result
 
-    def mock_get_statistics_wb(self, resource=None, resource_type=None,
-                               meter_name=None, period=None, aggregate='mean',
-                               granularity=300):
+    def mock_get_statistics_wb(
+        self,
+        resource=None,
+        resource_type=None,
+        meter_name=None,
+        period=None,
+        aggregate='mean',
+        granularity=300,
+    ):
         """Statistics for workload balance strategy"""
 
         result = 0.0
@@ -93,9 +111,11 @@ class FakeGnocchiMetrics:
 
         mock = {}
         mock['73b09e16-35b7-4922-804e-e8f5d9b740fc'] = 34.5 * (
-            oslo_utils.units.Ki)
+            oslo_utils.units.Ki
+        )
         mock['cae81432-1631-4d4e-b29c-6f3acdcde906'] = 30.5 * (
-            oslo_utils.units.Ki)
+            oslo_utils.units.Ki
+        )
         mock['INSTANCE_3'] = 60 * oslo_utils.units.Ki
         mock['INSTANCE_4'] = 22.5 * oslo_utils.units.Ki
 

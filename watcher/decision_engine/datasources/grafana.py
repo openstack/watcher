@@ -35,16 +35,13 @@ LOG = log.getLogger(__name__)
 
 
 class GrafanaHelper(base.DataSourceBase):
-
     NAME = 'grafana'
 
     """METRIC_MAP is only available at runtime _build_metric_map"""
     METRIC_MAP = dict()
 
     """All available translators"""
-    TRANSLATOR_LIST = [
-        influxdb.InfluxDBGrafanaTranslator.NAME
-    ]
+    TRANSLATOR_LIST = [influxdb.InfluxDBGrafanaTranslator.NAME]
 
     def __init__(self, osc=None):
         """:param osc: an OpenStackClients instance"""
@@ -63,20 +60,25 @@ class GrafanaHelper(base.DataSourceBase):
         if not token:
             LOG.critical("GrafanaHelper authentication token not configured")
             return
-        self._headers = {"Authorization": "Bearer " + token,
-                         "Content-Type": "Application/json"}
+        self._headers = {
+            "Authorization": "Bearer " + token,
+            "Content-Type": "Application/json",
+        }
 
         if not base_url:
-            LOG.critical("GrafanaHelper url not properly configured, "
-                         "check base_url")
+            LOG.critical(
+                "GrafanaHelper url not properly configured, check base_url"
+            )
             return
         self._base_url = base_url
 
         # Very basic url parsing
         parse = urlparse.urlparse(self._base_url)
         if parse.scheme == '' or parse.netloc == '' or parse.path == '':
-            LOG.critical("GrafanaHelper url not properly configured, "
-                         "check base_url and project_id")
+            LOG.critical(
+                "GrafanaHelper url not properly configured, "
+                "check base_url and project_id"
+            )
             return
 
         self._build_metric_map()
@@ -95,29 +97,47 @@ class GrafanaHelper(base.DataSourceBase):
                 attribute = CONF.grafana_client.attribute_map[key]
                 translator = CONF.grafana_client.translator_map[key]
                 query = CONF.grafana_client.query_map[key]
-                if project is not None and \
-                   value is not None and\
-                   translator in self.TRANSLATOR_LIST and\
-                   query is not None:
+                if (
+                    project is not None
+                    and value is not None
+                    and translator in self.TRANSLATOR_LIST
+                    and query is not None
+                ):
                     self.METRIC_MAP[key] = {
                         'db': value,
                         'project': project,
                         'attribute': attribute,
                         'translator': translator,
-                        'query': query
+                        'query': query,
                     }
             except KeyError as e:
                 LOG.error(e)
 
-    def _build_translator_schema(self, metric, db, attribute, query, resource,
-                                 resource_type, period, aggregate,
-                                 granularity):
+    def _build_translator_schema(
+        self,
+        metric,
+        db,
+        attribute,
+        query,
+        resource,
+        resource_type,
+        period,
+        aggregate,
+        granularity,
+    ):
         """Create dictionary to pass to grafana proxy translators"""
 
-        return {'metric': metric, 'db': db, 'attribute': attribute,
-                'query': query, 'resource': resource,
-                'resource_type': resource_type, 'period': period,
-                'aggregate': aggregate, 'granularity': granularity}
+        return {
+            'metric': metric,
+            'db': db,
+            'attribute': attribute,
+            'query': query,
+            'resource': resource,
+            'resource_type': resource_type,
+            'period': period,
+            'aggregate': aggregate,
+            'granularity': granularity,
+        }
 
     def _get_translator(self, name, data):
         """Use the names of translators to get the translator for the metric"""
@@ -125,7 +145,8 @@ class GrafanaHelper(base.DataSourceBase):
             return influxdb.InfluxDBGrafanaTranslator(data)
         else:
             raise exception.InvalidParameter(
-                parameter='name', parameter_type='grafana translator')
+                parameter='name', parameter_type='grafana translator'
+            )
 
     def _request(self, params, project_id):
         """Make the request to the endpoint to retrieve data
@@ -136,9 +157,12 @@ class GrafanaHelper(base.DataSourceBase):
         if self.configured is False:
             raise exception.DataSourceNotAvailable(self.NAME)
 
-        resp = requests.get(self._base_url + str(project_id) + '/query',
-                            params=params, headers=self._headers,
-                            timeout=CONF.grafana_client.http_timeout)
+        resp = requests.get(
+            self._base_url + str(project_id) + '/query',
+            params=params,
+            headers=self._headers,
+            timeout=CONF.grafana_client.http_timeout,
+        )
         if resp.status_code == HTTPStatus.OK:
             return resp
         elif resp.status_code == HTTPStatus.BAD_REQUEST:
@@ -147,19 +171,24 @@ class GrafanaHelper(base.DataSourceBase):
             LOG.error("Authorization token is invalid")
         raise exception.DataSourceNotAvailable(self.NAME)
 
-    def statistic_aggregation(self, resource=None, resource_type=None,
-                              meter_name=None, period=300, aggregate='mean',
-                              granularity=300):
-        """Get the value for the specific metric based on specified parameters
-
-        """
+    def statistic_aggregation(
+        self,
+        resource=None,
+        resource_type=None,
+        meter_name=None,
+        period=300,
+        aggregate='mean',
+        granularity=300,
+    ):
+        """Get the metric value based on specified parameters."""
 
         try:
             self.METRIC_MAP[meter_name]
         except KeyError:
             LOG.error(
                 "Metric: %s does not appear in the current Grafana metric map",
-                meter_name)
+                meter_name,
+            )
             raise exception.MetricNotAvailable(metric=meter_name)
 
         db = self.METRIC_MAP[meter_name]['db']
@@ -169,17 +198,22 @@ class GrafanaHelper(base.DataSourceBase):
         query = self.METRIC_MAP[meter_name]['query']
 
         data = self._build_translator_schema(
-            meter_name, db, attribute, query, resource, resource_type, period,
-            aggregate, granularity)
+            meter_name,
+            db,
+            attribute,
+            query,
+            resource,
+            resource_type,
+            period,
+            aggregate,
+            granularity,
+        )
 
         translator = self._get_translator(translator_name, data)
 
         params = translator.build_params()
 
-        raw_kwargs = dict(
-            params=params,
-            project_id=project,
-        )
+        raw_kwargs = dict(params=params, project_id=project)
         kwargs = {k: v for k, v in raw_kwargs.items() if k and v}
 
         resp = self.query_retry(self._request, **kwargs)
@@ -191,74 +225,147 @@ class GrafanaHelper(base.DataSourceBase):
 
         return result
 
-    def statistic_series(self, resource=None, resource_type=None,
-                         meter_name=None, start_time=None, end_time=None,
-                         granularity=300):
+    def statistic_series(
+        self,
+        resource=None,
+        resource_type=None,
+        meter_name=None,
+        start_time=None,
+        end_time=None,
+        granularity=300,
+    ):
         raise NotImplementedError(
-            _('Grafana helper does not support statistic series method'))
+            _('Grafana helper does not support statistic series method')
+        )
 
-    def get_host_cpu_usage(self, resource, period=300,
-                           aggregate="mean", granularity=None):
+    def get_host_cpu_usage(
+        self, resource, period=300, aggregate="mean", granularity=None
+    ):
         return self.statistic_aggregation(
-            resource, 'compute_node', 'host_cpu_usage', period, aggregate,
-            granularity)
+            resource,
+            'compute_node',
+            'host_cpu_usage',
+            period,
+            aggregate,
+            granularity,
+        )
 
-    def get_host_ram_usage(self, resource, period=300,
-                           aggregate="mean", granularity=None):
+    def get_host_ram_usage(
+        self, resource, period=300, aggregate="mean", granularity=None
+    ):
         return self.statistic_aggregation(
-            resource, 'compute_node', 'host_ram_usage', period, aggregate,
-            granularity)
+            resource,
+            'compute_node',
+            'host_ram_usage',
+            period,
+            aggregate,
+            granularity,
+        )
 
-    def get_host_outlet_temp(self, resource, period=300,
-                             aggregate="mean", granularity=None):
+    def get_host_outlet_temp(
+        self, resource, period=300, aggregate="mean", granularity=None
+    ):
         return self.statistic_aggregation(
-            resource, 'compute_node', 'host_outlet_temp', period, aggregate,
-            granularity)
+            resource,
+            'compute_node',
+            'host_outlet_temp',
+            period,
+            aggregate,
+            granularity,
+        )
 
-    def get_host_inlet_temp(self, resource, period=300,
-                            aggregate="mean", granularity=None):
+    def get_host_inlet_temp(
+        self, resource, period=300, aggregate="mean", granularity=None
+    ):
         return self.statistic_aggregation(
-            resource, 'compute_node', 'host_inlet_temp', period, aggregate,
-            granularity)
+            resource,
+            'compute_node',
+            'host_inlet_temp',
+            period,
+            aggregate,
+            granularity,
+        )
 
-    def get_host_airflow(self, resource, period=300,
-                         aggregate="mean", granularity=None):
+    def get_host_airflow(
+        self, resource, period=300, aggregate="mean", granularity=None
+    ):
         return self.statistic_aggregation(
-            resource, 'compute_node', 'host_airflow', period, aggregate,
-            granularity)
+            resource,
+            'compute_node',
+            'host_airflow',
+            period,
+            aggregate,
+            granularity,
+        )
 
-    def get_host_power(self, resource, period=300,
-                       aggregate="mean", granularity=None):
+    def get_host_power(
+        self, resource, period=300, aggregate="mean", granularity=None
+    ):
         return self.statistic_aggregation(
-            resource, 'compute_node', 'host_power', period, aggregate,
-            granularity)
+            resource,
+            'compute_node',
+            'host_power',
+            period,
+            aggregate,
+            granularity,
+        )
 
-    def get_instance_cpu_usage(self, resource, period=300,
-                               aggregate="mean", granularity=None):
+    def get_instance_cpu_usage(
+        self, resource, period=300, aggregate="mean", granularity=None
+    ):
         return self.statistic_aggregation(
-            resource, 'instance', 'instance_cpu_usage', period, aggregate,
-            granularity)
+            resource,
+            'instance',
+            'instance_cpu_usage',
+            period,
+            aggregate,
+            granularity,
+        )
 
-    def get_instance_ram_usage(self, resource, period=300,
-                               aggregate="mean", granularity=None):
+    def get_instance_ram_usage(
+        self, resource, period=300, aggregate="mean", granularity=None
+    ):
         return self.statistic_aggregation(
-            resource, 'instance', 'instance_ram_usage', period, aggregate,
-            granularity)
+            resource,
+            'instance',
+            'instance_ram_usage',
+            period,
+            aggregate,
+            granularity,
+        )
 
-    def get_instance_ram_allocated(self, resource, period=300,
-                                   aggregate="mean", granularity=None):
+    def get_instance_ram_allocated(
+        self, resource, period=300, aggregate="mean", granularity=None
+    ):
         return self.statistic_aggregation(
-            resource, 'instance', 'instance_ram_allocated', period, aggregate,
-            granularity)
+            resource,
+            'instance',
+            'instance_ram_allocated',
+            period,
+            aggregate,
+            granularity,
+        )
 
-    def get_instance_l3_cache_usage(self, resource, period=300,
-                                    aggregate="mean", granularity=None):
+    def get_instance_l3_cache_usage(
+        self, resource, period=300, aggregate="mean", granularity=None
+    ):
         return self.statistic_aggregation(
-            resource, 'instance', 'instance_l3_cache_usage', period, aggregate,
-            granularity)
+            resource,
+            'instance',
+            'instance_l3_cache_usage',
+            period,
+            aggregate,
+            granularity,
+        )
 
-    def get_instance_root_disk_size(self, resource, period=300,
-                                    aggregate="mean", granularity=None):
+    def get_instance_root_disk_size(
+        self, resource, period=300, aggregate="mean", granularity=None
+    ):
         return self.statistic_aggregation(
-            resource, 'instance', 'instance_root_disk_size', period, aggregate,
-            granularity)
+            resource,
+            'instance',
+            'instance_root_disk_size',
+            period,
+            aggregate,
+            granularity,
+        )

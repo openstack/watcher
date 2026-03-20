@@ -21,7 +21,6 @@ from watcher.tests.unit.objects import utils as obj_utils
 
 
 class TestListScoringEngine(api_base.FunctionalTest):
-
     def _assert_scoring_engine_fields(self, scoring_engine):
         scoring_engine_fields = ['uuid', 'name', 'description']
         for field in scoring_engine_fields:
@@ -31,7 +30,8 @@ class TestListScoringEngine(api_base.FunctionalTest):
         scoring_engine = obj_utils.create_test_scoring_engine(self.context)
         response = self.get_json('/scoring_engines')
         self.assertEqual(
-            scoring_engine.name, response['scoring_engines'][0]['name'])
+            scoring_engine.name, response['scoring_engines'][0]['name']
+        )
         self._assert_scoring_engine_fields(response['scoring_engines'][0])
 
     def test_get_one_soft_deleted(self):
@@ -39,13 +39,15 @@ class TestListScoringEngine(api_base.FunctionalTest):
         scoring_engine.soft_delete()
         response = self.get_json(
             '/scoring_engines/{}'.format(scoring_engine['name']),
-            headers={'X-Show-Deleted': 'True'})
+            headers={'X-Show-Deleted': 'True'},
+        )
         self.assertEqual(scoring_engine.name, response['name'])
         self._assert_scoring_engine_fields(response)
 
         response = self.get_json(
             '/scoring_engines/{}'.format(scoring_engine['name']),
-            expect_errors=True)
+            expect_errors=True,
+        )
         self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
 
     def test_detail(self):
@@ -53,45 +55,66 @@ class TestListScoringEngine(api_base.FunctionalTest):
         scoring_engine = obj_utils.create_test_scoring_engine(self.context)
         response = self.get_json('/scoring_engines/detail')
         self.assertEqual(
-            scoring_engine.name, response['scoring_engines'][0]['name'])
+            scoring_engine.name, response['scoring_engines'][0]['name']
+        )
         self._assert_scoring_engine_fields(response['scoring_engines'][0])
         for scoring_engine in response['scoring_engines']:
             self.assertTrue(
-                all(val is not None for key, val in scoring_engine.items()
-                    if key in ['uuid', 'name', 'description', 'metainfo']))
+                all(
+                    val is not None
+                    for key, val in scoring_engine.items()
+                    if key in ['uuid', 'name', 'description', 'metainfo']
+                )
+            )
 
     def test_detail_against_single(self):
         scoring_engine = obj_utils.create_test_scoring_engine(self.context)
         response = self.get_json(
-            f'/scoring_engines/{scoring_engine.id}/detail',
-            expect_errors=True)
+            f'/scoring_engines/{scoring_engine.id}/detail', expect_errors=True
+        )
         self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
 
     def test_many(self):
         scoring_engine_list = []
         for idx in range(1, 6):
             scoring_engine = obj_utils.create_test_scoring_engine(
-                self.context, id=idx, uuid=utils.generate_uuid(),
-                name=str(idx), description=f'SE_{idx}')
+                self.context,
+                id=idx,
+                uuid=utils.generate_uuid(),
+                name=str(idx),
+                description=f'SE_{idx}',
+            )
             scoring_engine_list.append(scoring_engine.name)
         response = self.get_json('/scoring_engines')
         self.assertEqual(5, len(response['scoring_engines']))
         for scoring_engine in response['scoring_engines']:
             self.assertTrue(
-                all(val is not None for key, val in scoring_engine.items()
-                    if key in ['name', 'description', 'metainfo']))
+                all(
+                    val is not None
+                    for key, val in scoring_engine.items()
+                    if key in ['name', 'description', 'metainfo']
+                )
+            )
 
     def test_many_without_soft_deleted(self):
         scoring_engine_list = []
         for id_ in [1, 2, 3]:
             scoring_engine = obj_utils.create_test_scoring_engine(
-                self.context, id=id_, uuid=utils.generate_uuid(),
-                name=str(id_), description=f'SE_{id_}')
+                self.context,
+                id=id_,
+                uuid=utils.generate_uuid(),
+                name=str(id_),
+                description=f'SE_{id_}',
+            )
             scoring_engine_list.append(scoring_engine.name)
         for id_ in [4, 5]:
             scoring_engine = obj_utils.create_test_scoring_engine(
-                self.context, id=id_, uuid=utils.generate_uuid(),
-                name=str(id_), description=f'SE_{id_}')
+                self.context,
+                id=id_,
+                uuid=utils.generate_uuid(),
+                name=str(id_),
+                description=f'SE_{id_}',
+            )
             scoring_engine.soft_delete()
         response = self.get_json('/scoring_engines')
         self.assertEqual(3, len(response['scoring_engines']))
@@ -101,16 +124,24 @@ class TestListScoringEngine(api_base.FunctionalTest):
     def test_scoring_engines_collection_links(self):
         for idx in range(1, 6):
             obj_utils.create_test_scoring_engine(
-                self.context, id=idx, uuid=utils.generate_uuid(),
-                name=str(idx), description=f'SE_{idx}')
+                self.context,
+                id=idx,
+                uuid=utils.generate_uuid(),
+                name=str(idx),
+                description=f'SE_{idx}',
+            )
         response = self.get_json('/scoring_engines/?limit=2')
         self.assertEqual(2, len(response['scoring_engines']))
 
     def test_scoring_engines_collection_links_default_limit(self):
         for idx in range(1, 6):
             obj_utils.create_test_scoring_engine(
-                self.context, id=idx, uuid=utils.generate_uuid(),
-                name=str(idx), description=f'SE_{idx}')
+                self.context,
+                id=idx,
+                uuid=utils.generate_uuid(),
+                name=str(idx),
+                description=f'SE_{idx}',
+            )
         cfg.CONF.set_override('max_limit', 3, 'api')
         response = self.get_json('/scoring_engines')
         self.assertEqual(3, len(response['scoring_engines']))
@@ -119,8 +150,12 @@ class TestListScoringEngine(api_base.FunctionalTest):
         scoring_engine_list = []
         for idx in range(1, 6):
             scoring_engine = obj_utils.create_test_scoring_engine(
-                self.context, id=idx, uuid=utils.generate_uuid(),
-                name=str(idx), description=f'SE_{idx}')
+                self.context,
+                id=idx,
+                uuid=utils.generate_uuid(),
+                name=str(idx),
+                description=f'SE_{idx}',
+            )
             scoring_engine_list.append(scoring_engine.uuid)
 
         response = self.get_json('/scoring_engines/?sort_key=uuid')
@@ -131,52 +166,65 @@ class TestListScoringEngine(api_base.FunctionalTest):
 
     def test_sort_key_validation(self):
         response = self.get_json(
-            '/goals?sort_key={}'.format('bad_name'),
-            expect_errors=True)
+            '/goals?sort_key={}'.format('bad_name'), expect_errors=True
+        )
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
 
 
 class TestScoringEnginePolicyEnforcement(api_base.FunctionalTest):
-
     def _common_policy_check(self, rule, func, *arg, **kwarg):
-        self.policy.set_rules({
-            "admin_api": "(role:admin or role:administrator)",
-            "default": "rule:admin_api",
-            rule: "rule:default"})
+        self.policy.set_rules(
+            {
+                "admin_api": "(role:admin or role:administrator)",
+                "default": "rule:admin_api",
+                rule: "rule:default",
+            }
+        )
         response = func(*arg, **kwarg)
         self.assertEqual(HTTPStatus.FORBIDDEN, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(
             f"Policy doesn't allow {rule} to be performed.",
-            jsonutils.loads(response.json['error_message'])['faultstring'])
+            jsonutils.loads(response.json['error_message'])['faultstring'],
+        )
 
     def test_policy_disallow_get_all(self):
         self._common_policy_check(
-            "scoring_engine:get_all", self.get_json, '/scoring_engines',
-            expect_errors=True)
+            "scoring_engine:get_all",
+            self.get_json,
+            '/scoring_engines',
+            expect_errors=True,
+        )
 
     def test_policy_disallow_get_one(self):
         se = obj_utils.create_test_scoring_engine(self.context)
         self._common_policy_check(
-            "scoring_engine:get", self.get_json,
+            "scoring_engine:get",
+            self.get_json,
             f'/scoring_engines/{se.uuid}',
-            expect_errors=True)
+            expect_errors=True,
+        )
 
     def test_policy_disallow_detail(self):
         self._common_policy_check(
-            "scoring_engine:detail", self.get_json,
+            "scoring_engine:detail",
+            self.get_json,
             '/scoring_engines/detail',
-            expect_errors=True)
+            expect_errors=True,
+        )
 
 
 class TestScoringEnginePolicyEnforcementWithAdminContext(
-        TestListScoringEngine, api_base.AdminRoleTest):
-
+    TestListScoringEngine, api_base.AdminRoleTest
+):
     def setUp(self):
         super().setUp()
-        self.policy.set_rules({
-            "admin_api": "(role:admin or role:administrator)",
-            "default": "rule:admin_api",
-            "scoring_engine:detail": "rule:default",
-            "scoring_engine:get": "rule:default",
-            "scoring_engine:get_all": "rule:default"})
+        self.policy.set_rules(
+            {
+                "admin_api": "(role:admin or role:administrator)",
+                "default": "rule:admin_api",
+                "scoring_engine:detail": "rule:default",
+                "scoring_engine:get": "rule:default",
+                "scoring_engine:get_all": "rule:default",
+            }
+        )

@@ -19,7 +19,6 @@ from watcher.common.loader import loadable
 
 
 class Goal(loadable.Loadable, metaclass=abc.ABCMeta):
-
     def __init__(self, config):
         super().__init__(config)
         self.name = self.get_name()

@@ -55,33 +55,25 @@ class Actuator(base.UnclassifiedStrategy):
                     "items": {
                         "type": "object",
                         "properties": {
-                            "action_type": {
-                                "type": "string"
-                            },
-                            "resource_id": {
-                                "type": "string"
-                            },
+                            "action_type": {"type": "string"},
+                            "resource_id": {"type": "string"},
                             "input_parameters": {
                                 "type": "object",
                                 "properties": {},
-                                "additionalProperties": True
-                            }
+                                "additionalProperties": True,
+                            },
                         },
-                        "required": [
-                            "action_type", "input_parameters"
-                        ],
+                        "required": ["action_type", "input_parameters"],
                         "additionalProperties": True,
-                    }
+                    },
                 }
             },
-            "required": [
-                "actions"
-            ]
+            "required": ["actions"],
         }
 
     @classmethod
     def get_config_opts(cls):
-        """Override base class config options as do not use datasource """
+        """Override base class config options as do not use datasource"""
 
         return []
 

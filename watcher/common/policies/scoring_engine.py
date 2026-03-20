@@ -25,12 +25,7 @@ rules = [
         name=SCORING_ENGINE % 'detail',
         check_str=base.RULE_ADMIN_API,
         description='List scoring engines with details.',
-        operations=[
-            {
-                'path': '/v1/scoring_engines/detail',
-                'method': 'GET'
-            }
-        ]
+        operations=[{'path': '/v1/scoring_engines/detail', 'method': 'GET'}],
     ),
     # FIXME(lbragstad): Find someone from watcher to double check this
     # information. This API isn't listed in watcher's API reference
@@ -42,9 +37,9 @@ rules = [
         operations=[
             {
                 'path': '/v1/scoring_engines/{scoring_engine_id}',
-                'method': 'GET'
+                'method': 'GET',
             }
-        ]
+        ],
     ),
     # FIXME(lbragstad): Find someone from watcher to double check this
     # information. This API isn't listed in watcher's API reference
@@ -53,13 +48,8 @@ rules = [
         name=SCORING_ENGINE % 'get_all',
         check_str=base.RULE_ADMIN_API,
         description='Get all scoring engines.',
-        operations=[
-            {
-                'path': '/v1/scoring_engines',
-                'method': 'GET'
-            }
-        ]
-    )
+        operations=[{'path': '/v1/scoring_engines', 'method': 'GET'}],
+    ),
 ]
 
 

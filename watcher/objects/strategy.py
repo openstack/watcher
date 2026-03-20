@@ -22,9 +22,11 @@ from watcher.objects import fields as wfields
 
 
 @base.WatcherObjectRegistry.register
-class Strategy(base.WatcherPersistentObject, base.WatcherObject,
-               base.WatcherObjectDictCompat):
-
+class Strategy(
+    base.WatcherPersistentObject,
+    base.WatcherObject,
+    base.WatcherObjectDictCompat,
+):
     # Version 1.0: Initial version
     # Version 1.1: Added Goal object field
     VERSION = '1.1'
@@ -79,7 +81,8 @@ class Strategy(base.WatcherPersistentObject, base.WatcherObject,
         :returns: A :class:`Strategy` object.
         """
         db_strategy = cls.dbapi.get_strategy_by_id(
-            context, strategy_id, eager=eager)
+            context, strategy_id, eager=eager
+        )
         strategy = cls._from_db_object(cls(context), db_strategy, eager=eager)
         return strategy
 
@@ -99,7 +102,8 @@ class Strategy(base.WatcherPersistentObject, base.WatcherObject,
         """
 
         db_strategy = cls.dbapi.get_strategy_by_uuid(
-            context, uuid, eager=eager)
+            context, uuid, eager=eager
+        )
         strategy = cls._from_db_object(cls(context), db_strategy, eager=eager)
         return strategy
 
@@ -114,13 +118,22 @@ class Strategy(base.WatcherPersistentObject, base.WatcherObject,
         """
 
         db_strategy = cls.dbapi.get_strategy_by_name(
-            context, name, eager=eager)
+            context, name, eager=eager
+        )
         strategy = cls._from_db_object(cls(context), db_strategy, eager=eager)
         return strategy
 
     @base.remotable_classmethod
-    def list(cls, context, limit=None, marker=None, filters=None,
-             sort_key=None, sort_dir=None, eager=False):
+    def list(
+        cls,
+        context,
+        limit=None,
+        marker=None,
+        filters=None,
+        sort_key=None,
+        sort_dir=None,
+        eager=False,
+    ):
         """Return a list of :class:`Strategy` objects.
 
         :param context: Security context. NOTE: This should only
@@ -143,10 +156,13 @@ class Strategy(base.WatcherPersistentObject, base.WatcherObject,
             limit=limit,
             marker=marker,
             sort_key=sort_key,
-            sort_dir=sort_dir)
+            sort_dir=sort_dir,
+        )
 
-        return [cls._from_db_object(cls(context), obj, eager=eager)
-                for obj in db_strategies]
+        return [
+            cls._from_db_object(cls(context), obj, eager=eager)
+            for obj in db_strategies
+        ]
 
     @base.remotable
     def create(self, context=None):
@@ -216,10 +232,13 @@ class Strategy(base.WatcherPersistentObject, base.WatcherObject,
         :param eager: Load object fields if True (Default: False)
         """
         current = self.__class__.get_by_id(
-            self._context, strategy_id=self.id, eager=eager)
+            self._context, strategy_id=self.id, eager=eager
+        )
         for field in self.fields:
-            if (hasattr(self, base.get_attrname(field)) and
-                    self[field] != current[field]):
+            if (
+                hasattr(self, base.get_attrname(field))
+                and self[field] != current[field]
+            ):
                 self[field] = current[field]
 
     @base.remotable

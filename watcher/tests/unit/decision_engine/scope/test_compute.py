@@ -30,7 +30,6 @@ from watcher.tests.unit.decision_engine.scope import fake_scopes
 
 
 class TestComputeScope(base.TestCase):
-
     def setUp(self):
         super().setUp()
         self.useFixture(
@@ -43,25 +42,27 @@ class TestComputeScope(base.TestCase):
         cluster = self.fake_cluster.generate_scenario_1()
         audit_scope = fake_scopes.fake_scope_1
         mock_zone_list.return_value = [
-            mock.Mock(zone=f'AZ{i}',
-                      host={f'hostname_{i}': {}})
-            for i in range(4)]
-        model = compute.ComputeScope(audit_scope, mock.Mock(),
-                                     osc=mock.Mock()).get_scoped_model(cluster)
+            mock.Mock(zone=f'AZ{i}', host={f'hostname_{i}': {}})
+            for i in range(4)
+        ]
+        model = compute.ComputeScope(
+            audit_scope, mock.Mock(), osc=mock.Mock()
+        ).get_scoped_model(cluster)
 
         # NOTE(adisky):INSTANCE_6 is not excluded from model it will be tagged
         # as 'exclude' TRUE, blueprint compute-cdm-include-all-instances
         expected_edges = [
             ('d020ef1f-dc19-4982-9383-087498bfde03', 'Node_1'),
-            ('d060ef1f-dc19-4982-9383-087498bfde03', 'Node_3')
+            ('d060ef1f-dc19-4982-9383-087498bfde03', 'Node_3'),
         ]
         self.assertEqual(sorted(expected_edges), sorted(model.edges()))
 
     @mock.patch.object(nova_helper.NovaHelper, 'get_service_list')
     def test_get_scoped_model_without_scope(self, mock_zone_list):
         model = self.fake_cluster.generate_scenario_1()
-        compute.ComputeScope([], mock.Mock(),
-                             osc=mock.Mock()).get_scoped_model(model)
+        compute.ComputeScope(
+            [], mock.Mock(), osc=mock.Mock()
+        ).get_scoped_model(model)
         assert not mock_zone_list.called
 
     def test_remove_instance(self):
@@ -69,7 +70,7 @@ class TestComputeScope(base.TestCase):
         compute.ComputeScope([], mock.Mock(), osc=mock.Mock()).remove_instance(
             model,
             model.get_instance_by_uuid('d020ef1f-dc19-4982-9383-087498bfde03'),
-            'Node_1'
+            'Node_1',
         )
         expected_edges = [
             ('d000ef1f-dc19-4982-9383-087498bfde03', 'Node_0'),
@@ -86,20 +87,24 @@ class TestComputeScope(base.TestCase):
     def test_collect_aggregates(self, mock_aggregate):
         allowed_nodes = []
         mock_aggregate.return_value = [
-            mock.Mock(id=i, hosts=[f'Node_{i}']) for i in range(2)]
-        compute.ComputeScope([{'host_aggregates': [{'id': 1}, {'id': 2}]}],
-                             mock.Mock(), osc=mock.Mock())._collect_aggregates(
-            [{'id': 1}, {'id': 2}], allowed_nodes)
+            mock.Mock(id=i, hosts=[f'Node_{i}']) for i in range(2)
+        ]
+        compute.ComputeScope(
+            [{'host_aggregates': [{'id': 1}, {'id': 2}]}],
+            mock.Mock(),
+            osc=mock.Mock(),
+        )._collect_aggregates([{'id': 1}, {'id': 2}], allowed_nodes)
         self.assertEqual(['Node_1'], allowed_nodes)
 
     @mock.patch.object(nova_helper.NovaHelper, 'get_aggregate_list')
     def test_aggregates_wildcard_is_used(self, mock_aggregate):
         allowed_nodes = []
         mock_aggregate.return_value = [
-            mock.Mock(id=i, hosts=[f'Node_{i}']) for i in range(2)]
-        compute.ComputeScope([{'host_aggregates': [{'id': '*'}]}],
-                             mock.Mock(), osc=mock.Mock())._collect_aggregates(
-            [{'id': '*'}], allowed_nodes)
+            mock.Mock(id=i, hosts=[f'Node_{i}']) for i in range(2)
+        ]
+        compute.ComputeScope(
+            [{'host_aggregates': [{'id': '*'}]}], mock.Mock(), osc=mock.Mock()
+        )._collect_aggregates([{'id': '*'}], allowed_nodes)
         self.assertEqual(['Node_0', 'Node_1'], allowed_nodes)
 
     @mock.patch.object(nova_helper.NovaHelper, 'get_aggregate_list')
@@ -108,170 +113,207 @@ class TestComputeScope(base.TestCase):
         mock_aggregate.return_value = [mock.Mock(id=i) for i in range(2)]
         scope_handler = compute.ComputeScope(
             [{'host_aggregates': [{'id': '*'}, {'id': 1}]}],
-            mock.Mock(), osc=mock.Mock())
-        self.assertRaises(exception.WildcardCharacterIsUsed,
-                          scope_handler._collect_aggregates,
-                          [{'id': '*'}, {'id': 1}],
-                          allowed_nodes)
+            mock.Mock(),
+            osc=mock.Mock(),
+        )
+        self.assertRaises(
+            exception.WildcardCharacterIsUsed,
+            scope_handler._collect_aggregates,
+            [{'id': '*'}, {'id': 1}],
+            allowed_nodes,
+        )
 
     @mock.patch.object(nova_helper.NovaHelper, 'get_aggregate_list')
     def test_aggregates_with_names_and_ids(self, mock_aggregate):
         allowed_nodes = []
-        mock_collection = [mock.Mock(id=i, hosts=[f'Node_{i}'])
-                           for i in range(2)]
+        mock_collection = [
+            mock.Mock(id=i, hosts=[f'Node_{i}']) for i in range(2)
+        ]
         mock_collection[0].name = 'HA_0'
         mock_collection[1].name = 'HA_1'
 
         mock_aggregate.return_value = mock_collection
 
-        compute.ComputeScope([{'host_aggregates': [{'name': 'HA_1'},
-                                                   {'id': 0}]}],
-                             mock.Mock(), osc=mock.Mock())._collect_aggregates(
-            [{'name': 'HA_1'}, {'id': 0}], allowed_nodes)
+        compute.ComputeScope(
+            [{'host_aggregates': [{'name': 'HA_1'}, {'id': 0}]}],
+            mock.Mock(),
+            osc=mock.Mock(),
+        )._collect_aggregates([{'name': 'HA_1'}, {'id': 0}], allowed_nodes)
         self.assertEqual(['Node_0', 'Node_1'], allowed_nodes)
 
     @mock.patch.object(nova_helper.NovaHelper, 'get_service_list')
     def test_collect_zones(self, mock_zone_list):
         allowed_nodes = []
         mock_zone_list.return_value = [
-            mock.Mock(zone=f"AZ{i + 1}",
-                      host={f'Node_{2 * i}': 1,
-                            f'Node_{2 * i + 1}': 2})
-            for i in range(2)]
-        compute.ComputeScope([{'availability_zones': [{'name': "AZ1"}]}],
-                             mock.Mock(), osc=mock.Mock())._collect_zones(
-            [{'name': "AZ1"}], allowed_nodes)
+            mock.Mock(
+                zone=f"AZ{i + 1}",
+                host={f'Node_{2 * i}': 1, f'Node_{2 * i + 1}': 2},
+            )
+            for i in range(2)
+        ]
+        compute.ComputeScope(
+            [{'availability_zones': [{'name': "AZ1"}]}],
+            mock.Mock(),
+            osc=mock.Mock(),
+        )._collect_zones([{'name': "AZ1"}], allowed_nodes)
         self.assertEqual(['Node_0', 'Node_1'], sorted(allowed_nodes))
 
     @mock.patch.object(nova_helper.NovaHelper, 'get_service_list')
     def test_zones_wildcard_is_used(self, mock_zone_list):
         allowed_nodes = []
         mock_zone_list.return_value = [
-            mock.Mock(zone=f"AZ{i + 1}",
-                      host={f'Node_{2 * i}': 1,
-                            f'Node_{2 * i + 1}': 2})
-            for i in range(2)]
-        compute.ComputeScope([{'availability_zones': [{'name': "*"}]}],
-                             mock.Mock(), osc=mock.Mock())._collect_zones(
-            [{'name': "*"}], allowed_nodes)
-        self.assertEqual(['Node_0', 'Node_1', 'Node_2', 'Node_3'],
-                         sorted(allowed_nodes))
+            mock.Mock(
+                zone=f"AZ{i + 1}",
+                host={f'Node_{2 * i}': 1, f'Node_{2 * i + 1}': 2},
+            )
+            for i in range(2)
+        ]
+        compute.ComputeScope(
+            [{'availability_zones': [{'name': "*"}]}],
+            mock.Mock(),
+            osc=mock.Mock(),
+        )._collect_zones([{'name': "*"}], allowed_nodes)
+        self.assertEqual(
+            ['Node_0', 'Node_1', 'Node_2', 'Node_3'], sorted(allowed_nodes)
+        )
 
     @mock.patch.object(nova_helper.NovaHelper, 'get_service_list')
     def test_zones_wildcard_with_other_ids(self, mock_zone_list):
         allowed_nodes = []
         mock_zone_list.return_value = [
-            mock.Mock(zone=f"AZ{i + 1}",
-                      host={f'Node_{2 * i}': 1,
-                            f'Node_{2 * i + 1}': 2})
-            for i in range(2)]
+            mock.Mock(
+                zone=f"AZ{i + 1}",
+                host={f'Node_{2 * i}': 1, f'Node_{2 * i + 1}': 2},
+            )
+            for i in range(2)
+        ]
         scope_handler = compute.ComputeScope(
             [{'availability_zones': [{'name': "*"}, {'name': 'AZ1'}]}],
-            mock.Mock(), osc=mock.Mock())
-        self.assertRaises(exception.WildcardCharacterIsUsed,
-                          scope_handler._collect_zones,
-                          [{'name': "*"}, {'name': 'AZ1'}],
-                          allowed_nodes)
+            mock.Mock(),
+            osc=mock.Mock(),
+        )
+        self.assertRaises(
+            exception.WildcardCharacterIsUsed,
+            scope_handler._collect_zones,
+            [{'name': "*"}, {'name': 'AZ1'}],
+            allowed_nodes,
+        )
 
     def test_compute_schema(self):
         test_scope = fake_scopes.compute_scope
         validators.Draft4Validator(
             audit_template.AuditTemplatePostType._build_schema()
-            ).validate(test_scope)
+        ).validate(test_scope)
 
     @mock.patch.object(nova_helper.NovaHelper, 'get_aggregate_list')
     def test_exclude_resource(self, mock_aggregate):
-        mock_collection = [mock.Mock(id=i, hosts=[f'Node_{i}'])
-                           for i in range(2)]
+        mock_collection = [
+            mock.Mock(id=i, hosts=[f'Node_{i}']) for i in range(2)
+        ]
         mock_collection[0].name = 'HA_0'
         mock_collection[1].name = 'HA_1'
         mock_aggregate.return_value = mock_collection
 
-        resources_to_exclude = [{'host_aggregates': [{'name': 'HA_1'},
-                                                     {'id': 0}]},
-                                {'instances': [{'uuid': 'INSTANCE_1'},
-                                               {'uuid': 'INSTANCE_2'}]},
-                                {'compute_nodes': [{'name': 'Node_2'},
-                                                   {'name': 'Node_3'}]},
-                                {'instance_metadata': [{'optimize': True},
-                                                       {'optimize1': False}]},
-                                {'projects': [{'uuid': 'PROJECT_1'},
-                                              {'uuid': 'PROJECT_2'}]}]
+        resources_to_exclude = [
+            {'host_aggregates': [{'name': 'HA_1'}, {'id': 0}]},
+            {'instances': [{'uuid': 'INSTANCE_1'}, {'uuid': 'INSTANCE_2'}]},
+            {'compute_nodes': [{'name': 'Node_2'}, {'name': 'Node_3'}]},
+            {'instance_metadata': [{'optimize': True}, {'optimize1': False}]},
+            {'projects': [{'uuid': 'PROJECT_1'}, {'uuid': 'PROJECT_2'}]},
+        ]
         instances_to_exclude = []
         nodes_to_exclude = []
         instance_metadata = []
         projects_to_exclude = []
-        compute.ComputeScope([], mock.Mock(),
-                             osc=mock.Mock()).exclude_resources(
-            resources_to_exclude, instances=instances_to_exclude,
-            nodes=nodes_to_exclude, instance_metadata=instance_metadata,
-            projects=projects_to_exclude)
+        compute.ComputeScope(
+            [], mock.Mock(), osc=mock.Mock()
+        ).exclude_resources(
+            resources_to_exclude,
+            instances=instances_to_exclude,
+            nodes=nodes_to_exclude,
+            instance_metadata=instance_metadata,
+            projects=projects_to_exclude,
+        )
 
-        self.assertEqual(['Node_0', 'Node_1', 'Node_2', 'Node_3'],
-                         sorted(nodes_to_exclude))
-        self.assertEqual(['INSTANCE_1', 'INSTANCE_2'],
-                         sorted(instances_to_exclude))
-        self.assertEqual([{'optimize': True}, {'optimize1': False}],
-                         instance_metadata)
-        self.assertEqual(['PROJECT_1', 'PROJECT_2'],
-                         sorted(projects_to_exclude))
+        self.assertEqual(
+            ['Node_0', 'Node_1', 'Node_2', 'Node_3'], sorted(nodes_to_exclude)
+        )
+        self.assertEqual(
+            ['INSTANCE_1', 'INSTANCE_2'], sorted(instances_to_exclude)
+        )
+        self.assertEqual(
+            [{'optimize': True}, {'optimize1': False}], instance_metadata
+        )
+        self.assertEqual(
+            ['PROJECT_1', 'PROJECT_2'], sorted(projects_to_exclude)
+        )
 
     def test_exclude_instances_with_given_metadata(self):
         cluster = self.fake_cluster.generate_scenario_1()
         instance_metadata = [{'optimize': True}]
         instances_to_remove = set()
         compute.ComputeScope(
-            [], mock.Mock(),
-            osc=mock.Mock()).exclude_instances_with_given_metadata(
-                instance_metadata, cluster, instances_to_remove)
-        instance_uuids = sorted([
-            f'd{i:02}0ef1f-dc19-4982-9383-087498bfde03' for i in range(35)
-        ])
+            [], mock.Mock(), osc=mock.Mock()
+        ).exclude_instances_with_given_metadata(
+            instance_metadata, cluster, instances_to_remove
+        )
+        instance_uuids = sorted(
+            [f'd{i:02}0ef1f-dc19-4982-9383-087498bfde03' for i in range(35)]
+        )
         self.assertEqual(instance_uuids, sorted(instances_to_remove))
 
         instance_metadata = [{'optimize': False}]
         instances_to_remove = set()
         compute.ComputeScope(
-            [], mock.Mock(),
-            osc=mock.Mock()).exclude_instances_with_given_metadata(
-                instance_metadata, cluster, instances_to_remove)
+            [], mock.Mock(), osc=mock.Mock()
+        ).exclude_instances_with_given_metadata(
+            instance_metadata, cluster, instances_to_remove
+        )
         self.assertEqual(set(), instances_to_remove)
 
     def test_exclude_instances_with_given_project(self):
         cluster = self.fake_cluster.generate_scenario_1()
         instances_to_exclude = set()
-        projects_to_exclude = ['26F03131-32CB-4697-9D61-9123F87A8147',
-                               '109F7909-0607-4712-B32C-5CC6D49D2F15']
+        projects_to_exclude = [
+            '26F03131-32CB-4697-9D61-9123F87A8147',
+            '109F7909-0607-4712-B32C-5CC6D49D2F15',
+        ]
         compute.ComputeScope(
-            [], mock.Mock(),
-            osc=mock.Mock()).exclude_instances_with_given_project(
-                projects_to_exclude, cluster, instances_to_exclude)
+            [], mock.Mock(), osc=mock.Mock()
+        ).exclude_instances_with_given_project(
+            projects_to_exclude, cluster, instances_to_exclude
+        )
         self.assertEqual(
-            ['d010ef1f-dc19-4982-9383-087498bfde03',
-             'd020ef1f-dc19-4982-9383-087498bfde03'],
-            sorted(instances_to_exclude)
+            [
+                'd010ef1f-dc19-4982-9383-087498bfde03',
+                'd020ef1f-dc19-4982-9383-087498bfde03',
+            ],
+            sorted(instances_to_exclude),
         )
 
     def test_remove_nodes_from_model(self):
         model = self.fake_cluster.generate_scenario_1()
-        compute.ComputeScope([], mock.Mock(),
-                             osc=mock.Mock()).remove_nodes_from_model(
-            ['hostname_1', 'hostname_2'], model)
+        compute.ComputeScope(
+            [], mock.Mock(), osc=mock.Mock()
+        ).remove_nodes_from_model(['hostname_1', 'hostname_2'], model)
         expected_edges = [
             ('d000ef1f-dc19-4982-9383-087498bfde03', 'Node_0'),
             ('d010ef1f-dc19-4982-9383-087498bfde03', 'Node_0'),
             ('d060ef1f-dc19-4982-9383-087498bfde03', 'Node_3'),
-            ('d070ef1f-dc19-4982-9383-087498bfde03', 'Node_4')]
+            ('d070ef1f-dc19-4982-9383-087498bfde03', 'Node_4'),
+        ]
         self.assertEqual(sorted(expected_edges), sorted(model.edges()))
 
     def test_update_exclude_instances_in_model(self):
         model = self.fake_cluster.generate_scenario_1()
         compute.ComputeScope(
-            [], mock.Mock(),
-            osc=mock.Mock()
+            [], mock.Mock(), osc=mock.Mock()
         ).update_exclude_instance_in_model(
-            ['d010ef1f-dc19-4982-9383-087498bfde03',
-             'd020ef1f-dc19-4982-9383-087498bfde03'], model
+            [
+                'd010ef1f-dc19-4982-9383-087498bfde03',
+                'd020ef1f-dc19-4982-9383-087498bfde03',
+            ],
+            model,
         )
         expected_edges = [
             ('d000ef1f-dc19-4982-9383-087498bfde03', 'Node_0'),
@@ -281,27 +323,30 @@ class TestComputeScope(base.TestCase):
             ('d040ef1f-dc19-4982-9383-087498bfde03', 'Node_2'),
             ('d050ef1f-dc19-4982-9383-087498bfde03', 'Node_2'),
             ('d060ef1f-dc19-4982-9383-087498bfde03', 'Node_3'),
-            ('d070ef1f-dc19-4982-9383-087498bfde03', 'Node_4')]
+            ('d070ef1f-dc19-4982-9383-087498bfde03', 'Node_4'),
+        ]
         self.assertEqual(sorted(expected_edges), sorted(model.edges()))
         self.assertFalse(
             model.get_instance_by_uuid(
                 'd000ef1f-dc19-4982-9383-087498bfde03'
-            ).watcher_exclude)
+            ).watcher_exclude
+        )
         self.assertTrue(
             model.get_instance_by_uuid(
                 'd010ef1f-dc19-4982-9383-087498bfde03'
-            ).watcher_exclude)
+            ).watcher_exclude
+        )
 
     @mock.patch.object(nova_helper.NovaHelper, 'get_aggregate_list')
-    def test_get_scoped_model_with_hostaggregate_null(
-            self, mock_list):
+    def test_get_scoped_model_with_hostaggregate_null(self, mock_list):
         cluster = self.fake_cluster.generate_scenario_1()
         audit_scope = fake_scopes.fake_scope_3
-        mock_list.return_value = [mock.Mock(id=i,
-                                            name=f"HA_{i}")
-                                  for i in range(2)]
-        model = compute.ComputeScope(audit_scope, mock.Mock(),
-                                     osc=mock.Mock()).get_scoped_model(cluster)
+        mock_list.return_value = [
+            mock.Mock(id=i, name=f"HA_{i}") for i in range(2)
+        ]
+        model = compute.ComputeScope(
+            audit_scope, mock.Mock(), osc=mock.Mock()
+        ).get_scoped_model(cluster)
         self.assertEqual(0, len(model.edges()))
 
     @mock.patch.object(nova_helper.NovaHelper, 'get_service_list')
@@ -312,16 +357,17 @@ class TestComputeScope(base.TestCase):
         audit_scope.extend(fake_scopes.fake_scope_1)
         audit_scope.extend(fake_scopes.fake_scope_2)
         mock_zone_list.return_value = [
-            mock.Mock(zone=f'AZ{i}',
-                      host={f'hostname_{i}': {}})
-            for i in range(4)]
-        model = compute.ComputeScope(audit_scope, mock.Mock(),
-                                     osc=mock.Mock()).get_scoped_model(cluster)
+            mock.Mock(zone=f'AZ{i}', host={f'hostname_{i}': {}})
+            for i in range(4)
+        ]
+        model = compute.ComputeScope(
+            audit_scope, mock.Mock(), osc=mock.Mock()
+        ).get_scoped_model(cluster)
 
         # NOTE(adisky):INSTANCE_6 is not excluded from model it will be tagged
         # as 'exclude' TRUE, blueprint compute-cdm-include-all-instances
         expected_edges = [
             ('d020ef1f-dc19-4982-9383-087498bfde03', 'Node_1'),
-            ('d060ef1f-dc19-4982-9383-087498bfde03', 'Node_3')
+            ('d060ef1f-dc19-4982-9383-087498bfde03', 'Node_3'),
         ]
         self.assertEqual(sorted(expected_edges), sorted(model.edges()))

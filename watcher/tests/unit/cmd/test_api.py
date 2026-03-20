@@ -28,7 +28,6 @@ from watcher.tests.unit import base
 
 
 class TestApi(base.BaseTestCase):
-
     def setUp(self):
         super().setUp()
 

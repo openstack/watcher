@@ -78,9 +78,11 @@ class AuditType(enum.Enum):
 
 
 @base.WatcherObjectRegistry.register
-class Audit(base.WatcherPersistentObject, base.WatcherObject,
-            base.WatcherObjectDictCompat):
-
+class Audit(
+    base.WatcherPersistentObject,
+    base.WatcherObject,
+    base.WatcherObjectDictCompat,
+):
     # Version 1.0: Initial version
     # Version 1.1: Added 'goal' and 'strategy' object field
     # Version 1.2: Added 'auto_trigger' boolean field
@@ -107,16 +109,15 @@ class Audit(base.WatcherPersistentObject, base.WatcherObject,
         'goal_id': wfields.IntegerField(),
         'strategy_id': wfields.IntegerField(nullable=True),
         'auto_trigger': wfields.BooleanField(),
-        'next_run_time': wfields.DateTimeField(nullable=True,
-                                               tzinfo_aware=False),
+        'next_run_time': wfields.DateTimeField(
+            nullable=True, tzinfo_aware=False
+        ),
         'hostname': wfields.StringField(nullable=True),
         'start_time': wfields.DateTimeField(nullable=True, tzinfo_aware=False),
         'end_time': wfields.DateTimeField(nullable=True, tzinfo_aware=False),
         'force': wfields.BooleanField(default=False, nullable=False),
-
         'goal': wfields.ObjectField('Goal', nullable=True),
         'strategy': wfields.ObjectField('Strategy', nullable=True),
-
         'status_message': wfields.StringField(nullable=True),
     }
 
@@ -241,8 +242,16 @@ class Audit(base.WatcherPersistentObject, base.WatcherObject,
         return audit
 
     @base.remotable_classmethod
-    def list(cls, context, limit=None, marker=None, filters=None,
-             sort_key=None, sort_dir=None, eager=False):
+    def list(
+        cls,
+        context,
+        limit=None,
+        marker=None,
+        filters=None,
+        sort_key=None,
+        sort_dir=None,
+        eager=False,
+    ):
         """Return a list of Audit objects.
 
         :param context: Security context. NOTE: This should only
@@ -260,15 +269,19 @@ class Audit(base.WatcherPersistentObject, base.WatcherObject,
         :returns: a list of :class:`Audit` object.
 
         """
-        db_audits = cls.dbapi.get_audit_list(context,
-                                             limit=limit,
-                                             marker=marker,
-                                             filters=filters,
-                                             sort_key=sort_key,
-                                             sort_dir=sort_dir,
-                                             eager=eager)
-        return [cls._from_db_object(cls(context), obj, eager=eager)
-                for obj in db_audits]
+        db_audits = cls.dbapi.get_audit_list(
+            context,
+            limit=limit,
+            marker=marker,
+            filters=filters,
+            sort_key=sort_key,
+            sort_dir=sort_dir,
+            eager=eager,
+        )
+        return [
+            cls._from_db_object(cls(context), obj, eager=eager)
+            for obj in db_audits
+        ]
 
     @base.remotable
     def create(self):
@@ -303,12 +316,14 @@ class Audit(base.WatcherPersistentObject, base.WatcherObject,
         updates = self.obj_get_changes()
         db_obj = self.dbapi.update_audit(self.uuid, updates)
         obj = self._from_db_object(
-            self.__class__(self._context), db_obj, eager=False)
+            self.__class__(self._context), db_obj, eager=False
+        )
         self.obj_refresh(obj)
 
         def _notify():
             notifications.audit.send_update(
-                self._context, self, old_state=self.old_state)
+                self._context, self, old_state=self.old_state
+            )
 
         _notify()
 
@@ -333,7 +348,8 @@ class Audit(base.WatcherPersistentObject, base.WatcherObject,
         self.save()
         db_obj = self.dbapi.soft_delete_audit(self.uuid)
         obj = self._from_db_object(
-            self.__class__(self._context), db_obj, eager=False)
+            self.__class__(self._context), db_obj, eager=False
+        )
         self.obj_refresh(obj)
 
         def _notify():
@@ -343,19 +359,26 @@ class Audit(base.WatcherPersistentObject, base.WatcherObject,
 
 
 class AuditStateTransitionManager:
-
     TRANSITIONS = {
         State.PENDING: [State.ONGOING, State.CANCELLED],
-        State.ONGOING: [State.FAILED, State.SUCCEEDED,
-                        State.CANCELLED, State.SUSPENDED],
+        State.ONGOING: [
+            State.FAILED,
+            State.SUCCEEDED,
+            State.CANCELLED,
+            State.SUSPENDED,
+        ],
         State.FAILED: [State.DELETED],
         State.SUCCEEDED: [State.DELETED],
         State.CANCELLED: [State.DELETED],
         State.SUSPENDED: [State.ONGOING, State.DELETED],
     }
 
-    INACTIVE_STATES = (State.CANCELLED, State.DELETED,
-                       State.FAILED, State.SUSPENDED)
+    INACTIVE_STATES = (
+        State.CANCELLED,
+        State.DELETED,
+        State.FAILED,
+        State.SUSPENDED,
+    )
 
     def check_transition(self, initial, new):
         return new in self.TRANSITIONS.get(initial, [])

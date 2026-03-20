@@ -20,7 +20,6 @@ from watcher.objects import fields as wfields
 
 
 class BaremetalResource(base.Element, metaclass=abc.ABCMeta):
-
     VERSION = '1.0'
 
     fields = {

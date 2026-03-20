@@ -29,10 +29,11 @@ class TestAuditEndpoint(base.DbTestCase):
         super().setUp()
         self.goal = obj_utils.create_test_goal(self.context)
         self.audit_template = obj_utils.create_test_audit_template(
-            self.context)
+            self.context
+        )
         self.audit = obj_utils.create_test_audit(
-            self.context,
-            audit_template_id=self.audit_template.id)
+            self.context, audit_template_id=self.audit_template.id
+        )
 
     @mock.patch.object(continuous_handler.ContinuousAuditHandler, 'start')
     @mock.patch.object(manager.CollectorManager, "get_cluster_model_collector")
@@ -42,8 +43,9 @@ class TestAuditEndpoint(base.DbTestCase):
         audit_handler = oneshot_handler.OneShotAuditHandler
         endpoint = audit_endpoint.AuditEndpoint(audit_handler)
 
-        with mock.patch.object(oneshot_handler.OneShotAuditHandler,
-                               'execute') as mock_call:
+        with mock.patch.object(
+            oneshot_handler.OneShotAuditHandler, 'execute'
+        ) as mock_call:
             mock_call.return_value = 0
             endpoint.do_trigger_audit(self.context, self.audit.uuid)
 
@@ -58,9 +60,9 @@ class TestAuditEndpoint(base.DbTestCase):
         endpoint = audit_endpoint.AuditEndpoint(audit_handler)
 
         with mock.patch.object(endpoint.executor, 'submit') as mock_call:
-            mock_execute = mock.call(endpoint.do_trigger_audit,
-                                     self.context,
-                                     self.audit.uuid)
+            mock_execute = mock.call(
+                endpoint.do_trigger_audit, self.context, self.audit.uuid
+            )
             endpoint.trigger_audit(self.context, self.audit.uuid)
 
         mock_call.assert_has_calls([mock_execute])

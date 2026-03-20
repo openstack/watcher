@@ -64,9 +64,11 @@ def _import_modules(module_names):
     for modname in module_names:
         mod = importlib.import_module("watcher.conf." + modname)
         if not hasattr(mod, LIST_OPTS_FUNC_NAME):
-            msg = (f"The module 'watcher.conf.{modname}' should have a "
-                   f"'{LIST_OPTS_FUNC_NAME}' function which returns the "
-                   "config options.")
+            msg = (
+                f"The module 'watcher.conf.{modname}' should have a "
+                f"'{LIST_OPTS_FUNC_NAME}' function which returns the "
+                "config options."
+            )
             raise Exception(msg)
         else:
             imported_modules.append(mod)

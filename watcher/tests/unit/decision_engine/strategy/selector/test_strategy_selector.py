@@ -25,13 +25,13 @@ from watcher.tests.unit import base
 
 
 class TestStrategySelector(base.TestCase):
-
     @mock.patch.object(default_loader.DefaultStrategyLoader, 'load')
     def test_select_with_strategy_name(self, m_load):
         expected_goal = 'dummy'
         expected_strategy = "dummy"
         strategy_selector = default_selector.DefaultStrategySelector(
-            expected_goal, expected_strategy, osc=None)
+            expected_goal, expected_strategy, osc=None
+        )
         strategy_selector.select()
         m_load.assert_called_once_with(expected_strategy, osc=None)
 
@@ -42,18 +42,21 @@ class TestStrategySelector(base.TestCase):
         expected_goal = 'dummy'
         expected_strategy = "dummy"
         strategy_selector = default_selector.DefaultStrategySelector(
-            expected_goal, osc=None)
+            expected_goal, osc=None
+        )
         strategy_selector.select()
         m_load.assert_called_once_with(expected_strategy, osc=None)
 
     def test_select_non_existing_strategy(self):
         strategy_selector = default_selector.DefaultStrategySelector(
-            "dummy", "NOT_FOUND")
+            "dummy", "NOT_FOUND"
+        )
         self.assertRaises(exception.LoadingError, strategy_selector.select)
 
     @mock.patch.object(default_loader.DefaultStrategyLoader, 'list_available')
     def test_select_no_available_strategy_for_goal(self, m_list_available):
         m_list_available.return_value = {}
         strategy_selector = default_selector.DefaultStrategySelector("dummy")
-        self.assertRaises(exception.NoAvailableStrategyForGoal,
-                          strategy_selector.select)
+        self.assertRaises(
+            exception.NoAvailableStrategyForGoal, strategy_selector.select
+        )

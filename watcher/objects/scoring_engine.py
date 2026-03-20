@@ -31,8 +31,11 @@ from watcher.objects import fields as wfields
 
 
 @base.WatcherObjectRegistry.register
-class ScoringEngine(base.WatcherPersistentObject, base.WatcherObject,
-                    base.WatcherObjectDictCompat):
+class ScoringEngine(
+    base.WatcherPersistentObject,
+    base.WatcherObject,
+    base.WatcherObjectDictCompat,
+):
     # Version 1.0: Initial version
     VERSION = '1.0'
 
@@ -80,10 +83,11 @@ class ScoringEngine(base.WatcherPersistentObject, base.WatcherObject,
         :returns: a :class:`ScoringEngine` object.
         """
         db_scoring_engine = cls.dbapi.get_scoring_engine_by_id(
-            context,
-            scoring_engine_id)
-        scoring_engine = ScoringEngine._from_db_object(cls(context),
-                                                       db_scoring_engine)
+            context, scoring_engine_id
+        )
+        scoring_engine = ScoringEngine._from_db_object(
+            cls(context), db_scoring_engine
+        )
         return scoring_engine
 
     @base.remotable_classmethod
@@ -100,10 +104,11 @@ class ScoringEngine(base.WatcherPersistentObject, base.WatcherObject,
         :returns: a :class:`ScoringEngine` object.
         """
         db_scoring_engine = cls.dbapi.get_scoring_engine_by_uuid(
-            context,
-            scoring_engine_uuid)
-        scoring_engine = ScoringEngine._from_db_object(cls(context),
-                                                       db_scoring_engine)
+            context, scoring_engine_uuid
+        )
+        scoring_engine = ScoringEngine._from_db_object(
+            cls(context), db_scoring_engine
+        )
         return scoring_engine
 
     @base.remotable_classmethod
@@ -120,15 +125,23 @@ class ScoringEngine(base.WatcherPersistentObject, base.WatcherObject,
         :returns: a :class:`ScoringEngine` object.
         """
         db_scoring_engine = cls.dbapi.get_scoring_engine_by_name(
-            context,
-            scoring_engine_name)
-        scoring_engine = ScoringEngine._from_db_object(cls(context),
-                                                       db_scoring_engine)
+            context, scoring_engine_name
+        )
+        scoring_engine = ScoringEngine._from_db_object(
+            cls(context), db_scoring_engine
+        )
         return scoring_engine
 
     @base.remotable_classmethod
-    def list(cls, context, filters=None, limit=None, marker=None,
-             sort_key=None, sort_dir=None):
+    def list(
+        cls,
+        context,
+        filters=None,
+        limit=None,
+        marker=None,
+        sort_key=None,
+        sort_dir=None,
+    ):
         """Return a list of :class:`ScoringEngine` objects.
 
         :param context: Security context. NOTE: This should only
@@ -150,9 +163,12 @@ class ScoringEngine(base.WatcherPersistentObject, base.WatcherObject,
             limit=limit,
             marker=marker,
             sort_key=sort_key,
-            sort_dir=sort_dir)
-        return [cls._from_db_object(cls(context), obj)
-                for obj in db_scoring_engines]
+            sort_dir=sort_dir,
+        )
+        return [
+            cls._from_db_object(cls(context), obj)
+            for obj in db_scoring_engines
+        ]
 
     @base.remotable
     def create(self):
@@ -193,5 +209,6 @@ class ScoringEngine(base.WatcherPersistentObject, base.WatcherObject,
         """Soft Delete the :class:`ScoringEngine` from the DB"""
         db_obj = self.dbapi.soft_delete_scoring_engine(self.id)
         obj = self._from_db_object(
-            self.__class__(self._context), db_obj, eager=False)
+            self.__class__(self._context), db_obj, eager=False
+        )
         self.obj_refresh(obj)

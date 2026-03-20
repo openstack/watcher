@@ -59,14 +59,15 @@ class Version(base.APIBase):
         version.status = status
         version.max_version = v.max_version_string()
         version.min_version = v.min_version_string()
-        version.links = [link.Link.make_link('self',
-                                             pecan.request.application_url,
-                                             id, '', bookmark=True)]
+        version.links = [
+            link.Link.make_link(
+                'self', pecan.request.application_url, id, '', bookmark=True
+            )
+        ]
         return version
 
 
 class Root(base.APIBase):
-
     name = wtypes.text
     """The name of the API"""
 
@@ -83,16 +84,17 @@ class Root(base.APIBase):
     def convert():
         root = Root()
         root.name = "OpenStack Watcher API"
-        root.description = ("Watcher is an OpenStack project which aims to "
-                            "improve physical resources usage through "
-                            "better VM placement.")
+        root.description = (
+            "Watcher is an OpenStack project which aims to "
+            "improve physical resources usage through "
+            "better VM placement."
+        )
         root.versions = [Version.convert('v1')]
         root.default_version = Version.convert('v1')
         return root
 
 
 class RootController(rest.RestController):
-
     _versions = ['v1']
     """All supported API versions"""
 

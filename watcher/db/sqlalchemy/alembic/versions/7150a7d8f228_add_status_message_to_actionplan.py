@@ -12,13 +12,18 @@ from alembic import op
 # revision identifiers, used by Alembic.
 revision = '7150a7d8f228'
 down_revision = '15f7375ca737'
+
+
 def upgrade():
-    op.add_column('action_plans',
-        sa.Column('status_message', sa.String(length=255), nullable=True)
-        )
-    op.add_column('actions',
-        sa.Column('status_message', sa.String(length=255), nullable=True)
-        )
-    op.add_column('audits',
-        sa.Column('status_message', sa.String(length=255), nullable=True)
-        )
+    op.add_column(
+        'action_plans',
+        sa.Column('status_message', sa.String(length=255), nullable=True),
+    )
+    op.add_column(
+        'actions',
+        sa.Column('status_message', sa.String(length=255), nullable=True),
+    )
+    op.add_column(
+        'audits',
+        sa.Column('status_message', sa.String(length=255), nullable=True),
+    )

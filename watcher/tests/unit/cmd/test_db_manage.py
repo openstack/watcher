@@ -26,15 +26,16 @@ from watcher.tests.unit import base
 
 
 class TestDBManageRunApp(base.TestCase):
-
     scenarios = (
         ("upgrade", {"command": "upgrade", "expected": "upgrade"}),
         ("downgrade", {"command": "downgrade", "expected": "downgrade"}),
         ("revision", {"command": "revision", "expected": "revision"}),
         ("stamp", {"command": "stamp", "expected": "stamp"}),
         ("version", {"command": "version", "expected": "version"}),
-        ("create_schema", {"command": "create_schema",
-                           "expected": "create_schema"}),
+        (
+            "create_schema",
+            {"command": "create_schema", "expected": "create_schema"},
+        ),
         ("purge", {"command": "purge", "expected": "purge"}),
         ("no_param", {"command": None, "expected": "upgrade"}),
     )
@@ -54,11 +55,11 @@ class TestDBManageRunApp(base.TestCase):
         dbmanage.main()
         self.assertEqual(1, m_func.call_count)
         m_prepare_service.assert_called_once_with(
-            ["watcher-db-manage", self.expected], cfg.CONF)
+            ["watcher-db-manage", self.expected], cfg.CONF
+        )
 
 
 class TestDBManageRunCommand(base.TestCase):
-
     @mock.patch.object(migration, "upgrade")
     def test_run_db_upgrade(self, m_upgrade):
         cfg.CONF.register_opt(cfg.StrOpt("revision"), group="command")
@@ -79,9 +80,7 @@ class TestDBManageRunCommand(base.TestCase):
     def test_run_db_revision(self, m_revision):
         cfg.CONF.register_opt(cfg.StrOpt("message"), group="command")
         cfg.CONF.register_opt(cfg.StrOpt("autogenerate"), group="command")
-        cfg.CONF.set_default(
-            "message", "dummy_message", group="command"
-        )
+        cfg.CONF.set_default("message", "dummy_message", group="command")
         cfg.CONF.set_default(
             "autogenerate", "dummy_autogenerate", group="command"
         )
@@ -122,7 +121,8 @@ class TestDBManageRunCommand(base.TestCase):
         dbmanage.DBCommand.purge()
 
         m_purge_cls.assert_called_once_with(
-            None, None, 'Some UUID', True, False)
+            None, None, 'Some UUID', True, False
+        )
         m_purge.execute.assert_called_once_with()
 
     @mock.patch.object(sys, "exit")
@@ -169,7 +169,8 @@ class TestDBManageRunCommand(base.TestCase):
         dbmanage.DBCommand.purge()
 
         m_purge_cls.assert_called_once_with(
-            None, None, 'Some UUID', True, True)
+            None, None, 'Some UUID', True, True
+        )
         self.assertEqual(1, m_purge.execute.call_count)
         self.assertEqual(0, m_purge.do_delete.call_count)
         self.assertEqual(0, m_exit.call_count)

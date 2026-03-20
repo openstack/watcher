@@ -31,9 +31,11 @@ class Stop(base.BaseAction):
 
     The action schema is::
 
-        schema = Schema({
-         'resource_id': str,  # should be a UUID
-        })
+        schema = Schema(
+            {
+                'resource_id': str  # should be a UUID
+            }
+        )
 
     The `resource_id` is the UUID of the server instance to stop.
     The action will check if the instance exists, verify its current state,
@@ -48,10 +50,12 @@ class Stop(base.BaseAction):
                 'resource_id': {
                     'type': 'string',
                     "minlength": 1,
-                    "pattern": ("^([a-fA-F0-9]){8}-([a-fA-F0-9]){4}-"
-                                "([a-fA-F0-9]){4}-([a-fA-F0-9]){4}-"
-                                "([a-fA-F0-9]){12}$")
-                },
+                    "pattern": (
+                        "^([a-fA-F0-9]){8}-([a-fA-F0-9]){4}-"
+                        "([a-fA-F0-9]){4}-([a-fA-F0-9]){4}-"
+                        "([a-fA-F0-9]){12}$"
+                    ),
+                }
             },
             'required': ['resource_id'],
             'additionalProperties': False,
@@ -68,19 +72,24 @@ class Stop(base.BaseAction):
         try:
             result = nova.stop_instance(instance_id=self.instance_uuid)
         except exception.NovaClientError as e:
-            LOG.debug("Nova client exception occurred while stopping "
-                      "instance %(instance)s. Exception: %(exception)s",
-                      {'instance': self.instance_uuid, 'exception': e})
+            LOG.debug(
+                "Nova client exception occurred while stopping "
+                "instance %(instance)s. Exception: %(exception)s",
+                {'instance': self.instance_uuid, 'exception': e},
+            )
             return False
         except Exception as e:
-            LOG.debug("An unexpected error occurred while stopping "
-                      "instance %s: %s", self.instance_uuid, str(e))
+            LOG.debug(
+                "An unexpected error occurred while stopping instance %s: %s",
+                self.instance_uuid,
+                str(e),
+            )
             return False
 
         if result:
             LOG.debug(
                 "Successfully stopped instance %(uuid)s",
-                {'uuid': self.instance_uuid}
+                {'uuid': self.instance_uuid},
             )
             return True
         else:
@@ -91,13 +100,13 @@ class Stop(base.BaseAction):
                 LOG.info(
                     "Instance %(uuid)s not found, "
                     "considering stop operation successful",
-                    {'uuid': self.instance_uuid}
+                    {'uuid': self.instance_uuid},
                 )
                 return True
 
             LOG.error(
                 "Failed to stop instance %(uuid)s",
-                {'uuid': self.instance_uuid}
+                {'uuid': self.instance_uuid},
             )
             return False
 
@@ -115,20 +124,20 @@ class Stop(base.BaseAction):
                 LOG.debug(
                     "Successfully reverted stop action and started instance "
                     "%(uuid)s",
-                    {'uuid': self.instance_uuid}
+                    {'uuid': self.instance_uuid},
                 )
                 return result
             else:
                 LOG.info(
                     "Failed to start instance %(uuid)s during revert. "
                     "This may be normal for instances with special configs.",
-                    {'uuid': self.instance_uuid}
+                    {'uuid': self.instance_uuid},
                 )
         except Exception as exc:
             LOG.info(
                 "Could not start instance %(uuid)s during revert: %(error)s. "
                 "This may be normal for instances with special configs.",
-                {'uuid': self.instance_uuid, 'error': str(exc)}
+                {'uuid': self.instance_uuid, 'error': str(exc)},
             )
         return False
 
@@ -138,8 +147,11 @@ class Stop(base.BaseAction):
 
     def abort(self):
         """Abort the stop action - not applicable for stop operations"""
-        LOG.info("Abort operation is not applicable for stop action on "
-                 " instance %s", self.instance_uuid)
+        LOG.info(
+            "Abort operation is not applicable for stop action on "
+            " instance %s",
+            self.instance_uuid,
+        )
         return False
 
     def pre_condition(self):
@@ -156,14 +168,19 @@ class Stop(base.BaseAction):
             instance = nova.find_instance(self.instance_uuid)
         except exception.ComputeResourceNotFound:
             raise exception.ActionSkipped(
-                _("Instance %s not found") % self.instance_uuid)
+                _("Instance %s not found") % self.instance_uuid
+            )
 
         current_state = instance.status
-        LOG.debug("Instance %s pre-condition check: state=%s",
-                  self.instance_uuid, current_state)
+        LOG.debug(
+            "Instance %s pre-condition check: state=%s",
+            self.instance_uuid,
+            current_state,
+        )
         if current_state == 'SHUTOFF':
             raise exception.ActionSkipped(
-                _("Instance %s is already stopped") % self.instance_uuid)
+                _("Instance %s is already stopped") % self.instance_uuid
+            )
 
     def post_condition(self):
         pass

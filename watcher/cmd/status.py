@@ -26,7 +26,6 @@ CONF = conf.CONF
 
 
 class Checks(upgradecheck.UpgradeCommands):
-
     """Contains upgrade checks
 
     Various upgrade checks should be added as separate methods in this class
@@ -38,23 +37,22 @@ class Checks(upgradecheck.UpgradeCommands):
         try:
             clients.check_min_nova_api_version(CONF.nova.api_version)
         except ValueError as e:
-            return upgradecheck.Result(
-                upgradecheck.Code.FAILURE, str(e))
+            return upgradecheck.Result(upgradecheck.Code.FAILURE, str(e))
         return upgradecheck.Result(upgradecheck.Code.SUCCESS)
 
     _upgrade_checks = (
         # Added in Train.
         (_('Minimum Nova API Version'), _minimum_nova_api_version),
         # Added in Wallaby.
-        (_("Policy File JSON to YAML Migration"),
-         (common_checks.check_policy_json, {'conf': CONF})),
-
+        (
+            _("Policy File JSON to YAML Migration"),
+            (common_checks.check_policy_json, {'conf': CONF}),
+        ),
     )
 
 
 def main():
-    return upgradecheck.main(
-        CONF, project='watcher', upgrade_command=Checks())
+    return upgradecheck.main(CONF, project='watcher', upgrade_command=Checks())
 
 
 if __name__ == '__main__':

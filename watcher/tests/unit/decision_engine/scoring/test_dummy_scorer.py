@@ -22,7 +22,6 @@ from watcher.tests.unit import base
 
 
 class TestDummyScorer(base.TestCase):
-
     def test_metadata(self):
         scorer = dummy_scorer.DummyScorer(config=None)
         self.assertEqual('dummy_scorer', scorer.get_name())
@@ -41,8 +40,9 @@ class TestDummyScorer(base.TestCase):
         self._assert_result(scorer, 0, '[0, 0, 0, 0, 600, 0, 0, 0, 0]')
         self._assert_result(scorer, 1, '[85, 0, 0, 0, 0, 0, 0, 0, 0]')
         self._assert_result(scorer, 2, '[0, 0, 0, 1100, 1100, 0, 0, 0, 0]')
-        self._assert_result(scorer, 3,
-                            '[0, 0, 0, 0, 0, 70000000, 70000000, 0, 0]')
+        self._assert_result(
+            scorer, 3, '[0, 0, 0, 0, 0, 70000000, 70000000, 0, 0]'
+        )
 
     def _assert_result(self, scorer, expected, features):
         result_str = scorer.calculate_score(features)

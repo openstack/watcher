@@ -39,12 +39,14 @@ class Migrate(base.BaseAction):
 
     The action schema is::
 
-        schema = Schema({
-         'resource_id': str,  # should be a UUID
-         'migration_type': str,  # choices -> "live", "cold"
-         'destination_node': str,
-         'source_node': str,
-        })
+        schema = Schema(
+            {
+                'resource_id': str,  # should be a UUID
+                'migration_type': str,  # choices -> "live", "cold"
+                'destination_node': str,
+                'source_node': str,
+            }
+        )
 
     The `resource_id` is the UUID of the server to migrate.
     The `source_node` and `destination_node` parameters are respectively the
@@ -72,28 +74,21 @@ class Migrate(base.BaseAction):
                 'destination_node': {
                     "anyof": [
                         {'type': 'string', "minLength": 1},
-                        {'type': 'None'}
-                        ]
+                        {'type': 'None'},
+                    ]
                 },
-                'migration_type': {
-                    'type': 'string',
-                    "enum": ["live", "cold"]
-                },
+                'migration_type': {'type': 'string', "enum": ["live", "cold"]},
                 'resource_id': {
                     'type': 'string',
                     "minlength": 1,
-                    "pattern": ("^([a-fA-F0-9]){8}-([a-fA-F0-9]){4}-"
-                                "([a-fA-F0-9]){4}-([a-fA-F0-9]){4}-"
-                                "([a-fA-F0-9]){12}$")
+                    "pattern": (
+                        "^([a-fA-F0-9]){8}-([a-fA-F0-9]){4}-"
+                        "([a-fA-F0-9]){4}-([a-fA-F0-9]){4}-"
+                        "([a-fA-F0-9]){12}$"
+                    ),
                 },
-                'resource_name': {
-                    'type': 'string',
-                    "minlength": 1
-                },
-                'source_node': {
-                    'type': 'string',
-                    "minLength": 1
-                    }
+                'resource_name': {'type': 'string', "minlength": 1},
+                'source_node': {'type': 'string', "minLength": 1},
             },
             'required': ['migration_type', 'resource_id', 'source_node'],
             'additionalProperties': False,
@@ -118,19 +113,25 @@ class Migrate(base.BaseAction):
     def _live_migrate_instance(self, nova, destination):
         result = None
         try:
-            result = nova.live_migrate_instance(instance_id=self.instance_uuid,
-                                                dest_hostname=destination)
+            result = nova.live_migrate_instance(
+                instance_id=self.instance_uuid, dest_hostname=destination
+            )
         except exception.NovaClientError as e:
-            LOG.debug("Nova client exception occurred while live "
-                      "migrating instance "
-                      "%(instance)s.Exception: %(exception)s",
-                      {'instance': self.instance_uuid, 'exception': e})
+            LOG.debug(
+                "Nova client exception occurred while live "
+                "migrating instance "
+                "%(instance)s.Exception: %(exception)s",
+                {'instance': self.instance_uuid, 'exception': e},
+            )
 
         except Exception as e:
             LOG.exception(e)
-            LOG.critical("Unexpected error occurred. Migration failed for "
-                         "instance %s. Leaving instance on previous "
-                         "host.", self.instance_uuid)
+            LOG.critical(
+                "Unexpected error occurred. Migration failed for "
+                "instance %s. Leaving instance on previous "
+                "host.",
+                self.instance_uuid,
+            )
 
         return result
 
@@ -138,13 +139,16 @@ class Migrate(base.BaseAction):
         result = None
         try:
             result = nova.watcher_non_live_migrate_instance(
-                instance_id=self.instance_uuid,
-                dest_hostname=destination)
+                instance_id=self.instance_uuid, dest_hostname=destination
+            )
         except Exception as exc:
             LOG.exception(exc)
-            LOG.critical("Unexpected error occurred. Migration failed for "
-                         "instance %s. Leaving instance on previous "
-                         "host.", self.instance_uuid)
+            LOG.critical(
+                "Unexpected error occurred. Migration failed for "
+                "instance %s. Leaving instance on previous "
+                "host.",
+                self.instance_uuid,
+            )
         return result
 
     def _abort_cold_migrate(self, nova):
@@ -156,17 +160,24 @@ class Migrate(base.BaseAction):
         LOG.warning("Abort operation for cold migration is not implemented")
 
     def _abort_live_migrate(self, nova, source, destination):
-        return nova.abort_live_migrate(instance_id=self.instance_uuid,
-                                       source=source, destination=destination)
+        return nova.abort_live_migrate(
+            instance_id=self.instance_uuid,
+            source=source,
+            destination=destination,
+        )
 
     def migrate(self, destination=None):
         nova = nova_helper.NovaHelper(osc=self.osc)
         if destination is None:
-            LOG.debug("Migrating instance %s, destination node will be "
-                      "determined by nova-scheduler", self.instance_uuid)
+            LOG.debug(
+                "Migrating instance %s, destination node will be "
+                "determined by nova-scheduler",
+                self.instance_uuid,
+            )
         else:
-            LOG.debug("Migrate instance %s to %s", self.instance_uuid,
-                      destination)
+            LOG.debug(
+                "Migrate instance %s to %s", self.instance_uuid, destination
+            )
         try:
             nova.find_instance(self.instance_uuid)
         except exception.ComputeResourceNotFound:
@@ -178,9 +189,14 @@ class Migrate(base.BaseAction):
             return self._cold_migrate_instance(nova, destination)
         else:
             raise exception.Invalid(
-                message=(_("Migration of type '%(migration_type)s' is not "
-                           "supported.") %
-                         {'migration_type': self.migration_type}))
+                message=(
+                    _(
+                        "Migration of type '%(migration_type)s' is not "
+                        "supported."
+                    )
+                    % {'migration_type': self.migration_type}
+                )
+            )
 
     def execute(self):
         return self.migrate(destination=self.destination_node)
@@ -199,8 +215,10 @@ class Migrate(base.BaseAction):
             return self._abort_cold_migrate(nova)
         elif self.migration_type == self.LIVE_MIGRATION:
             return self._abort_live_migrate(
-                nova, source=self.source_node,
-                destination=self.destination_node)
+                nova,
+                source=self.source_node,
+                destination=self.destination_node,
+            )
 
     def pre_condition(self):
         """Check migration preconditions
@@ -219,44 +237,57 @@ class Migrate(base.BaseAction):
             instance = nova.find_instance(self.instance_uuid)
         except exception.ComputeResourceNotFound:
             raise exception.ActionSkipped(
-                _("Instance %s not found") % self.instance_uuid)
+                _("Instance %s not found") % self.instance_uuid
+            )
 
         # Check that the instance is running on source_node
         instance_host = instance.host
         if instance_host != self.source_node:
             raise exception.ActionSkipped(
-                _("Instance %(instance)s is not running on source node "
-                  "%(source)s (currently on %(current)s)") %
-                {'instance': self.instance_uuid,
-                 'source': self.source_node,
-                 'current': instance_host})
+                _(
+                    "Instance %(instance)s is not running on source node "
+                    "%(source)s (currently on %(current)s)"
+                )
+                % {
+                    'instance': self.instance_uuid,
+                    'source': self.source_node,
+                    'current': instance_host,
+                }
+            )
 
         # Check destination node if specified
         if self.destination_node:
             try:
                 # Find the compute node and check if service is enabled
                 dest_node = nova.get_compute_node_by_hostname(
-                    self.destination_node)
+                    self.destination_node
+                )
 
                 # Check if compute service is enabled
                 if dest_node.status != 'enabled':
                     raise exception.ActionExecutionFailure(
-                        _("Destination node %s is not in enabled state") %
-                        self.destination_node)
+                        _("Destination node %s is not in enabled state")
+                        % self.destination_node
+                    )
             except exception.ComputeNodeNotFound:
                 raise exception.ActionExecutionFailure(
-                    _("Destination node %s not found") %
-                    self.destination_node)
+                    _("Destination node %s not found") % self.destination_node
+                )
 
         # Check instance status based on migration type
         instance_status = instance.status
         if self.migration_type == self.LIVE_MIGRATION:
             if instance_status != 'ACTIVE':
                 raise exception.ActionExecutionFailure(
-                    _("Live migration requires instance %(instance)s to be "
-                      "in ACTIVE status (current status: %(status)s)") %
-                    {'instance': self.instance_uuid,
-                     'status': instance_status})
+                    _(
+                        "Live migration requires instance %(instance)s to be "
+                        "in ACTIVE status (current status: %(status)s)"
+                    )
+                    % {
+                        'instance': self.instance_uuid,
+                        'status': instance_status,
+                    }
+                )
 
     def post_condition(self):
         # TODO(jed): check extra parameters (network response, etc.)

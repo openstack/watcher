@@ -27,19 +27,22 @@ from watcher.tests.unit.objects import utils as obj_utils
 
 
 class TestStrategyContext(base.DbTestCase):
-
     def setUp(self):
         super().setUp()
         obj_utils.create_test_goal(self.context, id=1, name="DUMMY")
         audit_template = obj_utils.create_test_audit_template(
-            self.context, uuid=utils.generate_uuid())
+            self.context, uuid=utils.generate_uuid()
+        )
         self.audit = obj_utils.create_test_audit(
-            self.context, audit_template_id=audit_template.id)
+            self.context, audit_template_id=audit_template.id
+        )
         self.fake_cluster = faker_cluster_state.FakerModelCollector()
 
         p_model = mock.patch.object(
-            strategies.DummyStrategy, "compute_model",
-            new_callable=mock.PropertyMock)
+            strategies.DummyStrategy,
+            "compute_model",
+            new_callable=mock.PropertyMock,
+        )
         self.m_model = p_model.start()
         self.addCleanup(p_model.stop)
 
@@ -49,25 +52,32 @@ class TestStrategyContext(base.DbTestCase):
 
     @mock.patch.object(d_selector.DefaultStrategySelector, 'select')
     def test_execute_strategy(self, mock_call):
-        mock_call.return_value = strategies.DummyStrategy(
-            config=mock.Mock())
+        mock_call.return_value = strategies.DummyStrategy(config=mock.Mock())
         solution = self.strategy_context.execute_strategy(
-            self.audit, self.context)
+            self.audit, self.context
+        )
         self.assertIsInstance(solution, default.DefaultSolution)
 
-    @mock.patch.object(manager.CollectorManager, "get_cluster_model_collector",
-                       mock.Mock())
+    @mock.patch.object(
+        manager.CollectorManager, "get_cluster_model_collector", mock.Mock()
+    )
     def test_execute_force_dummy(self):
         goal = obj_utils.create_test_goal(
-            self.context, id=50, uuid=utils.generate_uuid(), name="my_goal")
+            self.context, id=50, uuid=utils.generate_uuid(), name="my_goal"
+        )
 
         strategy = obj_utils.create_test_strategy(
-            self.context, id=42, uuid=utils.generate_uuid(), name="dummy",
-            goal_id=goal.id)
+            self.context,
+            id=42,
+            uuid=utils.generate_uuid(),
+            name="dummy",
+            goal_id=goal.id,
+        )
 
         audit = obj_utils.create_test_audit(
             self.context,
-            id=2, name=f'My Audit {2}',
+            id=2,
+            name=f'My Audit {2}',
             goal_id=goal.id,
             strategy_id=strategy.id,
             uuid=utils.generate_uuid(),
@@ -78,24 +88,28 @@ class TestStrategyContext(base.DbTestCase):
         self.assertEqual(len(solution.actions), 3)
 
     @mock.patch.object(strategies.BasicConsolidation, "execute")
-    @mock.patch.object(manager.CollectorManager, "get_cluster_model_collector",
-                       mock.Mock())
+    @mock.patch.object(
+        manager.CollectorManager, "get_cluster_model_collector", mock.Mock()
+    )
     def test_execute_force_basic(self, mock_call):
         expected_strategy = "basic"
         mock_call.return_value = expected_strategy
 
-        obj_utils.create_test_goal(self.context, id=50,
-                                   uuid=utils.generate_uuid(),
-                                   name="my_goal")
+        obj_utils.create_test_goal(
+            self.context, id=50, uuid=utils.generate_uuid(), name="my_goal"
+        )
 
-        strategy = obj_utils.create_test_strategy(self.context,
-                                                  id=42,
-                                                  uuid=utils.generate_uuid(),
-                                                  name=expected_strategy)
+        strategy = obj_utils.create_test_strategy(
+            self.context,
+            id=42,
+            uuid=utils.generate_uuid(),
+            name=expected_strategy,
+        )
 
         audit = obj_utils.create_test_audit(
             self.context,
-            id=2, name=f'My Audit {2}',
+            id=2,
+            name=f'My Audit {2}',
             strategy_id=strategy.id,
             uuid=utils.generate_uuid(),
         )

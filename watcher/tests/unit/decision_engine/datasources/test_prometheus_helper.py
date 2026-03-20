@@ -29,33 +29,37 @@ class TestPrometheusHelper(base.BaseTestCase):
         cfg.CONF.prometheus_client.port = 9090
 
         with mock.patch.object(
-            prometheus_helper.PrometheusHelper,
-            '_setup_prometheus_client'
+            prometheus_helper.PrometheusHelper, '_setup_prometheus_client'
         ):
             self.helper = prometheus_helper.PrometheusHelper()
 
         # Set up patches for all methods used inside the
         # _setup_prometheus_client
         self.mock_init = mock.patch.object(
-            prometheus_client.PrometheusAPIClient, '__init__',
-            return_value=None).start()
+            prometheus_client.PrometheusAPIClient,
+            '__init__',
+            return_value=None,
+        ).start()
         self.addCleanup(self.mock_init.stop)
 
         self.mock_set_ca_cert = mock.patch.object(
-            prometheus_client.PrometheusAPIClient, 'set_ca_cert').start()
+            prometheus_client.PrometheusAPIClient, 'set_ca_cert'
+        ).start()
         self.addCleanup(self.mock_set_ca_cert.stop)
 
         self.mock_set_client_cert = mock.patch.object(
-            prometheus_client.PrometheusAPIClient, 'set_client_cert').start()
+            prometheus_client.PrometheusAPIClient, 'set_client_cert'
+        ).start()
         self.addCleanup(self.mock_set_client_cert.stop)
 
         self.mock_set_basic_auth = mock.patch.object(
-            prometheus_client.PrometheusAPIClient, 'set_basic_auth').start()
+            prometheus_client.PrometheusAPIClient, 'set_basic_auth'
+        ).start()
         self.addCleanup(self.mock_set_basic_auth.stop)
 
         self.mock_build_fqdn_labels = mock.patch.object(
-            prometheus_helper.PrometheusHelper,
-            '_build_prometheus_fqdn_labels').start()
+            prometheus_helper.PrometheusHelper, '_build_prometheus_fqdn_labels'
+        ).start()
         self.addCleanup(self.mock_build_fqdn_labels.stop)
 
     def test_unset_missing_prometheus_host(self):
@@ -63,24 +67,18 @@ class TestPrometheusHelper(base.BaseTestCase):
         self.assertRaisesRegex(
             exception.MissingParameter,
             'prometheus host must be set in watcher.conf',
-            prometheus_helper.PrometheusHelper
+            prometheus_helper.PrometheusHelper,
         )
 
     def test_get_fqdn_label(self):
         fqdn = 'fqdn_label'
         cfg.CONF.prometheus_client.fqdn_label = fqdn
-        self.assertEqual(
-            fqdn,
-            self.helper._get_fqdn_label()
-        )
+        self.assertEqual(fqdn, self.helper._get_fqdn_label())
 
     def test_get_instance_uuid_label(self):
         instance_uuid = 'instance_uuid_label'
         cfg.CONF.prometheus_client.instance_uuid_label = instance_uuid
-        self.assertEqual(
-            instance_uuid,
-            self.helper._get_instance_uuid_label()
-        )
+        self.assertEqual(instance_uuid, self.helper._get_instance_uuid_label())
 
     def test_setup_prometheus_client_no_auth_no_tls(self):
         cfg.CONF.prometheus_client.host = "somehost"
@@ -112,4 +110,5 @@ class TestPrometheusHelper(base.BaseTestCase):
         prometheus_helper.PrometheusHelper()
 
         self.mock_set_client_cert.assert_called_once_with(
-            "/cert/path", "/key/path")
+            "/cert/path", "/key/path"
+        )

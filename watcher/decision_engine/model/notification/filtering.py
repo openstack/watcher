@@ -78,9 +78,11 @@ class NotificationFilter(om.NotificationFilter):
             return regex(data)
         elif regex is not None and data is None:
             return True
-        elif (regex is not None and
-              isinstance(data, str) and
-              not regex.match(data)):
+        elif (
+            regex is not None
+            and isinstance(data, str)
+            and not regex.match(data)
+        ):
             return True
 
         return False

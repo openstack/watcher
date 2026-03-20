@@ -23,7 +23,6 @@ from watcher.tests.unit.decision_engine.strategy.strategies.test_base import (
 
 
 class TestActuator(TestBaseStrategy):
-
     def setUp(self):
         super().setUp()
         self.strategy = strategies.Actuator(config=mock.Mock())
@@ -31,7 +30,8 @@ class TestActuator(TestBaseStrategy):
     def test_actuator_strategy(self):
         fake_action = {"action_type": "TEST", "input_parameters": {"a": "b"}}
         self.strategy.input_parameters = utils.Struct(
-            {"actions": [fake_action]})
+            {"actions": [fake_action]}
+        )
         solution = self.strategy.execute()
         self.assertEqual(1, len(solution.actions))
         self.assertEqual([fake_action], solution.actions)

@@ -71,8 +71,11 @@ def create_schema(config=None, engine=None):
     #                existing as is. So we should avoid of this situation.
     if version(engine=engine) is not None:
         raise db_exc.DBMigrationError(
-            _("Watcher database schema is already under version control; "
-              "use upgrade() instead"))
+            _(
+                "Watcher database schema is already under version control; "
+                "use upgrade() instead"
+            )
+        )
 
     models.Base.metadata.create_all(engine)
     stamp('head', config=config)
@@ -112,5 +115,6 @@ def revision(message=None, autogenerate=False, config=None):
     :type autogenerate: bool
     """
     config = config or _alembic_config()
-    return alembic.command.revision(config, message=message,
-                                    autogenerate=autogenerate)
+    return alembic.command.revision(
+        config, message=message, autogenerate=autogenerate
+    )

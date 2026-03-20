@@ -19,13 +19,9 @@ ALWAYS_DENY = '!'
 
 rules = [
     policy.RuleDefault(
-        name='admin_api',
-        check_str=ROLE_ADMIN_OR_ADMINISTRATOR
+        name='admin_api', check_str=ROLE_ADMIN_OR_ADMINISTRATOR
     ),
-    policy.RuleDefault(
-        name='show_password',
-        check_str=ALWAYS_DENY
-    )
+    policy.RuleDefault(name='show_password', check_str=ALWAYS_DENY),
 ]
 
 

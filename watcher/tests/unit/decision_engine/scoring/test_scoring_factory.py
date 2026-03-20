@@ -20,7 +20,6 @@ from watcher.tests.unit import base
 
 
 class TestScoringFactory(base.TestCase):
-
     def test_get_scoring_engine(self):
         scorer = scoring_factory.get_scoring_engine('dummy_scorer')
         self.assertEqual('dummy_scorer', scorer.get_name())
@@ -35,15 +34,18 @@ class TestScoringFactory(base.TestCase):
         self.assertEqual('dummy_avg_scorer', scorer.get_name())
 
         self.assertRaises(
-            KeyError,
-            scoring_factory.get_scoring_engine,
-            'non_existing_scorer')
+            KeyError, scoring_factory.get_scoring_engine, 'non_existing_scorer'
+        )
 
     def test_get_scoring_engine_list(self):
         scoring_engines = scoring_factory.get_scoring_engine_list()
 
-        engine_names = {'dummy_scorer', 'dummy_min_scorer',
-                        'dummy_max_scorer', 'dummy_avg_scorer'}
+        engine_names = {
+            'dummy_scorer',
+            'dummy_min_scorer',
+            'dummy_max_scorer',
+            'dummy_avg_scorer',
+        }
 
         for scorer in scoring_engines:
             self.assertIn(scorer.get_name(), engine_names)

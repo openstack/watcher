@@ -34,14 +34,14 @@ class StorageScope(base.BaseScope):
                 include_all_nodes = True
             else:
                 raise exception.WildcardCharacterIsUsed(
-                    resource="volume_types")
+                    resource="volume_types"
+                )
         for service in service_list:
             if include_all_nodes:
                 allowed_nodes.append(service.host)
                 continue
             backend = service.host.split('@')[1]
-            v_types = self.wrapper.get_volume_type_by_backendname(
-                backend)
+            v_types = self.wrapper.get_volume_type_by_backendname(backend)
             for volume_type in v_types:
                 if volume_type in vt_names:
                     # Note(adisky): It can generate duplicate values
@@ -50,15 +50,15 @@ class StorageScope(base.BaseScope):
 
     def _collect_zones(self, availability_zones, allowed_nodes):
         service_list = self.wrapper.get_storage_node_list()
-        zone_names = [zone['name'] for zone
-                      in availability_zones]
+        zone_names = [zone['name'] for zone in availability_zones]
         include_all_nodes = False
         if '*' in zone_names:
             if len(zone_names) == 1:
                 include_all_nodes = True
             else:
                 raise exception.WildcardCharacterIsUsed(
-                    resource="availability zones")
+                    resource="availability zones"
+                )
         for service in service_list:
             if service.zone in zone_names or include_all_nodes:
                 allowed_nodes.append(service.host)
@@ -71,18 +71,21 @@ class StorageScope(base.BaseScope):
         for resource in resources:
             if 'storage_pools' in resource:
                 pools_to_exclude.extend(
-                    [storage_pool['name'] for storage_pool
-                     in resource['storage_pools']])
+                    [
+                        storage_pool['name']
+                        for storage_pool in resource['storage_pools']
+                    ]
+                )
 
             elif 'volumes' in resource:
                 volumes_to_exclude.extend(
-                    [volume['uuid'] for volume in
-                     resource['volumes']])
+                    [volume['uuid'] for volume in resource['volumes']]
+                )
 
             elif 'projects' in resource:
                 projects_to_exclude.extend(
-                    [project['uuid'] for project in
-                     resource['projects']])
+                    [project['uuid'] for project in resource['projects']]
+                )
 
     def exclude_pools(self, pools_to_exclude, cluster_model):
         for pool_name in pools_to_exclude:
@@ -140,16 +143,18 @@ class StorageScope(base.BaseScope):
 
         for rule in storage_scope:
             if 'volume_types' in rule:
-                self._collect_vtype(rule['volume_types'],
-                                    allowed_nodes, cluster_model)
+                self._collect_vtype(
+                    rule['volume_types'], allowed_nodes, cluster_model
+                )
             elif 'availability_zones' in rule:
-                self._collect_zones(rule['availability_zones'],
-                                    allowed_nodes)
+                self._collect_zones(rule['availability_zones'], allowed_nodes)
             elif 'exclude' in rule:
                 self.exclude_resources(
-                    rule['exclude'], pools=pools_to_exclude,
+                    rule['exclude'],
+                    pools=pools_to_exclude,
                     volumes=volumes_to_exclude,
-                    projects=projects_to_exclude)
+                    projects=projects_to_exclude,
+                )
 
         if allowed_nodes:
             nodes_to_remove = set(model_hosts) - set(allowed_nodes)

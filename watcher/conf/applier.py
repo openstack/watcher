@@ -18,40 +18,49 @@
 from oslo_config import cfg
 
 
-watcher_applier = cfg.OptGroup(name='watcher_applier',
-                               title='Options for the Applier messaging '
-                               'core')
+watcher_applier = cfg.OptGroup(
+    name='watcher_applier', title='Options for the Applier messaging core'
+)
 
 APPLIER_MANAGER_OPTS = [
-    cfg.IntOpt('workers',
-               default=1,
-               min=1,
-               required=True,
-               help='Number of workers for applier, default value is 1.'),
-    cfg.StrOpt('conductor_topic',
-               default='watcher.applier.control',
-               help='The topic name used for '
-                    'control events, this topic '
-                    'used for rpc call '),
-    cfg.StrOpt('publisher_id',
-               default='watcher.applier.api',
-               help='The identifier used by watcher '
-                    'module on the message broker'),
-    cfg.StrOpt('workflow_engine',
-               default='taskflow',
-               required=True,
-               help='Select the engine to use to execute the workflow'),
+    cfg.IntOpt(
+        'workers',
+        default=1,
+        min=1,
+        required=True,
+        help='Number of workers for applier, default value is 1.',
+    ),
+    cfg.StrOpt(
+        'conductor_topic',
+        default='watcher.applier.control',
+        help='The topic name used for '
+        'control events, this topic '
+        'used for rpc call ',
+    ),
+    cfg.StrOpt(
+        'publisher_id',
+        default='watcher.applier.api',
+        help='The identifier used by watcher module on the message broker',
+    ),
+    cfg.StrOpt(
+        'workflow_engine',
+        default='taskflow',
+        required=True,
+        help='Select the engine to use to execute the workflow',
+    ),
 ]
 
 APPLIER_OPTS = [
-    cfg.BoolOpt('rollback_when_actionplan_failed',
-                default=False,
-                help='If set True, the failed actionplan will rollback '
-                     'when executing. Default value is False.',
-                deprecated_for_removal=True,
-                deprecated_since='2026.1',
-                deprecated_reason='This feature does not work and is planned '
-                                 'to be removed in future releases.'),
+    cfg.BoolOpt(
+        'rollback_when_actionplan_failed',
+        default=False,
+        help='If set True, the failed actionplan will rollback '
+        'when executing. Default value is False.',
+        deprecated_for_removal=True,
+        deprecated_since='2026.1',
+        deprecated_reason='This feature does not work and is planned '
+        'to be removed in future releases.',
+    )
 ]
 
 
@@ -62,5 +71,7 @@ def register_opts(conf):
 
 
 def list_opts():
-    return [(watcher_applier, APPLIER_MANAGER_OPTS),
-            (watcher_applier, APPLIER_OPTS)]
+    return [
+        (watcher_applier, APPLIER_MANAGER_OPTS),
+        (watcher_applier, APPLIER_OPTS),
+    ]

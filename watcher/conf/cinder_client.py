@@ -18,21 +18,35 @@
 from oslo_config import cfg
 
 
-cinder_client = cfg.OptGroup(name='cinder_client',
-                             title='Configuration Options for Cinder')
+cinder_client = cfg.OptGroup(
+    name='cinder_client', title='Configuration Options for Cinder'
+)
 
 CINDER_CLIENT_OPTS = [
-    cfg.StrOpt('api_version',
-               default='3',
-               help='Version of Cinder API to use in cinderclient.'),
-    cfg.StrOpt('endpoint_type',
-               default='publicURL',
-               choices=['public', 'internal', 'admin',
-                        'publicURL', 'internalURL', 'adminURL'],
-               help='Type of endpoint to use in cinderclient.'),
-    cfg.StrOpt('region_name',
-               help='Region in Identity service catalog to use for '
-                    'communication with the OpenStack service.')]
+    cfg.StrOpt(
+        'api_version',
+        default='3',
+        help='Version of Cinder API to use in cinderclient.',
+    ),
+    cfg.StrOpt(
+        'endpoint_type',
+        default='publicURL',
+        choices=[
+            'public',
+            'internal',
+            'admin',
+            'publicURL',
+            'internalURL',
+            'adminURL',
+        ],
+        help='Type of endpoint to use in cinderclient.',
+    ),
+    cfg.StrOpt(
+        'region_name',
+        help='Region in Identity service catalog to use for '
+        'communication with the OpenStack service.',
+    ),
+]
 
 
 def register_opts(conf):

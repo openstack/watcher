@@ -47,35 +47,46 @@ class ComputeScope(base.BaseScope):
                 return True
             else:
                 raise exception.WildcardCharacterIsUsed(
-                    resource="host aggregates")
+                    resource="host aggregates"
+                )
         return False
 
     def _collect_aggregates(self, host_aggregates, compute_nodes):
         aggregate_list = self.wrapper.get_aggregate_list()
-        aggregate_ids = [aggregate['id'] for aggregate
-                         in host_aggregates if 'id' in aggregate]
-        aggregate_names = [aggregate['name'] for aggregate
-                           in host_aggregates if 'name' in aggregate]
-        include_all_nodes = any(self._check_wildcard(field)
-                                for field in (aggregate_ids, aggregate_names))
+        aggregate_ids = [
+            aggregate['id']
+            for aggregate in host_aggregates
+            if 'id' in aggregate
+        ]
+        aggregate_names = [
+            aggregate['name']
+            for aggregate in host_aggregates
+            if 'name' in aggregate
+        ]
+        include_all_nodes = any(
+            self._check_wildcard(field)
+            for field in (aggregate_ids, aggregate_names)
+        )
 
         for aggregate in aggregate_list:
-            if (aggregate.id in aggregate_ids or
-                aggregate.name in aggregate_names or
-                    include_all_nodes):
+            if (
+                aggregate.id in aggregate_ids
+                or aggregate.name in aggregate_names
+                or include_all_nodes
+            ):
                 compute_nodes.extend(aggregate.hosts)
 
     def _collect_zones(self, availability_zones, allowed_nodes):
         service_list = self.wrapper.get_service_list()
-        zone_names = [zone['name'] for zone
-                      in availability_zones]
+        zone_names = [zone['name'] for zone in availability_zones]
         include_all_nodes = False
         if '*' in zone_names:
             if len(zone_names) == 1:
                 include_all_nodes = True
             else:
                 raise exception.WildcardCharacterIsUsed(
-                    resource="availability zones")
+                    resource="availability zones"
+                )
         for service in service_list:
             if service.zone in zone_names or include_all_nodes:
                 allowed_nodes.extend(service.host)
@@ -89,23 +100,26 @@ class ComputeScope(base.BaseScope):
         for resource in resources:
             if 'instances' in resource:
                 instances_to_exclude.extend(
-                    [instance['uuid'] for instance
-                     in resource['instances']])
+                    [instance['uuid'] for instance in resource['instances']]
+                )
             elif 'compute_nodes' in resource:
                 nodes_to_exclude.extend(
-                    [host['name'] for host
-                     in resource['compute_nodes']])
+                    [host['name'] for host in resource['compute_nodes']]
+                )
             elif 'host_aggregates' in resource:
                 prohibited_nodes = []
-                self._collect_aggregates(resource['host_aggregates'],
-                                         prohibited_nodes)
+                self._collect_aggregates(
+                    resource['host_aggregates'], prohibited_nodes
+                )
                 nodes_to_exclude.extend(prohibited_nodes)
             elif 'instance_metadata' in resource:
                 instance_metadata.extend(
-                    [metadata for metadata in resource['instance_metadata']])
+                    [metadata for metadata in resource['instance_metadata']]
+                )
             elif 'projects' in resource:
                 projects_to_exclude.extend(
-                    [project['uuid'] for project in resource['projects']])
+                    [project['uuid'] for project in resource['projects']]
+                )
 
     def remove_nodes_from_model(self, nodes_to_remove, cluster_model):
         for node_name in nodes_to_remove:
@@ -116,26 +130,33 @@ class ComputeScope(base.BaseScope):
             cluster_model.remove_node(node)
 
     def update_exclude_instance_in_model(
-            self, instances_to_exclude, cluster_model):
+        self, instances_to_exclude, cluster_model
+    ):
         for instance_uuid in instances_to_exclude:
             try:
                 node_uuid = cluster_model.get_node_by_instance_uuid(
-                    instance_uuid).uuid
+                    instance_uuid
+                ).uuid
             except exception.ComputeResourceNotFound:
-                LOG.warning("The following instance %s cannot be found. "
-                            "It might be deleted from CDM along with node"
-                            " instance was hosted on.",
-                            instance_uuid)
+                LOG.warning(
+                    "The following instance %s cannot be found. "
+                    "It might be deleted from CDM along with node"
+                    " instance was hosted on.",
+                    instance_uuid,
+                )
                 continue
             self.update_exclude_instance(
                 cluster_model,
                 cluster_model.get_instance_by_uuid(instance_uuid),
-                node_uuid)
+                node_uuid,
+            )
 
     def exclude_instances_with_given_metadata(
-            self, instance_metadata, cluster_model, instances_to_remove):
+        self, instance_metadata, cluster_model, instances_to_remove
+    ):
         metadata_dict = {
-            key: val for d in instance_metadata for key, val in d.items()}
+            key: val for d in instance_metadata for key, val in d.items()
+        }
         instances = cluster_model.get_all_instances()
         for uuid, instance in instances.items():
             metadata = instance.metadata
@@ -146,7 +167,8 @@ class ComputeScope(base.BaseScope):
                         instances_to_remove.add(uuid)
 
     def exclude_instances_with_given_project(
-            self, projects_to_exclude, cluster_model, instances_to_exclude):
+        self, projects_to_exclude, cluster_model, instances_to_exclude
+    ):
         all_instances = cluster_model.get_all_instances()
         for uuid, instance in all_instances.items():
             if instance.project_id in projects_to_exclude:
@@ -165,8 +187,9 @@ class ComputeScope(base.BaseScope):
         projects_to_exclude = []
         compute_scope = []
         found_nothing_flag = False
-        model_hosts = [n.hostname for n in
-                       cluster_model.get_all_compute_nodes().values()]
+        model_hosts = [
+            n.hostname for n in cluster_model.get_all_compute_nodes().values()
+        ]
 
         if not self.scope:
             return cluster_model
@@ -181,21 +204,23 @@ class ComputeScope(base.BaseScope):
 
         for rule in compute_scope:
             if 'host_aggregates' in rule:
-                self._collect_aggregates(rule['host_aggregates'],
-                                         allowed_nodes)
+                self._collect_aggregates(
+                    rule['host_aggregates'], allowed_nodes
+                )
                 if not allowed_nodes:
                     found_nothing_flag = True
             elif 'availability_zones' in rule:
-                self._collect_zones(rule['availability_zones'],
-                                    allowed_nodes)
+                self._collect_zones(rule['availability_zones'], allowed_nodes)
                 if not allowed_nodes:
                     found_nothing_flag = True
             elif 'exclude' in rule:
                 self.exclude_resources(
-                    rule['exclude'], instances=instances_to_exclude,
+                    rule['exclude'],
+                    instances=instances_to_exclude,
                     nodes=nodes_to_exclude,
                     instance_metadata=instance_metadata,
-                    projects=projects_to_exclude)
+                    projects=projects_to_exclude,
+                )
 
         instances_to_exclude = set(instances_to_exclude)
         if allowed_nodes:
@@ -210,13 +235,16 @@ class ComputeScope(base.BaseScope):
 
         if instance_metadata and self.config.check_optimize_metadata:
             self.exclude_instances_with_given_metadata(
-                instance_metadata, cluster_model, instances_to_exclude)
+                instance_metadata, cluster_model, instances_to_exclude
+            )
 
         if projects_to_exclude:
             self.exclude_instances_with_given_project(
-                projects_to_exclude, cluster_model, instances_to_exclude)
+                projects_to_exclude, cluster_model, instances_to_exclude
+            )
 
-        self.update_exclude_instance_in_model(instances_to_exclude,
-                                              cluster_model)
+        self.update_exclude_instance_in_model(
+            instances_to_exclude, cluster_model
+        )
 
         return cluster_model

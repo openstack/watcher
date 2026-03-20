@@ -48,10 +48,12 @@ class BaremetalClusterDataModelCollector(base.BaseClusterDataModelCollector):
 
     def get_audit_scope_handler(self, audit_scope):
         self._audit_scope_handler = baremetal_scope.BaremetalScope(
-            audit_scope, self.config)
+            audit_scope, self.config
+        )
         if self._data_model_scope is None or (
-            len(self._data_model_scope) > 0 and (
-                self._data_model_scope != audit_scope)):
+            len(self._data_model_scope) > 0
+            and (self._data_model_scope != audit_scope)
+        ):
             self._data_model_scope = audit_scope
             self._cluster_data_model = None
         LOG.debug("audit scope %s", audit_scope)
@@ -74,7 +76,8 @@ class BaremetalClusterDataModelCollector(base.BaseClusterDataModelCollector):
         except Exception as e:
             LOG.exception(e)
             raise exception.ClusterDataModelCollectionError(
-                cdm="baremetal") from e
+                cdm="baremetal"
+            ) from e
 
 
 class BareMetalModelBuilder(base.BaseModelBuilder):
@@ -108,8 +111,8 @@ class BareMetalModelBuilder(base.BaseModelBuilder):
             "power_state": node.power_state,
             "maintenance": node.maintenance,
             "maintenance_reason": node.maintenance_reason,
-            "extra": {"compute_node_id": node.extra.compute_node_id}
-            }
+            "extra": {"compute_node_id": node.extra.compute_node_id},
+        }
 
         ironic_node = element.IronicNode(**node_attributes)
         return ironic_node

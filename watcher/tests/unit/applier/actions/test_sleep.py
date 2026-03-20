@@ -33,15 +33,18 @@ class TestSleep(base.TestCase):
 
     def test_parameters_duration_empty(self):
         self.s.input_parameters = {self.s.DURATION: None}
-        self.assertRaises(jsonschema.ValidationError,
-                          self.s.validate_parameters)
+        self.assertRaises(
+            jsonschema.ValidationError, self.s.validate_parameters
+        )
 
     def test_parameters_wrong_parameter(self):
         self.s.input_parameters = {self.s.DURATION: "ef"}
-        self.assertRaises(jsonschema.ValidationError,
-                          self.s.validate_parameters)
+        self.assertRaises(
+            jsonschema.ValidationError, self.s.validate_parameters
+        )
 
     def test_parameters_add_field(self):
         self.s.input_parameters = {self.s.DURATION: 1.0, "not_required": "nop"}
-        self.assertRaises(jsonschema.ValidationError,
-                          self.s.validate_parameters)
+        self.assertRaises(
+            jsonschema.ValidationError, self.s.validate_parameters
+        )

@@ -32,13 +32,14 @@ LOG = log.getLogger(__name__)
 
 
 class DataSourceManager:
-
-    metric_map = OrderedDict([
-        (gnoc.GnocchiHelper.NAME, gnoc.GnocchiHelper.METRIC_MAP),
-        (graf.GrafanaHelper.NAME, graf.GrafanaHelper.METRIC_MAP),
-        (prom.PrometheusHelper.NAME, prom.PrometheusHelper.METRIC_MAP),
-        (aetos.AetosHelper.NAME, aetos.AetosHelper.METRIC_MAP),
-    ])
+    metric_map = OrderedDict(
+        [
+            (gnoc.GnocchiHelper.NAME, gnoc.GnocchiHelper.METRIC_MAP),
+            (graf.GrafanaHelper.NAME, graf.GrafanaHelper.METRIC_MAP),
+            (prom.PrometheusHelper.NAME, prom.PrometheusHelper.METRIC_MAP),
+            (aetos.AetosHelper.NAME, aetos.AetosHelper.METRIC_MAP),
+        ]
+    )
     """Dictionary with all possible datasources, dictionary order is
     the default order for attempting to use datasources
     """
@@ -66,8 +67,10 @@ class DataSourceManager:
 
         self.datasources = self.config.datasources
         if self.datasources and 'prometheus' in self.datasources:
-            LOG.warning('The prometheus datasource is deprecated and will '
-                        'be removed in a future release.')
+            LOG.warning(
+                'The prometheus datasource is deprecated and will '
+                'be removed in a future release.'
+            )
 
         self._validate_datasource_config()
 
@@ -77,14 +80,18 @@ class DataSourceManager:
         Checks for configuration conflicts, such as having both prometheus
         and aetos datasources configured simultaneously.
         """
-        if (self.datasources and
-                prom.PrometheusHelper.NAME in self.datasources and
-                aetos.AetosHelper.NAME in self.datasources):
-            LOG.error("Configuration error: Cannot use both prometheus "
-                      "and aetos datasources simultaneously.")
+        if (
+            self.datasources
+            and prom.PrometheusHelper.NAME in self.datasources
+            and aetos.AetosHelper.NAME in self.datasources
+        ):
+            LOG.error(
+                "Configuration error: Cannot use both prometheus "
+                "and aetos datasources simultaneously."
+            )
             raise exception.DataSourceConfigConflict(
                 datasource_one=prom.PrometheusHelper.NAME,
-                datasource_two=aetos.AetosHelper.NAME
+                datasource_two=aetos.AetosHelper.NAME,
             )
 
     @property
@@ -139,23 +146,27 @@ class DataSourceManager:
             raise exception.NoDatasourceAvailable
 
         if not metrics or len(metrics) == 0:
-            LOG.critical("Can not retrieve datasource without specifying "
-                         "list of required metrics.")
-            raise exception.InvalidParameter(parameter='metrics',
-                                             parameter_type='none empty list')
+            LOG.critical(
+                "Can not retrieve datasource without specifying "
+                "list of required metrics."
+            )
+            raise exception.InvalidParameter(
+                parameter='metrics', parameter_type='none empty list'
+            )
 
         for datasource in self.datasources:
             # Skip configured datasources that are not available at runtime
             if datasource not in self.metric_map:
                 LOG.warning(
-                    "Datasource: %s is not available; skipping.",
-                    datasource,
+                    "Datasource: %s is not available; skipping.", datasource
                 )
                 continue
             no_metric = False
             for metric in metrics:
-                if (metric not in self.metric_map[datasource] or
-                        self.metric_map[datasource].get(metric) is None):
+                if (
+                    metric not in self.metric_map[datasource]
+                    or self.metric_map[datasource].get(metric) is None
+                ):
                     no_metric = True
                     LOG.warning(
                         "Datasource: %s could not be used due to metric: %s",

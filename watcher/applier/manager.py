@@ -26,7 +26,6 @@ CONF = conf.CONF
 
 
 class ApplierManager(service_manager.ServiceManager):
-
     @property
     def service_name(self):
         return 'watcher-applier'

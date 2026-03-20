@@ -25,7 +25,6 @@ from watcher.tests.unit.db import utils
 
 
 class TestDbStrategyFilters(base.DbTestCase):
-
     FAKE_OLDER_DATE = '2014-01-01T09:52:05.219414'
     FAKE_OLD_DATE = '2015-01-01T09:52:05.219414'
     FAKE_TODAY = '2016-02-24T09:52:05.219414'
@@ -41,27 +40,42 @@ class TestDbStrategyFilters(base.DbTestCase):
         strategy3_name = "STRATEGY_ID_3"
 
         self.goal1 = utils.create_test_goal(
-            id=1, uuid=w_utils.generate_uuid(),
-            name="GOAL_ID", display_name="Goal")
+            id=1,
+            uuid=w_utils.generate_uuid(),
+            name="GOAL_ID",
+            display_name="Goal",
+        )
         self.goal2 = utils.create_test_goal(
-            id=2, uuid=w_utils.generate_uuid(),
-            name="DUMMY", display_name="Dummy")
+            id=2,
+            uuid=w_utils.generate_uuid(),
+            name="DUMMY",
+            display_name="Dummy",
+        )
 
         with freezegun.freeze_time(self.FAKE_TODAY):
             self.strategy1 = utils.create_test_strategy(
-                id=1, uuid=w_utils.generate_uuid(),
-                name=strategy1_name, display_name="Strategy 1",
-                goal_id=self.goal1.id)
+                id=1,
+                uuid=w_utils.generate_uuid(),
+                name=strategy1_name,
+                display_name="Strategy 1",
+                goal_id=self.goal1.id,
+            )
         with freezegun.freeze_time(self.FAKE_OLD_DATE):
             self.strategy2 = utils.create_test_strategy(
-                id=2, uuid=w_utils.generate_uuid(),
-                name=strategy2_name, display_name="Strategy 2",
-                goal_id=self.goal1.id)
+                id=2,
+                uuid=w_utils.generate_uuid(),
+                name=strategy2_name,
+                display_name="Strategy 2",
+                goal_id=self.goal1.id,
+            )
         with freezegun.freeze_time(self.FAKE_OLDER_DATE):
             self.strategy3 = utils.create_test_strategy(
-                id=3, uuid=w_utils.generate_uuid(),
-                name=strategy3_name, display_name="Strategy 3",
-                goal_id=self.goal2.id)
+                id=3,
+                uuid=w_utils.generate_uuid(),
+                name=strategy3_name,
+                display_name="Strategy 3",
+                goal_id=self.goal2.id,
+            )
 
     def _soft_delete_strategys(self):
         with freezegun.freeze_time(self.FAKE_TODAY):
@@ -74,20 +88,24 @@ class TestDbStrategyFilters(base.DbTestCase):
     def _update_strategies(self):
         with freezegun.freeze_time(self.FAKE_TODAY):
             self.dbapi.update_strategy(
-                self.strategy1.id, values={"display_name": "strategy1"})
+                self.strategy1.id, values={"display_name": "strategy1"}
+            )
         with freezegun.freeze_time(self.FAKE_OLD_DATE):
             self.dbapi.update_strategy(
-                self.strategy2.id, values={"display_name": "strategy2"})
+                self.strategy2.id, values={"display_name": "strategy2"}
+            )
         with freezegun.freeze_time(self.FAKE_OLDER_DATE):
             self.dbapi.update_strategy(
-                self.strategy3.id, values={"display_name": "strategy3"})
+                self.strategy3.id, values={"display_name": "strategy3"}
+            )
 
     def test_get_strategy_list_filter_deleted_true(self):
         with freezegun.freeze_time(self.FAKE_TODAY):
             self.dbapi.soft_delete_strategy(self.strategy1.id)
 
         res = self.dbapi.get_strategy_list(
-            self.context, filters={'deleted': True})
+            self.context, filters={'deleted': True}
+        )
 
         self.assertEqual([self.strategy1['uuid']], [r.uuid for r in res])
 
@@ -96,17 +114,20 @@ class TestDbStrategyFilters(base.DbTestCase):
             self.dbapi.soft_delete_strategy(self.strategy1.id)
 
         res = self.dbapi.get_strategy_list(
-            self.context, filters={'deleted': False})
+            self.context, filters={'deleted': False}
+        )
 
         self.assertEqual(
             {self.strategy2['uuid'], self.strategy3['uuid']},
-            {r.uuid for r in res})
+            {r.uuid for r in res},
+        )
 
     def test_get_strategy_list_filter_deleted_at_eq(self):
         self._soft_delete_strategys()
 
         res = self.dbapi.get_strategy_list(
-            self.context, filters={'deleted_at__eq': self.FAKE_TODAY})
+            self.context, filters={'deleted_at__eq': self.FAKE_TODAY}
+        )
 
         self.assertEqual([self.strategy1['uuid']], [r.uuid for r in res])
 
@@ -114,27 +135,32 @@ class TestDbStrategyFilters(base.DbTestCase):
         self._soft_delete_strategys()
 
         res = self.dbapi.get_strategy_list(
-            self.context, filters={'deleted_at__lt': self.FAKE_TODAY})
+            self.context, filters={'deleted_at__lt': self.FAKE_TODAY}
+        )
 
         self.assertEqual(
             {self.strategy2['uuid'], self.strategy3['uuid']},
-            {r.uuid for r in res})
+            {r.uuid for r in res},
+        )
 
     def test_get_strategy_list_filter_deleted_at_lte(self):
         self._soft_delete_strategys()
 
         res = self.dbapi.get_strategy_list(
-            self.context, filters={'deleted_at__lte': self.FAKE_OLD_DATE})
+            self.context, filters={'deleted_at__lte': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual(
             {self.strategy2['uuid'], self.strategy3['uuid']},
-            {r.uuid for r in res})
+            {r.uuid for r in res},
+        )
 
     def test_get_strategy_list_filter_deleted_at_gt(self):
         self._soft_delete_strategys()
 
         res = self.dbapi.get_strategy_list(
-            self.context, filters={'deleted_at__gt': self.FAKE_OLD_DATE})
+            self.context, filters={'deleted_at__gt': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual([self.strategy1['uuid']], [r.uuid for r in res])
 
@@ -142,49 +168,59 @@ class TestDbStrategyFilters(base.DbTestCase):
         self._soft_delete_strategys()
 
         res = self.dbapi.get_strategy_list(
-            self.context, filters={'deleted_at__gte': self.FAKE_OLD_DATE})
+            self.context, filters={'deleted_at__gte': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual(
             {self.strategy1['uuid'], self.strategy2['uuid']},
-            {r.uuid for r in res})
+            {r.uuid for r in res},
+        )
 
     # created_at #
 
     def test_get_strategy_list_filter_created_at_eq(self):
         res = self.dbapi.get_strategy_list(
-            self.context, filters={'created_at__eq': self.FAKE_TODAY})
+            self.context, filters={'created_at__eq': self.FAKE_TODAY}
+        )
 
         self.assertEqual([self.strategy1['uuid']], [r.uuid for r in res])
 
     def test_get_strategy_list_filter_created_at_lt(self):
         res = self.dbapi.get_strategy_list(
-            self.context, filters={'created_at__lt': self.FAKE_TODAY})
+            self.context, filters={'created_at__lt': self.FAKE_TODAY}
+        )
 
         self.assertEqual(
             {self.strategy2['uuid'], self.strategy3['uuid']},
-            {r.uuid for r in res})
+            {r.uuid for r in res},
+        )
 
     def test_get_strategy_list_filter_created_at_lte(self):
         res = self.dbapi.get_strategy_list(
-            self.context, filters={'created_at__lte': self.FAKE_OLD_DATE})
+            self.context, filters={'created_at__lte': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual(
             {self.strategy2['uuid'], self.strategy3['uuid']},
-            {r.uuid for r in res})
+            {r.uuid for r in res},
+        )
 
     def test_get_strategy_list_filter_created_at_gt(self):
         res = self.dbapi.get_strategy_list(
-            self.context, filters={'created_at__gt': self.FAKE_OLD_DATE})
+            self.context, filters={'created_at__gt': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual([self.strategy1['uuid']], [r.uuid for r in res])
 
     def test_get_strategy_list_filter_created_at_gte(self):
         res = self.dbapi.get_strategy_list(
-            self.context, filters={'created_at__gte': self.FAKE_OLD_DATE})
+            self.context, filters={'created_at__gte': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual(
             {self.strategy1['uuid'], self.strategy2['uuid']},
-            {r.uuid for r in res})
+            {r.uuid for r in res},
+        )
 
     # updated_at #
 
@@ -192,7 +228,8 @@ class TestDbStrategyFilters(base.DbTestCase):
         self._update_strategies()
 
         res = self.dbapi.get_strategy_list(
-            self.context, filters={'updated_at__eq': self.FAKE_TODAY})
+            self.context, filters={'updated_at__eq': self.FAKE_TODAY}
+        )
 
         self.assertEqual([self.strategy1['uuid']], [r.uuid for r in res])
 
@@ -200,27 +237,32 @@ class TestDbStrategyFilters(base.DbTestCase):
         self._update_strategies()
 
         res = self.dbapi.get_strategy_list(
-            self.context, filters={'updated_at__lt': self.FAKE_TODAY})
+            self.context, filters={'updated_at__lt': self.FAKE_TODAY}
+        )
 
         self.assertEqual(
             {self.strategy2['uuid'], self.strategy3['uuid']},
-            {r.uuid for r in res})
+            {r.uuid for r in res},
+        )
 
     def test_get_strategy_list_filter_updated_at_lte(self):
         self._update_strategies()
 
         res = self.dbapi.get_strategy_list(
-            self.context, filters={'updated_at__lte': self.FAKE_OLD_DATE})
+            self.context, filters={'updated_at__lte': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual(
             {self.strategy2['uuid'], self.strategy3['uuid']},
-            {r.uuid for r in res})
+            {r.uuid for r in res},
+        )
 
     def test_get_strategy_list_filter_updated_at_gt(self):
         self._update_strategies()
 
         res = self.dbapi.get_strategy_list(
-            self.context, filters={'updated_at__gt': self.FAKE_OLD_DATE})
+            self.context, filters={'updated_at__gt': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual([self.strategy1['uuid']], [r.uuid for r in res])
 
@@ -228,15 +270,16 @@ class TestDbStrategyFilters(base.DbTestCase):
         self._update_strategies()
 
         res = self.dbapi.get_strategy_list(
-            self.context, filters={'updated_at__gte': self.FAKE_OLD_DATE})
+            self.context, filters={'updated_at__gte': self.FAKE_OLD_DATE}
+        )
 
         self.assertEqual(
             {self.strategy1['uuid'], self.strategy2['uuid']},
-            {r.uuid for r in res})
+            {r.uuid for r in res},
+        )
 
 
 class DbStrategyTestCase(base.DbTestCase):
-
     def test_get_strategy_list(self):
         uuids = []
         for i in range(1, 4):
@@ -244,7 +287,8 @@ class DbStrategyTestCase(base.DbTestCase):
                 id=i,
                 uuid=w_utils.generate_uuid(),
                 name=f"STRATEGY_ID_{i}",
-                display_name=f'My Strategy {i}')
+                display_name=f'My Strategy {i}',
+            )
             uuids.append(str(strategy['uuid']))
         strategies = self.dbapi.get_strategy_list(self.context)
         strategy_uuids = [s.uuid for s in strategies]
@@ -262,7 +306,8 @@ class DbStrategyTestCase(base.DbTestCase):
                 uuid=w_utils.generate_uuid(),
                 name=f"STRATEGY_ID_{i}",
                 display_name=f'My Strategy {i}',
-                goal_id=goal.id)
+                goal_id=goal.id,
+            )
             uuids.append(str(strategy['uuid']))
         strategys = self.dbapi.get_strategy_list(self.context, eager=True)
         strategy_map = {a.uuid: a for a in strategys}
@@ -296,71 +341,93 @@ class DbStrategyTestCase(base.DbTestCase):
         self.dbapi.soft_delete_strategy(strategy3['uuid'])
 
         res = self.dbapi.get_strategy_list(
-            self.context, filters={'display_name': 'Strategy 1'})
+            self.context, filters={'display_name': 'Strategy 1'}
+        )
         self.assertEqual([strategy1['uuid']], [r.uuid for r in res])
 
         res = self.dbapi.get_strategy_list(
-            self.context, filters={'display_name': 'Strategy 3'})
+            self.context, filters={'display_name': 'Strategy 3'}
+        )
         self.assertEqual([], [r.uuid for r in res])
 
         res = self.dbapi.get_strategy_list(
-            self.context, filters={'goal_id': 1})
-        self.assertEqual([strategy1['uuid'], strategy2['uuid']],
-                         [r.uuid for r in res])
+            self.context, filters={'goal_id': 1}
+        )
+        self.assertEqual(
+            [strategy1['uuid'], strategy2['uuid']], [r.uuid for r in res]
+        )
 
         res = self.dbapi.get_strategy_list(
-            self.context, filters={'display_name': 'Strategy 2'})
+            self.context, filters={'display_name': 'Strategy 2'}
+        )
         self.assertEqual([strategy2['uuid']], [r.uuid for r in res])
 
     def test_get_strategy_by_uuid(self):
         created_strategy = utils.create_test_strategy()
         strategy = self.dbapi.get_strategy_by_uuid(
-            self.context, created_strategy['uuid'])
+            self.context, created_strategy['uuid']
+        )
         self.assertEqual(strategy.uuid, created_strategy['uuid'])
 
     def test_get_strategy_by_name(self):
         created_strategy = utils.create_test_strategy()
         strategy = self.dbapi.get_strategy_by_name(
-            self.context, created_strategy['name'])
+            self.context, created_strategy['name']
+        )
         self.assertEqual(strategy.name, created_strategy['name'])
 
     def test_get_strategy_that_does_not_exist(self):
-        self.assertRaises(exception.StrategyNotFound,
-                          self.dbapi.get_strategy_by_id,
-                          self.context, 404)
+        self.assertRaises(
+            exception.StrategyNotFound,
+            self.dbapi.get_strategy_by_id,
+            self.context,
+            404,
+        )
 
     def test_update_strategy(self):
         strategy = utils.create_test_strategy()
         res = self.dbapi.update_strategy(
-            strategy['uuid'], {'display_name': 'updated-model'})
+            strategy['uuid'], {'display_name': 'updated-model'}
+        )
         self.assertEqual('updated-model', res.display_name)
 
     def test_update_goal_id(self):
         strategy = utils.create_test_strategy()
-        self.assertRaises(exception.Invalid,
-                          self.dbapi.update_strategy, strategy['uuid'],
-                          {'uuid': 'new_strategy_id'})
+        self.assertRaises(
+            exception.Invalid,
+            self.dbapi.update_strategy,
+            strategy['uuid'],
+            {'uuid': 'new_strategy_id'},
+        )
 
     def test_update_strategy_that_does_not_exist(self):
-        self.assertRaises(exception.StrategyNotFound,
-                          self.dbapi.update_strategy,
-                          404,
-                          {'display_name': ''})
+        self.assertRaises(
+            exception.StrategyNotFound,
+            self.dbapi.update_strategy,
+            404,
+            {'display_name': ''},
+        )
 
     def test_destroy_strategy(self):
         strategy = utils.create_test_strategy()
         self.dbapi.destroy_strategy(strategy['uuid'])
-        self.assertRaises(exception.StrategyNotFound,
-                          self.dbapi.get_strategy_by_id,
-                          self.context, strategy['uuid'])
+        self.assertRaises(
+            exception.StrategyNotFound,
+            self.dbapi.get_strategy_by_id,
+            self.context,
+            strategy['uuid'],
+        )
 
     def test_destroy_strategy_that_does_not_exist(self):
-        self.assertRaises(exception.StrategyNotFound,
-                          self.dbapi.destroy_strategy, 404)
+        self.assertRaises(
+            exception.StrategyNotFound, self.dbapi.destroy_strategy, 404
+        )
 
     def test_create_strategy_already_exists(self):
         strategy_id = "STRATEGY_ID"
         utils.create_test_strategy(name=strategy_id)
-        self.assertRaises(exception.StrategyAlreadyExists,
-                          utils.create_test_strategy,
-                          name=strategy_id)
+        self.assertRaises(
+            exception.StrategyAlreadyExists,
+            utils.create_test_strategy,
+            name=strategy_id,
+        )

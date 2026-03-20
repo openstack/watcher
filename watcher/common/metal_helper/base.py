@@ -60,7 +60,8 @@ class BaseMetalNode(abc.ABC):
             self.power_off()
         else:
             raise exception.UnsupportedActionType(
-                f"Cannot set power state: {state}")
+                f"Cannot set power state: {state}"
+            )
 
 
 class BaseMetalHelper(abc.ABC):

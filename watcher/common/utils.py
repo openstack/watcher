@@ -86,7 +86,9 @@ def safe_rstrip(value, chars=None):
     if not isinstance(value, str):
         LOG.warning(
             "Failed to remove trailing character. Returning original object."
-            "Supplied object is not a string: %s,", value)
+            "Supplied object is not a string: %s,",
+            value,
+        )
         return value
 
     return value.rstrip(chars) or value
@@ -105,8 +107,7 @@ def is_hostname_safe(hostname):
 
     """
     m = r'^[a-z0-9]([a-z0-9\-]{0,61}[a-z0-9])?$'
-    return (isinstance(hostname, str) and
-            (re.match(m, hostname) is not None))
+    return isinstance(hostname, str) and (re.match(m, hostname) is not None)
 
 
 def get_cls_import_path(cls):
@@ -130,8 +131,7 @@ def extend_with_default(validator_class):
                 validator, properties, instance, schema
             )
 
-    return validators.extend(validator_class,
-                             {"properties": set_defaults})
+    return validators.extend(validator_class, {"properties": set_defaults})
 
 
 # Parameter strict check extension as jsonschema doesn't support it
@@ -154,7 +154,8 @@ def extend_with_strict_schema(validator_class):
 
 
 StrictDefaultValidatingDraft4Validator = extend_with_default(
-    extend_with_strict_schema(validators.Draft4Validator))
+    extend_with_strict_schema(validators.Draft4Validator)
+)
 
 
 Draft4Validator = validators.Draft4Validator
@@ -189,6 +190,6 @@ def async_compat_call(f, *args, **kwargs):
     # to avoid lingering threads. For consistency, we'll convert eventlet
     # timeout exceptions to asyncio timeout errors.
     with eventlet.timeout.Timeout(
-            seconds=timeout,
-            exception=asyncio.TimeoutError(f"Timeout: {timeout}s")):
+        seconds=timeout, exception=asyncio.TimeoutError(f"Timeout: {timeout}s")
+    ):
         return tpool.execute(tpool_wrapper)

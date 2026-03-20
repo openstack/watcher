@@ -55,17 +55,24 @@ def log_executor_stats(executor, name="unknown"):
                 "State of %s ThreadPoolExecutor when submitting a new "
                 "task: max_workers: %d, workers: %d, idle workers: %d, "
                 "queued work: %d, stats: %s",
-                name, executor._max_workers, len(executor._workers),
+                name,
+                executor._max_workers,
+                len(executor._workers),
                 len([w for w in executor._workers if w.idle]),
-                executor._work_queue.qsize(), stats)
+                executor._work_queue.qsize(),
+                stats,
+            )
         elif isinstance(executor, futurist.GreenThreadPoolExecutor):
             LOG.debug(
                 "State of %s GreenThreadPoolExecutor when submitting a "
                 "new task: workers: %d, max_workers: %d, "
                 "work queued length: %d, stats: %s",
-                name, len(executor._pool.coroutines_running),
+                name,
+                len(executor._pool.coroutines_running),
                 executor._pool.size,
-                executor._delayed_work.unfinished_tasks, stats)
+                executor._delayed_work.unfinished_tasks,
+                stats,
+            )
     except Exception as e:
         LOG.debug("Failed to log executor stats for %s: %s", name, e)
 

@@ -31,8 +31,9 @@ CONF = cfg.CONF
 warnings.simplefilter('always')
 
 
-@removals.removed_class("NoisyNeighbor", version="2025.2",
-                        removal_version="2026.2")
+@removals.removed_class(
+    "NoisyNeighbor", version="2025.2", removal_version="2026.2"
+)
 class NoisyNeighbor(base.NoisyNeighborBaseStrategy):
     """Noisy Neighbor strategy using live migration
 
@@ -86,28 +87,37 @@ class NoisyNeighbor(base.NoisyNeighborBaseStrategy):
             "properties": {
                 "cache_threshold": {
                     "description": "Performance drop in L3_cache threshold "
-                                   "for migration",
+                    "for migration",
                     "type": "number",
-                    "default": 35.0
+                    "default": 35.0,
                 },
                 "period": {
                     "description": "Aggregate time period of "
-                                   "ceilometer and gnocchi",
+                    "ceilometer and gnocchi",
                     "type": "number",
-                    "default": 100.0
+                    "default": 100.0,
                 },
-            },
+            }
         }
 
     def get_current_and_previous_cache(self, instance):
         try:
             curr_cache = self.datasource_backend.get_instance_l3_cache_usage(
-                instance, self.meter_name, self.period,
-                'mean', granularity=300)
-            previous_cache = 2 * (
-                self.datasource_backend.get_instance_l3_cache_usage(
-                    instance, self.meter_name, 2 * self.period,
-                    'mean', granularity=300)) - curr_cache
+                instance, self.meter_name, self.period, 'mean', granularity=300
+            )
+            previous_cache = (
+                2
+                * (
+                    self.datasource_backend.get_instance_l3_cache_usage(
+                        instance,
+                        self.meter_name,
+                        2 * self.period,
+                        'mean',
+                        granularity=300,
+                    )
+                )
+                - curr_cache
+            )
 
         except Exception as exc:
             LOG.exception(exc)
@@ -116,33 +126,40 @@ class NoisyNeighbor(base.NoisyNeighborBaseStrategy):
         return curr_cache, previous_cache
 
     def find_priority_instance(self, instance):
-
-        current_cache, previous_cache = \
-            self.get_current_and_previous_cache(instance)
+        current_cache, previous_cache = self.get_current_and_previous_cache(
+            instance
+        )
 
         if None in (current_cache, previous_cache):
-            LOG.warning("Datasource unable to pick L3 Cache "
-                        "values. Skipping the instance")
+            LOG.warning(
+                "Datasource unable to pick L3 Cache "
+                "values. Skipping the instance"
+            )
             return None
 
-        if (current_cache < (1 - (self.cache_threshold / 100.0)) *
-                previous_cache):
+        if (
+            current_cache
+            < (1 - (self.cache_threshold / 100.0)) * previous_cache
+        ):
             return instance
         else:
             return None
 
     def find_noisy_instance(self, instance):
-
-        noisy_current_cache, noisy_previous_cache = \
+        noisy_current_cache, noisy_previous_cache = (
             self.get_current_and_previous_cache(instance)
+        )
 
         if None in (noisy_current_cache, noisy_previous_cache):
-            LOG.warning("Datasource unable to pick "
-                        "L3 Cache. Skipping the instance")
+            LOG.warning(
+                "Datasource unable to pick L3 Cache. Skipping the instance"
+            )
             return None
 
-        if (noisy_current_cache > (1 + (self.cache_threshold / 100.0)) *
-                noisy_previous_cache):
+        if (
+            noisy_current_cache
+            > (1 + (self.cache_threshold / 100.0)) * noisy_previous_cache
+        ):
             return instance
         else:
             return None
@@ -163,7 +180,6 @@ class NoisyNeighbor(base.NoisyNeighborBaseStrategy):
             loop_break_flag = False
 
             if node_instance_count > 1:
-
                 instance_priority_list = []
 
                 for instance in instances_of_node:
@@ -171,38 +187,49 @@ class NoisyNeighbor(base.NoisyNeighborBaseStrategy):
 
                 # If there is no metadata regarding watcher-priority, it takes
                 # DEFAULT_WATCHER_PRIORITY as priority.
-                instance_priority_list.sort(key=lambda a: (
-                    a.get('metadata').get('watcher-priority'),
-                    self.DEFAULT_WATCHER_PRIORITY))
+                instance_priority_list.sort(
+                    key=lambda a: (
+                        a.get('metadata').get('watcher-priority'),
+                        self.DEFAULT_WATCHER_PRIORITY,
+                    )
+                )
 
                 instance_priority_list_reverse = list(instance_priority_list)
                 instance_priority_list_reverse.reverse()
 
                 for potential_priority_instance in instance_priority_list:
-
                     priority_instance = self.find_priority_instance(
-                        potential_priority_instance)
+                        potential_priority_instance
+                    )
 
-                    if (priority_instance is not None):
-
-                        for potential_noisy_instance in (
-                                instance_priority_list_reverse):
-                            if (potential_noisy_instance ==
-                                    potential_priority_instance):
+                    if priority_instance is not None:
+                        for (
+                            potential_noisy_instance
+                        ) in instance_priority_list_reverse:
+                            if (
+                                potential_noisy_instance
+                                == potential_priority_instance
+                            ):
                                 loop_break_flag = True
                                 break
 
                             noisy_instance = self.find_noisy_instance(
-                                potential_noisy_instance)
+                                potential_noisy_instance
+                            )
 
                             if noisy_instance is not None:
                                 hosts_need_release[node.uuid] = {
                                     'priority_vm': potential_priority_instance,
-                                    'noisy_vm': potential_noisy_instance}
-                                LOG.debug("Priority VM found: %s",
-                                          potential_priority_instance.uuid)
-                                LOG.debug("Noisy VM found: %s",
-                                          potential_noisy_instance.uuid)
+                                    'noisy_vm': potential_noisy_instance,
+                                }
+                                LOG.debug(
+                                    "Priority VM found: %s",
+                                    potential_priority_instance.uuid,
+                                )
+                                LOG.debug(
+                                    "Noisy VM found: %s",
+                                    potential_noisy_instance.uuid,
+                                )
                                 loop_break_flag = True
                                 break
 
@@ -223,8 +250,11 @@ class NoisyNeighbor(base.NoisyNeighborBaseStrategy):
         dest_servers = []
         for host in hosts:
             free_res = self.compute_model.get_node_free_resources(host)
-            if (free_res['vcpu'] >= required_cores and free_res['disk'] >=
-                    required_disk and free_res['memory'] >= required_memory):
+            if (
+                free_res['vcpu'] >= required_cores
+                and free_res['disk'] >= required_disk
+                and free_res['memory'] >= required_memory
+            ):
                 dest_servers.append(host)
 
         return dest_servers
@@ -246,16 +276,20 @@ class NoisyNeighbor(base.NoisyNeighborBaseStrategy):
             LOG.debug("No hosts available to migrate")
             return
 
-        mig_source_node_name = max(hosts_need_release.keys(), key=lambda a:
-                                   hosts_need_release[a]['priority_vm'])
+        mig_source_node_name = max(
+            hosts_need_release.keys(),
+            key=lambda a: hosts_need_release[a]['priority_vm'],
+        )
         instance_to_migrate = hosts_need_release[mig_source_node_name][
-            'noisy_vm']
+            'noisy_vm'
+        ]
 
         if instance_to_migrate is None:
             return
 
-        dest_servers = self.filter_dest_servers(hosts_target,
-                                                instance_to_migrate)
+        dest_servers = self.filter_dest_servers(
+            hosts_target, instance_to_migrate
+        )
 
         if len(dest_servers) == 0:
             LOG.info("No proper target host could be found")
@@ -264,18 +298,23 @@ class NoisyNeighbor(base.NoisyNeighborBaseStrategy):
         # Destination node will be the first available node in the list.
         mig_destination_node = dest_servers[0]
         mig_source_node = self.compute_model.get_node_by_uuid(
-            mig_source_node_name)
+            mig_source_node_name
+        )
 
-        if self.compute_model.migrate_instance(instance_to_migrate,
-                                               mig_source_node,
-                                               mig_destination_node):
-            parameters = {'migration_type': 'live',
-                          'source_node': mig_source_node.uuid,
-                          'destination_node': mig_destination_node.uuid,
-                          'resource_name': instance_to_migrate.name}
-            self.solution.add_action(action_type=self.MIGRATION,
-                                     resource_id=instance_to_migrate.uuid,
-                                     input_parameters=parameters)
+        if self.compute_model.migrate_instance(
+            instance_to_migrate, mig_source_node, mig_destination_node
+        ):
+            parameters = {
+                'migration_type': 'live',
+                'source_node': mig_source_node.uuid,
+                'destination_node': mig_destination_node.uuid,
+                'resource_name': instance_to_migrate.name,
+            }
+            self.solution.add_action(
+                action_type=self.MIGRATION,
+                resource_id=instance_to_migrate.uuid,
+                input_parameters=parameters,
+            )
 
     def post_execute(self):
         self.solution.model = self.compute_model
