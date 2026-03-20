@@ -2,6 +2,140 @@
 requires = ["pbr>=6.0.0", "setuptools>=64.0.0"]
 build-backend = "pbr.build"
 
+[project]
+name = "python-watcher"
+description = "OpenStack Watcher provides a flexible and scalable resource optimization service for multi-tenant OpenStack-based clouds."
+readme = {file = "README.rst", content-type = "text/x-rst"}
+license = {text = "Apache-2.0"}
+requires-python = ">=3.10"
+authors = [
+    {name = "OpenStack", email = "openstack-discuss@lists.openstack.org"},
+]
+classifiers = [
+    "Environment :: OpenStack",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+dynamic = ["version", "dependencies"]
+
+[project.urls]
+"Bug Tracker" = "https://bugs.launchpad.net/watcher/"
+"Documentation" = "https://docs.openstack.org/watcher/latest/"
+"Source Code" = "https://opendev.org/openstack/watcher"
+
+[project.scripts]
+watcher-api = "watcher.cmd.eventlet.api:main"
+watcher-db-manage = "watcher.cmd.dbmanage:main"
+watcher-decision-engine = "watcher.cmd.eventlet.decisionengine:main"
+watcher-applier = "watcher.cmd.eventlet.applier:main"
+watcher-sync = "watcher.cmd.sync:main"
+watcher-status = "watcher.cmd.status:main"
+
+[project.entry-points."oslo.config.opts"]
+watcher = "watcher.conf.opts:list_opts"
+
+[project.entry-points."oslo.config.opts.defaults"]
+watcher = "watcher.common.config:set_lib_defaults"
+
+[project.entry-points."oslo.policy.policies"]
+watcher = "watcher.common.policies:list_rules"
+
+[project.entry-points."oslo.policy.enforcer"]
+watcher = "watcher.common.policy:get_enforcer"
+
+[project.entry-points."wsgi_scripts"]
+watcher-api-wsgi = "watcher.api.wsgi:initialize_wsgi_app"
+
+[project.entry-points."watcher.database.migration_backend"]
+sqlalchemy = "watcher.db.sqlalchemy.migration"
+
+[project.entry-points."watcher_goals"]
+unclassified = "watcher.decision_engine.goal.goals:Unclassified"
+dummy = "watcher.decision_engine.goal.goals:Dummy"
+server_consolidation = "watcher.decision_engine.goal.goals:ServerConsolidation"
+thermal_optimization = "watcher.decision_engine.goal.goals:ThermalOptimization"
+workload_balancing = "watcher.decision_engine.goal.goals:WorkloadBalancing"
+airflow_optimization = "watcher.decision_engine.goal.goals:AirflowOptimization"
+noisy_neighbor = "watcher.decision_engine.goal.goals:NoisyNeighborOptimization"
+saving_energy = "watcher.decision_engine.goal.goals:SavingEnergy"
+hardware_maintenance = "watcher.decision_engine.goal.goals:HardwareMaintenance"
+cluster_maintaining = "watcher.decision_engine.goal.goals:ClusterMaintaining"
+
+[project.entry-points."watcher_scoring_engines"]
+dummy_scorer = "watcher.decision_engine.scoring.dummy_scorer:DummyScorer"
+
+[project.entry-points."watcher_scoring_engine_containers"]
+dummy_scoring_container = "watcher.decision_engine.scoring.dummy_scoring_container:DummyScoringContainer"
+
+[project.entry-points."watcher_strategies"]
+dummy = "watcher.decision_engine.strategy.strategies.dummy_strategy:DummyStrategy"
+dummy_with_scorer = "watcher.decision_engine.strategy.strategies.dummy_with_scorer:DummyWithScorer"
+dummy_with_resize = "watcher.decision_engine.strategy.strategies.dummy_with_resize:DummyWithResize"
+actuator = "watcher.decision_engine.strategy.strategies.actuation:Actuator"
+basic = "watcher.decision_engine.strategy.strategies.basic_consolidation:BasicConsolidation"
+outlet_temperature = "watcher.decision_engine.strategy.strategies.outlet_temp_control:OutletTempControl"
+saving_energy = "watcher.decision_engine.strategy.strategies.saving_energy:SavingEnergy"
+vm_workload_consolidation = "watcher.decision_engine.strategy.strategies.vm_workload_consolidation:VMWorkloadConsolidation"
+workload_stabilization = "watcher.decision_engine.strategy.strategies.workload_stabilization:WorkloadStabilization"
+workload_balance = "watcher.decision_engine.strategy.strategies.workload_balance:WorkloadBalance"
+uniform_airflow = "watcher.decision_engine.strategy.strategies.uniform_airflow:UniformAirflow"
+noisy_neighbor = "watcher.decision_engine.strategy.strategies.noisy_neighbor:NoisyNeighbor"
+storage_capacity_balance = "watcher.decision_engine.strategy.strategies.storage_capacity_balance:StorageCapacityBalance"
+zone_migration = "watcher.decision_engine.strategy.strategies.zone_migration:ZoneMigration"
+host_maintenance = "watcher.decision_engine.strategy.strategies.host_maintenance:HostMaintenance"
+node_resource_consolidation = "watcher.decision_engine.strategy.strategies.node_resource_consolidation:NodeResourceConsolidation"
+
+[project.entry-points."watcher_actions"]
+migrate = "watcher.applier.actions.migration:Migrate"
+nop = "watcher.applier.actions.nop:Nop"
+sleep = "watcher.applier.actions.sleep:Sleep"
+change_nova_service_state = "watcher.applier.actions.change_nova_service_state:ChangeNovaServiceState"
+resize = "watcher.applier.actions.resize:Resize"
+change_node_power_state = "watcher.applier.actions.change_node_power_state:ChangeNodePowerState"
+volume_migrate = "watcher.applier.actions.volume_migration:VolumeMigrate"
+stop = "watcher.applier.actions.stop:Stop"
+
+[project.entry-points."watcher_workflow_engines"]
+taskflow = "watcher.applier.workflow_engine.default:DefaultWorkFlowEngine"
+
+[project.entry-points."watcher_planners"]
+weight = "watcher.decision_engine.planner.weight:WeightPlanner"
+workload_stabilization = "watcher.decision_engine.planner.workload_stabilization:WorkloadStabilizationPlanner"
+node_resource_consolidation = "watcher.decision_engine.planner.node_resource_consolidation:NodeResourceConsolidationPlanner"
+
+[project.entry-points."watcher_cluster_data_model_collectors"]
+compute = "watcher.decision_engine.model.collector.nova:NovaClusterDataModelCollector"
+storage = "watcher.decision_engine.model.collector.cinder:CinderClusterDataModelCollector"
+baremetal = "watcher.decision_engine.model.collector.ironic:BaremetalClusterDataModelCollector"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["watcher*"]
+
+[tool.setuptools.data-files]
+"etc/apache2" = [
+    "etc/apache2/watcher",
+]
+"etc/watcher" = [
+    "etc/watcher/README-watcher.conf.txt",
+]
+"etc/watcher/oslo-config-generator" = [
+    "etc/watcher/oslo-config-generator/watcher.conf",
+]
+"etc/watcher/oslo-policy-generator" = [
+    "etc/watcher/oslo-policy-generator/watcher-policy-generator.conf",
+]
+
 [tool.ruff]
 line-length = 79
 target-version = "py310"
@@ -54,3 +188,8 @@ force-sort-within-sections = false
 quote-style = "preserve"
 docstring-code-format = true
 skip-magic-trailing-comma = true
+
+[tool.codespell]
+skip = "*.po,*.js,*.css,*.html,*.svg,HACKING.py,*hacking*,*build*,*_static*,doc/dictionary.txt,*.pyc,*.inv,*.gz,*.jpg,*.png,*.vsd,*.graffle,*.json"
+count = true
+quiet-level = 4
