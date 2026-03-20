@@ -85,7 +85,7 @@ class TestScoringEngineObject(base.DbTestCase):
         expected_scoring_engine = self.fake_scoring_engine.copy()
         expected_scoring_engine['created_at'] = expected_scoring_engine[
             'created_at'
-        ].replace(tzinfo=datetime.timezone.utc)
+        ].replace(tzinfo=datetime.UTC)
         mock_create_scoring_engine.assert_called_once_with(
             expected_scoring_engine
         )
@@ -150,10 +150,10 @@ class TestScoringEngineObject(base.DbTestCase):
         expected_scoring_engine = fake_deleted_scoring_engine.copy()
         expected_scoring_engine['created_at'] = expected_scoring_engine[
             'created_at'
-        ].replace(tzinfo=datetime.timezone.utc)
+        ].replace(tzinfo=datetime.UTC)
         expected_scoring_engine['deleted_at'] = expected_scoring_engine[
             'deleted_at'
-        ].replace(tzinfo=datetime.timezone.utc)
+        ].replace(tzinfo=datetime.UTC)
 
         _id = self.fake_scoring_engine['id']
         scoring_engine = objects.ScoringEngine.get_by_id(self.context, _id)

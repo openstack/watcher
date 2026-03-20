@@ -30,7 +30,6 @@ states, visit :ref:`the Audit State machine <audit_state_machine>`.
 
 import datetime
 
-from datetime import timezone
 from http import HTTPStatus
 
 import jsonschema
@@ -757,11 +756,11 @@ class AuditsController(rest.RestController):
         end_time_value = audit_dict.get('end_time')
         if start_time_value:
             audit_dict['start_time'] = start_time_value.astimezone(
-                timezone.utc
+                datetime.UTC
             ).replace(tzinfo=None)
         if end_time_value:
             audit_dict['end_time'] = end_time_value.astimezone(
-                timezone.utc
+                datetime.UTC
             ).replace(tzinfo=None)
 
         new_audit = objects.Audit(context, **audit_dict)
@@ -814,7 +813,7 @@ class AuditsController(rest.RestController):
                 # convert string format to UTC time
                 new_patch_value = (
                     wutils.parse_isodatetime(patch_value)
-                    .astimezone(timezone.utc)
+                    .astimezone(datetime.UTC)
                     .replace(tzinfo=None)
                 )
                 api_utils.set_patch_value(patch, patch_path, new_patch_value)

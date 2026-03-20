@@ -190,6 +190,6 @@ def async_compat_call(f, *args, **kwargs):
     # to avoid lingering threads. For consistency, we'll convert eventlet
     # timeout exceptions to asyncio timeout errors.
     with eventlet.timeout.Timeout(
-        seconds=timeout, exception=asyncio.TimeoutError(f"Timeout: {timeout}s")
+        seconds=timeout, exception=TimeoutError(f"Timeout: {timeout}s")
     ):
         return tpool.execute(tpool_wrapper)

@@ -19,8 +19,6 @@
 
 import datetime
 
-from datetime import timezone
-
 from croniter import croniter
 from oslo_utils import timeutils
 
@@ -139,7 +137,7 @@ class ContinuousAuditHandler(base.AuditHandler):
         # We should convert UTC time to local time without tzinfo
         trigger_args[time_var] = (
             trigger_args[time_var]
-            .replace(tzinfo=timezone.utc)
+            .replace(tzinfo=datetime.UTC)
             .astimezone()
             .replace(tzinfo=None)
         )

@@ -172,7 +172,7 @@ class TestActionObject(base.DbTestCase):
             action.save()
 
         expected_update_at = fake_saved_action['updated_at'].replace(
-            tzinfo=datetime.timezone.utc
+            tzinfo=datetime.UTC
         )
 
         mock_get_action.assert_called_once_with(
@@ -224,7 +224,7 @@ class TestCreateDeleteActionObject(base.DbTestCase):
         action.create()
         expected_action = self.fake_action.copy()
         expected_action['created_at'] = expected_action['created_at'].replace(
-            tzinfo=datetime.timezone.utc
+            tzinfo=datetime.UTC
         )
         mock_create_action.assert_called_once_with(expected_action)
         self.assertEqual(self.context, action._context)
@@ -251,10 +251,10 @@ class TestCreateDeleteActionObject(base.DbTestCase):
 
         expected_action = fake_deleted_action.copy()
         expected_action['created_at'] = expected_action['created_at'].replace(
-            tzinfo=datetime.timezone.utc
+            tzinfo=datetime.UTC
         )
         expected_action['deleted_at'] = expected_action['deleted_at'].replace(
-            tzinfo=datetime.timezone.utc
+            tzinfo=datetime.UTC
         )
         del expected_action['action_plan']
 

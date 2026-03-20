@@ -265,7 +265,7 @@ class TestCreateDeleteAuditTemplateObject(base.DbTestCase):
         expected_audit_template = self.fake_audit_template.copy()
         expected_audit_template['created_at'] = expected_audit_template[
             'created_at'
-        ].replace(tzinfo=datetime.timezone.utc)
+        ].replace(tzinfo=datetime.UTC)
         mock_create_audit_template.assert_called_once_with(
             expected_audit_template
         )
@@ -289,7 +289,7 @@ class TestCreateDeleteAuditTemplateObject(base.DbTestCase):
         expected_audit_template = self.fake_audit_template.copy()
         expected_audit_template['created_at'] = expected_audit_template[
             'created_at'
-        ].replace(tzinfo=datetime.timezone.utc)
+        ].replace(tzinfo=datetime.UTC)
         mock_create_audit_template.assert_called_once_with(
             expected_audit_template
         )
@@ -308,10 +308,10 @@ class TestCreateDeleteAuditTemplateObject(base.DbTestCase):
         expected_audit_template = fake_deleted_audit_template.copy()
         expected_audit_template['created_at'] = expected_audit_template[
             'created_at'
-        ].replace(tzinfo=datetime.timezone.utc)
+        ].replace(tzinfo=datetime.UTC)
         expected_audit_template['deleted_at'] = expected_audit_template[
             'deleted_at'
-        ].replace(tzinfo=datetime.timezone.utc)
+        ].replace(tzinfo=datetime.UTC)
         del expected_audit_template['goal']
         del expected_audit_template['strategy']
 

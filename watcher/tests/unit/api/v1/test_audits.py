@@ -13,7 +13,6 @@
 import datetime
 import itertools
 
-from datetime import timezone
 from http import HTTPStatus
 from unittest import mock
 from urllib import parse as urlparse
@@ -1445,8 +1444,8 @@ class TestPost(TestPostBase):
             response.json['start_time']
         )
         return_end_time = timeutils.parse_isotime(response.json['end_time'])
-        iso_start_time = start_time.astimezone(timezone.utc)
-        iso_end_time = end_time.astimezone(timezone.utc)
+        iso_start_time = start_time.astimezone(datetime.UTC)
+        iso_end_time = end_time.astimezone(datetime.UTC)
 
         self.assertEqual(iso_start_time, return_start_time)
         self.assertEqual(iso_end_time, return_end_time)

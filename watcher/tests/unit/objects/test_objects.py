@@ -300,7 +300,7 @@ class _TestObject:
         self.assertEqual('updated', obj.bar)
 
     def test_base_attributes(self):
-        dt = datetime.datetime(1955, 11, 5, 0, 0, tzinfo=datetime.timezone.utc)
+        dt = datetime.datetime(1955, 11, 5, 0, 0, tzinfo=datetime.UTC)
         datatime = ovo_fields.DateTimeField()
         obj = MyObj(self.context)
         obj.created_at = dt

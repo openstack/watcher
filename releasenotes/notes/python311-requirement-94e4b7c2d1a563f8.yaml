@@ -1,0 +1,6 @@
+---
+upgrade:
+  - |
+    Watcher now requires Python 3.11 or newer. The last release of Watcher to
+    support Python 3.10 was 2026.1. Ensure Python 3.11 or newer is available
+    before upgrading.

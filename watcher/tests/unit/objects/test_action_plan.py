@@ -169,10 +169,10 @@ class TestActionPlanObject(base.DbTestCase):
         expected_action_plan = fake_saved_action_plan.copy()
         expected_action_plan['created_at'] = expected_action_plan[
             'created_at'
-        ].replace(tzinfo=datetime.timezone.utc)
+        ].replace(tzinfo=datetime.UTC)
         expected_action_plan['updated_at'] = expected_action_plan[
             'updated_at'
-        ].replace(tzinfo=datetime.timezone.utc)
+        ].replace(tzinfo=datetime.UTC)
 
         uuid = self.fake_action_plan['uuid']
         action_plan = objects.ActionPlan.get_by_uuid(
@@ -253,7 +253,7 @@ class TestCreateDeleteActionPlanObject(base.DbTestCase):
         expected_action_plan = self.fake_action_plan.copy()
         expected_action_plan['created_at'] = expected_action_plan[
             'created_at'
-        ].replace(tzinfo=datetime.timezone.utc)
+        ].replace(tzinfo=datetime.UTC)
         mock_create_action_plan.assert_called_once_with(expected_action_plan)
         self.assertEqual(self.context, action_plan._context)
 
@@ -291,10 +291,10 @@ class TestCreateDeleteActionPlanObject(base.DbTestCase):
         expected_action_plan = fake_deleted_action_plan.copy()
         expected_action_plan['created_at'] = expected_action_plan[
             'created_at'
-        ].replace(tzinfo=datetime.timezone.utc)
+        ].replace(tzinfo=datetime.UTC)
         expected_action_plan['deleted_at'] = expected_action_plan[
             'deleted_at'
-        ].replace(tzinfo=datetime.timezone.utc)
+        ].replace(tzinfo=datetime.UTC)
         del expected_action_plan['audit']
         del expected_action_plan['strategy']
 
