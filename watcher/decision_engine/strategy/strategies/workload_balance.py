@@ -360,7 +360,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
 
         # choose the server with largest cpu usage
         source_nodes = sorted(
-            source_nodes, reverse=True, key=lambda x: (x[self._meter])
+            source_nodes, reverse=True, key=lambda x: x[self._meter]
         )
 
         instance_to_migrate = self.choose_instance_to_migrate(
@@ -383,7 +383,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
             )
             return self.solution
         destination_hosts = sorted(
-            destination_hosts, key=lambda x: (x[self._meter])
+            destination_hosts, key=lambda x: x[self._meter]
         )
         # always use the host with lowerest CPU utilization
         mig_destination_node = destination_hosts[0]['compute_node']

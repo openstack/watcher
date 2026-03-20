@@ -115,7 +115,7 @@ class WorkloadStabilizationPlanner(base.BasePlanner):
 
         # scheduling
         scheduled = sorted(
-            to_schedule, key=lambda weight: (weight[0]), reverse=True
+            to_schedule, key=lambda weight: weight[0], reverse=True
         )
         if len(scheduled) == 0:
             LOG.warning("The action plan is empty")

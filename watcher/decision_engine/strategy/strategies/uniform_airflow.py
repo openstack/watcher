@@ -206,7 +206,7 @@ class UniformAirflow(base.BaseStrategy):
         """Find instance and host with sufficient available resources"""
         # large instances go first
         instances_to_migrate = sorted(
-            instances_to_migrate, reverse=True, key=lambda x: (x.vcpus)
+            instances_to_migrate, reverse=True, key=lambda x: x.vcpus
         )
         # find hosts for instances
         destination_hosts = []
@@ -310,14 +310,14 @@ class UniformAirflow(base.BaseStrategy):
 
         # migrate the instance from server with largest airflow first
         source_nodes = sorted(
-            source_nodes, reverse=True, key=lambda x: (x["airflow"])
+            source_nodes, reverse=True, key=lambda x: x["airflow"]
         )
         instances_to_migrate = self.choose_instance_to_migrate(source_nodes)
         if not instances_to_migrate:
             return self.solution
         source_node, instances_src = instances_to_migrate
         # sort host with airflow
-        target_nodes = sorted(target_nodes, key=lambda x: (x["airflow"]))
+        target_nodes = sorted(target_nodes, key=lambda x: x["airflow"])
         # find the hosts that have enough resource
         # for the instance to be migrated
         destination_hosts = self.filter_destination_hosts(

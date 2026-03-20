@@ -156,18 +156,20 @@ class StorageCapacityBalance(base.WorkloadStabilizationBaseStrategy):
         """
         under_pools = list(
             filter(
-                lambda p: float(p.total_capacity_gb)
-                - float(p.free_capacity_gb)
-                < float(p.total_capacity_gb) * threshold,
+                lambda p: (
+                    float(p.total_capacity_gb) - float(p.free_capacity_gb)
+                    < float(p.total_capacity_gb) * threshold
+                ),
                 pools,
             )
         )
 
         over_pools = list(
             filter(
-                lambda p: float(p.total_capacity_gb)
-                - float(p.free_capacity_gb)
-                >= float(p.total_capacity_gb) * threshold,
+                lambda p: (
+                    float(p.total_capacity_gb) - float(p.free_capacity_gb)
+                    >= float(p.total_capacity_gb) * threshold
+                ),
                 pools,
             )
         )
@@ -182,10 +184,10 @@ class StorageCapacityBalance(base.WorkloadStabilizationBaseStrategy):
         volume_type_list = cinder.get_volume_type_list()
         volume_type = list(
             filter(
-                lambda volume_type: volume_type.extra_specs.get(
-                    'volume_backend_name'
-                )
-                == backendname,
+                lambda volume_type: (
+                    volume_type.extra_specs.get('volume_backend_name')
+                    == backendname
+                ),
                 volume_type_list,
             )
         )
@@ -201,8 +203,9 @@ class StorageCapacityBalance(base.WorkloadStabilizationBaseStrategy):
             LOG.info("volume %s type %s", volume.id, volume.volume_type)
             return target_pool_name
         self.dest_pools.sort(
-            key=lambda p: float(p.free_capacity_gb)
-            / float(p.total_capacity_gb)
+            key=lambda p: (
+                float(p.free_capacity_gb) / float(p.total_capacity_gb)
+            )
         )
         for pool in reversed(self.dest_pools):
             total_cap = float(pool.total_capacity_gb)
@@ -263,8 +266,9 @@ class StorageCapacityBalance(base.WorkloadStabilizationBaseStrategy):
     def retype_fit(self, volume, threshold):
         target_type = None
         self.dest_pools.sort(
-            key=lambda p: float(p.free_capacity_gb)
-            / float(p.total_capacity_gb)
+            key=lambda p: (
+                float(p.free_capacity_gb) / float(p.total_capacity_gb)
+            )
         )
         for pool in reversed(self.dest_pools):
             backendname = getattr(pool, 'volume_backend_name')
@@ -337,8 +341,9 @@ class StorageCapacityBalance(base.WorkloadStabilizationBaseStrategy):
         if seek_flag:
             noboot_volumes = list(
                 filter(
-                    lambda v: v.bootable.lower() == 'false'
-                    and v.status == 'in-use',
+                    lambda v: (
+                        v.bootable.lower() == 'false' and v.status == 'in-use'
+                    ),
                     volumes_in_pool,
                 )
             )
@@ -364,8 +369,9 @@ class StorageCapacityBalance(base.WorkloadStabilizationBaseStrategy):
         if seek_flag:
             boot_volumes = list(
                 filter(
-                    lambda v: v.bootable.lower() == 'true'
-                    and v.status == 'in-use',
+                    lambda v: (
+                        v.bootable.lower() == 'true' and v.status == 'in-use'
+                    ),
                     volumes_in_pool,
                 )
             )

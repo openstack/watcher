@@ -450,7 +450,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
 
         scores = self.compute_score_of_nodes()
         # Sort compute nodes by Score decreasing
-        sorted_scores = sorted(scores, reverse=True, key=lambda x: (x[1]))
+        sorted_scores = sorted(scores, reverse=True, key=lambda x: x[1])
         LOG.debug("Compute node(s) BFD %s", sorted_scores)
         # Get Node to be released
         if len(scores) == 0:
@@ -469,7 +469,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
 
             # Sort instances by Score
             sorted_instances = sorted(
-                instance_score, reverse=True, key=lambda x: (x[1])
+                instance_score, reverse=True, key=lambda x: x[1]
             )
             # BFD: Best Fit Decrease
             LOG.debug("Instance(s) BFD %s", sorted_instances)

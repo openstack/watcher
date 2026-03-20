@@ -246,7 +246,7 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
 
         # choose the server with highest outlet t
         hosts_need_release = sorted(
-            hosts_need_release, reverse=True, key=lambda x: (x["outlet_temp"])
+            hosts_need_release, reverse=True, key=lambda x: x["outlet_temp"]
         )
 
         instance_to_migrate = self.choose_instance_to_migrate(
@@ -266,7 +266,7 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
             LOG.info("No proper target host could be found")
             return self.solution
 
-        dest_servers = sorted(dest_servers, key=lambda x: (x["outlet_temp"]))
+        dest_servers = sorted(dest_servers, key=lambda x: x["outlet_temp"])
         # always use the host with lowerest outlet temperature
         mig_destination_node = dest_servers[0]['compute_node']
         # generate solution to migrate the instance to the dest server,
