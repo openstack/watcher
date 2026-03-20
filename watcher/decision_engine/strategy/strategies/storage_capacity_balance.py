@@ -21,6 +21,7 @@ from watcher._i18n import _
 from watcher.common import cinder_helper
 from watcher.decision_engine.strategy.strategies import base
 
+
 LOG = log.getLogger(__name__)
 
 
@@ -349,7 +350,7 @@ class StorageCapacityBalance(base.WorkloadStabilizationBaseStrategy):
         return retype_dicts, migrate_dicts
 
     def pre_execute(self):
-        LOG.info("Initializing " + self.get_display_name() + " Strategy")
+        LOG.info("Initializing %s Strategy", self.get_display_name())
         self.volume_threshold = self.input_parameters.volume_threshold
 
     def do_execute(self, audit=None):

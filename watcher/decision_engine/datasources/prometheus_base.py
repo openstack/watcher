@@ -22,6 +22,7 @@ from watcher._i18n import _
 from watcher.common import exception
 from watcher.decision_engine.datasources import base
 
+
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)
 

@@ -24,6 +24,7 @@ from watcher.common import keystone_helper
 from watcher.common import utils
 from watcher.decision_engine.loading import default
 
+
 LOG = log.getLogger(__name__)
 
 

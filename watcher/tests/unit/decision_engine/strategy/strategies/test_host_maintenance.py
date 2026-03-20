@@ -21,8 +21,9 @@ from unittest import mock
 from watcher.common import exception
 from watcher.decision_engine.model import element
 from watcher.decision_engine.strategy import strategies
-from watcher.tests.unit.decision_engine.strategy.strategies.test_base \
-    import TestBaseStrategy
+from watcher.tests.unit.decision_engine.strategy.strategies.test_base import (
+    TestBaseStrategy,
+)
 
 
 class TestHostMaintenance(TestBaseStrategy):

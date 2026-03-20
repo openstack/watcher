@@ -22,6 +22,7 @@ from oslo_config import cfg
 from watcher.decision_engine.datasources import base as datasource
 from watcher.tests.unit import base
 
+
 CONF = cfg.CONF
 
 

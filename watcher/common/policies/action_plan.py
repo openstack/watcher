@@ -14,6 +14,7 @@ from oslo_policy import policy
 
 from watcher.common.policies import base
 
+
 ACTION_PLAN = 'action_plan:%s'
 
 rules = [

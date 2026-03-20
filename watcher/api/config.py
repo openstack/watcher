@@ -13,7 +13,9 @@
 # limitations under the License.
 
 from oslo_config import cfg
+
 from watcher.api import hooks
+
 
 # Server Specific Configurations
 # See https://pecan.readthedocs.org/en/latest/configuration.html#server-configuration # noqa

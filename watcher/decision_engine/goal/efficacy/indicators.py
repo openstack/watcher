@@ -14,15 +14,17 @@
 # limitations under the License.
 
 import abc
+
 import jsonschema
+
 from jsonschema import SchemaError
 from jsonschema import ValidationError
-
 from oslo_log import log
 from oslo_serialization import jsonutils
 
 from watcher._i18n import _
 from watcher.common import exception
+
 
 LOG = log.getLogger(__name__)
 

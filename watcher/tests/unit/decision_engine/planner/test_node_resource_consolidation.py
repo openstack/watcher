@@ -15,13 +15,14 @@
 
 from unittest import mock
 
+from watcher import objects
 from watcher.common import exception
 from watcher.common import utils
 from watcher.db import api as db_api
-from watcher.decision_engine.planner import \
-    node_resource_consolidation as pbase
+from watcher.decision_engine.planner import (
+    node_resource_consolidation as pbase,
+)
 from watcher.decision_engine.solution import default as dsol
-from watcher import objects
 from watcher.tests.unit.db import base
 from watcher.tests.unit.db import utils as db_utils
 from watcher.tests.unit.objects import utils as obj_utils

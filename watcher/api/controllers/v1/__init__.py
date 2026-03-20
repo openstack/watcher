@@ -22,11 +22,12 @@ NOTE: IN PROGRESS AND NOT FULLY IMPLEMENTED.
 import datetime
 
 import pecan
+import wsme
+import wsmeext.pecan as wsme_pecan
+
 from pecan import rest
 from webob import exc
-import wsme
 from wsme import types as wtypes
-import wsmeext.pecan as wsme_pecan
 
 from watcher.api.controllers import base
 from watcher.api.controllers import link

@@ -17,8 +17,9 @@
 import os
 
 import alembic
-from alembic import config as alembic_config
 import alembic.migration as alembic_migration
+
+from alembic import config as alembic_config
 from oslo_db import exception as db_exc
 from oslo_db.sqlalchemy import enginefacade
 

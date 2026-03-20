@@ -114,6 +114,7 @@ from watcher.common import clients
 from watcher.common.loader import loadable
 from watcher.decision_engine.model import model_root
 
+
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF
 

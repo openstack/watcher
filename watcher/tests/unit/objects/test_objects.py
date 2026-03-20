@@ -15,6 +15,7 @@
 import contextlib
 import datetime
 import gettext
+
 from unittest import mock
 
 from oslo_versionedobjects import base as object_base
@@ -25,6 +26,7 @@ from watcher.common import context
 from watcher.objects import base
 from watcher.objects import fields
 from watcher.tests.unit import base as test_base
+
 
 gettext.install('watcher')
 

@@ -30,12 +30,13 @@ from sqlalchemy.inspection import inspect
 from sqlalchemy.orm import exc
 from sqlalchemy.orm import joinedload
 
+from watcher import objects
 from watcher._i18n import _
 from watcher.common import exception
 from watcher.common import utils
 from watcher.db import api
 from watcher.db.sqlalchemy import models
-from watcher import objects
+
 
 CONF = cfg.CONF
 

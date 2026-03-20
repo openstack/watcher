@@ -19,8 +19,8 @@
 from unittest import mock
 
 import oslo_messaging as om
-from watcher.applier import rpcapi
 
+from watcher.applier import rpcapi
 from watcher.common import exception
 from watcher.common import utils
 from watcher.tests.unit import base

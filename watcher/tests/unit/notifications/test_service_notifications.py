@@ -17,10 +17,11 @@ from unittest import mock
 
 import freezegun
 import oslo_messaging as om
+
 from oslo_utils import timeutils
 
-from watcher.common import rpc
 from watcher import notifications
+from watcher.common import rpc
 from watcher.objects import service as w_service
 from watcher.tests.unit.db import base
 from watcher.tests.unit.objects import utils

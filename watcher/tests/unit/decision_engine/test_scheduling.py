@@ -15,18 +15,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from apscheduler.schedulers import background
-from apscheduler.triggers import interval as interval_trigger
 from unittest import mock
 
+from apscheduler.schedulers import background
+from apscheduler.triggers import interval as interval_trigger
 from oslo_config import cfg
 from oslo_utils import uuidutils
 
-from watcher.decision_engine.loading import default as default_loading
-from watcher.decision_engine import scheduling
-from watcher.decision_engine.strategy.strategies import dummy_strategy
 from watcher import notifications
 from watcher import objects
+from watcher.decision_engine import scheduling
+from watcher.decision_engine.loading import default as default_loading
+from watcher.decision_engine.strategy.strategies import dummy_strategy
 from watcher.tests.fixtures import watcher as watcher_fixtures
 from watcher.tests.unit import base
 from watcher.tests.unit.db import base as db_base

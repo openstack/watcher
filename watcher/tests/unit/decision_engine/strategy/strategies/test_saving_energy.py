@@ -16,12 +16,13 @@
 
 from unittest import mock
 
-from watcher.common.metal_helper import constants as m_constants
 from watcher.common import utils
+from watcher.common.metal_helper import constants as m_constants
 from watcher.decision_engine.strategy import strategies
 from watcher.tests.unit.decision_engine import fake_metal_helper
-from watcher.tests.unit.decision_engine.strategy.strategies.test_base \
-    import TestBaseStrategy
+from watcher.tests.unit.decision_engine.strategy.strategies.test_base import (
+    TestBaseStrategy,
+)
 
 
 class TestSavingEnergy(TestBaseStrategy):

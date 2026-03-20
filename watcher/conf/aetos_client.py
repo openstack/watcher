@@ -15,6 +15,7 @@
 
 from oslo_config import cfg
 
+
 aetos_client = cfg.OptGroup(name='aetos_client',
                             title='Configuration Options for Aetos',
                             help="See https://docs.openstack.org/watcher/"

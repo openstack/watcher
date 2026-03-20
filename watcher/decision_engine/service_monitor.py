@@ -15,13 +15,14 @@
 
 
 import itertools
+
 from oslo_config import cfg
 from oslo_log import log
 
-from watcher.common import service
 from watcher import notifications
-
 from watcher import objects
+from watcher.common import service
+
 
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)

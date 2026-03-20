@@ -11,10 +11,11 @@
 #    limitations under the License.
 
 from http import HTTPStatus
+
 from oslo_config import cfg
 from oslo_serialization import jsonutils
-from watcher.common import utils
 
+from watcher.common import utils
 from watcher.tests.unit.api import base as api_base
 from watcher.tests.unit.objects import utils as obj_utils
 

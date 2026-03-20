@@ -19,14 +19,15 @@ from oslo_config import cfg
 from oslo_log import log
 from taskflow import engines
 from taskflow import exceptions as tf_exception
-from taskflow.patterns import graph_flow as gf
 from taskflow import task as flow_task
+from taskflow.patterns import graph_flow as gf
 
-from watcher.applier.workflow_engine import base
-from watcher.common import exception
 from watcher import conf
 from watcher import eventlet as eventlet_helper
 from watcher import objects
+from watcher.applier.workflow_engine import base
+from watcher.common import exception
+
 
 CONF = conf.CONF
 

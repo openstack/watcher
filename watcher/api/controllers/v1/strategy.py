@@ -27,10 +27,12 @@ to find an optimal :ref:`Solution <solution_definition>`.
 """
 
 import pecan
-from pecan import rest
-from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
+from pecan import rest
+from wsme import types as wtypes
+
+from watcher import objects
 from watcher.api.controllers import base
 from watcher.api.controllers import link
 from watcher.api.controllers.v1 import collection
@@ -40,7 +42,6 @@ from watcher.common import exception
 from watcher.common import policy
 from watcher.common import utils as common_utils
 from watcher.decision_engine import rpcapi
-from watcher import objects
 
 
 def hide_fields_in_newer_versions(obj):

@@ -22,17 +22,20 @@
 # NOTE(deva): import auth_token so we can override a config option
 
 import copy
+
 from unittest import mock
 from urllib import parse as urlparse
 
-from oslo_config import cfg
 import pecan
 import pecan.testing
+
+from oslo_config import cfg
 
 from watcher.api import hooks
 from watcher.common import context as watcher_context
 from watcher.notifications import service as n_service
 from watcher.tests.unit.db import base
+
 
 PATH_PREFIX = '/v1'
 

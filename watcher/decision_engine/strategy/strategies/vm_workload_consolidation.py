@@ -19,14 +19,16 @@
 
 import collections
 
-from oslo_log import log
 import oslo_utils
+
+from oslo_log import log
 
 from watcher._i18n import _
 from watcher.applier.actions import migration
 from watcher.common import exception
 from watcher.decision_engine.model import element
 from watcher.decision_engine.strategy.strategies import base
+
 
 LOG = log.getLogger(__name__)
 

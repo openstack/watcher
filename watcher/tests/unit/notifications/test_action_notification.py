@@ -12,15 +12,15 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import freezegun
 from unittest import mock
 
+import freezegun
 import oslo_messaging as om
 
-from watcher.common import exception
-from watcher.common import rpc
 from watcher import notifications
 from watcher import objects
+from watcher.common import exception
+from watcher.common import rpc
 from watcher.tests.unit.db import base
 from watcher.tests.unit.objects import utils
 

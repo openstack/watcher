@@ -16,16 +16,17 @@
 # limitations under the License.
 #
 import abc
+
 from unittest import mock
 
+from watcher import notifications
+from watcher import objects
 from watcher.applier.actions import base as abase
 from watcher.applier.actions import factory
 from watcher.applier.actions import nop
 from watcher.applier.workflow_engine import default as tflow
 from watcher.common import exception
 from watcher.common import utils
-from watcher import notifications
-from watcher import objects
 from watcher.tests.unit.db import base
 from watcher.tests.unit.objects import utils as obj_utils
 

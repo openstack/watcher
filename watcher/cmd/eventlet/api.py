@@ -21,8 +21,9 @@ import sys
 from oslo_config import cfg
 from oslo_log import log
 
-from watcher.common import service
 from watcher import conf
+from watcher.common import service
+
 
 LOG = log.getLogger(__name__)
 CONF = conf.CONF

@@ -17,9 +17,10 @@ from oslo_config import cfg
 from oslo_log import log
 
 from watcher.common import exception
+from watcher.common import utils
 from watcher.common.metal_helper import base
 from watcher.common.metal_helper import constants as metal_constants
-from watcher.common import utils
+
 
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)

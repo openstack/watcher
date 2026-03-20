@@ -14,9 +14,10 @@
 
 from oslo_upgradecheck.upgradecheck import Code
 
-from watcher.cmd import status
 from watcher import conf
+from watcher.cmd import status
 from watcher.tests.unit import base
+
 
 CONF = conf.CONF
 

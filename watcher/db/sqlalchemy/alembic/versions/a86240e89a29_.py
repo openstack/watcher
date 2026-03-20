@@ -8,7 +8,9 @@ Create Date: 2017-12-21 13:00:09.278587
 
 from alembic import op
 from sqlalchemy.orm import sessionmaker
+
 from watcher.db.sqlalchemy import models
+
 
 # revision identifiers, used by Alembic.
 revision = 'a86240e89a29'

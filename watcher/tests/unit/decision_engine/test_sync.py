@@ -17,11 +17,11 @@ from unittest import mock
 
 from oslo_serialization import jsonutils
 
+from watcher import objects
 from watcher.common import context
 from watcher.common import utils
-from watcher.decision_engine.loading import default
 from watcher.decision_engine import sync
-from watcher import objects
+from watcher.decision_engine.loading import default
 from watcher.tests.unit.db import base
 from watcher.tests.unit.decision_engine import fake_goals
 from watcher.tests.unit.decision_engine import fake_strategies

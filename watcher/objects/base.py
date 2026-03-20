@@ -20,6 +20,7 @@ from oslo_versionedobjects import fields as ovo_fields
 
 from watcher import objects
 
+
 remotable_classmethod = ovo_base.remotable_classmethod
 remotable = ovo_base.remotable
 

@@ -21,11 +21,12 @@ import sys
 
 from oslo_log import log
 
-from watcher.common import service as watcher_service
 from watcher import conf
+from watcher.common import service as watcher_service
 from watcher.decision_engine import gmr
 from watcher.decision_engine import service as decision_engine_service
 from watcher.decision_engine import sync
+
 
 LOG = log.getLogger(__name__)
 CONF = conf.CONF

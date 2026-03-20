@@ -15,17 +15,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import time
+
+from unittest import mock
+
 import ddt
 import fixtures
 import futurist
 import os_resource_classes as orc
-import time
-from unittest import mock
 
 from watcher.common import nova_helper
 from watcher.common import placement_helper
-from watcher.decision_engine.model.collector import nova
 from watcher.decision_engine.model import model_root
+from watcher.decision_engine.model.collector import nova
 from watcher.tests.fixtures import conf_fixture
 from watcher.tests.unit import base
 from watcher.tests.unit.common import utils as test_utils

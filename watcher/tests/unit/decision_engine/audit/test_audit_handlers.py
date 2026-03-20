@@ -14,14 +14,16 @@
 # limitations under the License.
 
 import datetime
+
 from unittest import mock
 
+from apscheduler import job
 from oslo_config import cfg
 from oslo_utils import timeutils
 from oslo_utils import uuidutils
 
-from apscheduler import job
-
+from watcher import notifications
+from watcher import objects
 from watcher.applier import rpcapi
 from watcher.common import exception
 from watcher.common import scheduling
@@ -31,11 +33,10 @@ from watcher.decision_engine.audit import oneshot
 from watcher.decision_engine.model.collector import manager
 from watcher.decision_engine.strategy.strategies import base as base_strategy
 from watcher.decision_engine.strategy.strategies import dummy_strategy
-from watcher import notifications
-from watcher import objects
 from watcher.tests.unit.db import base
 from watcher.tests.unit.decision_engine.model import (
-    faker_cluster_state as faker)
+    faker_cluster_state as faker,
+)
 from watcher.tests.unit.objects import utils as obj_utils
 
 

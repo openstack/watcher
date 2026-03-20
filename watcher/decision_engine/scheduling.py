@@ -17,13 +17,12 @@ import datetime
 
 from oslo_log import log
 
+from watcher import conf
+from watcher import objects
 from watcher.common import context
 from watcher.common import scheduling
-
 from watcher.decision_engine.model.collector import manager
-from watcher import objects
 
-from watcher import conf
 
 LOG = log.getLogger(__name__)
 CONF = conf.CONF

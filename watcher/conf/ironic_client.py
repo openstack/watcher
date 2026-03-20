@@ -17,6 +17,7 @@
 
 from oslo_config import cfg
 
+
 ironic_client = cfg.OptGroup(name='ironic_client',
                              title='Configuration Options for Ironic')
 

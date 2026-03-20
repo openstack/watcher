@@ -20,6 +20,7 @@ from oslo_log import log
 
 from watcher.common import exception
 
+
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)
 

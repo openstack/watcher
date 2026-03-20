@@ -58,13 +58,15 @@ possible to :ref:`develop new implementations <implement_action_plugin>` which
 are dynamically loaded by Watcher at launch time.
 """
 
-from oslo_utils import timeutils
 import pecan
-from pecan import rest
 import wsme
-from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
+from oslo_utils import timeutils
+from pecan import rest
+from wsme import types as wtypes
+
+from watcher import objects
 from watcher._i18n import _
 from watcher.api.controllers import base
 from watcher.api.controllers import link
@@ -73,7 +75,6 @@ from watcher.api.controllers.v1 import types
 from watcher.api.controllers.v1 import utils as api_utils
 from watcher.common import exception
 from watcher.common import policy
-from watcher import objects
 
 
 def hide_fields_in_newer_versions(obj):

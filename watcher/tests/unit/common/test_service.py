@@ -14,18 +14,21 @@
 # limitations under the License.
 
 import datetime
+
 from unittest import mock
 
 import freezegun
-from oslo_config import cfg
 import oslo_messaging as om
+
+from oslo_config import cfg
 from oslo_utils import timeutils
 
-from watcher.common import service
 from watcher import objects
+from watcher.common import service
 from watcher.tests.unit import base
 from watcher.tests.unit.db import base as db_base
 from watcher.tests.unit.db import utils
+
 
 CONF = cfg.CONF
 

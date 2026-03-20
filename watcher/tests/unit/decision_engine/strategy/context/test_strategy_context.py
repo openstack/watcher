@@ -18,9 +18,9 @@ from unittest import mock
 from watcher.common import utils
 from watcher.decision_engine.model.collector import manager
 from watcher.decision_engine.solution import default
+from watcher.decision_engine.strategy import strategies
 from watcher.decision_engine.strategy.context import default as d_strategy_ctx
 from watcher.decision_engine.strategy.selection import default as d_selector
-from watcher.decision_engine.strategy import strategies
 from watcher.tests.unit.db import base
 from watcher.tests.unit.decision_engine.model import faker_cluster_state
 from watcher.tests.unit.objects import utils as obj_utils

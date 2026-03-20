@@ -16,16 +16,18 @@
 from operator import attrgetter
 
 import jsonpatch
-from oslo_config import cfg
-from oslo_utils import reflection
-from oslo_utils import uuidutils
 import pecan
 import wsme
 
+from oslo_config import cfg
+from oslo_utils import reflection
+from oslo_utils import uuidutils
+
+from watcher import objects
 from watcher._i18n import _
 from watcher.api.controllers.v1 import versions
 from watcher.common import utils
-from watcher import objects
+
 
 CONF = cfg.CONF
 

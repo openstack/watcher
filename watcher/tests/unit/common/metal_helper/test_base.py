@@ -16,9 +16,9 @@
 from unittest import mock
 
 from watcher.common import exception
+from watcher.common import nova_helper
 from watcher.common.metal_helper import base as m_helper_base
 from watcher.common.metal_helper import constants as m_constants
-from watcher.common import nova_helper
 from watcher.tests.unit import base
 
 

@@ -21,15 +21,18 @@ import functools
 import time
 import uuid
 
+import microversion_parse
+
 from keystoneauth1 import exceptions as ksa_exc
 from keystoneauth1 import loading as ks_loading
-import microversion_parse
 from openstack import exceptions as sdk_exc
 from oslo_log import log
+
+from watcher import conf
 from watcher.common import clients
 from watcher.common import exception
-from watcher import conf
 from watcher.conf import clients_auth
+
 
 LOG = log.getLogger(__name__)
 

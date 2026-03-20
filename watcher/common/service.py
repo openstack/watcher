@@ -17,17 +17,20 @@ import abc
 import datetime
 import socket
 
+import oslo_messaging as messaging
+
 from oslo_concurrency import processutils
 from oslo_config import cfg
 from oslo_log import _options
 from oslo_log import log
-import oslo_messaging as messaging
 from oslo_reports import guru_meditation_report as gmr
 from oslo_reports import opts as gmr_opts
 from oslo_service import service
 from oslo_service import wsgi
 from oslo_utils import timeutils
 
+from watcher import objects
+from watcher import version
 from watcher._i18n import _
 from watcher.api import app
 from watcher.common import config
@@ -35,10 +38,8 @@ from watcher.common import context
 from watcher.common import rpc
 from watcher.common import scheduling
 from watcher.conf import plugins as plugins_conf
-from watcher import objects
 from watcher.objects import base
 from watcher.objects import fields as wfields
-from watcher import version
 
 
 NOTIFICATION_OPTS = [

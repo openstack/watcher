@@ -13,17 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import datetime
+
 from unittest import mock
 
-from apscheduler.schedulers import background
-import datetime
 import freezegun
+
+from apscheduler.schedulers import background
 from oslo_utils import timeutils
 
+from watcher import objects
 from watcher.common import utils as common_utils
 from watcher.decision_engine import service_monitor
 from watcher.notifications import service
-from watcher import objects
 from watcher.tests.unit import base
 from watcher.tests.unit.db import base as db_base
 from watcher.tests.unit.db import utils

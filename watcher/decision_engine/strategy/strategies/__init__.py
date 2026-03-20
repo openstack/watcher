@@ -19,16 +19,19 @@ from watcher.decision_engine.strategy.strategies import basic_consolidation
 from watcher.decision_engine.strategy.strategies import dummy_strategy
 from watcher.decision_engine.strategy.strategies import dummy_with_scorer
 from watcher.decision_engine.strategy.strategies import host_maintenance
-from watcher.decision_engine.strategy.strategies import \
-    node_resource_consolidation
+from watcher.decision_engine.strategy.strategies import (
+    node_resource_consolidation,
+)
 from watcher.decision_engine.strategy.strategies import noisy_neighbor
 from watcher.decision_engine.strategy.strategies import outlet_temp_control
 from watcher.decision_engine.strategy.strategies import saving_energy
-from watcher.decision_engine.strategy.strategies import \
-    storage_capacity_balance
+from watcher.decision_engine.strategy.strategies import (
+    storage_capacity_balance,
+)
 from watcher.decision_engine.strategy.strategies import uniform_airflow
-from watcher.decision_engine.strategy.strategies import \
-    vm_workload_consolidation
+from watcher.decision_engine.strategy.strategies import (
+    vm_workload_consolidation,
+)
 from watcher.decision_engine.strategy.strategies import workload_balance
 from watcher.decision_engine.strategy.strategies import workload_stabilization
 from watcher.decision_engine.strategy.strategies import zone_migration

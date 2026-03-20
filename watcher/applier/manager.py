@@ -17,10 +17,10 @@
 # limitations under the License.
 #
 
+from watcher import conf
 from watcher.applier.messaging import trigger
 from watcher.common import service_manager
 
-from watcher import conf
 
 CONF = conf.CONF
 

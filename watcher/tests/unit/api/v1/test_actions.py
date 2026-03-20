@@ -10,21 +10,23 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-import fixtures
 import itertools
 
 from http import HTTPStatus
+
+import fixtures
+
 from oslo_config import cfg
 from oslo_serialization import jsonutils
 from wsme import types as wtypes
 
+from watcher import objects
 from watcher.api.controllers.v1 import action as api_action
 from watcher.common import utils
 from watcher.db import api as db_api
-from watcher import objects
+from watcher.tests.unit import base
 from watcher.tests.unit.api import base as api_base
 from watcher.tests.unit.api import utils as api_utils
-from watcher.tests.unit import base
 from watcher.tests.unit.db import utils as db_utils
 from watcher.tests.unit.objects import utils as obj_utils
 

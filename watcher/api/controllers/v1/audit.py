@@ -29,19 +29,22 @@ states, visit :ref:`the Audit State machine <audit_state_machine>`.
 """
 
 import datetime
-from datetime import timezone
 
+from datetime import timezone
 from http import HTTPStatus
+
 import jsonschema
-from oslo_log import log
-from oslo_utils import timeutils
 import pecan
-from pecan import rest
 import wsme
-from wsme import types as wtypes
-from wsme import utils as wutils
 import wsmeext.pecan as wsme_pecan
 
+from oslo_log import log
+from oslo_utils import timeutils
+from pecan import rest
+from wsme import types as wtypes
+from wsme import utils as wutils
+
+from watcher import objects
 from watcher._i18n import _
 from watcher.api.controllers import base
 from watcher.api.controllers import link
@@ -52,7 +55,7 @@ from watcher.common import exception
 from watcher.common import policy
 from watcher.common import utils
 from watcher.decision_engine import rpcapi
-from watcher import objects
+
 
 LOG = log.getLogger(__name__)
 

@@ -15,9 +15,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from http import HTTPStatus
 from urllib import parse as urlparse
 
-from http import HTTPStatus
+import requests
+
 from oslo_config import cfg
 from oslo_log import log
 
@@ -27,7 +29,6 @@ from watcher.common import exception
 from watcher.decision_engine.datasources import base
 from watcher.decision_engine.datasources.grafana_translator import influxdb
 
-import requests
 
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)

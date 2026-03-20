@@ -17,11 +17,11 @@
 
 from apscheduler import events
 from apscheduler.schedulers import background
-
 from oslo_service import service
 
-from watcher.common import executor
 from watcher import eventlet as eventlet_helper
+from watcher.common import executor
+
 
 job_events = events
 

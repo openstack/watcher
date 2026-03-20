@@ -17,6 +17,7 @@
 
 import logging as std_logging
 import os
+
 from unittest import mock
 
 import fixtures

@@ -17,6 +17,7 @@
 
 from oslo_config import cfg
 
+
 watcher_planner = cfg.OptGroup(name='watcher_planner',
                                title='Defines the parameters of '
                                      'the planner')

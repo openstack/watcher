@@ -20,6 +20,7 @@ from watcher.common import rpc
 from watcher.objects import base
 from watcher.objects import fields as wfields
 
+
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)
 

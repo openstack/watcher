@@ -14,7 +14,9 @@
 # limitations under the License.
 #
 import oslo_i18n
+
 from oslo_i18n import _lazy
+
 
 # The domain is the name of the App which is used to generate the folder
 # containing the translation files (i.e. the .pot file and the various locales)

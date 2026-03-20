@@ -19,6 +19,8 @@
 # that has the side effect of monkey patching the test executor
 # after many modules are already imported.
 from watcher import eventlet
+
+
 eventlet.patch()
 
 # NOTE(dviroel): oslo service backend needs to be initialize

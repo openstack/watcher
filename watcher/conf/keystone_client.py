@@ -15,6 +15,7 @@
 
 from oslo_config import cfg
 
+
 keystone_client = cfg.OptGroup(name='keystone_client',
                                title='Configuration Options for Keystone')
 

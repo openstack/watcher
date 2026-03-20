@@ -17,6 +17,7 @@
 
 from oslo_config import cfg
 
+
 api = cfg.OptGroup(name='api',
                    title='Options for the Watcher API service')
 

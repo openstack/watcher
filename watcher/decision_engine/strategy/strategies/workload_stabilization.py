@@ -22,14 +22,16 @@ import math
 import random
 
 import oslo_cache
+import oslo_utils
+
 from oslo_config import cfg
 from oslo_log import log
-import oslo_utils
 
 from watcher._i18n import _
 from watcher.common import exception
 from watcher.decision_engine.model import element
 from watcher.decision_engine.strategy.strategies import base
+
 
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF

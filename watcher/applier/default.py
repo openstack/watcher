@@ -18,9 +18,10 @@
 from oslo_config import cfg
 from oslo_log import log
 
+from watcher import objects
 from watcher.applier import base
 from watcher.applier.loading import default
-from watcher import objects
+
 
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF

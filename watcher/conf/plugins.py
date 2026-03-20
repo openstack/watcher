@@ -21,6 +21,7 @@ from watcher.applier.loading import default as applier_loader
 from watcher.common import utils
 from watcher.decision_engine.loading import default as decision_engine_loader
 
+
 PLUGIN_LOADERS = (
     applier_loader.DefaultActionLoader,
     decision_engine_loader.DefaultPlannerLoader,

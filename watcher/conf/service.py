@@ -21,6 +21,7 @@ from oslo_config import cfg
 
 from watcher._i18n import _
 
+
 SERVICE_OPTS = [
     cfg.IntOpt('periodic_interval',
                default=60,

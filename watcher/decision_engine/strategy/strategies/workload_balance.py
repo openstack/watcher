@@ -23,6 +23,7 @@ from watcher.common import exception
 from watcher.decision_engine.model import element
 from watcher.decision_engine.strategy.strategies import base
 
+
 LOG = log.getLogger(__name__)
 
 
@@ -201,24 +202,24 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                     limit = self.threshold / 100 * host.vcpus
                     if usage < limit:
                         destination_hosts.append(instance_data)
-                    LOG.debug(f"Host {host.hostname} evaluated as destination "
-                              f"for {instance_to_migrate.uuid}. Host usage "
-                              f"for cpu would be {usage_percent}."
-                              f"The threshold is: {self.threshold}. "
-                              f"selected: {usage < limit}"
-                              )
+                    LOG.debug(
+                        "Host %s evaluated as destination for %s. "
+                        "Host usage for cpu would be %s."
+                        "The threshold is: %s. selected: %s",
+                        host.hostname, instance_to_migrate.uuid,
+                        usage_percent, self.threshold, usage < limit)
                 if self._meter == 'instance_ram_usage':
                     usage = src_instance_workload + workload
                     usage_percent = usage / host.memory * 100
                     limit = self.threshold / 100 * host.memory
                     if usage < limit:
                         destination_hosts.append(instance_data)
-                    LOG.debug(f"Host {host.hostname} evaluated as destination "
-                              f"for {instance_to_migrate.uuid}. Host usage "
-                              f"for ram would be {usage_percent}."
-                              f"The threshold is: {self.threshold}. "
-                              f"selected: {usage < limit}"
-                              )
+                    LOG.debug(
+                        "Host %s evaluated as destination for %s. "
+                        "Host usage for ram would be %s."
+                        "The threshold is: %s. selected: %s",
+                        host.hostname, instance_to_migrate.uuid,
+                        usage_percent, self.threshold, usage < limit)
         return destination_hosts
 
     def group_hosts_by_cpu_or_ram_util(self):
@@ -282,9 +283,11 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                 overload_hosts.append(instance_data)
             else:
                 nonoverload_hosts.append(instance_data)
-            LOG.debug(f"Host usage for {node_id}: {host_metric} is "
-                      f"{node_util}. Higher than threshold {self.threshold}: "
-                      f"{node_util >= self.threshold}")
+            LOG.debug(
+                "Host usage for %s: %s is %s. "
+                "Higher than threshold %s: %s",
+                node_id, host_metric, node_util,
+                self.threshold, node_util >= self.threshold)
 
         avg_workload = 0
         if cluster_size != 0:

@@ -13,8 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import fixtures
 from unittest import mock
+
+import fixtures
+
 
 try:
     from maas.client import enum as maas_enum

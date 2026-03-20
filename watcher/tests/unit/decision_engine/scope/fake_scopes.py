@@ -15,6 +15,7 @@
 
 from watcher.tests.unit.decision_engine.model import faker_cluster_state
 
+
 vum = faker_cluster_state.volume_uuid_mapping
 
 fake_scope_1 = [{'compute': [{'availability_zones': [{'name': 'AZ1'},

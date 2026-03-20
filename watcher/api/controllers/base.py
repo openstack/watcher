@@ -16,8 +16,9 @@ import datetime
 import functools
 
 import microversion_parse
-from webob import exc
 import wsme
+
+from webob import exc
 from wsme import types as wtypes
 
 

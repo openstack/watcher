@@ -17,9 +17,10 @@ import sys
 from oslo_upgradecheck import common_checks
 from oslo_upgradecheck import upgradecheck
 
+from watcher import conf
 from watcher._i18n import _
 from watcher.common import clients
-from watcher import conf
+
 
 CONF = conf.CONF
 

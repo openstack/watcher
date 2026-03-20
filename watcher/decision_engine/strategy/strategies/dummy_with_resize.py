@@ -17,6 +17,7 @@ from oslo_log import log
 from watcher._i18n import _
 from watcher.decision_engine.strategy.strategies import base
 
+
 LOG = log.getLogger(__name__)
 
 

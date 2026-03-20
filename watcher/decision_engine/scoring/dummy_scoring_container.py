@@ -22,6 +22,7 @@ from oslo_serialization import jsonutils
 from watcher._i18n import _
 from watcher.decision_engine.scoring import base
 
+
 LOG = log.getLogger(__name__)
 
 

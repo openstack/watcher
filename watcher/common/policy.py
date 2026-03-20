@@ -23,6 +23,7 @@ from oslo_policy import policy
 from watcher.common import exception
 from watcher.common import policies
 
+
 _ENFORCER = None
 CONF = cfg.CONF
 

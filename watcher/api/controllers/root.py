@@ -16,9 +16,10 @@
 import importlib
 
 import pecan
+import wsmeext.pecan as wsme_pecan
+
 from pecan import rest
 from wsme import types as wtypes
-import wsmeext.pecan as wsme_pecan
 
 from watcher.api.controllers import base
 from watcher.api.controllers import link

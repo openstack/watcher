@@ -16,6 +16,7 @@
 # limitations under the License.
 #
 import collections
+
 from unittest import mock
 
 from watcher.applier.loading import default
@@ -23,8 +24,9 @@ from watcher.common import utils
 from watcher.decision_engine.strategy import strategies
 from watcher.decision_engine.strategy.strategies import workload_balance
 from watcher.tests.unit.decision_engine.model import gnocchi_metrics
-from watcher.tests.unit.decision_engine.strategy.strategies.test_base \
-    import TestBaseStrategy
+from watcher.tests.unit.decision_engine.strategy.strategies.test_base import (
+    TestBaseStrategy,
+)
 
 
 class TestWorkloadBalance(TestBaseStrategy):
@@ -113,14 +115,18 @@ class TestWorkloadBalance(TestBaseStrategy):
         self.assertEqual(len(dest_hosts), 1)
         self.assertEqual(dest_hosts[0]['compute_node'].uuid, 'Node_1')
         expected_calls = [
-            mock.call('Host usage for Node_0: host_cpu_usage_percent is 32.5. '
-                      'Higher than threshold 25.0: True'),
-            mock.call('Host usage for Node_1: host_cpu_usage_percent is 7.5. '
-                      'Higher than threshold 25.0: False'),
-            mock.call('Host hostname_1 evaluated as destination for '
-                      '73b09e16-35b7-4922-804e-e8f5d9b740fc. Host usage for '
-                      'cpu would be 20.0.The threshold is: 25.0. selected: '
-                      'True')]
+            mock.call('Host usage for %s: %s is %s. '
+                      'Higher than threshold %s: %s',
+                      'Node_0', 'host_cpu_usage_percent', 32.5, 25.0, True),
+            mock.call('Host usage for %s: %s is %s. '
+                      'Higher than threshold %s: %s',
+                      'Node_1', 'host_cpu_usage_percent', 7.5, 25.0, False),
+            mock.call('Host %s evaluated as destination for %s. '
+                      'Host usage for cpu would be %s.'
+                      'The threshold is: %s. selected: %s',
+                      'hostname_1',
+                      '73b09e16-35b7-4922-804e-e8f5d9b740fc',
+                      20.0, 25.0, True)]
         mock_debug.assert_has_calls(expected_calls, any_order=True)
 
     @mock.patch.object(workload_balance.LOG, 'debug', autospec=True)
@@ -139,14 +145,20 @@ class TestWorkloadBalance(TestBaseStrategy):
         self.assertEqual(len(dest_hosts), 1)
         self.assertEqual(dest_hosts[0]['compute_node'].uuid, 'Node_1')
         expected_calls = [
-            mock.call('Host usage for Node_0: host_ram_usage_percent is '
-                      '37.121212121212125. Higher than threshold 30.0: True'),
-            mock.call('Host usage for Node_1: host_ram_usage_percent is '
-                      '18.181818181818183. Higher than threshold 30.0: False'),
-            mock.call('Host hostname_1 evaluated as destination for '
-                      '73b09e16-35b7-4922-804e-e8f5d9b740fc. Host usage for '
-                      'ram would be 25.0.The threshold is: 30.0. selected: '
-                      'True')]
+            mock.call('Host usage for %s: %s is %s. '
+                      'Higher than threshold %s: %s',
+                      'Node_0', 'host_ram_usage_percent',
+                      37.121212121212125, 30.0, True),
+            mock.call('Host usage for %s: %s is %s. '
+                      'Higher than threshold %s: %s',
+                      'Node_1', 'host_ram_usage_percent',
+                      18.181818181818183, 30.0, False),
+            mock.call('Host %s evaluated as destination for %s. '
+                      'Host usage for ram would be %s.'
+                      'The threshold is: %s. selected: %s',
+                      'hostname_1',
+                      '73b09e16-35b7-4922-804e-e8f5d9b740fc',
+                      25.0, 30.0, True)]
         mock_debug.assert_has_calls(expected_calls, any_order=True)
 
     def test_execute_no_workload(self):

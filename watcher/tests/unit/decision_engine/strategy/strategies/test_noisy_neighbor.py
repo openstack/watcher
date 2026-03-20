@@ -16,14 +16,16 @@
 # limitations under the License.
 
 import collections
+
 from unittest import mock
 
 from watcher.applier.loading import default
 from watcher.common import utils
 from watcher.decision_engine.strategy import strategies
 from watcher.tests.unit.decision_engine.model import gnocchi_metrics
-from watcher.tests.unit.decision_engine.strategy.strategies.test_base \
-    import TestBaseStrategy
+from watcher.tests.unit.decision_engine.strategy.strategies.test_base import (
+    TestBaseStrategy,
+)
 
 
 class TestNoisyNeighbor(TestBaseStrategy):

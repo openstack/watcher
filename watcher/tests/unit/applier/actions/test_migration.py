@@ -17,7 +17,6 @@ from unittest import mock
 
 import jsonschema
 
-
 from watcher.applier.actions import base as baction
 from watcher.applier.actions import migration
 from watcher.common import clients

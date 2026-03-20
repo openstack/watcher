@@ -14,8 +14,9 @@
 
 from unittest import mock
 
-from cinderclient import exceptions as cinder_exception
 import jsonschema
+
+from cinderclient import exceptions as cinder_exception
 
 from watcher.applier.actions import base as baction
 from watcher.applier.actions import volume_migration

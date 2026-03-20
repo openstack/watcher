@@ -16,13 +16,13 @@
 # limitations under the License.
 
 import os
+
 from unittest import mock
 
-
 from watcher.common import utils
-from watcher.decision_engine.model.collector import base
 from watcher.decision_engine.model import element
 from watcher.decision_engine.model import model_root as modelroot
+from watcher.decision_engine.model.collector import base
 
 
 volume_uuid_mapping = {

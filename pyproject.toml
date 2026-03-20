@@ -7,7 +7,8 @@ line-length = 79
 target-version = "py310"
 
 [tool.ruff.lint]
-select = ["E4", "E5", "E7", "E9", "F", "S", "UP", "W", "C90"]
+select = ["C90","E4", "E5", "E7", "E9", "F", "G", "I", "LOG","S", "UP", "W"]
+external = ["H"]
 ignore = [
     # we only use asserts for type narrowing
     "S101",
@@ -21,6 +22,10 @@ ignore = [
     "S106",
     # S110 `try`-`except`-`pass` detected, consider logging the exception
     "S110",
+    # UP031 % format — defer f-string migration to a later pass
+    "UP031",
+    # UP032 f-string — defer migration to a later pass
+    "UP032",
 ]
 [tool.ruff.lint.per-file-ignores]
 "watcher/tests/*" = ["S"]
@@ -34,3 +39,18 @@ max-complexity = 20
 [tool.bandit]
 exclude_dirs = ['tests']
 skips = ['B101', 'B311', 'B320']
+
+[tool.ruff.lint.isort]
+known-first-party = ["watcher"]
+force-single-line = true
+lines-after-imports = 2
+lines-between-types = 1
+section-order = ["future", "standard-library", "third-party",  "first-party"]
+# this is the default but just being explicit about the behavior
+# in case that ever changes.
+force-sort-within-sections = false
+
+[tool.ruff.format]
+quote-style = "preserve"
+docstring-code-format = true
+skip-magic-trailing-comma = true

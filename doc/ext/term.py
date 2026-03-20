@@ -17,8 +17,8 @@ import importlib
 import inspect
 
 from docutils import nodes
-from docutils.parsers import rst
 from docutils import statemachine
+from docutils.parsers import rst
 
 from watcher.version import version_string
 

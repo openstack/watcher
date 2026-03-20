@@ -15,16 +15,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import fixtures
 from unittest import mock
+
+import fixtures
 
 from openstack import exceptions as sdk_exc
 from oslo_config import cfg
 
+from watcher import objects
 from watcher.applier.actions import nop
 from watcher.applier.workflow_engine import default as tflow
 from watcher.common import exception
-from watcher import objects
 from watcher.tests.unit.common import utils as test_utils
 from watcher.tests.unit.db import base
 from watcher.tests.unit.objects import utils as obj_utils

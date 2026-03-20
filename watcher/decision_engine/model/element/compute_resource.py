@@ -15,7 +15,6 @@
 
 import abc
 
-
 from watcher.decision_engine.model.element import base
 from watcher.objects import fields as wfields
 

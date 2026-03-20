@@ -14,9 +14,10 @@
 #    under the License.
 
 from unittest import mock
-from watcher.common import exception
+
 # from watcher.common import utils as w_utils
 from watcher import objects
+from watcher.common import exception
 from watcher.tests.unit.db import base
 from watcher.tests.unit.db import utils
 

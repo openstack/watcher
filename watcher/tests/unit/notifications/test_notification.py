@@ -13,6 +13,7 @@
 #    under the License.
 
 import collections
+
 from unittest import mock
 
 from oslo_versionedobjects import fixture

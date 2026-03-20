@@ -26,6 +26,7 @@ from watcher.common.metal_helper import constants as metal_constants
 from watcher.common.metal_helper import factory as metal_helper_factory
 from watcher.decision_engine.strategy.strategies import base
 
+
 LOG = log.getLogger(__name__)
 
 

@@ -27,10 +27,12 @@ be needed by the user of a given scoring engine.
 """
 
 import pecan
-from pecan import rest
-from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
+from pecan import rest
+from wsme import types as wtypes
+
+from watcher import objects
 from watcher.api.controllers import base
 from watcher.api.controllers import link
 from watcher.api.controllers.v1 import collection
@@ -38,7 +40,6 @@ from watcher.api.controllers.v1 import types
 from watcher.api.controllers.v1 import utils as api_utils
 from watcher.common import exception
 from watcher.common import policy
-from watcher import objects
 
 
 def hide_fields_in_newer_versions(obj):

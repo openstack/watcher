@@ -18,14 +18,14 @@
 
 from unittest import mock
 
-
 from watcher.common import cinder_helper
 from watcher.common import clients
 from watcher.common import utils
 from watcher.decision_engine.strategy import strategies
 from watcher.tests.unit.decision_engine.model import faker_cluster_state
-from watcher.tests.unit.decision_engine.strategy.strategies.test_base \
-    import TestBaseStrategy
+from watcher.tests.unit.decision_engine.strategy.strategies.test_base import (
+    TestBaseStrategy,
+)
 
 
 class TestStorageCapacityBalance(TestBaseStrategy):

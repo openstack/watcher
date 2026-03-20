@@ -24,6 +24,8 @@ test will then use that DB and username/password combo to run the tests. Refer
 to the 'tools/test-setup.sh' for an example of how to configure this.
 """
 
+import sqlalchemy
+
 from alembic import command as alembic_api
 from alembic.script import ScriptDirectory
 from oslo_config import cfg
@@ -31,13 +33,13 @@ from oslo_db.sqlalchemy import enginefacade
 from oslo_db.sqlalchemy import test_fixtures
 from oslo_db.sqlalchemy import utils as oslodbutils
 from oslo_log import log as logging
-import sqlalchemy
 
 from watcher.common import utils as w_utils
 from watcher.db import api as dbapi
 from watcher.db.sqlalchemy import migration
 from watcher.tests.unit import base
 from watcher.tests.unit.db import utils
+
 
 LOG = logging.getLogger(__name__)
 

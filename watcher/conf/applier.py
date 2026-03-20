@@ -17,6 +17,7 @@
 
 from oslo_config import cfg
 
+
 watcher_applier = cfg.OptGroup(name='watcher_applier',
                                title='Options for the Applier messaging '
                                'core')

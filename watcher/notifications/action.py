@@ -17,14 +17,15 @@
 
 from oslo_config import cfg
 
+from watcher import objects
 from watcher.common import context as wcontext
 from watcher.common import exception
 from watcher.notifications import action_plan as ap_notifications
 from watcher.notifications import base as notificationbase
 from watcher.notifications import exception as exception_notifications
-from watcher import objects
 from watcher.objects import base
 from watcher.objects import fields as wfields
+
 
 CONF = cfg.CONF
 

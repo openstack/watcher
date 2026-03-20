@@ -22,6 +22,7 @@ from watcher.common import exception
 from watcher.decision_engine.datasources import gnocchi as gnocchi_helper
 from watcher.tests.unit import base
 
+
 CONF = cfg.CONF
 
 

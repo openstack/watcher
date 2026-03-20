@@ -15,13 +15,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import warnings
+
 from debtcollector import removals
 from oslo_config import cfg
 from oslo_log import log
-import warnings
 
 from watcher._i18n import _
 from watcher.decision_engine.strategy.strategies import base
+
 
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF

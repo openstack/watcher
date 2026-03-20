@@ -11,26 +11,27 @@
 #    limitations under the License.
 
 import datetime
-from datetime import timezone
 import itertools
+
+from datetime import timezone
+from http import HTTPStatus
 from unittest import mock
 from urllib import parse as urlparse
 
-from http import HTTPStatus
 from oslo_config import cfg
 from oslo_serialization import jsonutils
 from oslo_utils import timeutils
 from wsme import types as wtypes
 
+from watcher import objects
 from watcher.api.controllers.v1 import audit as api_audit
 from watcher.common import utils
 from watcher.db import api as db_api
 from watcher.decision_engine import rpcapi as deapi
 from watcher.decision_engine.strategy import strategies
-from watcher import objects
+from watcher.tests.unit import base
 from watcher.tests.unit.api import base as api_base
 from watcher.tests.unit.api import utils as api_utils
-from watcher.tests.unit import base
 from watcher.tests.unit.db import utils as db_utils
 from watcher.tests.unit.objects import utils as obj_utils
 

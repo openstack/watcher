@@ -17,12 +17,12 @@
 
 from unittest import mock
 
-from watcher.applier.action_plan import default
-from watcher.applier import default as ap_applier
-from watcher.common import exception
-from watcher.common import utils
 from watcher import notifications
 from watcher import objects
+from watcher.applier import default as ap_applier
+from watcher.applier.action_plan import default
+from watcher.common import exception
+from watcher.common import utils
 from watcher.objects import action_plan as ap_objects
 from watcher.tests.unit.db import base
 from watcher.tests.unit.objects import utils as obj_utils

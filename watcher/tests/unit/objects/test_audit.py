@@ -14,16 +14,17 @@
 #    under the License.
 
 import datetime
+
 from unittest import mock
 
 from oslo_utils import timeutils
 
+from watcher import notifications
+from watcher import objects
 from watcher.common import exception
 from watcher.common import rpc
 from watcher.common import utils as w_utils
 from watcher.db.sqlalchemy import api as db_api
-from watcher import notifications
-from watcher import objects
 from watcher.tests.unit.db import base
 from watcher.tests.unit.db import utils
 from watcher.tests.unit.objects import utils as objutils

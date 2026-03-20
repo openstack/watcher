@@ -12,6 +12,7 @@
 
 from watcher.api import hooks
 
+
 # Server Specific Configurations
 server = {
     'port': '9322',

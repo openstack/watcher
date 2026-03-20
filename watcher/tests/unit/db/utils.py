@@ -16,9 +16,9 @@
 
 from oslo_utils import timeutils
 
+from watcher import objects
 from watcher.db import api as db_api
 from watcher.db.sqlalchemy import models
-from watcher import objects
 
 
 def id_generator():

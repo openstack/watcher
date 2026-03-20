@@ -18,6 +18,7 @@ from oslo_log import log
 
 from watcher.applier.loading import default
 
+
 LOG = log.getLogger(__name__)
 
 

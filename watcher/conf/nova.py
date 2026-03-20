@@ -18,6 +18,7 @@ from oslo_config import cfg
 
 from watcher.common import clients
 
+
 nova = cfg.OptGroup(name='nova',
                     title='Options for the Nova integration '
                     'configuration')

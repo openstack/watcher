@@ -12,10 +12,12 @@
 # limitations under the License.
 
 from http import HTTPStatus
+
 from oslo_config import cfg
 from oslo_log import log as logging
 
 from watcher.common import clients
+
 
 CONF = cfg.CONF
 LOG = logging.getLogger(__name__)

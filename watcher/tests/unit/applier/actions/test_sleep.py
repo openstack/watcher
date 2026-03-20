@@ -14,8 +14,9 @@
 #
 
 
-import jsonschema
 from unittest import mock
+
+import jsonschema
 
 from watcher.applier.actions import sleep
 from watcher.tests.unit import base

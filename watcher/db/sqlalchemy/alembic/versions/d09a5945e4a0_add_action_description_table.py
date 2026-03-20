@@ -6,9 +6,11 @@ Create Date: 2017-07-13 20:33:01.473711
 
 """
 
-from alembic import op
 import oslo_db
 import sqlalchemy as sa
+
+from alembic import op
+
 
 # revision identifiers, used by Alembic.
 revision = 'd09a5945e4a0'

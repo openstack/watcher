@@ -15,6 +15,7 @@
 
 from oslo_config import cfg
 
+
 prometheus_client = cfg.OptGroup(
     name='prometheus_client',
     title='Configuration Options for Prometheus (DEPRECATED)',

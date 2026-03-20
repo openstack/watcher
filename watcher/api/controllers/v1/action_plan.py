@@ -54,14 +54,17 @@ state machine <action_plan_state_machine>`.
 """
 
 from http import HTTPStatus
-from oslo_log import log
-from oslo_utils import timeutils
+
 import pecan
-from pecan import rest
 import wsme
-from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
+from oslo_log import log
+from oslo_utils import timeutils
+from pecan import rest
+from wsme import types as wtypes
+
+from watcher import objects
 from watcher._i18n import _
 from watcher.api.controllers import base
 from watcher.api.controllers import link
@@ -73,8 +76,8 @@ from watcher.applier import rpcapi
 from watcher.common import exception
 from watcher.common import policy
 from watcher.common import utils
-from watcher import objects
 from watcher.objects import action_plan as ap_objects
+
 
 LOG = log.getLogger(__name__)
 

@@ -21,9 +21,11 @@ from oslo_config import cfg
 from oslo_log import log
 
 from watcher.common import exception
-from watcher.decision_engine.datasources.grafana_translator import \
-    base as base_translator
+from watcher.decision_engine.datasources.grafana_translator import (
+    base as base_translator,
+)
 from watcher.tests.unit import base
+
 
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)

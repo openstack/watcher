@@ -13,7 +13,9 @@
 #    under the License.
 
 import importlib
+
 from oslo_config import cfg
+
 from watcher.api import config as api_config
 from watcher.tests.unit.api import base
 

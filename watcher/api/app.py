@@ -15,15 +15,17 @@
 #    under the License.
 
 
+import pecan
+
 from oslo_middleware import cors
 from oslo_middleware import http_proxy_to_wsgi
 from oslo_middleware import request_id
-import pecan
 
+from watcher import conf
 from watcher.api import acl
 from watcher.api import config as api_config
 from watcher.api.middleware import parsable_error
-from watcher import conf
+
 
 CONF = conf.CONF
 

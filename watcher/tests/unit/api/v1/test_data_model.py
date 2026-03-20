@@ -13,10 +13,11 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-import ddt
+from http import HTTPStatus
 from unittest import mock
 
-from http import HTTPStatus
+import ddt
+
 from oslo_serialization import jsonutils
 
 from watcher.api.controllers.v1 import versions

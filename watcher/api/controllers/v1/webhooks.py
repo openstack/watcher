@@ -15,17 +15,20 @@ Webhook endpoint for Watcher v1 REST API.
 """
 
 from http import HTTPStatus
-from oslo_log import log
+
 import pecan
-from pecan import rest
-from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
+from oslo_log import log
+from pecan import rest
+from wsme import types as wtypes
+
+from watcher import objects
 from watcher.api.controllers.v1 import types
 from watcher.api.controllers.v1 import utils
 from watcher.common import exception
 from watcher.decision_engine import rpcapi
-from watcher import objects
+
 
 LOG = log.getLogger(__name__)
 

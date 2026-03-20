@@ -74,14 +74,15 @@ import datetime
 
 from oslo_utils import timeutils
 
-from watcher.common import exception
-from watcher.common import utils
 from watcher import conf
-from watcher.db import api as db_api
 from watcher import notifications
 from watcher import objects
+from watcher.common import exception
+from watcher.common import utils
+from watcher.db import api as db_api
 from watcher.objects import base
 from watcher.objects import fields as wfields
+
 
 CONF = conf.CONF
 

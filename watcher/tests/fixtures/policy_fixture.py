@@ -15,12 +15,14 @@
 import os
 
 import fixtures
+
 from oslo_config import cfg
 from oslo_policy import _parser
 from oslo_policy import opts as policy_opts
 
 from watcher.common import policy as watcher_policy
 from watcher.tests.fixtures import fake_policy
+
 
 CONF = cfg.CONF
 

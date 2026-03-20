@@ -12,23 +12,25 @@
 
 import datetime
 import itertools
+
+from http import HTTPStatus
 from unittest import mock
 from urllib import parse as urlparse
 
-from http import HTTPStatus
+import webtest.app as webtest_app
+
 from oslo_config import cfg
 from oslo_serialization import jsonutils
 from oslo_utils import timeutils
-import webtest.app as webtest_app
 from wsme import types as wtypes
 
+from watcher import objects
 from watcher.api.controllers.v1 import audit_template as api_audit_template
 from watcher.common import exception
 from watcher.common import utils
-from watcher import objects
+from watcher.tests.unit import base
 from watcher.tests.unit.api import base as api_base
 from watcher.tests.unit.api import utils as api_utils
-from watcher.tests.unit import base
 from watcher.tests.unit.db import utils as db_utils
 from watcher.tests.unit.objects import utils as obj_utils
 

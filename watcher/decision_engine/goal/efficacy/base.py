@@ -23,7 +23,9 @@ calculating its :ref:`global efficacy <efficacy_definition>`.
 """
 
 import abc
+
 import jsonschema
+
 from oslo_serialization import jsonutils
 
 

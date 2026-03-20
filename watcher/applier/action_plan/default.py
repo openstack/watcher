@@ -18,13 +18,14 @@
 from oslo_config import cfg
 from oslo_log import log
 
-from watcher._i18n import _
-from watcher.applier.action_plan import base
-from watcher.applier import default
-from watcher.common import exception
 from watcher import notifications
 from watcher import objects
+from watcher._i18n import _
+from watcher.applier import default
+from watcher.applier.action_plan import base
+from watcher.common import exception
 from watcher.objects import fields
+
 
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)

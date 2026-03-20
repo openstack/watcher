@@ -15,9 +15,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 from oslo_config import cfg
 
-import os
 
 PATH_OPTS = [
     cfg.StrOpt('pybasedir',

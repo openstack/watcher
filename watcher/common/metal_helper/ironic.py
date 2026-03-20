@@ -18,6 +18,7 @@ from oslo_log import log
 from watcher.common.metal_helper import base
 from watcher.common.metal_helper import constants as metal_constants
 
+
 LOG = log.getLogger(__name__)
 
 POWER_STATES_MAP = {

@@ -15,6 +15,7 @@
 
 import asyncio
 import time
+
 from unittest import mock
 
 from watcher.common import utils

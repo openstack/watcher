@@ -17,6 +17,7 @@
 
 from oslo_config import cfg
 
+
 gnocchi_client = cfg.OptGroup(name='gnocchi_client',
                               title='Configuration Options for Gnocchi')
 

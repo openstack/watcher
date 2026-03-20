@@ -20,6 +20,7 @@ from oslo_config import cfg
 from watcher.decision_engine.datasources import manager
 from watcher.decision_engine.datasources import prometheus
 
+
 datasources = cfg.OptGroup(name='watcher_datasources',
                            title='Configuration Options for watcher'
                                  ' datasources')

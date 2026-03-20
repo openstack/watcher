@@ -13,20 +13,21 @@
 # limitations under the License.
 
 import os_resource_classes as orc
-from oslo_config import cfg
-from oslo_log import log
 
 from futurist import waiters
+from oslo_config import cfg
+from oslo_log import log
 
 from watcher.common import exception
 from watcher.common import nova_helper
 from watcher.common import placement_helper
-from watcher.decision_engine.model.collector import base
+from watcher.decision_engine import threading
 from watcher.decision_engine.model import element
 from watcher.decision_engine.model import model_root
+from watcher.decision_engine.model.collector import base
 from watcher.decision_engine.model.notification import nova
 from watcher.decision_engine.scope import compute as compute_scope
-from watcher.decision_engine import threading
+
 
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF

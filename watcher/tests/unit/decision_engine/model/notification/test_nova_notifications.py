@@ -15,10 +15,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import ddt
 import os
-import os_resource_classes as orc
+
 from unittest import mock
+
+import ddt
+import os_resource_classes as orc
 
 from oslo_serialization import jsonutils
 

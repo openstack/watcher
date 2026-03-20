@@ -12,16 +12,17 @@
 # limitations under the License.
 #
 
+from cinderclient.v3.volumes import Volume
 from oslo_log import log
 from oslo_utils import timeutils
 
-from cinderclient.v3.volumes import Volume
 from watcher._i18n import _
 from watcher.common import cinder_helper
 from watcher.common import exception
 from watcher.common import nova_helper
 from watcher.decision_engine.model import element
 from watcher.decision_engine.strategy.strategies import base
+
 
 LOG = log.getLogger(__name__)
 

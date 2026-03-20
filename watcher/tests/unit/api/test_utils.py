@@ -13,8 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo_config import cfg
 import wsme
+
+from oslo_config import cfg
 
 from watcher.api.controllers.v1 import utils as v1_utils
 from watcher.tests.unit import base

@@ -20,6 +20,7 @@ from oslo_config import cfg
 from watcher._i18n import _
 from watcher.common import clients
 
+
 nova_client = cfg.OptGroup(name='nova_client',
                            title='Configuration Options for Nova')
 

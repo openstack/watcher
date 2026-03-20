@@ -17,9 +17,10 @@ from unittest import mock
 
 from watcher.common import exception
 from watcher.decision_engine.loading import default as default_loader
-from watcher.decision_engine.strategy.selection import (
-    default as default_selector)
 from watcher.decision_engine.strategy import strategies
+from watcher.decision_engine.strategy.selection import (
+    default as default_selector,
+)
 from watcher.tests.unit import base
 
 

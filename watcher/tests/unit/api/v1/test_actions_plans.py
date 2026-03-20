@@ -12,16 +12,17 @@
 
 import datetime
 import itertools
-from unittest import mock
 
 from http import HTTPStatus
+from unittest import mock
+
 from oslo_config import cfg
 from oslo_serialization import jsonutils
 
+from watcher import objects
 from watcher.applier import rpcapi as aapi
 from watcher.common import utils
 from watcher.db import api as db_api
-from watcher import objects
 from watcher.tests.unit.api import base as api_base
 from watcher.tests.unit.objects import utils as obj_utils
 

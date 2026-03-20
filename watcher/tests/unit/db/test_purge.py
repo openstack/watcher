@@ -15,9 +15,9 @@
 
 from unittest import mock
 
-from oslo_utils import uuidutils
-
 import freezegun
+
+from oslo_utils import uuidutils
 
 from watcher.common import context as watcher_context
 from watcher.common import utils

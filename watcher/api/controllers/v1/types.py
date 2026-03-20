@@ -13,9 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import wsme
+
 from oslo_serialization import jsonutils
 from oslo_utils import strutils
-import wsme
 from wsme import types as wtypes
 
 from watcher._i18n import _

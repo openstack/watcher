@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import types
+
 from unittest import mock
 
 from oslo_config import cfg
@@ -21,8 +22,8 @@ from oslo_service import service
 
 from watcher.cmd.eventlet import decisionengine
 from watcher.common import service as watcher_service
-from watcher.decision_engine.audit import continuous
 from watcher.decision_engine import sync
+from watcher.decision_engine.audit import continuous
 from watcher.tests.fixtures import watcher as watcher_fixtures
 from watcher.tests.unit import base
 

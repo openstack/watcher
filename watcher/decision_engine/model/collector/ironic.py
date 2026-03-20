@@ -18,10 +18,11 @@ from oslo_log import log
 
 from watcher.common import exception
 from watcher.common import ironic_helper
-from watcher.decision_engine.model.collector import base
 from watcher.decision_engine.model import element
 from watcher.decision_engine.model import model_root
+from watcher.decision_engine.model.collector import base
 from watcher.decision_engine.scope import baremetal as baremetal_scope
+
 
 LOG = log.getLogger(__name__)
 

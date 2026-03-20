@@ -17,19 +17,22 @@
 
 import pickle  # nosec: B403
 
-from apscheduler.jobstores.base import ConflictingIdError
 from apscheduler.jobstores import sqlalchemy
+from apscheduler.jobstores.base import ConflictingIdError
 from apscheduler.util import datetime_to_utc_timestamp
 from apscheduler.util import maybe_ref
 from apscheduler.util import utc_timestamp_to_datetime
 from oslo_serialization import jsonutils
+from sqlalchemy import MetaData
+from sqlalchemy import Table
+from sqlalchemy import and_
+from sqlalchemy import null
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 
+from watcher import objects
 from watcher.common import context
 from watcher.common import service
-from watcher import objects
-
-from sqlalchemy import Table, MetaData, select, and_, null
-from sqlalchemy.exc import IntegrityError
 
 
 class WatcherJobStore(sqlalchemy.SQLAlchemyJobStore):

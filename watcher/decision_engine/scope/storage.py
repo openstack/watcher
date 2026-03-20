@@ -13,7 +13,6 @@
 
 from watcher.common import cinder_helper
 from watcher.common import exception
-
 from watcher.decision_engine.scope import base
 
 

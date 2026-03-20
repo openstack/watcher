@@ -17,10 +17,10 @@
 from oslo_config import cfg
 from oslo_log import log
 
+from watcher import objects
 from watcher.applier.loading import default
 from watcher.common import context
 from watcher.common import exception
-from watcher import objects
 
 
 CONF = cfg.CONF

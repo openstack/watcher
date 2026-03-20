@@ -20,13 +20,13 @@ import abc
 from oslo_log import log
 from taskflow import task as flow_task
 
+from watcher import notifications
+from watcher import objects
 from watcher._i18n import _
 from watcher.applier.actions import factory
 from watcher.common import clients
 from watcher.common import exception
 from watcher.common.loader import loadable
-from watcher import notifications
-from watcher import objects
 from watcher.objects import fields
 
 

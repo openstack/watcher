@@ -10,10 +10,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import warnings
+
 import debtcollector
 import microversion_parse
-from oslo_config import cfg
-import warnings
 
 from cinderclient import client as ciclient
 from gnocchiclient import client as gnclient
@@ -23,10 +23,12 @@ from keystoneauth1 import loading as ka_loading
 from keystoneauth1 import session as ka_session
 from keystoneclient import client as keyclient
 from openstack import connection
+from oslo_config import cfg
 
 from watcher.common import context
 from watcher.common import exception
 from watcher.common import utils
+
 
 try:
     from maas import client as maas_client

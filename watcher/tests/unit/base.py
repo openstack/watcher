@@ -15,16 +15,18 @@
 
 import copy
 import os
+
 from unittest import mock
 
 import fixtures
+import pecan
+import testscenarios
+
 from oslo_config import cfg
 from oslo_log import log
 from oslo_messaging import conffixture
 from oslotest import base
-import pecan
 from pecan import testing
-import testscenarios
 
 from watcher.common import context as watcher_context
 from watcher.common import service

@@ -10,12 +10,11 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
+from http import HTTPStatus
 from unittest import mock
 
-from http import HTTPStatus
-
-from watcher.decision_engine import rpcapi as deapi
 from watcher import objects
+from watcher.decision_engine import rpcapi as deapi
 from watcher.tests.unit.api import base as api_base
 from watcher.tests.unit.objects import utils as obj_utils
 

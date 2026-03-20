@@ -10,8 +10,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import requests
 from unittest import mock
+
+import requests
+
 
 fakeAuthTokenHeaders = {'X-User-Id': '773a902f022949619b5c2f32cd89d419',
                         'X-Roles': 'admin, ResellerAdmin, _member_',

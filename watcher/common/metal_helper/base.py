@@ -16,8 +16,8 @@
 import abc
 
 from watcher.common import exception
-from watcher.common.metal_helper import constants as metal_constants
 from watcher.common import nova_helper
+from watcher.common.metal_helper import constants as metal_constants
 
 
 class BaseMetalNode(abc.ABC):

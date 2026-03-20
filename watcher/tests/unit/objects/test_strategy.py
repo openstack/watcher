@@ -16,9 +16,9 @@
 
 from unittest import mock
 
+from watcher import objects
 from watcher.common import exception
 from watcher.db.sqlalchemy import api as db_api
-from watcher import objects
 from watcher.tests.unit.db import base
 from watcher.tests.unit.db import utils
 

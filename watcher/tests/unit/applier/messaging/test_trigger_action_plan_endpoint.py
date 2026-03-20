@@ -17,13 +17,15 @@
 #
 
 
-from oslo_config import cfg
 from unittest import mock
 
+from oslo_config import cfg
+
+from watcher import objects
 from watcher.applier.messaging import trigger
 from watcher.common import utils
-from watcher import objects
 from watcher.tests.unit import base
+
 
 CONF = cfg.CONF
 

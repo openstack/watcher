@@ -13,8 +13,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import fixtures
 from unittest import mock
+
+import fixtures
 
 from watcher.common.metal_helper import constants as m_constants
 from watcher.common.metal_helper import ironic

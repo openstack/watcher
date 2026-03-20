@@ -34,8 +34,8 @@ import numbers
 
 from wsme import types as wtypes
 
-from watcher.api.controllers import base
 from watcher import objects
+from watcher.api.controllers import base
 
 
 class EfficacyIndicator(base.APIBase):

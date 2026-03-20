@@ -17,6 +17,7 @@
 
 from oslo_config import cfg
 
+
 grafana_translators = cfg.OptGroup(name='grafana_translators',
                                    title='Configuration Options for Grafana '
                                    'transalators')

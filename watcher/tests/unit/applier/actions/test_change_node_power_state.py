@@ -24,6 +24,7 @@ from watcher.common.metal_helper import factory as m_helper_factory
 from watcher.tests.unit import base
 from watcher.tests.unit.decision_engine import fake_metal_helper
 
+
 COMPUTE_NODE = "compute-1"
 
 

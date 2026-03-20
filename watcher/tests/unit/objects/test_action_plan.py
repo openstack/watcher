@@ -14,18 +14,20 @@
 #    under the License.
 
 import datetime
+
 from unittest import mock
 
 from oslo_utils import timeutils
 
-from watcher.common import exception
-from watcher.common import utils as common_utils
 from watcher import conf
-from watcher.db.sqlalchemy import api as db_api
 from watcher import notifications
 from watcher import objects
+from watcher.common import exception
+from watcher.common import utils as common_utils
+from watcher.db.sqlalchemy import api as db_api
 from watcher.tests.unit.db import base
 from watcher.tests.unit.db import utils
+
 
 CONF = conf.CONF
 

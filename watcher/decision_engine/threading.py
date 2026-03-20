@@ -16,13 +16,14 @@
 # limitations under the License.
 
 import copy
-from futurist import waiters
 
+from futurist import waiters
 from oslo_config import cfg
 from oslo_log import log
 from oslo_service import service
 
 from watcher.common import executor
+
 
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)

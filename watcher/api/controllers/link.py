@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import pecan
+
 from wsme import types as wtypes
 
 from watcher.api.controllers import base

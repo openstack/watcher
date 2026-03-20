@@ -18,11 +18,11 @@
 from oslo_config import cfg
 from oslo_log import log
 
+from watcher import objects
 from watcher.common import executor
 from watcher.decision_engine.audit import event as e_handler
 from watcher.decision_engine.audit import oneshot as o_handler
 
-from watcher import objects
 
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)

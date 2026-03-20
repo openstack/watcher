@@ -15,7 +15,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from http import HTTPStatus
 from unittest import mock
+
+import requests
 
 from oslo_config import cfg
 from oslo_log import log
@@ -24,8 +27,6 @@ from watcher.common import exception
 from watcher.decision_engine.datasources import grafana
 from watcher.tests.unit import base
 
-from http import HTTPStatus
-import requests
 
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)

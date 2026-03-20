@@ -5,9 +5,11 @@ Revises: None
 Create Date: 2017-02-01 09:40:05.065981
 
 """
-from alembic import op
 import oslo_db
 import sqlalchemy as sa
+
+from alembic import op
+
 from watcher.db.sqlalchemy import models
 
 

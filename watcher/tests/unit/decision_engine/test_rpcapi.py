@@ -16,6 +16,7 @@
 from unittest import mock
 
 import oslo_messaging as om
+
 from watcher.common import exception
 from watcher.common import utils
 from watcher.decision_engine import rpcapi

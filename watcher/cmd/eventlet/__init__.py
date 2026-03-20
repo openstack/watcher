@@ -25,8 +25,10 @@
 # That is problematic and can lead to errors on python 3.12+.
 # The maas support added asyncio to the codebase which is unsafe to mix
 # with eventlets by default.
-from watcher.common import oslo_service_helper as helper
 from watcher import eventlet
+from watcher.common import oslo_service_helper as helper
+
+
 eventlet.patch()
 
 # NOTE(dviroel): oslo service backend needs to be initialize

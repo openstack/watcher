@@ -17,6 +17,7 @@
 
 from keystoneauth1 import loading as ka_loading
 
+
 WATCHER_CLIENTS_AUTH = 'watcher_clients_auth'
 
 

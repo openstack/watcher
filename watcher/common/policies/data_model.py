@@ -16,6 +16,7 @@ from oslo_policy import policy
 
 from watcher.common.policies import base
 
+
 DATA_MODEL = 'data_model:%s'
 
 rules = [

@@ -15,6 +15,7 @@
 
 from oslo_config import cfg
 
+
 compute_model = cfg.OptGroup(name='compute_model',
                              title='Configuration Options for Compute Model',
                              help="Additional configuration options for the "

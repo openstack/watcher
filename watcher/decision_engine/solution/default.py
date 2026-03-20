@@ -21,6 +21,7 @@ from watcher.applier.actions import base as baction
 from watcher.common import exception
 from watcher.decision_engine.solution import base
 
+
 LOG = log.getLogger(__name__)
 
 

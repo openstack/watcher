@@ -16,12 +16,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from watcher import conf
 from watcher.common import exception
 from watcher.common import service
 from watcher.common import service_manager
 from watcher.common import utils
 
-from watcher import conf
 
 CONF = conf.CONF
 

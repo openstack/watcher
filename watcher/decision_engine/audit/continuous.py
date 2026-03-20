@@ -19,18 +19,19 @@
 
 import datetime
 
-from croniter import croniter
 from datetime import timezone
+
+from croniter import croniter
 from oslo_utils import timeutils
 
+from watcher import conf
+from watcher import objects
 from watcher.common import context
 from watcher.common import scheduling
 from watcher.common import utils
-from watcher import conf
 from watcher.db.sqlalchemy import api as sq_api
 from watcher.db.sqlalchemy import job_store
 from watcher.decision_engine.audit import base
-from watcher import objects
 
 
 CONF = conf.CONF

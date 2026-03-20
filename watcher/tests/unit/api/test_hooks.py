@@ -14,12 +14,15 @@
 """Tests for the Pecan API hooks."""
 
 from http import client as http_client
-from oslo_config import cfg
-import oslo_messaging as messaging
-from oslo_serialization import jsonutils
 from unittest import mock
-from watcher.api.controllers import root
+
+import oslo_messaging as messaging
+
+from oslo_config import cfg
+from oslo_serialization import jsonutils
+
 from watcher.api import hooks
+from watcher.api.controllers import root
 from watcher.common import context
 from watcher.tests.unit.api import base
 

@@ -22,10 +22,11 @@ import sys
 
 from oslo_config import cfg
 
-from watcher.common import service
 from watcher import conf
+from watcher.common import service
 from watcher.db import migration
 from watcher.db import purge
+
 
 CONF = conf.CONF
 

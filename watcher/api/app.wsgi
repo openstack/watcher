@@ -20,4 +20,5 @@ Use this file for deploying the API service under Apache2 mod_wsgi.
 # Please switch to automatically generated watcher-api-wsgi script instead.
 from watcher.api import wsgi
 
+
 application = wsgi.initialize_wsgi_app(show_deprecated=True)

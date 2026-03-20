@@ -18,6 +18,7 @@ from oslo_log import log
 
 from watcher.decision_engine.loading import default as loader
 
+
 LOG = log.getLogger(__name__)
 
 

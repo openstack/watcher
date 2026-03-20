@@ -14,11 +14,13 @@
 # limitations under the License.
 
 from oslo_log import log
+
 from watcher.common import cinder_helper
 from watcher.common import exception
 from watcher.decision_engine.model import element
 from watcher.decision_engine.model.notification import base
 from watcher.decision_engine.model.notification import filtering
+
 
 LOG = log.getLogger(__name__)
 

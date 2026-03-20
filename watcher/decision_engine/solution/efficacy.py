@@ -21,6 +21,7 @@ from watcher._i18n import _
 from watcher.common import exception
 from watcher.common import utils
 
+
 LOG = log.getLogger(__name__)
 
 

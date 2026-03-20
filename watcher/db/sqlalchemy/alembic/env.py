@@ -15,6 +15,7 @@ from oslo_db.sqlalchemy import enginefacade
 
 from watcher.db.sqlalchemy import models
 
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config

@@ -44,13 +44,14 @@ from oslo_utils import strutils
 from watcher.common import clients
 from watcher.common import context
 from watcher.common import exception
-from watcher.common.loader import loadable
 from watcher.common import utils
+from watcher.common.loader import loadable
 from watcher.decision_engine.datasources import manager as ds_manager
 from watcher.decision_engine.loading import default as loading
 from watcher.decision_engine.model.collector import manager
 from watcher.decision_engine.solution import default
 from watcher.decision_engine.strategy.common import level
+
 
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF
@@ -245,7 +246,7 @@ class BaseStrategy(loadable.Loadable, metaclass=abc.ABCMeta):
          should perform.
         """
 
-        LOG.info("Initializing " + self.get_display_name())
+        LOG.info("Initializing %s", self.get_display_name())
 
         if not self.compute_model:
             raise exception.ClusterStateNotDefined()

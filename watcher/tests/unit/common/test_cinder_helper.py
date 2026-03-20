@@ -14,11 +14,10 @@
 #
 
 import copy
-
-from unittest import mock
+import time
 
 from http import HTTPStatus
-import time
+from unittest import mock
 
 from cinderclient import exceptions as cinder_exception
 from cinderclient.v3.pools import Pool as CinderPool

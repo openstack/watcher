@@ -14,10 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from watcher import objects
 from watcher.common import exception
 from watcher.common import utils
 from watcher.decision_engine.model.collector import manager
-from watcher import objects
 
 
 class DataModelEndpoint:

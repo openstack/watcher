@@ -14,12 +14,12 @@
 # limitations under the License.
 from oslo_log import log
 
+from watcher import objects
 from watcher.common import clients
 from watcher.common import utils
 from watcher.decision_engine.strategy.context import base
 from watcher.decision_engine.strategy.selection import default
 
-from watcher import objects
 
 LOG = log.getLogger(__name__)
 

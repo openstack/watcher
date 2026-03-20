@@ -16,6 +16,7 @@
 # limitations under the License.
 
 import copy
+
 from unittest import mock
 
 from oslo_config import cfg
@@ -25,6 +26,7 @@ from watcher.common import exception
 from watcher.decision_engine.datasources.grafana_translator import influxdb
 from watcher.tests.unit.decision_engine.datasources. \
     grafana_translators import test_base
+
 
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)

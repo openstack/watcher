@@ -19,6 +19,7 @@ from watcher.decision_engine.model.element import instance
 from watcher.decision_engine.model.element import node
 from watcher.decision_engine.model.element import volume
 
+
 ServiceState = node.ServiceState
 ComputeNode = node.ComputeNode
 StorageNode = node.StorageNode

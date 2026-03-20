@@ -23,6 +23,7 @@ from watcher.common import placement_helper
 from watcher.tests.fixtures import fakes as fake_requests
 from watcher.tests.unit import base
 
+
 CONF = cfg.CONF
 
 

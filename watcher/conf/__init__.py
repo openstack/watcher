@@ -43,6 +43,7 @@ from watcher.conf import planner
 from watcher.conf import prometheus_client
 from watcher.conf import service
 
+
 CONF = cfg.CONF
 
 service.register_opts(CONF)

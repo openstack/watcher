@@ -17,6 +17,7 @@
 
 from oslo_config import cfg
 
+
 cinder_client = cfg.OptGroup(name='cinder_client',
                              title='Configuration Options for Cinder')
 

@@ -13,10 +13,10 @@
 # under the License.
 
 from watcher.common import service as watcher_service
-from watcher.decision_engine.audit import continuous as c_handler
 from watcher.decision_engine import manager
 from watcher.decision_engine import scheduling
 from watcher.decision_engine import service_monitor
+from watcher.decision_engine.audit import continuous as c_handler
 
 
 class DecisionEngineService(watcher_service.Service):

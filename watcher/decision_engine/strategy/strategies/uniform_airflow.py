@@ -22,6 +22,7 @@ from watcher._i18n import _
 from watcher.decision_engine.model import element
 from watcher.decision_engine.strategy.strategies import base
 
+
 LOG = log.getLogger(__name__)
 
 

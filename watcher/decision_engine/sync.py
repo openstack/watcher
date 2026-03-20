@@ -18,10 +18,11 @@ import collections
 
 from oslo_log import log
 
+from watcher import objects
 from watcher.common import context
 from watcher.decision_engine.loading import default
 from watcher.decision_engine.scoring import scoring_factory
-from watcher import objects
+
 
 LOG = log.getLogger(__name__)
 

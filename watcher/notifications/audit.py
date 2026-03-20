@@ -25,6 +25,7 @@ from watcher.notifications import strategy as strategy_notifications
 from watcher.objects import base
 from watcher.objects import fields as wfields
 
+
 CONF = cfg.CONF
 
 

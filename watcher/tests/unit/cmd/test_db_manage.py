@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import sys
+
 from unittest import mock
 
 from oslo_config import cfg

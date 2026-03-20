@@ -18,12 +18,13 @@ import jsonschema
 from cinderclient import exceptions as cinder_exception
 from oslo_log import log
 
+from watcher import conf
 from watcher._i18n import _
 from watcher.applier.actions import base
 from watcher.common import cinder_helper
 from watcher.common import exception
 from watcher.common import nova_helper
-from watcher import conf
+
 
 CONF = conf.CONF
 LOG = log.getLogger(__name__)
@@ -138,7 +139,7 @@ class VolumeMigrate(base.BaseAction):
         # if the volume is in-use. If the volume has no attachments
         # allow cinder to decided if it can be migrated.
         if not volume.attachments:
-            LOG.debug(f"volume: {volume.id} has no attachments")
+            LOG.debug("volume: %s has no attachments", volume.id)
             return True
 
         # since it has attachments we need to validate nova's constraints
@@ -153,8 +154,9 @@ class VolumeMigrate(base.BaseAction):
             return False
         instance_status = instance.status
         LOG.debug(
-            f"volume: {volume.id} is attached to instance: {instance_id} "
-            f"in instance status: {instance_status}")
+            "volume: %s is attached to instance: %s "
+            "in instance status: %s",
+            volume.id, instance_id, instance_status)
         # NOTE(sean-k-mooney): This used to allow RESIZED which
         # is the resize_verify task state, that is not an acceptable time
         # to migrate volumes, if nova does not block this in the API

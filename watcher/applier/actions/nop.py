@@ -21,6 +21,7 @@ from oslo_log import log
 from watcher.applier.actions import base
 from watcher.common import exception
 
+
 LOG = log.getLogger(__name__)
 
 

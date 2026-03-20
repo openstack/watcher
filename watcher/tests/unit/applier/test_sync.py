@@ -20,12 +20,11 @@ from unittest import mock
 from oslo_config import cfg
 from oslo_utils import uuidutils
 
+from watcher import notifications
+from watcher import objects
 from watcher.applier import sync
 from watcher.decision_engine.strategy.strategies import dummy_strategy
 from watcher.tests.unit.db import base as db_base
-
-from watcher import notifications
-from watcher import objects
 from watcher.tests.unit.objects import utils as obj_utils
 
 

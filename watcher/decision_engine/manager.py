@@ -36,13 +36,15 @@ of :ref:`Actions <action_definition>` which are scheduled in time by the
 See :doc:`../architecture` for more details on this component.
 """
 
-from watcher.common import service_manager
 from watcher import conf
+from watcher.common import service_manager
 from watcher.decision_engine.messaging import audit_endpoint
 from watcher.decision_engine.messaging import data_model_endpoint
 from watcher.decision_engine.model.collector import manager
-from watcher.decision_engine.strategy.strategies import base \
-    as strategy_endpoint
+from watcher.decision_engine.strategy.strategies import (
+    base as strategy_endpoint,
+)
+
 
 CONF = conf.CONF
 

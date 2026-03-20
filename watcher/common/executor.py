@@ -12,12 +12,14 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from apscheduler.executors import pool as pool_executor
 import futurist
 
+from apscheduler.executors import pool as pool_executor
 from oslo_config import cfg
 from oslo_log import log
+
 from watcher import eventlet as eventlet_helper
+
 
 LOG = log.getLogger(__name__)
 
@@ -50,24 +52,22 @@ def log_executor_stats(executor, name="unknown"):
     try:
         if isinstance(executor, futurist.ThreadPoolExecutor):
             LOG.debug(
-                f"State of {name} ThreadPoolExecutor when submitting a new "
-                f"task: max_workers: {executor._max_workers:d}, "
-                f"workers: {len(executor._workers):d}, "
-                "idle workers: "
-                f"{len([w for w in executor._workers if w.idle]):d}, "
-                f"queued work: {executor._work_queue.qsize():d}, "
-                f"stats: {stats}")
+                "State of %s ThreadPoolExecutor when submitting a new "
+                "task: max_workers: %d, workers: %d, idle workers: %d, "
+                "queued work: %d, stats: %s",
+                name, executor._max_workers, len(executor._workers),
+                len([w for w in executor._workers if w.idle]),
+                executor._work_queue.qsize(), stats)
         elif isinstance(executor, futurist.GreenThreadPoolExecutor):
             LOG.debug(
-                f"State of {name} GreenThreadPoolExecutor when submitting a "
-                "new task: "
-                f"workers: {len(executor._pool.coroutines_running):d}, "
-                f"max_workers: {executor._pool.size:d}, "
-                f"work queued length: "
-                f"{executor._delayed_work.unfinished_tasks:d}, "
-                f"stats: {stats}")
+                "State of %s GreenThreadPoolExecutor when submitting a "
+                "new task: workers: %d, max_workers: %d, "
+                "work queued length: %d, stats: %s",
+                name, len(executor._pool.coroutines_running),
+                executor._pool.size,
+                executor._delayed_work.unfinished_tasks, stats)
     except Exception as e:
-        LOG.debug(f"Failed to log executor stats for {name}: {e}")
+        LOG.debug("Failed to log executor stats for %s: %s", name, e)
 
 
 class APSchedulerThreadPoolExecutor(pool_executor.BasePoolExecutor):

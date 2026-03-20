@@ -14,9 +14,11 @@
 # limitations under the License.
 #
 
-import fixtures
-from jsonschema import validators
 from unittest import mock
+
+import fixtures
+
+from jsonschema import validators
 
 from watcher.api.controllers.v1 import audit_template
 from watcher.common import exception

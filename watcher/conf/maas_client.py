@@ -16,6 +16,7 @@
 
 from oslo_config import cfg
 
+
 maas_client = cfg.OptGroup(name='maas_client',
                            title='Configuration Options for MaaS')
 

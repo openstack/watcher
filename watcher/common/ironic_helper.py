@@ -22,6 +22,7 @@ from watcher.common import clients
 from watcher.common import exception
 from watcher.common import utils
 
+
 LOG = log.getLogger(__name__)
 
 

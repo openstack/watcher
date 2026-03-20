@@ -11,7 +11,10 @@
 #    under the License.
 """WSGI application entry-point for Watcher API."""
 import threading
+
 from watcher.api import wsgi
+
+
 application = None
 with threading.Lock():
     if application is None:

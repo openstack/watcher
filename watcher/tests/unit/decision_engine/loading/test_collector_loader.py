@@ -13,9 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from unittest import mock
+
 from stevedore import driver as drivermanager
 from stevedore import extension as stevedore_extension
-from unittest import mock
 
 from watcher.common import clients
 from watcher.common import exception

@@ -13,12 +13,13 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from http import HTTPStatus
 from unittest import mock
+
 import webtest
 import wsme
-from wsme import types as wtypes
 
-from http import HTTPStatus
+from wsme import types as wtypes
 
 from watcher.api.controllers.v1 import types
 from watcher.common import exception

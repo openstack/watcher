@@ -19,16 +19,18 @@ import datetime
 import itertools
 import sys
 
-from oslo_log import log
-from oslo_utils import strutils
 import prettytable as ptable
 
+from oslo_log import log
+from oslo_utils import strutils
+
+from watcher import objects
 from watcher._i18n import _
 from watcher._i18n import lazy_translation_enabled
 from watcher.common import context
 from watcher.common import exception
 from watcher.common import utils
-from watcher import objects
+
 
 LOG = log.getLogger(__name__)
 

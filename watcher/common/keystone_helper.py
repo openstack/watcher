@@ -12,13 +12,14 @@
 # limitations under the License.
 #
 
+from keystoneauth1.exceptions import http as ks_exceptions
 from oslo_log import log
 
-from keystoneauth1.exceptions import http as ks_exceptions
+from watcher import conf
 from watcher._i18n import _
 from watcher.common import clients
 from watcher.common import exception
-from watcher import conf
+
 
 CONF = conf.CONF
 LOG = log.getLogger(__name__)
@@ -93,10 +94,10 @@ class KeystoneHelper:
         services = self.keystone.services.list(type=svc_type)
         svcs_enabled = [svc for svc in services if svc.enabled]
         if len(svcs_enabled) == 0:
-            LOG.warning(f"Service enabled not found for type: {svc_type}")
+            LOG.warning("Service enabled not found for type: %s", svc_type)
             return False
         elif len(svcs_enabled) > 1:
-            LOG.warning(f"Multiple services found for type: {svc_type}")
+            LOG.warning("Multiple services found for type: %s", svc_type)
             return False
         # if there is only one enabled service, consider it a valid
         # case

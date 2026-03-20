@@ -12,6 +12,7 @@
 
 from oslo_policy import policy
 
+
 RULE_ADMIN_API = 'rule:admin_api'
 ROLE_ADMIN_OR_ADMINISTRATOR = 'role:admin or role:administrator'
 ALWAYS_DENY = '!'

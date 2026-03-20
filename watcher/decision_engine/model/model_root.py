@@ -17,8 +17,9 @@ Openstack implementation of the cluster graph.
 
 import ast
 
-from lxml import etree  # nosec: B410
 import networkx as nx
+
+from lxml import etree  # nosec: B410
 from oslo_concurrency import lockutils
 from oslo_config import cfg
 from oslo_log import log
@@ -27,6 +28,7 @@ from watcher._i18n import _
 from watcher.common import exception
 from watcher.decision_engine.model import base
 from watcher.decision_engine.model import element
+
 
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF

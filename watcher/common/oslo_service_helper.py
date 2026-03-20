@@ -17,6 +17,7 @@ from oslo_service import backend
 
 from watcher import eventlet as eventlet_helper
 
+
 LOG = log.getLogger(__name__)
 
 

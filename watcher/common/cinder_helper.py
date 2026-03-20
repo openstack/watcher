@@ -14,14 +14,15 @@
 
 import time
 
-from oslo_log import log
-
 from cinderclient import exceptions as cinder_exception
 from cinderclient.v3.volumes import Volume
+from oslo_log import log
+
+from watcher import conf
 from watcher._i18n import _
 from watcher.common import clients
 from watcher.common import exception
-from watcher import conf
+
 
 CONF = conf.CONF
 LOG = log.getLogger(__name__)
@@ -138,9 +139,9 @@ class CinderHelper:
                 # not defined in the pool, so the type can't be used in the
                 # pool
                 LOG.debug(
-                    f"property {field_name} with value {field_value} "
-                    f"does not match value {pool_value} from pool "
-                    f"{pool['name']}"
+                    "property %s with value %s does not match value "
+                    "%s from pool %s",
+                    field_name, field_value, pool_value, pool['name']
                 )
                 return False
         return True

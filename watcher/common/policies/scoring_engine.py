@@ -14,6 +14,7 @@ from oslo_policy import policy
 
 from watcher.common.policies import base
 
+
 SCORING_ENGINE = 'scoring_engine:%s'
 
 rules = [

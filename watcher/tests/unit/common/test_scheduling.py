@@ -13,8 +13,8 @@ from unittest import mock
 
 from apscheduler.schedulers import background
 
-from watcher.common import scheduling
 from watcher import eventlet as eventlet_helper
+from watcher.common import scheduling
 from watcher.tests.unit import base
 
 

@@ -20,6 +20,7 @@ from oslo_db import options as oslo_db_options
 
 from watcher.conf import paths
 
+
 _DEFAULT_SQL_CONNECTION = 'sqlite:///{}'.format(
     paths.state_path_def('watcher.sqlite'))
 

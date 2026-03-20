@@ -17,6 +17,7 @@
 
 from oslo_config import cfg
 
+
 EXC_LOG_OPTS = [
     cfg.BoolOpt('fatal_exception_format_errors',
                 default=False,

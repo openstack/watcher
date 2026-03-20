@@ -13,9 +13,11 @@
 # limitations under the License.
 
 import os
-import yaml
 
 from collections import OrderedDict
+
+import yaml
+
 from oslo_config import cfg
 from oslo_log import log
 
@@ -24,6 +26,7 @@ from watcher.decision_engine.datasources import aetos
 from watcher.decision_engine.datasources import gnocchi as gnoc
 from watcher.decision_engine.datasources import grafana as graf
 from watcher.decision_engine.datasources import prometheus as prom
+
 
 LOG = log.getLogger(__name__)
 

@@ -18,9 +18,10 @@ An Interface for users and admin to List Data Model.
 """
 
 import pecan
+import wsmeext.pecan as wsme_pecan
+
 from pecan import rest
 from wsme import types as wtypes
-import wsmeext.pecan as wsme_pecan
 
 from watcher.api.controllers.v1 import types
 from watcher.api.controllers.v1 import utils

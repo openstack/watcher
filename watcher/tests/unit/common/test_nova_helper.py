@@ -16,20 +16,23 @@
 # limitations under the License.
 #
 
-import fixtures
 import time
+
 from unittest import mock
+
+import fixtures
 
 from keystoneauth1 import exceptions as ksa_exc
 from openstack import exceptions as sdk_exc
 
+from watcher import conf
 from watcher.common import clients
 from watcher.common import exception
 from watcher.common import nova_helper
 from watcher.common import utils
-from watcher import conf
 from watcher.tests.unit import base
 from watcher.tests.unit.common import utils as test_utils
+
 
 CONF = conf.CONF
 

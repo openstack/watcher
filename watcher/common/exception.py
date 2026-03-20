@@ -25,11 +25,13 @@ import functools
 import sys
 
 from http import HTTPStatus
+
 from keystoneclient import exceptions as keystone_exceptions
 from oslo_config import cfg
 from oslo_log import log
 
 from watcher._i18n import _
+
 
 LOG = log.getLogger(__name__)
 

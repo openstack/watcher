@@ -22,10 +22,11 @@ from ironicclient.v1 import client as irclient_v1
 from keystoneauth1 import adapter as ka_adapter
 from keystoneauth1 import loading as ka_loading
 
+from watcher import conf
 from watcher.common import clients
 from watcher.common import context
-from watcher import conf
 from watcher.tests.unit import base
+
 
 CONF = conf.CONF
 

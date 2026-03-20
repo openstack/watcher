@@ -12,10 +12,11 @@
 # limitations under the License.
 
 import collections
-import fixtures
+
 from unittest import mock
 
 import cinderclient
+import fixtures
 
 from watcher.common import exception
 from watcher.common import nova_helper
@@ -23,8 +24,10 @@ from watcher.common import utils
 from watcher.decision_engine.strategy import strategies
 from watcher.tests.unit.common import utils as test_utils
 from watcher.tests.unit.decision_engine.model import faker_cluster_state
-from watcher.tests.unit.decision_engine.strategy.strategies.test_base \
-    import TestBaseStrategy
+from watcher.tests.unit.decision_engine.strategy.strategies.test_base import (
+    TestBaseStrategy,
+)
+
 
 volume_uuid_mapping = faker_cluster_state.volume_uuid_mapping
 

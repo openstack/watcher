@@ -5,11 +5,13 @@ Revises: 001
 Create Date: 2017-03-24 11:21:29.036532
 
 """
-from alembic import op
-from sqlalchemy import inspect
 import sqlalchemy as sa
 
+from alembic import op
+from sqlalchemy import inspect
+
 from watcher.db.sqlalchemy import models
+
 
 # revision identifiers, used by Alembic.
 revision = '0f6042416884'

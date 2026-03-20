@@ -13,15 +13,17 @@
 # under the License.
 #
 
+import warnings
+
 from debtcollector import removals
 from observabilityclient import prometheus_client
 from oslo_config import cfg
 from oslo_log import log
-import warnings
 
 from watcher._i18n import _
 from watcher.common import exception
 from watcher.decision_engine.datasources import prometheus_base
+
 
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)

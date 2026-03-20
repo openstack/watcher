@@ -43,13 +43,16 @@ will be launched automatically or will need a manual confirmation from the
 """
 
 from http import HTTPStatus
-from oslo_utils import timeutils
+
 import pecan
-from pecan import rest
 import wsme
-from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
+from oslo_utils import timeutils
+from pecan import rest
+from wsme import types as wtypes
+
+from watcher import objects
 from watcher._i18n import _
 from watcher.api.controllers import base
 from watcher.api.controllers import link
@@ -61,7 +64,6 @@ from watcher.common import exception
 from watcher.common import policy
 from watcher.common import utils as common_utils
 from watcher.decision_engine.loading import default as default_loading
-from watcher import objects
 
 
 def hide_fields_in_newer_versions(obj):

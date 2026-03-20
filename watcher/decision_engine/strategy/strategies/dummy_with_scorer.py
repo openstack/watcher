@@ -26,6 +26,7 @@ from watcher._i18n import _
 from watcher.decision_engine.scoring import scoring_factory
 from watcher.decision_engine.strategy.strategies import base
 
+
 LOG = log.getLogger(__name__)
 
 

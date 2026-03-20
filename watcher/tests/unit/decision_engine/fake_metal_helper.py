@@ -13,8 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from unittest import mock
 import uuid
+
+from unittest import mock
 
 from watcher.common.metal_helper import constants as m_constants
 

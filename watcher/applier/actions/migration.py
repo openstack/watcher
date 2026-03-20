@@ -18,10 +18,12 @@
 
 
 from oslo_log import log
+
 from watcher._i18n import _
 from watcher.applier.actions import base
 from watcher.common import exception
 from watcher.common import nova_helper
+
 
 LOG = log.getLogger(__name__)
 

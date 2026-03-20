@@ -15,10 +15,10 @@
 from unittest import mock
 
 from watcher.common import service as watcher_service
-from watcher.decision_engine.audit import continuous as c_handler
 from watcher.decision_engine import scheduling
 from watcher.decision_engine import service
 from watcher.decision_engine import service_monitor
+from watcher.decision_engine.audit import continuous as c_handler
 from watcher.tests.unit import base
 
 

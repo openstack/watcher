@@ -16,11 +16,12 @@
 
 from oslo_log import log
 
+from watcher import objects
 from watcher._i18n import _
 from watcher.common import exception
 from watcher.decision_engine.model import element
 from watcher.decision_engine.strategy.strategies import base
-from watcher import objects
+
 
 LOG = log.getLogger(__name__)
 

@@ -18,8 +18,8 @@
 from oslo_config import cfg
 from oslo_middleware import cors
 
-from watcher.common import rpc
 from watcher import version
+from watcher.common import rpc
 
 
 def set_lib_defaults():

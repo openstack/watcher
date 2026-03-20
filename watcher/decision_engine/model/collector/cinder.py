@@ -16,11 +16,12 @@ from oslo_log import log
 
 from watcher.common import cinder_helper
 from watcher.common import exception
-from watcher.decision_engine.model.collector import base
 from watcher.decision_engine.model import element
 from watcher.decision_engine.model import model_root
+from watcher.decision_engine.model.collector import base
 from watcher.decision_engine.model.notification import cinder
 from watcher.decision_engine.scope import storage as storage_scope
+
 
 LOG = log.getLogger(__name__)
 

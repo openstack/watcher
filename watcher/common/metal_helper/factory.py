@@ -19,6 +19,7 @@ from watcher.common import clients
 from watcher.common.metal_helper import ironic
 from watcher.common.metal_helper import maas
 
+
 CONF = cfg.CONF
 
 

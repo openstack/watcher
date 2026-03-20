@@ -17,8 +17,9 @@
 
 """Access Control Lists (ACL's) control access the API server."""
 
-from watcher.api.middleware import auth_token
 from watcher import conf
+from watcher.api.middleware import auth_token
+
 
 CONF = conf.CONF
 

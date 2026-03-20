@@ -17,6 +17,7 @@
 
 from oslo_config import cfg
 
+
 grafana_client = cfg.OptGroup(name='grafana_client',
                               title='Configuration Options for Grafana',
                               help="See https://docs.openstack.org/watcher/lat"

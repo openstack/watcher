@@ -15,6 +15,7 @@
 
 
 from http import HTTPStatus
+
 from oslo_config import cfg
 from pecan import hooks
 

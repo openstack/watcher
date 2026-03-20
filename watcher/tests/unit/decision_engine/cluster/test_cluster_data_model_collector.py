@@ -15,11 +15,11 @@
 
 from unittest import mock
 
+from watcher.decision_engine.model import model_root
 from watcher.decision_engine.model.collector import base
 from watcher.decision_engine.model.collector import cinder
 from watcher.decision_engine.model.collector import ironic
 from watcher.decision_engine.model.collector import nova
-from watcher.decision_engine.model import model_root
 from watcher.tests.unit import base as test_base
 
 

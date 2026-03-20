@@ -19,6 +19,7 @@
 from unittest import mock
 
 import oslo_messaging as om
+
 from watcher.applier import manager as applier_manager
 from watcher.common import service
 from watcher.tests.unit import base

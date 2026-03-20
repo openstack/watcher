@@ -13,9 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import fixtures
 from unittest import mock
 
+import fixtures
+
+from watcher import objects
 from watcher.common import exception
 from watcher.common import nova_helper
 from watcher.common import utils
@@ -23,7 +25,6 @@ from watcher.db import api as db_api
 from watcher.decision_engine.planner import workload_stabilization as pbase
 from watcher.decision_engine.solution import default as dsol
 from watcher.decision_engine.strategy import strategies
-from watcher import objects
 from watcher.tests.unit.db import base
 from watcher.tests.unit.db import utils as db_utils
 from watcher.tests.unit.decision_engine.model import faker_cluster_state

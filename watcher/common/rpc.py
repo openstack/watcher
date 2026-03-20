@@ -13,14 +13,15 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from oslo_config import cfg
-from oslo_log import log
 import oslo_messaging as messaging
 
+from oslo_config import cfg
+from oslo_log import log
 from oslo_messaging.rpc import dispatcher
 
 from watcher.common import context as watcher_context
 from watcher.common import exception
+
 
 __all__ = [
     'init',

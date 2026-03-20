@@ -19,6 +19,7 @@ from watcher.objects import base
 from watcher.objects import fields as wfields
 from watcher.objects import service as o_service
 
+
 CONF = cfg.CONF
 
 

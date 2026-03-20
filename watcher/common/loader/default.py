@@ -19,8 +19,9 @@ from stevedore import driver as drivermanager
 from stevedore import extension as extensionmanager
 
 from watcher.common import exception
-from watcher.common.loader import base
 from watcher.common import utils
+from watcher.common.loader import base
+
 
 LOG = log.getLogger(__name__)
 

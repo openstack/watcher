@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from watcher.decision_engine.audit import base
 from watcher import objects
+from watcher.decision_engine.audit import base
 
 
 class OneShotAuditHandler(base.AuditHandler):

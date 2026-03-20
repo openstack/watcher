@@ -20,8 +20,8 @@ It is used via a single directive in the .rst file
 
 """
 
-from docutils.parsers.rst import Directive
 from docutils import nodes
+from docutils.parsers.rst import Directive
 
 from watcher.notifications import base as notification
 from watcher.objects import base

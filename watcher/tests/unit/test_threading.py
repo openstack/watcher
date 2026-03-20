@@ -15,8 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import futurist
 from unittest import mock
+
+import futurist
 
 from watcher.common import executor
 from watcher.decision_engine import threading

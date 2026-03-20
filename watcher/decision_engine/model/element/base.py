@@ -24,6 +24,7 @@ from oslo_log import log
 from watcher.objects import base
 from watcher.objects import fields as wfields
 
+
 LOG = log.getLogger(__name__)
 
 

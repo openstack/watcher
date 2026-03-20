@@ -15,6 +15,7 @@
 
 from watcher.decision_engine.goal import goals
 
+
 Dummy = goals.Dummy
 ServerConsolidation = goals.ServerConsolidation
 ThermalOptimization = goals.ThermalOptimization

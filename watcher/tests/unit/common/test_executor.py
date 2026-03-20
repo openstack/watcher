@@ -12,11 +12,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import futurist
 from unittest import mock
 
-from watcher.common import executor
+import futurist
+
 from watcher import eventlet as eventlet_helper
+from watcher.common import executor
 from watcher.tests.unit import base
 
 
@@ -50,13 +51,14 @@ class TestLogExecutorStats(base.TestCase):
                                     name="test-threadpool-eventlet")
 
         m_log_debug.assert_called_once_with(
-            f"State of test-threadpool-eventlet GreenThreadPoolExecutor when "
-            f"submitting a new task: "
-            f"workers: {len(pool_executor._pool.coroutines_running):d}, "
-            f"max_workers: {workers:d}, "
-            f"work queued length: "
-            f"{pool_executor._delayed_work.unfinished_tasks:d}, "
-            f"stats: {pool_executor.statistics}")
+            "State of %s GreenThreadPoolExecutor when submitting a "
+            "new task: workers: %d, max_workers: %d, "
+            "work queued length: %d, stats: %s",
+            "test-threadpool-eventlet",
+            len(pool_executor._pool.coroutines_running),
+            workers,
+            pool_executor._delayed_work.unfinished_tasks,
+            pool_executor.statistics)
 
     @mock.patch.object(executor.LOG, 'debug')
     def test_log_executor_stats_threading(self, m_log_debug):
@@ -67,11 +69,12 @@ class TestLogExecutorStats(base.TestCase):
                                     name="test-threadpool-threading")
 
         m_log_debug.assert_called_once_with(
-            f"State of test-threadpool-threading ThreadPoolExecutor when "
-            f"submitting a new task: "
-            f"max_workers: {workers:d}, "
-            f"workers: {len(pool_executor._workers):d}, "
-            f"idle workers: "
-            f"{len([w for w in pool_executor._workers if w.idle]):d}, "
-            f"queued work: {pool_executor._work_queue.qsize():d}, "
-            f"stats: {pool_executor.statistics}")
+            "State of %s ThreadPoolExecutor when submitting a new "
+            "task: max_workers: %d, workers: %d, idle workers: %d, "
+            "queued work: %d, stats: %s",
+            "test-threadpool-threading",
+            workers,
+            len(pool_executor._workers),
+            len([w for w in pool_executor._workers if w.idle]),
+            pool_executor._work_queue.qsize(),
+            pool_executor.statistics)

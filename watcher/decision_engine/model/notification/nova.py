@@ -17,6 +17,7 @@
 
 import microversion_parse
 import os_resource_classes as orc
+
 from oslo_log import log
 
 from watcher.common import exception
@@ -26,6 +27,7 @@ from watcher.common import utils
 from watcher.decision_engine.model import element
 from watcher.decision_engine.model.notification import base
 from watcher.decision_engine.model.notification import filtering
+
 
 LOG = log.getLogger(__name__)
 

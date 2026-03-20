@@ -19,6 +19,7 @@
 from oslo_config import cfg
 from stevedore import driver
 
+
 _IMPL = None
 
 

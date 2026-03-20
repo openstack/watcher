@@ -14,6 +14,7 @@ from oslo_policy import policy
 
 from watcher.common.policies import base
 
+
 AUDIT_TEMPLATE = 'audit_template:%s'
 
 rules = [

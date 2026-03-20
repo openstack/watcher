@@ -19,10 +19,10 @@ import sqlite3
 import tempfile
 
 import fixtures
+
 from oslo_config import cfg
 from oslo_db.sqlalchemy import enginefacade
 from oslo_db.sqlalchemy import test_fixtures
-
 
 from watcher.db import api as dbapi
 from watcher.db.sqlalchemy import migration

@@ -20,6 +20,7 @@ from oslo_config import cfg
 from watcher.api.controllers.v1 import utils
 from watcher.tests.unit import base
 
+
 CONF = cfg.CONF
 
 

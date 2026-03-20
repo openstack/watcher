@@ -16,8 +16,8 @@ from unittest import mock
 
 from oslo_service import backend
 
-from watcher.common import oslo_service_helper
 from watcher import eventlet as eventlet_helper
+from watcher.common import oslo_service_helper
 from watcher.tests.unit import base
 
 

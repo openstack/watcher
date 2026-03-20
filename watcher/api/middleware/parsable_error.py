@@ -21,11 +21,13 @@ Based on pecan.middleware.errordocument
 
 from xml import etree as et
 
-from oslo_log import log
-from oslo_serialization import jsonutils
 import webob
 
+from oslo_log import log
+from oslo_serialization import jsonutils
+
 from watcher._i18n import _
+
 
 LOG = log.getLogger(__name__)
 

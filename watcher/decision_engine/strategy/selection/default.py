@@ -20,6 +20,7 @@ from watcher.common import exception
 from watcher.decision_engine.loading import default
 from watcher.decision_engine.strategy.selection import base
 
+
 LOG = log.getLogger(__name__)
 
 

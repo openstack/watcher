@@ -20,10 +20,10 @@ import datetime
 import inspect
 import re
 
-from croniter import croniter
 import eventlet
-from eventlet import tpool
 
+from croniter import croniter
+from eventlet import tpool
 from jsonschema import validators
 from oslo_config import cfg
 from oslo_log import log
@@ -31,6 +31,7 @@ from oslo_utils import strutils
 from oslo_utils import uuidutils
 
 from watcher.common import exception
+
 
 CONF = cfg.CONF
 

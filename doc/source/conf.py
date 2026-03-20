@@ -16,6 +16,7 @@ import sys
 
 from watcher import objects
 
+
 objects.register_all()
 
 # If extensions (or modules to document with autodoc) are in another directory,
