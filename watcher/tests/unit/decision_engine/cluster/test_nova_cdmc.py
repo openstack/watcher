@@ -86,11 +86,6 @@ class TestNovaClusterDataModelCollector(
                 "max_unit": 142,
             },
         }
-        m_placement_helper.get_usages_for_resource_provider.return_value = {
-            orc.DISK_GB: 10,
-            orc.MEMORY_MB: 100,
-            orc.VCPU: 0,
-        }
         m_placement_helper_cls.return_value = m_placement_helper
         m_nova_helper = mock.Mock(name="nova_helper")
         m_nova_helper_cls.return_value = m_nova_helper
@@ -615,7 +610,6 @@ class TestNovaModelBuilder(test_utils.NovaResourcesMixin, base.TestCase):
 
         mock_placement = mock.Mock(name="placement_helper")
         mock_placement.get_inventories.return_value = dict()
-        mock_placement.get_usages_for_resource_provider.return_value = None
         m_placement.return_value = mock_placement
 
         agg1 = nova_helper.Aggregate.from_openstacksdk(
@@ -769,7 +763,6 @@ class TestNovaModelBuilder(test_utils.NovaResourcesMixin, base.TestCase):
         """Test add_physical_layer with timeout on collecting aggregates"""
         mock_placement = mock.Mock(name="placement_helper")
         mock_placement.get_inventories.return_value = dict()
-        mock_placement.get_usages_for_resource_provider.return_value = None
         m_placement.return_value = mock_placement
 
         agg1 = nova_helper.Aggregate.from_openstacksdk(
@@ -929,7 +922,6 @@ class TestNovaModelBuilder(test_utils.NovaResourcesMixin, base.TestCase):
         """"""
         mock_placement = mock.Mock(name="placement_helper")
         mock_placement.get_inventories.return_value = dict()
-        mock_placement.get_usages_for_resource_provider.return_value = None
         m_placement_helper.return_value = mock_placement
         agg1 = nova_helper.Aggregate.from_openstacksdk(
             self.create_openstacksdk_aggregate(id=1, name='example')
