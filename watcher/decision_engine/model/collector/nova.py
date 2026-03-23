@@ -405,18 +405,18 @@ class NovaModelBuilder(base.BaseModelBuilder):
         """
         inventories = self.placement_helper.get_inventories(node.uuid)
         if inventories and orc.VCPU in inventories:
-            vcpus = inventories[orc.VCPU]['total']
-            vcpu_reserved = inventories[orc.VCPU]['reserved']
-            vcpu_ratio = inventories[orc.VCPU]['allocation_ratio']
+            vcpus = inventories[orc.VCPU].total
+            vcpu_reserved = inventories[orc.VCPU].reserved
+            vcpu_ratio = inventories[orc.VCPU].allocation_ratio
         else:
             vcpus = node.vcpus
             vcpu_reserved = 0
             vcpu_ratio = 1.0
 
         if inventories and orc.MEMORY_MB in inventories:
-            memory_mb = inventories[orc.MEMORY_MB]['total']
-            memory_mb_reserved = inventories[orc.MEMORY_MB]['reserved']
-            memory_ratio = inventories[orc.MEMORY_MB]['allocation_ratio']
+            memory_mb = inventories[orc.MEMORY_MB].total
+            memory_mb_reserved = inventories[orc.MEMORY_MB].reserved
+            memory_ratio = inventories[orc.MEMORY_MB].allocation_ratio
         else:
             memory_mb = node.memory_mb
             memory_mb_reserved = 0
@@ -426,9 +426,9 @@ class NovaModelBuilder(base.BaseModelBuilder):
         # will move DISK_GB from compute node to shared storage RP.
         # Here may need to be updated when the nova BP released.
         if inventories and orc.DISK_GB in inventories:
-            disk_capacity = inventories[orc.DISK_GB]['total']
-            disk_gb_reserved = inventories[orc.DISK_GB]['reserved']
-            disk_ratio = inventories[orc.DISK_GB]['allocation_ratio']
+            disk_capacity = inventories[orc.DISK_GB].total
+            disk_gb_reserved = inventories[orc.DISK_GB].reserved
+            disk_ratio = inventories[orc.DISK_GB].allocation_ratio
         else:
             disk_capacity = node.local_gb
             disk_gb_reserved = 0

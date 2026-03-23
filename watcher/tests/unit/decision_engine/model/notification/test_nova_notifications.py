@@ -37,7 +37,11 @@ from watcher.tests.unit.decision_engine.model import faker_cluster_state
 from watcher.tests.unit.decision_engine.model.notification import fake_managers
 
 
-class NotificationTestCase(test_utils.NovaResourcesMixin, base_test.TestCase):
+class NotificationTestCase(
+    test_utils.NovaResourcesMixin,
+    test_utils.PlacementResourcesMixin,
+    base_test.TestCase,
+):
     @staticmethod
     def load_message(filename):
         cwd = os.path.abspath(os.path.dirname(__file__))

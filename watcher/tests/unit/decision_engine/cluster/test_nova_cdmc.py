@@ -35,7 +35,9 @@ from watcher.tests.unit.common import utils as test_utils
 
 @ddt.ddt
 class TestNovaClusterDataModelCollector(
-    test_utils.NovaResourcesMixin, base.TestCase
+    test_utils.NovaResourcesMixin,
+    test_utils.PlacementResourcesMixin,
+    base.TestCase,
 ):
     def setUp(self):
         super().setUp()
@@ -61,30 +63,22 @@ class TestNovaClusterDataModelCollector(
 
         m_placement_helper = mock.Mock(name="placement_helper")
         m_placement_helper.get_inventories.return_value = {
-            orc.VCPU: {
-                "allocation_ratio": 16.0,
-                "total": 8,
-                "reserved": 0,
-                "step_size": 1,
-                "min_unit": 1,
-                "max_unit": 8,
-            },
-            orc.MEMORY_MB: {
-                "allocation_ratio": 1.5,
-                "total": 16039,
-                "reserved": 512,
-                "step_size": 1,
-                "min_unit": 1,
-                "max_unit": 16039,
-            },
-            orc.DISK_GB: {
-                "allocation_ratio": 1.0,
-                "total": 142,
-                "reserved": 0,
-                "step_size": 1,
-                "min_unit": 1,
-                "max_unit": 142,
-            },
+            orc.VCPU: placement_helper.Inventory.from_placement_api(
+                self.create_inventory(
+                    allocation_ratio=16.0, total=8, max_unit=8
+                )
+            ),
+            orc.MEMORY_MB: placement_helper.Inventory.from_placement_api(
+                self.create_inventory(
+                    allocation_ratio=1.5,
+                    total=16039,
+                    reserved=512,
+                    max_unit=16039,
+                )
+            ),
+            orc.DISK_GB: placement_helper.Inventory.from_placement_api(
+                self.create_inventory(total=142, max_unit=142)
+            ),
         }
         m_placement_helper_cls.return_value = m_placement_helper
         m_nova_helper = mock.Mock(name="nova_helper")
@@ -224,7 +218,11 @@ class TestNovaClusterDataModelCollector(
 
 
 @ddt.ddt
-class TestNovaModelBuilder(test_utils.NovaResourcesMixin, base.TestCase):
+class TestNovaModelBuilder(
+    test_utils.NovaResourcesMixin,
+    test_utils.PlacementResourcesMixin,
+    base.TestCase,
+):
     def setUp(self):
         super().setUp()
         self.useFixture(

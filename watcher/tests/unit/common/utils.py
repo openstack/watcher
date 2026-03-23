@@ -147,3 +147,20 @@ class NovaResourcesMixin:
         migration_info = {'id': kwargs.pop('id', 'migration-id')}
         migration_info.update(kwargs)
         return server_migration.ServerMigration(**migration_info)
+
+
+class PlacementResourcesMixin:
+    def create_inventory(self, **kwargs):
+        """Create an Inventory representation.
+
+        :param kwargs: inventory attributes
+        :returns: json representation of an Inventory instance
+        """
+        return {
+            "total": kwargs.pop('total', 0),
+            "reserved": kwargs.pop('reserved', 0),
+            "min_unit": kwargs.pop('min_unit', 1),
+            "max_unit": kwargs.pop('max_unit', 0),
+            "step_size": kwargs.pop('step_size', 1),
+            "allocation_ratio": kwargs.pop('allocation_ratio', 1.0),
+        }

@@ -27,6 +27,50 @@ from watcher.tests.unit import base
 CONF = cfg.CONF
 
 
+class TestInventory(base.TestCase):
+    def setUp(self):
+        super().setUp()
+        self.inventory_dict = {
+            'total': 8,
+            'reserved': 0,
+            'min_unit': 1,
+            'max_unit': 8,
+            'step_size': 1,
+            'allocation_ratio': 16.0,
+        }
+
+    def test_from_placement_api(self):
+        inv = placement_helper.Inventory.from_placement_api(
+            self.inventory_dict
+        )
+        self.assertEqual(8, inv.total)
+        self.assertEqual(0, inv.reserved)
+        self.assertEqual(1, inv.min_unit)
+        self.assertEqual(8, inv.max_unit)
+        self.assertEqual(1, inv.step_size)
+        self.assertEqual(16.0, inv.allocation_ratio)
+
+    def test_frozen(self):
+        inv = placement_helper.Inventory.from_placement_api(
+            self.inventory_dict
+        )
+        self.assertRaises(AttributeError, setattr, inv, 'total', 99)
+
+    def test_equality(self):
+        inv1 = placement_helper.Inventory.from_placement_api(
+            self.inventory_dict
+        )
+        inv2 = placement_helper.Inventory(
+            total=8,
+            reserved=0,
+            min_unit=1,
+            max_unit=8,
+            step_size=1,
+            allocation_ratio=16.0,
+        )
+        self.assertEqual(inv1, inv2)
+
+
 @mock.patch('keystoneauth1.session.Session.request')
 class TestPlacementHelper(base.TestCase):
     def setUp(self):
@@ -104,7 +148,11 @@ class TestPlacementHelper(base.TestCase):
 
         expected_url = f'/resource_providers/{rp_uuid}/inventories'
         self._assert_keystone_called_once(kss_req, expected_url, 'GET')
-        self.assertEqual(fake_inventories, result)
+        expected = {
+            rc: placement_helper.Inventory.from_placement_api(inv)
+            for rc, inv in fake_inventories.items()
+        }
+        self.assertEqual(expected, result)
 
     def test_get_inventories_fail(self, kss_req):
         rp_uuid = uuidutils.generate_uuid()
