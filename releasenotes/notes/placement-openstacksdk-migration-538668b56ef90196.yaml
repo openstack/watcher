@@ -1,0 +1,17 @@
+---
+upgrade:
+  - |
+    Connection settings for the Placement service should be added
+    directly to the ``[placement]`` section of the configuration now,
+    instead of ``[placement_client]``.
+deprecations:
+  - |
+    The ``[placement_client]`` configuration options are deprecated and
+    will be removed in a future release. Operators should migrate to the
+    keystoneauth adapter configuration options in the ``[placement]``
+    configuration group.
+other:
+  - |
+    The Placement helper now uses OpenStackSDK instead of raw
+    keystoneauth1 HTTP calls. This aligns the Placement integration
+    with the SDK-based approach already used for Nova and Keystone.

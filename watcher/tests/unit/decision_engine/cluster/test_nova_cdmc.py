@@ -63,21 +63,27 @@ class TestNovaClusterDataModelCollector(
 
         m_placement_helper = mock.Mock(name="placement_helper")
         m_placement_helper.get_inventories.return_value = {
-            orc.VCPU: placement_helper.Inventory.from_placement_api(
-                self.create_inventory(
-                    allocation_ratio=16.0, total=8, max_unit=8
+            orc.VCPU: placement_helper.Inventory.from_openstacksdk(
+                self.create_openstacksdk_inventory(
+                    resource_class=orc.VCPU,
+                    allocation_ratio=16.0,
+                    total=8,
+                    max_unit=8,
                 )
             ),
-            orc.MEMORY_MB: placement_helper.Inventory.from_placement_api(
-                self.create_inventory(
+            orc.MEMORY_MB: placement_helper.Inventory.from_openstacksdk(
+                self.create_openstacksdk_inventory(
+                    resource_class=orc.MEMORY_MB,
                     allocation_ratio=1.5,
                     total=16039,
                     reserved=512,
                     max_unit=16039,
                 )
             ),
-            orc.DISK_GB: placement_helper.Inventory.from_placement_api(
-                self.create_inventory(total=142, max_unit=142)
+            orc.DISK_GB: placement_helper.Inventory.from_openstacksdk(
+                self.create_openstacksdk_inventory(
+                    resource_class=orc.DISK_GB, total=142, max_unit=142
+                )
             ),
         }
         m_placement_helper_cls.return_value = m_placement_helper

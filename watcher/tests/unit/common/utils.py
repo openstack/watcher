@@ -21,6 +21,7 @@ from openstack.compute.v2 import hypervisor
 from openstack.compute.v2 import server
 from openstack.compute.v2 import server_migration
 from openstack.compute.v2 import service
+from openstack.placement.v1 import resource_provider_inventory
 
 
 class NovaResourcesMixin:
@@ -150,13 +151,14 @@ class NovaResourcesMixin:
 
 
 class PlacementResourcesMixin:
-    def create_inventory(self, **kwargs):
+    def create_openstacksdk_inventory(self, **kwargs):
         """Create an Inventory representation.
 
         :param kwargs: inventory attributes
-        :returns: json representation of an Inventory instance
+        :returns: resource_provider_inventory.ResourceProviderInventory
         """
-        return {
+        inventory_info = {
+            "resource_class": kwargs.pop('resource_class', 'VCPU'),
             "total": kwargs.pop('total', 0),
             "reserved": kwargs.pop('reserved', 0),
             "min_unit": kwargs.pop('min_unit', 1),
@@ -164,3 +166,7 @@ class PlacementResourcesMixin:
             "step_size": kwargs.pop('step_size', 1),
             "allocation_ratio": kwargs.pop('allocation_ratio', 1.0),
         }
+
+        return resource_provider_inventory.ResourceProviderInventory(
+            **inventory_info
+        )

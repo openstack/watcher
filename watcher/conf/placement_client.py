@@ -12,6 +12,8 @@
 
 from oslo_config import cfg
 
+from watcher._i18n import _
+
 
 placement_group = cfg.OptGroup(
     'placement_client',
@@ -23,16 +25,35 @@ placement_opts = [
     cfg.StrOpt(
         'api_version',
         default='1.29',
+        deprecated_for_removal=True,
+        deprecated_reason=_(
+            'To replace the calls to placement api with the '
+            'openstacksdk placement proxy, the options need to '
+            'be under the [placement] group.'
+        ),
+        deprecated_since='2026.2',
         help='microversion of placement API when using placement service.',
     ),
     cfg.StrOpt(
         'interface',
         default='public',
         choices=['internal', 'public', 'admin'],
+        deprecated_for_removal=True,
+        deprecated_reason=_(
+            'This option was replaced by the valid_interfaces '
+            'option defined by keystoneauth.'
+        ),
+        deprecated_since='2026.2',
         help='Type of endpoint when using placement service.',
     ),
     cfg.StrOpt(
         'region_name',
+        deprecated_for_removal=True,
+        deprecated_reason=_(
+            'This option was replaced by the region_name '
+            'option defined by keystoneauth.'
+        ),
+        deprecated_since='2026.2',
         help='Region in Identity service catalog to use for '
         'communication with the OpenStack service.',
     ),

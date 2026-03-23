@@ -39,6 +39,7 @@ from watcher.conf import models
 from watcher.conf import nova
 from watcher.conf import nova_client
 from watcher.conf import paths
+from watcher.conf import placement
 from watcher.conf import placement_client
 from watcher.conf import planner
 from watcher.conf import prometheus_client
@@ -72,3 +73,4 @@ placement_client.register_opts(CONF)
 prometheus_client.register_opts(CONF)
 nova.register_opts(CONF)
 keystone.register_opts(CONF)
+placement.register_opts(CONF)

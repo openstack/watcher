@@ -13,15 +13,12 @@
 
 import dataclasses as dc
 
-from http import HTTPStatus
-
-from oslo_config import cfg
+from openstack import exceptions as sdk_exc
 from oslo_log import log as logging
 
-from watcher.common import clients
+from watcher.common.base_helper import BaseConnectionMixin
 
 
-CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
 
 
@@ -41,64 +38,50 @@ class Inventory:
     allocation_ratio: float
 
     @classmethod
-    def from_placement_api(cls, inventory_dict):
-        """Create an Inventory from a Placement API inventory dict.
+    def from_openstacksdk(cls, inventory):
+        """Create an Inventory from an OpenStackSDK inventory.
 
-        :param inventory_dict: dict from Placement API response
+        :param inventory: openstack.placement.Inventory
         :returns: Inventory dataclass instance
         """
         return cls(
-            total=inventory_dict['total'],
-            reserved=inventory_dict['reserved'],
-            min_unit=inventory_dict['min_unit'],
-            max_unit=inventory_dict['max_unit'],
-            step_size=inventory_dict['step_size'],
-            allocation_ratio=inventory_dict['allocation_ratio'],
+            total=inventory.total,
+            reserved=inventory.reserved,
+            min_unit=inventory.min_unit,
+            max_unit=inventory.max_unit,
+            step_size=inventory.step_size,
+            allocation_ratio=inventory.allocation_ratio,
         )
 
 
-class PlacementHelper:
-    def __init__(self, osc=None):
-        """:param osc: an OpenStackClients instance"""
-        self.osc = osc if osc else clients.OpenStackClients()
-        self._placement = self.osc.placement()
+class PlacementHelper(BaseConnectionMixin):
+    def __init__(self, session=None, context=None):
+        """Create and return a helper to call the placement service
 
-    def get(self, url):
-        return self._placement.get(url, raise_exc=False)
+        :param session: Optional keystone session to create the openstack
+        connection.
+        :param context: Optional context object, use to get user's token to
+        create openstack connection.
+        """
+        self._create_sdk_connection(
+            'placement', context=context, session=session
+        )
 
-    @staticmethod
-    def get_error_msg(resp):
-        json_resp = resp.json()
-        # https://docs.openstack.org/api-ref/placement/#errors
-        if 'errors' in json_resp:
-            error_msg = json_resp['errors'][0].get('detail')
-        else:
-            error_msg = resp.text
-
-        return error_msg
-
-    def get_inventories(self, rp_uuid: str) -> dict[str, Inventory]:
+    def get_inventories(self, rp_uuid: str) -> dict[str, Inventory] | None:
         """Calls the placement API to get resource inventory information.
 
         :param rp_uuid: UUID of the resource provider to get.
         :return: A dictionary of Inventory objects keyed by resource
-                 classes.
+                 classes or None if the provider could not be fetched.
         """
-        url = f'/resource_providers/{rp_uuid}/inventories'
-        resp = self.get(url)
-        if resp.status_code == HTTPStatus.OK:
-            json = resp.json()
+        try:
+            invs = self.connection.placement.resource_provider_inventories(
+                rp_uuid
+            )
             return {
-                rc: Inventory.from_placement_api(inv)
-                for rc, inv in json['inventories'].items()
+                inv.resource_class: Inventory.from_openstacksdk(inv)
+                for inv in invs
             }
-        msg = (
-            "Failed to get resource provider %(rp_uuid)s inventories. "
-            "Got %(status_code)d: %(err_text)s."
-        )
-        args = {
-            'rp_uuid': rp_uuid,
-            'status_code': resp.status_code,
-            'err_text': self.get_error_msg(resp),
-        }
-        LOG.error(msg, args)
+        except sdk_exc.SDKException as exc:
+            LOG.exception(exc)
+            return None

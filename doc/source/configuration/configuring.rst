@@ -171,7 +171,7 @@ The configuration file is organized into the following sections:
 * ``[ironic_client]`` - Ironic client configuration
 * ``[keystone]`` - Keystone service configuration
 * ``[nova]`` - Nova service configuration
-* ``[placement_client]`` - Placement client configuration
+* ``[placement]`` - Placement service configuration
 
 The Watcher configuration file is expected to be named
 ``watcher.conf``. When starting Watcher, you can specify a different
