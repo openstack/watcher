@@ -1,40 +1,113 @@
 ---
 repos:
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v6.0.0
-    hooks:
-      # whitespace
-      - id: trailing-whitespace
-      - id: mixed-line-ending
-        args: ['--fix', 'lf']
-        exclude: '.*\.(svg)$'
-      - id: fix-byte-order-marker
-      # file format and permissions
-      - id: check-executables-have-shebangs
-      - id: check-shebang-scripts-are-executable
-      - id: check-yaml
-        files: .*\.(yaml|yml)$
-      - id: check-json
-        files: .*\.json$
-        exclude: .*-curl.*\.json$
-      - id: check-ast
-      # git
-      - id: check-added-large-files
-      - id: check-case-conflict
-      - id: detect-private-key
-      - id: check-merge-conflict
-        exclude: '.*\.(rst|inc)$'
-      # python
-      - id: debug-statements
-      - id: check-docstring-first
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.7
-    hooks:
-      - id: ruff-check
-        args: ['--fix', '--unsafe-fixes']
-      - id: ruff-format
   - repo: local
     hooks:
+      # pre-commit-hooks (pip: pre-commit-hooks==6.0.0, MIT License)
+      - id: trailing-whitespace
+        name: trailing-whitespace
+        language: python
+        entry: trailing-whitespace-fixer
+        types: [text]
+        additional_dependencies: ['pre-commit-hooks==6.0.0']
+      - id: mixed-line-ending
+        name: mixed-line-ending
+        language: python
+        entry: mixed-line-ending
+        types: [text]
+        args: ['--fix', 'lf']
+        exclude: '.*\.(svg)$'
+        additional_dependencies: ['pre-commit-hooks==6.0.0']
+      - id: fix-byte-order-marker
+        name: fix-byte-order-marker
+        language: python
+        entry: fix-byte-order-marker
+        types: [text]
+        additional_dependencies: ['pre-commit-hooks==6.0.0']
+      - id: check-executables-have-shebangs
+        name: check-executables-have-shebangs
+        language: python
+        entry: check-executables-have-shebangs
+        types: [text, executable]
+        additional_dependencies: ['pre-commit-hooks==6.0.0']
+      - id: check-shebang-scripts-are-executable
+        name: check-shebang-scripts-are-executable
+        language: python
+        entry: check-shebang-scripts-are-executable
+        types: [text]
+        additional_dependencies: ['pre-commit-hooks==6.0.0']
+      - id: check-yaml
+        name: check-yaml
+        language: python
+        entry: check-yaml
+        types: [yaml]
+        files: .*\.(yaml|yml)$
+        additional_dependencies: ['pre-commit-hooks==6.0.0']
+      - id: check-json
+        name: check-json
+        language: python
+        entry: check-json
+        types: [json]
+        files: .*\.json$
+        exclude: .*-curl.*\.json$
+        additional_dependencies: ['pre-commit-hooks==6.0.0']
+      - id: check-ast
+        name: check-ast
+        language: python
+        entry: check-ast
+        types: [python]
+        additional_dependencies: ['pre-commit-hooks==6.0.0']
+      - id: check-added-large-files
+        name: check-added-large-files
+        language: python
+        entry: check-added-large-files
+        additional_dependencies: ['pre-commit-hooks==6.0.0']
+      - id: check-case-conflict
+        name: check-case-conflict
+        language: python
+        entry: check-case-conflict
+        additional_dependencies: ['pre-commit-hooks==6.0.0']
+      - id: detect-private-key
+        name: detect-private-key
+        language: python
+        entry: detect-private-key
+        types: [text]
+        additional_dependencies: ['pre-commit-hooks==6.0.0']
+      - id: check-merge-conflict
+        name: check-merge-conflict
+        language: python
+        entry: check-merge-conflict
+        types: [text]
+        exclude: '.*\.(rst|inc)$'
+        additional_dependencies: ['pre-commit-hooks==6.0.0']
+      - id: debug-statements
+        name: debug-statements
+        language: python
+        entry: debug-statement-hook
+        types: [python]
+        additional_dependencies: ['pre-commit-hooks==6.0.0']
+      - id: check-docstring-first
+        name: check-docstring-first
+        language: python
+        entry: check-docstring-first
+        types: [python]
+        additional_dependencies: ['pre-commit-hooks==6.0.0']
+      # ruff (replaces astral-sh/ruff-pre-commit)
+      - id: ruff-check
+        name: ruff-check
+        language: python
+        entry: ruff check --force-exclude
+        types_or: [python, pyi, jupyter]
+        args: ['--fix', '--unsafe-fixes']
+        require_serial: true
+        additional_dependencies: ['ruff==0.15.7']
+      - id: ruff-format
+        name: ruff-format
+        language: python
+        entry: ruff format --force-exclude
+        types_or: [python, pyi, jupyter]
+        require_serial: true
+        additional_dependencies: ['ruff==0.15.7']
+      # hacking (unchanged — already local)
       - id: hacking
         name: hacking
         language: python
@@ -44,24 +117,38 @@ repos:
         require_serial: true
         additional_dependencies: ['hacking===8.0.0']
         exclude: '^(doc|releasenotes|tools)/.*$'
-  - repo: https://github.com/PyCQA/bandit
-    rev: 1.9.4
-    hooks:
+      # bandit (replaces PyCQA/bandit)
       - id: bandit
+        name: bandit
+        language: python
+        entry: bandit
+        types: [python]
+        require_serial: true
         args: ['-c', 'pyproject.toml']
-  - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.2
-    hooks:
+        additional_dependencies: ['bandit[toml]==1.9.4']
+      # codespell (replaces codespell-project/codespell)
       - id: codespell
+        name: codespell
+        language: python
+        entry: codespell
+        types: [text]
         args: ['--ignore-words=doc/dictionary.txt']
-  - repo: https://github.com/sphinx-contrib/sphinx-lint
-    rev: v1.0.2
-    hooks:
+        additional_dependencies: ['codespell==2.4.2']
+      # sphinx-lint (replaces sphinx-contrib/sphinx-lint)
       - id: sphinx-lint
+        name: sphinx-lint
+        language: python
+        entry: sphinx-lint
+        types: [rst]
+        require_serial: true
         args: [--enable=default-role]
         files: ^doc/|^releasenotes/|^api-guide/
-        types: [rst]
-  - repo: https://github.com/PyCQA/doc8
-    rev: v2.0.0
-    hooks:
+        additional_dependencies: ['sphinx-lint==1.0.2']
+      # doc8 (replaces PyCQA/doc8)
       - id: doc8
+        name: doc8
+        language: python
+        entry: python -m doc8
+        files: \.rst$
+        require_serial: true
+        additional_dependencies: ['doc8==2.0.0']
