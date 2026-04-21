@@ -114,6 +114,33 @@ should implement:
     :special-members: __init__
     :noindex:
 
+Managing fields in model objects
+--------------------------------
+
+Cluster data model elements (e.g. ``ComputeNode``, ``Instance``) are internal
+structures consumed by strategies to make optimization decisions. They are not
+part of the public-facing API contract. The ``data_model`` API endpoint exposes
+a filtered view of these objects through a server-side field allowlist, so
+changes to the internal model schema do not automatically affect the API
+surface. Because of this separation, the lifecycle rules for model fields are
+lighter than those for API changes:
+
+**Adding new fields.** New fields may be introduced as needed to support
+new features or bug fixes. These additions must be managed and approved as part
+of the standard OpenStack change processes tracking the primary change.
+
+**Removing or renaming fields.** Removing an existing attribute from a model
+object requires a deprecation process. Because third-party strategy plugins and
+external consumers may depend on these fields, removal must be announced with
+sufficient lead time (at minimum in one SLURP release cycle) so that downstream
+users can adapt their code or request that the field be retained. The
+recommended steps are:
+
+#. Mark the field as deprecated in the release notes and documentation.
+#. Keep the field present but document it as deprecated for at least one
+   SLURP release cycle.
+#. Remove the field in a subsequent SLURP release after the deprecation period.
+
 Define configuration parameters
 ===============================
 

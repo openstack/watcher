@@ -19,9 +19,12 @@ from unittest import mock
 import ddt
 
 from oslo_serialization import jsonutils
+from oslo_versionedobjects import fields as ovo_fields
 
+from watcher.api.controllers.v1 import data_model as dm_ctrl
 from watcher.api.controllers.v1 import versions
 from watcher.decision_engine import rpcapi as deapi
+from watcher.objects import fields as wfields
 from watcher.tests.unit.api import base as api_base
 from watcher.tests.unit.decision_engine.model import faker_cluster_state
 
@@ -31,6 +34,7 @@ class TestListDataModel(api_base.FunctionalTest):
         super().setUp()
         p_dcapi = mock.patch.object(deapi, 'DecisionEngineAPI')
         self.mock_dcapi = p_dcapi.start()
+        # server_uuid is in FROZEN_SERVER_FIELDS, so it survives the filter.
         self.fake_response = {'context': [{'server_uuid': 'fake_uuid'}]}
         self.mock_dcapi().get_data_model_info.return_value = self.fake_response
         self.addCleanup(p_dcapi.stop)
@@ -194,3 +198,141 @@ class TestDataModelEnforcementWithAdminContext(
                 "data_model:get_all": "rule:default",
             }
         )
+
+
+class TestFilterDataModelFields(api_base.FunctionalTest):
+    """Verify unknown internal fields are stripped from the API response."""
+
+    def setUp(self):
+        super().setUp()
+        p_dcapi = mock.patch.object(deapi, 'DecisionEngineAPI')
+        self.mock_dcapi = p_dcapi.start()
+        self.addCleanup(p_dcapi.stop)
+
+    def _get_data_model(self, fake_response, version='1.6'):
+        self.mock_dcapi().get_data_model_info.return_value = fake_response
+        return self.get_json(
+            '/data_model/?data_model_type=compute',
+            headers={'OpenStack-API-Version': 'infra-optim %s' % version},
+        )
+
+    def test_unknown_node_field_is_stripped(self):
+        fake_response = {
+            'context': [
+                {
+                    'node_uuid': 'fake-node-uuid',
+                    'node_hostname': 'compute-0',
+                    'node_future_internal_field': 'should-be-stripped',
+                }
+            ]
+        }
+        response = self._get_data_model(fake_response)
+        entry = response['context'][0]
+        self.assertNotIn('node_future_internal_field', entry)
+        self.assertIn('node_uuid', entry)
+        self.assertIn('node_hostname', entry)
+
+    def test_unknown_server_field_is_stripped(self):
+        fake_response = {
+            'context': [
+                {
+                    'node_uuid': 'fake-node-uuid',
+                    'server_uuid': 'fake-server-uuid',
+                    'server_future_internal_field': 'should-be-stripped',
+                }
+            ]
+        }
+        response = self._get_data_model(fake_response)
+        entry = response['context'][0]
+        self.assertNotIn('server_future_internal_field', entry)
+        self.assertIn('node_uuid', entry)
+        self.assertIn('server_uuid', entry)
+
+    def test_unknown_fields_stripped_alongside_version_hiding(self):
+        """Unknown fields are removed even when version-based hiding runs."""
+        fake_response = {
+            'context': [
+                {
+                    'node_uuid': 'fake-node-uuid',
+                    'server_uuid': 'fake-server-uuid',
+                    'server_pinned_az': 'nova',
+                    'server_flavor_extra_specs': {},
+                    'server_future_internal_field': 'should-be-stripped',
+                }
+            ]
+        }
+        # v1.3 hides pinned_az and flavor_extra_specs; the unknown field must
+        # also be absent regardless of the version filtering order.
+        response = self._get_data_model(fake_response, version='1.3')
+        entry = response['context'][0]
+        self.assertNotIn('server_future_internal_field', entry)
+        self.assertNotIn('server_pinned_az', entry)
+        self.assertNotIn('server_flavor_extra_specs', entry)
+        self.assertIn('server_uuid', entry)
+        self.assertIn('node_uuid', entry)
+
+    def test_all_frozen_node_fields_are_preserved(self):
+        fake_response = {
+            'context': [{f: 'value' for f in dm_ctrl.FROZEN_NODE_FIELDS}]
+        }
+        response = self._get_data_model(fake_response)
+        entry = response['context'][0]
+        self.assertEqual(dm_ctrl.FROZEN_NODE_FIELDS, set(entry.keys()))
+
+    def test_all_frozen_server_fields_preserved_in_v16(self):
+        row = {f: 'value' for f in dm_ctrl.FROZEN_NODE_FIELDS}
+        row.update({f: 'value' for f in dm_ctrl.FROZEN_SERVER_FIELDS})
+        fake_response = {'context': [row]}
+        response = self._get_data_model(fake_response, version='1.6')
+        entry = response['context'][0]
+        expected = dm_ctrl.FROZEN_NODE_FIELDS | dm_ctrl.FROZEN_SERVER_FIELDS
+        self.assertEqual(expected, set(entry.keys()))
+
+    @staticmethod
+    def _fill_missing_fields(obj):
+        """Set a dummy value on every field that has not been assigned yet.
+
+        oslo.versionedobjects raises NotImplementedError when a field has no
+        value and no default.  Filling those gaps ensures to_list() emits
+        every field key, so the filter is exercised for optional fields that
+        the faker leaves unset.
+        """
+        _dummy = [
+            (wfields.UUIDField, '00000000-0000-0000-0000-000000000000'),
+            (ovo_fields.BooleanField, False),
+            (ovo_fields.NonNegativeFloatField, 1.0),
+            (ovo_fields.NonNegativeIntegerField, 0),
+            (wfields.JsonField, {}),
+        ]
+        for name, field in obj.fields.items():
+            try:
+                obj[name]
+            except NotImplementedError:
+                for cls, val in _dummy:
+                    if isinstance(field, cls):
+                        obj[name] = val
+                        break
+                else:
+                    obj[name] = None if field.nullable else 'fake'
+
+    def test_all_model_fields_filtered_to_frozen_set(self):
+        """All fields on real model objects reach the filter.
+
+        The faker may leave optional fields (no default) unset, causing
+        to_list() to silently omit them.  _fill_missing_fields() patches
+        those gaps so to_list() emits every field key and the filter is
+        exercised for all of them, including future optional additions.
+        """
+        fake_cluster = faker_cluster_state.FakerModelCollector()
+        model = fake_cluster.generate_scenario_11_with_2_nodes_2_instances()
+
+        for node in model.get_all_compute_nodes().values():
+            self._fill_missing_fields(node)
+        for instance in model.get_all_instances().values():
+            self._fill_missing_fields(instance)
+
+        get_model_resp = {'context': model.to_list()}
+        response = self._get_data_model(get_model_resp, version='1.6')
+        entry = response['context'][0]
+        expected = dm_ctrl.FROZEN_NODE_FIELDS | dm_ctrl.FROZEN_SERVER_FIELDS
+        self.assertEqual(expected, set(entry.keys()))

@@ -18,6 +18,11 @@ List Data Model
 
 Returns the information about Data Model.
 
+.. note::
+  This api will not be modified in future microversion to included new fields
+  that may be added to the Compute Data Model. Fields that are not documented
+  in the ``Response`` section are **not** exposed through this API.
+
 Normal response codes: 200
 
 Error codes: 400,401,406
