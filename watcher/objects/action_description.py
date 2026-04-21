@@ -13,11 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from oslo_versionedobjects import fields as ovo_fields
+
 from watcher.common import exception
 from watcher.common import utils
 from watcher.db import api as db_api
 from watcher.objects import base
-from watcher.objects import fields as wfields
 
 
 @base.WatcherObjectRegistry.register
@@ -32,9 +33,9 @@ class ActionDescription(
     dbapi = db_api.get_instance()
 
     fields = {
-        'id': wfields.IntegerField(),
-        'action_type': wfields.StringField(),
-        'description': wfields.StringField(),
+        'id': ovo_fields.IntegerField(),
+        'action_type': ovo_fields.StringField(),
+        'description': ovo_fields.StringField(),
     }
 
     @base.remotable_classmethod

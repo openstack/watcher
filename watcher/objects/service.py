@@ -13,11 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from oslo_versionedobjects import fields as ovo_fields
+
 from watcher.common import exception
 from watcher.common import utils
 from watcher.db import api as db_api
 from watcher.objects import base
-from watcher.objects import fields as wfields
 
 
 class ServiceStatus:
@@ -37,10 +38,10 @@ class Service(
     dbapi = db_api.get_instance()
 
     fields = {
-        'id': wfields.IntegerField(),
-        'name': wfields.StringField(),
-        'host': wfields.StringField(),
-        'last_seen_up': wfields.DateTimeField(
+        'id': ovo_fields.IntegerField(),
+        'name': ovo_fields.StringField(),
+        'host': ovo_fields.StringField(),
+        'last_seen_up': ovo_fields.DateTimeField(
             tzinfo_aware=False, nullable=True
         ),
     }

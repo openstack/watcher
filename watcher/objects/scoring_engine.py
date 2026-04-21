@@ -23,6 +23,8 @@ vary. A metainfo field is supposed to contain any information which might
 be needed by the user of a given scoring engine.
 """
 
+from oslo_versionedobjects import fields as ovo_fields
+
 from watcher.common import exception
 from watcher.common import utils
 from watcher.db import api as db_api
@@ -42,11 +44,11 @@ class ScoringEngine(
     dbapi = db_api.get_instance()
 
     fields = {
-        'id': wfields.IntegerField(),
+        'id': ovo_fields.IntegerField(),
         'uuid': wfields.UUIDField(),
-        'name': wfields.StringField(),
-        'description': wfields.StringField(nullable=True),
-        'metainfo': wfields.StringField(nullable=True),
+        'name': ovo_fields.StringField(),
+        'description': ovo_fields.StringField(nullable=True),
+        'metainfo': ovo_fields.StringField(nullable=True),
     }
 
     @base.remotable_classmethod

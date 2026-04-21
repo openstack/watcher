@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from oslo_versionedobjects import fields as ovo_fields
+
 from watcher import notifications
 from watcher import objects
 from watcher.common import exception
@@ -48,15 +50,15 @@ class Action(
     dbapi = db_api.get_instance()
 
     fields = {
-        'id': wfields.IntegerField(),
+        'id': ovo_fields.IntegerField(),
         'uuid': wfields.UUIDField(),
-        'action_plan_id': wfields.IntegerField(),
-        'action_type': wfields.StringField(nullable=True),
+        'action_plan_id': ovo_fields.IntegerField(),
+        'action_type': ovo_fields.StringField(nullable=True),
         'input_parameters': wfields.DictField(nullable=True),
-        'state': wfields.StringField(nullable=True),
-        'parents': wfields.ListOfStringsField(nullable=True),
-        'status_message': wfields.StringField(nullable=True),
-        'action_plan': wfields.ObjectField('ActionPlan', nullable=True),
+        'state': ovo_fields.StringField(nullable=True),
+        'parents': ovo_fields.ListOfStringsField(nullable=True),
+        'status_message': ovo_fields.StringField(nullable=True),
+        'action_plan': ovo_fields.ObjectField('ActionPlan', nullable=True),
     }
     object_fields = {'action_plan': (objects.ActionPlan, 'action_plan_id')}
 

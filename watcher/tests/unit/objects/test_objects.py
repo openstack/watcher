@@ -18,13 +18,13 @@ import gettext
 
 from unittest import mock
 
-from oslo_versionedobjects import base as object_base
-from oslo_versionedobjects import exception as object_exception
-from oslo_versionedobjects import fixture as object_fixture
+from oslo_versionedobjects import base as ovo_base
+from oslo_versionedobjects import exception as ovo_exception
+from oslo_versionedobjects import fields as ovo_fields
+from oslo_versionedobjects import fixture as ovo_fixture
 
 from watcher.common import context
 from watcher.objects import base
-from watcher.objects import fields
 from watcher.tests.unit import base as test_base
 
 
@@ -40,15 +40,15 @@ class MyObj(
     VERSION = '1.5'
 
     fields = {
-        'foo': fields.IntegerField(),
-        'bar': fields.StringField(),
-        'missing': fields.StringField(),
+        'foo': ovo_fields.IntegerField(),
+        'bar': ovo_fields.StringField(),
+        'missing': ovo_fields.StringField(),
     }
 
     def obj_load_attr(self, attrname):
         setattr(self, attrname, 'loaded!')
 
-    @object_base.remotable_classmethod
+    @ovo_base.remotable_classmethod
     def query(cls, context):
         obj = cls(context)
         obj.foo = 1
@@ -56,28 +56,28 @@ class MyObj(
         obj.obj_reset_changes()
         return obj
 
-    @object_base.remotable
+    @ovo_base.remotable
     def marco(self, context=None):
         return 'polo'
 
-    @object_base.remotable
+    @ovo_base.remotable
     def update_test(self, context=None):
         if context and context.user_id == 'alternate':
             self.bar = 'alternate-context'
         else:
             self.bar = 'updated'
 
-    @object_base.remotable
+    @ovo_base.remotable
     def save(self, context=None):
         self.obj_reset_changes()
 
-    @object_base.remotable
+    @ovo_base.remotable
     def refresh(self, context=None):
         self.foo = 321
         self.bar = 'refreshed'
         self.obj_reset_changes()
 
-    @object_base.remotable
+    @ovo_base.remotable
     def modify_save_modify(self, context=None):
         self.bar = 'meow'
         self.save()
@@ -89,14 +89,14 @@ class MyObj2:
     def obj_name(cls):
         return 'MyObj'
 
-    @object_base.remotable_classmethod
+    @ovo_base.remotable_classmethod
     def get(cls, *args, **kwargs):
         pass
 
 
 @base.WatcherObjectRegistry.register_if(False)
 class WatcherTestSubclassedObject(MyObj):
-    fields = {'new_field': fields.StringField()}
+    fields = {'new_field': ovo_fields.StringField()}
 
 
 class _LocalTest(test_base.TestCase):
@@ -144,7 +144,7 @@ class _TestObject:
             'watcher_object.data': {'foo': 1},
         }
         self.assertRaises(
-            object_exception.UnsupportedObjectError,
+            ovo_exception.UnsupportedObjectError,
             MyObj.obj_from_primitive,
             primitive,
         )
@@ -194,7 +194,7 @@ class _TestObject:
             base.WatcherObject,
             base.WatcherObjectDictCompat,
         ):
-            fields = {'foobar': fields.IntegerField()}
+            fields = {'foobar': ovo_fields.IntegerField()}
 
         obj = Foo(self.context)
 
@@ -233,7 +233,7 @@ class _TestObject:
 
     def test_unknown_objtype(self):
         self.assertRaises(
-            object_exception.UnsupportedObjectError,
+            ovo_exception.UnsupportedObjectError,
             base.WatcherObject.obj_class_from_name,
             'foo',
             '1.0',
@@ -249,9 +249,7 @@ class _TestObject:
     def test_orphaned_object(self):
         obj = MyObj.query(self.context)
         obj._context = None
-        self.assertRaises(
-            object_exception.OrphanedObjectError, obj.update_test
-        )
+        self.assertRaises(ovo_exception.OrphanedObjectError, obj.update_test)
 
     def test_changed_1(self):
         obj = MyObj.query(self.context)
@@ -301,7 +299,7 @@ class _TestObject:
 
     def test_base_attributes(self):
         dt = datetime.datetime(1955, 11, 5, 0, 0, tzinfo=datetime.timezone.utc)
-        datatime = fields.DateTimeField()
+        datatime = ovo_fields.DateTimeField()
         obj = MyObj(self.context)
         obj.created_at = dt
         obj.updated_at = dt
@@ -392,7 +390,7 @@ class _TestObject:
             base.WatcherObject,
             base.WatcherObjectDictCompat,
         ):
-            fields = {'foo': fields.IntegerField()}
+            fields = {'foo': ovo_fields.IntegerField()}
             obj_extra_fields = ['bar']
 
             @property
@@ -413,8 +411,8 @@ class _TestObject:
             base.WatcherObjectDictCompat,
         ):
             fields = {
-                'foo': fields.IntegerField(),
-                'bar': fields.StringField(),
+                'foo': ovo_fields.IntegerField(),
+                'bar': ovo_fields.StringField(),
             }
 
         obj = TestObj(self.context)
@@ -436,8 +434,8 @@ class _TestObject:
     def test_assign_value_without_DictCompat(self):
         class TestObj(base.WatcherObject):
             fields = {
-                'foo': fields.IntegerField(),
-                'bar': fields.StringField(),
+                'foo': ovo_fields.IntegerField(),
+                'bar': ovo_fields.StringField(),
             }
 
         obj = TestObj(self.context)
@@ -500,7 +498,7 @@ def get_watcher_objects():
 class TestObjectVersions(test_base.TestCase):
     def test_object_version_check(self):
         classes = base.WatcherObjectRegistry.obj_classes()
-        checker = object_fixture.ObjectVersionChecker(obj_classes=classes)
+        checker = ovo_fixture.ObjectVersionChecker(obj_classes=classes)
         # Compute the difference between actual fingerprints and
         # expect fingerprints. expect = actual = {} if there is no change.
         expect, actual = checker.test_hashes(expected_object_fingerprints)
@@ -565,7 +563,7 @@ class TestObjectSerializer(test_base.TestCase):
             )
         else:
             self.assertEqual('backported', result)
-            versions = object_base.obj_tree_get_versions('MyTestObj')
+            versions = ovo_base.obj_tree_get_versions('MyTestObj')
             mock_indirection_api.object_backport_versions.assert_called_with(
                 self.context, primitive, versions
             )

@@ -46,6 +46,8 @@ contain a list of extra parameters related to the
 provided as a list of key-value pairs.
 """
 
+from oslo_versionedobjects import fields as ovo_fields
+
 from watcher import objects
 from watcher.common import exception
 from watcher.common import utils
@@ -67,15 +69,15 @@ class AuditTemplate(
     dbapi = db_api.get_instance()
 
     fields = {
-        'id': wfields.IntegerField(),
+        'id': ovo_fields.IntegerField(),
         'uuid': wfields.UUIDField(),
-        'name': wfields.StringField(),
-        'description': wfields.StringField(nullable=True),
+        'name': ovo_fields.StringField(),
+        'description': ovo_fields.StringField(nullable=True),
         'scope': wfields.FlexibleListOfDictField(nullable=True),
-        'goal_id': wfields.IntegerField(),
-        'strategy_id': wfields.IntegerField(nullable=True),
-        'goal': wfields.ObjectField('Goal', nullable=True),
-        'strategy': wfields.ObjectField('Strategy', nullable=True),
+        'goal_id': ovo_fields.IntegerField(),
+        'strategy_id': ovo_fields.IntegerField(nullable=True),
+        'goal': ovo_fields.ObjectField('Goal', nullable=True),
+        'strategy': ovo_fields.ObjectField('Strategy', nullable=True),
     }
 
     object_fields = {

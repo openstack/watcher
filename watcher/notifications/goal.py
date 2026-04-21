@@ -15,6 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from oslo_versionedobjects import fields as ovo_fields
+
 from watcher.notifications import base as notificationbase
 from watcher.objects import base
 from watcher.objects import fields as wfields
@@ -37,12 +39,12 @@ class GoalPayload(notificationbase.NotificationPayloadBase):
 
     fields = {
         'uuid': wfields.UUIDField(),
-        'name': wfields.StringField(),
-        'display_name': wfields.StringField(),
+        'name': ovo_fields.StringField(),
+        'display_name': ovo_fields.StringField(),
         'efficacy_specification': wfields.FlexibleListOfDictField(),
-        'created_at': wfields.DateTimeField(nullable=True),
-        'updated_at': wfields.DateTimeField(nullable=True),
-        'deleted_at': wfields.DateTimeField(nullable=True),
+        'created_at': ovo_fields.DateTimeField(nullable=True),
+        'updated_at': ovo_fields.DateTimeField(nullable=True),
+        'deleted_at': ovo_fields.DateTimeField(nullable=True),
     }
 
     def __init__(self, goal, **kwargs):

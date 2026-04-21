@@ -15,6 +15,8 @@
 
 import enum
 
+from oslo_versionedobjects import fields as ovo_fields
+
 from watcher.decision_engine.model.element import compute_resource
 from watcher.objects import base
 from watcher.objects import fields as wfields
@@ -43,17 +45,17 @@ class Instance(compute_resource.ComputeResource):
     fields = {
         # If the resource is excluded by the scope,
         # 'watcher_exclude' property will be set True.
-        "watcher_exclude": wfields.BooleanField(default=False),
-        "name": wfields.StringField(),
-        "state": wfields.StringField(default=InstanceState.ACTIVE.value),
-        "memory": wfields.NonNegativeIntegerField(),
-        "disk": wfields.NonNegativeIntegerField(),
-        "vcpus": wfields.NonNegativeIntegerField(),
+        "watcher_exclude": ovo_fields.BooleanField(default=False),
+        "name": ovo_fields.StringField(),
+        "state": ovo_fields.StringField(default=InstanceState.ACTIVE.value),
+        "memory": ovo_fields.NonNegativeIntegerField(),
+        "disk": ovo_fields.NonNegativeIntegerField(),
+        "vcpus": ovo_fields.NonNegativeIntegerField(),
         "metadata": wfields.JsonField(),
         "project_id": wfields.UUIDField(),
-        "locked": wfields.BooleanField(default=False),
+        "locked": ovo_fields.BooleanField(default=False),
         # New fields for extended compute model
-        "pinned_az": wfields.StringField(default=""),
+        "pinned_az": ovo_fields.StringField(default=""),
         "flavor_extra_specs": wfields.JsonField(default={}),
     }
 

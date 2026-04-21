@@ -20,18 +20,18 @@ from oslo_serialization import jsonutils
 from oslo_versionedobjects import fields
 
 
-BaseEnumField = fields.BaseEnumField
-BooleanField = fields.BooleanField
-DateTimeField = fields.DateTimeField
-Enum = fields.Enum
-FloatField = fields.FloatField
-IntegerField = fields.IntegerField
-ListOfStringsField = fields.ListOfStringsField
-NonNegativeFloatField = fields.NonNegativeFloatField
-NonNegativeIntegerField = fields.NonNegativeIntegerField
-ObjectField = fields.ObjectField
-StringField = fields.StringField
-UnspecifiedDefault = fields.UnspecifiedDefault
+__all__ = [
+    "DictField",
+    "FlexibleDictField",
+    "FlexibleListOfDictField",
+    "JsonField",
+    "ListOfUUIDsField",
+    "NotificationAction",
+    "NotificationPhase",
+    "NotificationPriority",
+    "NumericField",
+    "UUIDField",
+]
 
 
 class UUIDField(fields.UUIDField):
@@ -121,8 +121,8 @@ class JsonField(fields.AutoTypedField):
 # ### Notification fields ### #
 
 
-class BaseWatcherEnum(Enum):
-    ALL = ()
+class BaseWatcherEnum(fields.Enum):
+    ALL: tuple[str, ...]
 
     def __init__(self, **kwargs):
         super().__init__(valid_values=self.__class__.ALL)
@@ -138,12 +138,20 @@ class NotificationPriority(BaseWatcherEnum):
     ALL = (DEBUG, INFO, WARNING, ERROR, CRITICAL)
 
 
+class NotificationPriorityField(fields.BaseEnumField):
+    AUTO_TYPE = NotificationPriority()
+
+
 class NotificationPhase(BaseWatcherEnum):
     START = 'start'
     END = 'end'
     ERROR = 'error'
 
     ALL = (START, END, ERROR)
+
+
+class NotificationPhaseField(fields.BaseEnumField):
+    AUTO_TYPE = NotificationPhase()
 
 
 class NotificationAction(BaseWatcherEnum):
@@ -170,13 +178,5 @@ class NotificationAction(BaseWatcherEnum):
     )
 
 
-class NotificationPriorityField(BaseEnumField):
-    AUTO_TYPE = NotificationPriority()
-
-
-class NotificationPhaseField(BaseEnumField):
-    AUTO_TYPE = NotificationPhase()
-
-
-class NotificationActionField(BaseEnumField):
+class NotificationActionField(fields.BaseEnumField):
     AUTO_TYPE = NotificationAction()

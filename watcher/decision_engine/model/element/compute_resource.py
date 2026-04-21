@@ -15,11 +15,12 @@
 
 import abc
 
+from oslo_versionedobjects import fields as ovo_fields
+
 from watcher.decision_engine.model.element import base
-from watcher.objects import fields as wfields
 
 
 class ComputeResource(base.Element, metaclass=abc.ABCMeta):
     VERSION = '1.0'
 
-    fields = {"uuid": wfields.StringField()}
+    fields = {"uuid": ovo_fields.StringField()}

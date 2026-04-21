@@ -16,6 +16,7 @@
 # limitations under the License.
 
 from oslo_config import cfg
+from oslo_versionedobjects import fields as ovo_fields
 
 from watcher import objects
 from watcher.common import context as wcontext
@@ -50,14 +51,14 @@ class TerseActionPlanPayload(notificationbase.NotificationPayloadBase):
 
     fields = {
         'uuid': wfields.UUIDField(),
-        'state': wfields.StringField(),
+        'state': ovo_fields.StringField(),
         'global_efficacy': wfields.FlexibleListOfDictField(nullable=True),
         'audit_uuid': wfields.UUIDField(),
         'strategy_uuid': wfields.UUIDField(nullable=True),
-        'status_message': wfields.StringField(nullable=True),
-        'created_at': wfields.DateTimeField(nullable=True),
-        'updated_at': wfields.DateTimeField(nullable=True),
-        'deleted_at': wfields.DateTimeField(nullable=True),
+        'status_message': ovo_fields.StringField(nullable=True),
+        'created_at': ovo_fields.DateTimeField(nullable=True),
+        'updated_at': ovo_fields.DateTimeField(nullable=True),
+        'deleted_at': ovo_fields.DateTimeField(nullable=True),
     }
 
     def __init__(self, action_plan, audit=None, strategy=None, **kwargs):
@@ -83,8 +84,8 @@ class ActionPlanPayload(TerseActionPlanPayload):
     VERSION = '1.2'
 
     fields = {
-        'audit': wfields.ObjectField('TerseAuditPayload'),
-        'strategy': wfields.ObjectField('StrategyPayload'),
+        'audit': ovo_fields.ObjectField('TerseAuditPayload'),
+        'strategy': ovo_fields.ObjectField('StrategyPayload'),
     }
 
     def __init__(self, action_plan, audit, strategy, **kwargs):
@@ -104,9 +105,9 @@ class ActionPlanStateUpdatePayload(notificationbase.NotificationPayloadBase):
     VERSION = '1.1'
 
     fields = {
-        'old_state': wfields.StringField(nullable=True),
-        'state': wfields.StringField(nullable=True),
-        'status_message': wfields.StringField(nullable=True),
+        'old_state': ovo_fields.StringField(nullable=True),
+        'state': ovo_fields.StringField(nullable=True),
+        'status_message': ovo_fields.StringField(nullable=True),
     }
 
 
@@ -131,7 +132,7 @@ class ActionPlanUpdatePayload(ActionPlanPayload):
     # Version 1.2: Added 'status_message' field
     VERSION = '1.2'
     fields = {
-        'state_update': wfields.ObjectField('ActionPlanStateUpdatePayload')
+        'state_update': ovo_fields.ObjectField('ActionPlanStateUpdatePayload')
     }
 
     def __init__(self, action_plan, state_update, audit, strategy):
@@ -149,7 +150,9 @@ class ActionPlanActionPayload(ActionPlanPayload):
     # Version 1.1: Changed global_efficacy_type
     # Version 1.2: Added 'status_message' field
     VERSION = '1.2'
-    fields = {'fault': wfields.ObjectField('ExceptionPayload', nullable=True)}
+    fields = {
+        'fault': ovo_fields.ObjectField('ExceptionPayload', nullable=True)
+    }
 
     def __init__(self, action_plan, audit, strategy, **kwargs):
         super().__init__(
@@ -177,7 +180,9 @@ class ActionPlanCancelPayload(ActionPlanPayload):
     # Version 1.1: Changed global_efficacy_type
     # Version 1.2: Added 'status_message' field
     VERSION = '1.2'
-    fields = {'fault': wfields.ObjectField('ExceptionPayload', nullable=True)}
+    fields = {
+        'fault': ovo_fields.ObjectField('ExceptionPayload', nullable=True)
+    }
 
     def __init__(self, action_plan, audit, strategy, **kwargs):
         super().__init__(
@@ -193,7 +198,7 @@ class ActionPlanActionNotification(notificationbase.NotificationBase):
     # Version 1.0: Initial version
     VERSION = '1.0'
 
-    fields = {'payload': wfields.ObjectField('ActionPlanActionPayload')}
+    fields = {'payload': ovo_fields.ObjectField('ActionPlanActionPayload')}
 
 
 @notificationbase.notification_sample('action_plan-create.json')
@@ -202,7 +207,7 @@ class ActionPlanCreateNotification(notificationbase.NotificationBase):
     # Version 1.0: Initial version
     VERSION = '1.0'
 
-    fields = {'payload': wfields.ObjectField('ActionPlanCreatePayload')}
+    fields = {'payload': ovo_fields.ObjectField('ActionPlanCreatePayload')}
 
 
 @notificationbase.notification_sample('action_plan-update.json')
@@ -211,7 +216,7 @@ class ActionPlanUpdateNotification(notificationbase.NotificationBase):
     # Version 1.0: Initial version
     VERSION = '1.0'
 
-    fields = {'payload': wfields.ObjectField('ActionPlanUpdatePayload')}
+    fields = {'payload': ovo_fields.ObjectField('ActionPlanUpdatePayload')}
 
 
 @notificationbase.notification_sample('action_plan-delete.json')
@@ -220,7 +225,7 @@ class ActionPlanDeleteNotification(notificationbase.NotificationBase):
     # Version 1.0: Initial version
     VERSION = '1.0'
 
-    fields = {'payload': wfields.ObjectField('ActionPlanDeletePayload')}
+    fields = {'payload': ovo_fields.ObjectField('ActionPlanDeletePayload')}
 
 
 @notificationbase.notification_sample('action_plan-cancel-error.json')
@@ -231,7 +236,7 @@ class ActionPlanCancelNotification(notificationbase.NotificationBase):
     # Version 1.0: Initial version
     VERSION = '1.0'
 
-    fields = {'payload': wfields.ObjectField('ActionPlanCancelPayload')}
+    fields = {'payload': ovo_fields.ObjectField('ActionPlanCancelPayload')}
 
 
 def _get_common_payload(action_plan):

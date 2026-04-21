@@ -20,9 +20,9 @@ import collections
 
 from lxml import etree  # nosec: B410
 from oslo_log import log
+from oslo_versionedobjects import fields as ovo_fields
 
 from watcher.objects import base
-from watcher.objects import fields as wfields
 
 
 LOG = log.getLogger(__name__)
@@ -46,7 +46,7 @@ class Element(
             if (
                 name not in kwargs
                 and not field.nullable
-                and field.default != wfields.UnspecifiedDefault
+                and field.default != ovo_fields.UnspecifiedDefault
             ):
                 kwargs[name] = field.default
         super().__init__(context, **kwargs)

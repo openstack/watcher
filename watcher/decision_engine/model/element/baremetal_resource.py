@@ -15,14 +15,15 @@
 
 import abc
 
+from oslo_versionedobjects import fields as ovo_fields
+
 from watcher.decision_engine.model.element import base
-from watcher.objects import fields as wfields
 
 
 class BaremetalResource(base.Element, metaclass=abc.ABCMeta):
     VERSION = '1.0'
 
     fields = {
-        "uuid": wfields.StringField(),
-        "human_id": wfields.StringField(default=""),
+        "uuid": ovo_fields.StringField(),
+        "human_id": ovo_fields.StringField(default=""),
     }

@@ -13,9 +13,10 @@
 import inspect
 import sys
 
+from oslo_versionedobjects import fields as ovo_fields
+
 from watcher.notifications import base as notificationbase
 from watcher.objects import base
-from watcher.objects import fields as wfields
 
 
 @base.WatcherObjectRegistry.register_notification
@@ -23,10 +24,10 @@ class ExceptionPayload(notificationbase.NotificationPayloadBase):
     # Version 1.0: Initial version
     VERSION = '1.0'
     fields = {
-        'module_name': wfields.StringField(),
-        'function_name': wfields.StringField(),
-        'exception': wfields.StringField(),
-        'exception_message': wfields.StringField(),
+        'module_name': ovo_fields.StringField(),
+        'function_name': ovo_fields.StringField(),
+        'exception': ovo_fields.StringField(),
+        'exception_message': ovo_fields.StringField(),
     }
 
     @classmethod
@@ -49,4 +50,4 @@ class ExceptionPayload(notificationbase.NotificationPayloadBase):
 class ExceptionNotification(notificationbase.NotificationBase):
     # Version 1.0: Initial version
     VERSION = '1.0'
-    fields = {'payload': wfields.ObjectField('ExceptionPayload')}
+    fields = {'payload': ovo_fields.ObjectField('ExceptionPayload')}

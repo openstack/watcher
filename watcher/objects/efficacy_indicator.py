@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from oslo_versionedobjects import fields as ovo_fields
+
 from watcher.common import exception
 from watcher.common import utils
 from watcher.db import api as db_api
@@ -32,12 +34,12 @@ class EfficacyIndicator(
     dbapi = db_api.get_instance()
 
     fields = {
-        'id': wfields.IntegerField(),
+        'id': ovo_fields.IntegerField(),
         'uuid': wfields.UUIDField(),
-        'action_plan_id': wfields.IntegerField(),
-        'name': wfields.StringField(),
-        'description': wfields.StringField(nullable=True),
-        'unit': wfields.StringField(nullable=True),
+        'action_plan_id': ovo_fields.IntegerField(),
+        'name': ovo_fields.StringField(),
+        'description': ovo_fields.StringField(nullable=True),
+        'unit': ovo_fields.StringField(nullable=True),
         'value': wfields.NumericField(),
     }
 

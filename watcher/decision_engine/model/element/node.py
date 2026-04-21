@@ -15,6 +15,8 @@
 
 import enum
 
+from oslo_versionedobjects import fields as ovo_fields
+
 from watcher.decision_engine.model.element import baremetal_resource
 from watcher.decision_engine.model.element import compute_resource
 from watcher.decision_engine.model.element import storage_resource
@@ -32,19 +34,19 @@ class ServiceState(enum.Enum):
 @base.WatcherObjectRegistry.register_if(False)
 class ComputeNode(compute_resource.ComputeResource):
     fields = {
-        "hostname": wfields.StringField(),
-        "status": wfields.StringField(default=ServiceState.ENABLED.value),
-        "disabled_reason": wfields.StringField(nullable=True),
-        "state": wfields.StringField(default=ServiceState.ONLINE.value),
-        "memory": wfields.NonNegativeIntegerField(),
-        "memory_mb_reserved": wfields.NonNegativeIntegerField(),
-        "disk": wfields.NonNegativeIntegerField(),
-        "disk_gb_reserved": wfields.NonNegativeIntegerField(),
-        "vcpus": wfields.NonNegativeIntegerField(),
-        "vcpu_reserved": wfields.NonNegativeIntegerField(),
-        "memory_ratio": wfields.NonNegativeFloatField(),
-        "vcpu_ratio": wfields.NonNegativeFloatField(),
-        "disk_ratio": wfields.NonNegativeFloatField(),
+        "hostname": ovo_fields.StringField(),
+        "status": ovo_fields.StringField(default=ServiceState.ENABLED.value),
+        "disabled_reason": ovo_fields.StringField(nullable=True),
+        "state": ovo_fields.StringField(default=ServiceState.ONLINE.value),
+        "memory": ovo_fields.NonNegativeIntegerField(),
+        "memory_mb_reserved": ovo_fields.NonNegativeIntegerField(),
+        "disk": ovo_fields.NonNegativeIntegerField(),
+        "disk_gb_reserved": ovo_fields.NonNegativeIntegerField(),
+        "vcpus": ovo_fields.NonNegativeIntegerField(),
+        "vcpu_reserved": ovo_fields.NonNegativeIntegerField(),
+        "memory_ratio": ovo_fields.NonNegativeFloatField(),
+        "vcpu_ratio": ovo_fields.NonNegativeFloatField(),
+        "disk_ratio": ovo_fields.NonNegativeFloatField(),
     }
 
     def accept(self, visitor):
@@ -66,11 +68,11 @@ class ComputeNode(compute_resource.ComputeResource):
 @base.WatcherObjectRegistry.register_if(False)
 class StorageNode(storage_resource.StorageResource):
     fields = {
-        "host": wfields.StringField(),
-        "zone": wfields.StringField(),
-        "status": wfields.StringField(default=ServiceState.ENABLED.value),
-        "state": wfields.StringField(default=ServiceState.ONLINE.value),
-        "volume_type": wfields.ListOfStringsField(),
+        "host": ovo_fields.StringField(),
+        "zone": ovo_fields.StringField(),
+        "status": ovo_fields.StringField(default=ServiceState.ENABLED.value),
+        "state": ovo_fields.StringField(default=ServiceState.ONLINE.value),
+        "volume_type": ovo_fields.ListOfStringsField(),
     }
 
     def accept(self, visitor):
@@ -80,13 +82,13 @@ class StorageNode(storage_resource.StorageResource):
 @base.WatcherObjectRegistry.register_if(False)
 class Pool(storage_resource.StorageResource):
     fields = {
-        "name": wfields.StringField(),
-        "total_volumes": wfields.NonNegativeIntegerField(),
-        "total_capacity_gb": wfields.NonNegativeIntegerField(),
-        "free_capacity_gb": wfields.NonNegativeIntegerField(),
-        "provisioned_capacity_gb": wfields.NonNegativeIntegerField(),
-        "allocated_capacity_gb": wfields.NonNegativeIntegerField(),
-        "virtual_free": wfields.NonNegativeIntegerField(default=0),
+        "name": ovo_fields.StringField(),
+        "total_volumes": ovo_fields.NonNegativeIntegerField(),
+        "total_capacity_gb": ovo_fields.NonNegativeIntegerField(),
+        "free_capacity_gb": ovo_fields.NonNegativeIntegerField(),
+        "provisioned_capacity_gb": ovo_fields.NonNegativeIntegerField(),
+        "allocated_capacity_gb": ovo_fields.NonNegativeIntegerField(),
+        "virtual_free": ovo_fields.NonNegativeIntegerField(default=0),
     }
 
     def accept(self, visitor):
@@ -96,9 +98,9 @@ class Pool(storage_resource.StorageResource):
 @base.WatcherObjectRegistry.register_if(False)
 class IronicNode(baremetal_resource.BaremetalResource):
     fields = {
-        "power_state": wfields.StringField(),
-        "maintenance": wfields.BooleanField(),
-        "maintenance_reason": wfields.StringField(),
+        "power_state": ovo_fields.StringField(),
+        "maintenance": ovo_fields.BooleanField(),
+        "maintenance_reason": ovo_fields.StringField(),
         "extra": wfields.DictField(),
     }
 

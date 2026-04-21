@@ -52,6 +52,8 @@ be one of the following:
 
 import enum
 
+from oslo_versionedobjects import fields as ovo_fields
+
 from watcher import notifications
 from watcher import objects
 from watcher.common import exception
@@ -98,27 +100,31 @@ class Audit(
     dbapi = db_api.get_instance()
 
     fields = {
-        'id': wfields.IntegerField(),
+        'id': ovo_fields.IntegerField(),
         'uuid': wfields.UUIDField(),
-        'name': wfields.StringField(),
-        'audit_type': wfields.StringField(),
-        'state': wfields.StringField(),
+        'name': ovo_fields.StringField(),
+        'audit_type': ovo_fields.StringField(),
+        'state': ovo_fields.StringField(),
         'parameters': wfields.FlexibleDictField(nullable=True),
-        'interval': wfields.StringField(nullable=True),
+        'interval': ovo_fields.StringField(nullable=True),
         'scope': wfields.FlexibleListOfDictField(nullable=True),
-        'goal_id': wfields.IntegerField(),
-        'strategy_id': wfields.IntegerField(nullable=True),
-        'auto_trigger': wfields.BooleanField(),
-        'next_run_time': wfields.DateTimeField(
+        'goal_id': ovo_fields.IntegerField(),
+        'strategy_id': ovo_fields.IntegerField(nullable=True),
+        'auto_trigger': ovo_fields.BooleanField(),
+        'next_run_time': ovo_fields.DateTimeField(
             nullable=True, tzinfo_aware=False
         ),
-        'hostname': wfields.StringField(nullable=True),
-        'start_time': wfields.DateTimeField(nullable=True, tzinfo_aware=False),
-        'end_time': wfields.DateTimeField(nullable=True, tzinfo_aware=False),
-        'force': wfields.BooleanField(default=False, nullable=False),
-        'goal': wfields.ObjectField('Goal', nullable=True),
-        'strategy': wfields.ObjectField('Strategy', nullable=True),
-        'status_message': wfields.StringField(nullable=True),
+        'hostname': ovo_fields.StringField(nullable=True),
+        'start_time': ovo_fields.DateTimeField(
+            nullable=True, tzinfo_aware=False
+        ),
+        'end_time': ovo_fields.DateTimeField(
+            nullable=True, tzinfo_aware=False
+        ),
+        'force': ovo_fields.BooleanField(default=False, nullable=False),
+        'goal': ovo_fields.ObjectField('Goal', nullable=True),
+        'strategy': ovo_fields.ObjectField('Strategy', nullable=True),
+        'status_message': ovo_fields.StringField(nullable=True),
     }
 
     object_fields = {

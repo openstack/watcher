@@ -16,6 +16,7 @@ import collections
 
 from unittest import mock
 
+from oslo_versionedobjects import fields as ovo_fields
 from oslo_versionedobjects import fixture
 
 from watcher.common import exception
@@ -32,9 +33,9 @@ class TestNotificationBase(testbase.TestCase):
     class TestObject(base.WatcherObject):
         VERSION = '1.0'
         fields = {
-            'field_1': wfields.StringField(),
-            'field_2': wfields.IntegerField(),
-            'not_important_field': wfields.IntegerField(),
+            'field_1': ovo_fields.StringField(),
+            'field_2': ovo_fields.IntegerField(),
+            'not_important_field': ovo_fields.IntegerField(),
         }
 
     @base.WatcherObjectRegistry.register_if(False)
@@ -47,9 +48,9 @@ class TestNotificationBase(testbase.TestCase):
         }
 
         fields = {
-            'extra_field': wfields.StringField(),  # filled by ctor
-            'field_1': wfields.StringField(),  # filled by the schema
-            'field_2': wfields.IntegerField(),  # filled by the schema
+            'extra_field': ovo_fields.StringField(),  # filled by ctor
+            'field_1': ovo_fields.StringField(),  # filled by the schema
+            'field_2': ovo_fields.IntegerField(),  # filled by the schema
         }
 
         def populate_schema(self, source_field):
@@ -62,7 +63,7 @@ class TestNotificationBase(testbase.TestCase):
         VERSION = '1.0'
 
         fields = {
-            'extra_field': wfields.StringField()  # filled by ctor
+            'extra_field': ovo_fields.StringField()  # filled by ctor
         }
 
     @notificationbase.notification_sample('test-update-1.json')
@@ -70,13 +71,13 @@ class TestNotificationBase(testbase.TestCase):
     @base.WatcherObjectRegistry.register_if(False)
     class TestNotification(notificationbase.NotificationBase):
         VERSION = '1.0'
-        fields = {'payload': wfields.ObjectField('TestNotificationPayload')}
+        fields = {'payload': ovo_fields.ObjectField('TestNotificationPayload')}
 
     @base.WatcherObjectRegistry.register_if(False)
     class TestNotificationEmptySchema(notificationbase.NotificationBase):
         VERSION = '1.0'
         fields = {
-            'payload': wfields.ObjectField(
+            'payload': ovo_fields.ObjectField(
                 'TestNotificationPayloadEmptySchema'
             )
         }
@@ -363,9 +364,9 @@ class TestNotificationObjectVersions(testbase.TestCase):
             }
 
             fields = {
-                'extra_field': wfields.StringField(),  # filled by ctor
-                'field_1': wfields.StringField(),  # filled by the schema
-                'field_2': wfields.IntegerField(),  # filled by the schema
+                'extra_field': ovo_fields.StringField(),  # filled by ctor
+                'field_1': ovo_fields.StringField(),  # filled by the schema
+                'field_2': ovo_fields.IntegerField(),  # filled by the schema
             }
 
         checker = fixture.ObjectVersionChecker(

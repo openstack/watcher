@@ -15,6 +15,8 @@
 
 import enum
 
+from oslo_versionedobjects import fields as ovo_fields
+
 from watcher.decision_engine.model.element import storage_resource
 from watcher.objects import base
 from watcher.objects import fields as wfields
@@ -39,15 +41,15 @@ class VolumeState(enum.Enum):
 @base.WatcherObjectRegistry.register_if(False)
 class Volume(storage_resource.StorageResource):
     fields = {
-        "size": wfields.NonNegativeIntegerField(),
-        "status": wfields.StringField(default=VolumeState.AVAILABLE.value),
+        "size": ovo_fields.NonNegativeIntegerField(),
+        "status": ovo_fields.StringField(default=VolumeState.AVAILABLE.value),
         "attachments": wfields.FlexibleListOfDictField(),
-        "name": wfields.StringField(),
-        "multiattach": wfields.BooleanField(),
+        "name": ovo_fields.StringField(),
+        "multiattach": ovo_fields.BooleanField(),
         "snapshot_id": wfields.UUIDField(nullable=True),
         "project_id": wfields.UUIDField(),
         "metadata": wfields.JsonField(),
-        "bootable": wfields.BooleanField(),
+        "bootable": ovo_fields.BooleanField(),
     }
 
     def accept(self, visitor):

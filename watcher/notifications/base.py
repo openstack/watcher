@@ -14,6 +14,7 @@
 
 from oslo_config import cfg
 from oslo_log import log
+from oslo_versionedobjects import fields as ovo_fields
 
 from watcher.common import exception
 from watcher.common import rpc
@@ -65,7 +66,7 @@ class EventType(NotificationObject):
     VERSION = '1.3'
 
     fields = {
-        'object': wfields.StringField(),
+        'object': ovo_fields.StringField(),
         'action': wfields.NotificationActionField(),
         'phase': wfields.NotificationPhaseField(nullable=True),
     }
@@ -131,8 +132,8 @@ class NotificationPublisher(NotificationObject):
     VERSION = '1.0'
 
     fields = {
-        'host': wfields.StringField(nullable=False),
-        'binary': wfields.StringField(nullable=False),
+        'host': ovo_fields.StringField(nullable=False),
+        'binary': ovo_fields.StringField(nullable=False),
     }
 
 
@@ -148,8 +149,8 @@ class NotificationBase(NotificationObject):
 
     fields = {
         'priority': wfields.NotificationPriorityField(),
-        'event_type': wfields.ObjectField('EventType'),
-        'publisher': wfields.ObjectField('NotificationPublisher'),
+        'event_type': ovo_fields.ObjectField('EventType'),
+        'publisher': ovo_fields.ObjectField('NotificationPublisher'),
     }
 
     def save(self, context):

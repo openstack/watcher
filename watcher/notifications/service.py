@@ -12,7 +12,9 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from oslo_config import cfg
+from oslo_versionedobjects import fields as ovo_fields
 
 from watcher.notifications import base as notificationbase
 from watcher.objects import base
@@ -33,9 +35,9 @@ class ServicePayload(notificationbase.NotificationPayloadBase):
     # Version 1.0: Initial version
     VERSION = '1.0'
     fields = {
-        'sevice_host': wfields.StringField(),
-        'name': wfields.StringField(),
-        'last_seen_up': wfields.DateTimeField(nullable=True),
+        'sevice_host': ovo_fields.StringField(),
+        'name': ovo_fields.StringField(),
+        'last_seen_up': ovo_fields.DateTimeField(nullable=True),
     }
 
     def __init__(self, failed_service, status_update, **kwargs):
@@ -52,8 +54,8 @@ class ServiceStatusUpdatePayload(notificationbase.NotificationPayloadBase):
     # Version 1.0: Initial version
     VERSION = '1.0'
     fields = {
-        'old_state': wfields.StringField(nullable=True),
-        'state': wfields.StringField(nullable=True),
+        'old_state': ovo_fields.StringField(nullable=True),
+        'state': ovo_fields.StringField(nullable=True),
     }
 
 
@@ -62,7 +64,7 @@ class ServiceUpdatePayload(ServicePayload):
     # Version 1.0: Initial version
     VERSION = '1.0'
     fields = {
-        'status_update': wfields.ObjectField('ServiceStatusUpdatePayload')
+        'status_update': ovo_fields.ObjectField('ServiceStatusUpdatePayload')
     }
 
     def __init__(self, failed_service, status_update):
@@ -77,7 +79,7 @@ class ServiceUpdateNotification(notificationbase.NotificationBase):
     # Version 1.0: Initial version
     VERSION = '1.0'
 
-    fields = {'payload': wfields.ObjectField('ServiceUpdatePayload')}
+    fields = {'payload': ovo_fields.ObjectField('ServiceUpdatePayload')}
 
 
 def send_service_update(

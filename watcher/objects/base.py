@@ -117,7 +117,7 @@ class WatcherPersistentObject:
     #
     # fields = {
     #     # [...]
-    #     'related_object_id': fields.IntegerField(),  # Foreign key
+    #     'related_object_id': ovo_fields.IntegerField(),  # Foreign key
     #     'related_object': wfields.ObjectField('RelatedObject'),
     # }
     # {'related_object': (objects.RelatedObject, 'related_object_id')}

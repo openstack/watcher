@@ -74,6 +74,7 @@ state may be one of the following:
 import datetime
 
 from oslo_utils import timeutils
+from oslo_versionedobjects import fields as ovo_fields
 
 from watcher import conf
 from watcher import notifications
@@ -120,16 +121,16 @@ class ActionPlan(
     dbapi = db_api.get_instance()
 
     fields = {
-        'id': wfields.IntegerField(),
+        'id': ovo_fields.IntegerField(),
         'uuid': wfields.UUIDField(),
-        'audit_id': wfields.IntegerField(),
-        'strategy_id': wfields.IntegerField(),
-        'state': wfields.StringField(nullable=True),
+        'audit_id': ovo_fields.IntegerField(),
+        'strategy_id': ovo_fields.IntegerField(),
+        'state': ovo_fields.StringField(nullable=True),
         'global_efficacy': wfields.FlexibleListOfDictField(nullable=True),
-        'hostname': wfields.StringField(nullable=True),
-        'audit': wfields.ObjectField('Audit', nullable=True),
-        'strategy': wfields.ObjectField('Strategy', nullable=True),
-        'status_message': wfields.StringField(nullable=True),
+        'hostname': ovo_fields.StringField(nullable=True),
+        'audit': ovo_fields.ObjectField('Audit', nullable=True),
+        'strategy': ovo_fields.ObjectField('Strategy', nullable=True),
+        'status_message': ovo_fields.StringField(nullable=True),
     }
 
     object_fields = {

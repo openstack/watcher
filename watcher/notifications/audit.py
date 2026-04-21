@@ -16,6 +16,7 @@
 # limitations under the License.
 
 from oslo_config import cfg
+from oslo_versionedobjects import fields as ovo_fields
 
 from watcher.common import exception
 from watcher.notifications import base as notificationbase
@@ -57,20 +58,20 @@ class TerseAuditPayload(notificationbase.NotificationPayloadBase):
 
     fields = {
         'uuid': wfields.UUIDField(),
-        'name': wfields.StringField(),
-        'audit_type': wfields.StringField(),
-        'state': wfields.StringField(),
+        'name': ovo_fields.StringField(),
+        'audit_type': ovo_fields.StringField(),
+        'state': ovo_fields.StringField(),
         'parameters': wfields.FlexibleDictField(nullable=True),
-        'interval': wfields.StringField(nullable=True),
+        'interval': ovo_fields.StringField(nullable=True),
         'scope': wfields.FlexibleListOfDictField(nullable=True),
         'goal_uuid': wfields.UUIDField(),
         'strategy_uuid': wfields.UUIDField(nullable=True),
-        'auto_trigger': wfields.BooleanField(),
-        'next_run_time': wfields.DateTimeField(nullable=True),
-        'created_at': wfields.DateTimeField(nullable=True),
-        'updated_at': wfields.DateTimeField(nullable=True),
-        'deleted_at': wfields.DateTimeField(nullable=True),
-        'status_message': wfields.StringField(nullable=True),
+        'auto_trigger': ovo_fields.BooleanField(),
+        'next_run_time': ovo_fields.DateTimeField(nullable=True),
+        'created_at': ovo_fields.DateTimeField(nullable=True),
+        'updated_at': ovo_fields.DateTimeField(nullable=True),
+        'deleted_at': ovo_fields.DateTimeField(nullable=True),
+        'status_message': ovo_fields.StringField(nullable=True),
     }
 
     def __init__(self, audit, goal_uuid, strategy_uuid=None, **kwargs):
@@ -106,8 +107,8 @@ class AuditPayload(TerseAuditPayload):
     VERSION = '1.3'
 
     fields = {
-        'goal': wfields.ObjectField('GoalPayload'),
-        'strategy': wfields.ObjectField('StrategyPayload', nullable=True),
+        'goal': ovo_fields.ObjectField('GoalPayload'),
+        'strategy': ovo_fields.ObjectField('StrategyPayload', nullable=True),
     }
 
     def __init__(self, audit, goal, strategy=None, **kwargs):
@@ -127,9 +128,9 @@ class AuditStateUpdatePayload(notificationbase.NotificationPayloadBase):
     VERSION = '1.1'
 
     fields = {
-        'old_state': wfields.StringField(nullable=True),
-        'state': wfields.StringField(nullable=True),
-        'status_message': wfields.StringField(nullable=True),
+        'old_state': ovo_fields.StringField(nullable=True),
+        'state': ovo_fields.StringField(nullable=True),
+        'status_message': ovo_fields.StringField(nullable=True),
     }
 
 
@@ -155,7 +156,9 @@ class AuditUpdatePayload(AuditPayload):
     #              Added 'next_run_time' field
     # Version 1.2: Added 'status_message' string field
     VERSION = '1.2'
-    fields = {'state_update': wfields.ObjectField('AuditStateUpdatePayload')}
+    fields = {
+        'state_update': ovo_fields.ObjectField('AuditStateUpdatePayload')
+    }
 
     def __init__(self, audit, state_update, goal, strategy):
         super().__init__(
@@ -174,7 +177,9 @@ class AuditActionPayload(AuditPayload):
     #              Added 'next_run_time' field
     # Version 1.2: Added 'status_message' string field
     VERSION = '1.2'
-    fields = {'fault': wfields.ObjectField('ExceptionPayload', nullable=True)}
+    fields = {
+        'fault': ovo_fields.ObjectField('ExceptionPayload', nullable=True)
+    }
 
     def __init__(self, audit, goal, strategy, **kwargs):
         super().__init__(
@@ -209,7 +214,7 @@ class AuditActionNotification(notificationbase.NotificationBase):
     # Version 1.0: Initial version
     VERSION = '1.0'
 
-    fields = {'payload': wfields.ObjectField('AuditActionPayload')}
+    fields = {'payload': ovo_fields.ObjectField('AuditActionPayload')}
 
 
 @notificationbase.notification_sample('audit-create.json')
@@ -218,7 +223,7 @@ class AuditCreateNotification(notificationbase.NotificationBase):
     # Version 1.0: Initial version
     VERSION = '1.0'
 
-    fields = {'payload': wfields.ObjectField('AuditCreatePayload')}
+    fields = {'payload': ovo_fields.ObjectField('AuditCreatePayload')}
 
 
 @notificationbase.notification_sample('audit-update.json')
@@ -227,7 +232,7 @@ class AuditUpdateNotification(notificationbase.NotificationBase):
     # Version 1.0: Initial version
     VERSION = '1.0'
 
-    fields = {'payload': wfields.ObjectField('AuditUpdatePayload')}
+    fields = {'payload': ovo_fields.ObjectField('AuditUpdatePayload')}
 
 
 @notificationbase.notification_sample('audit-delete.json')
@@ -236,7 +241,7 @@ class AuditDeleteNotification(notificationbase.NotificationBase):
     # Version 1.0: Initial version
     VERSION = '1.0'
 
-    fields = {'payload': wfields.ObjectField('AuditDeletePayload')}
+    fields = {'payload': ovo_fields.ObjectField('AuditDeletePayload')}
 
 
 def _get_common_payload(audit):

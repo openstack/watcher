@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from oslo_versionedobjects import fields as ovo_fields
+
 from watcher import objects
 from watcher.common import exception
 from watcher.common import utils
@@ -34,13 +36,13 @@ class Strategy(
     dbapi = db_api.get_instance()
 
     fields = {
-        'id': wfields.IntegerField(),
+        'id': ovo_fields.IntegerField(),
         'uuid': wfields.UUIDField(),
-        'name': wfields.StringField(),
-        'display_name': wfields.StringField(),
-        'goal_id': wfields.IntegerField(),
+        'name': ovo_fields.StringField(),
+        'display_name': ovo_fields.StringField(),
+        'goal_id': ovo_fields.IntegerField(),
         'parameters_spec': wfields.FlexibleDictField(nullable=True),
-        'goal': wfields.ObjectField('Goal', nullable=True),
+        'goal': ovo_fields.ObjectField('Goal', nullable=True),
     }
 
     object_fields = {'goal': (objects.Goal, 'goal_id')}
