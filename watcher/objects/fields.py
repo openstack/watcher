@@ -43,8 +43,7 @@ class UUIDField(fields.UUIDField):
 
 
 class Numeric(fields.FieldType):
-    @staticmethod
-    def coerce(obj, attr, value):
+    def coerce(self, obj, attr, value):
         if value is None:
             return value
         f_value = float(value)
@@ -64,8 +63,7 @@ class ListOfUUIDsField(fields.AutoTypedField):
 
 
 class FlexibleDict(fields.FieldType):
-    @staticmethod
-    def coerce(obj, attr, value):
+    def coerce(self, obj, attr, value):
         if isinstance(value, str):
             value = ast.literal_eval(value)
         return dict(value)
@@ -84,8 +82,7 @@ class FlexibleDictField(fields.AutoTypedField):
 
 
 class FlexibleListOfDict(fields.FieldType):
-    @staticmethod
-    def coerce(obj, attr, value):
+    def coerce(self, obj, attr, value):
         if isinstance(value, str):
             value = ast.literal_eval(value)
         return list(value)
