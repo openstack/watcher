@@ -19,44 +19,23 @@ Communication
 IRC Channel
     ``#openstack-watcher`` (changelog_)
 
-Mailing list(prefix subjects with ``[watcher]``)
-    http://lists.openstack.org/pipermail/openstack-discuss/
+Mailing list
+    * Discussions on the mailing list are available in the `archive`_
+      with the ``[watcher]`` subject prefix. When posting to the
+      mailing list, use this prefix on your subject so the team can
+      easily find your message.
+
+    * You can register on the mailing list `here`_.
 
 Weekly Meetings
-    Bi-weekly, on Wednesdays at 08:00 UTC on odd weeks in the
-    ``#openstack-meeting-alt`` IRC channel (`meetings logs`_)
+    * `Meeting Information`_
+    * `Meeting Agenda`_
 
-Meeting Agenda
-    https://wiki.openstack.org/wiki/Watcher_Meeting_Agenda
-
-.. _changelog: http://eavesdrop.openstack.org/irclogs/%23openstack-watcher/
-.. _meetings logs:  http://eavesdrop.openstack.org/meetings/watcher/
-
-Contacting the Core Team
-~~~~~~~~~~~~~~~~~~~~~~~~~
-.. This section should list the core team, their irc nicks, emails, timezones etc.
-   If all this info is maintained elsewhere (i.e. a wiki), you can link to that
-   instead of enumerating everyone here.
-
-+--------------------+---------------+------------------------------------+
-| Name               | IRC           | Email                              |
-+====================+===============+====================================+
-| `Li Canwei`_       | licanwei      | li.canwei2@zte.com.cn              |
-+--------------------+---------------+------------------------------------+
-| `chen ke`_         | chenke        | chen.ke14@zte.com.cn               |
-+--------------------+---------------+------------------------------------+
-| `Corne Lukken`_    | dantalion     | info@dantalion.nl                  |
-+--------------------+---------------+------------------------------------+
-| `su zhengwei`_     | suzhengwei    | sugar-2008@163.com                 |
-+--------------------+---------------+------------------------------------+
-| `Yumeng Bao`_      | Yumeng        | yumeng_bao@yahoo.com               |
-+--------------------+---------------+------------------------------------+
-
-.. _Corne Lukken: https://launchpad.net/~dantalion
-.. _Li Canwei: https://launchpad.net/~li-canwei2
-.. _su zhengwei: https://launchpad.net/~sue.sam
-.. _Yumeng Bao: https://launchpad.net/~yumeng-bao
-.. _chen ke: https://launchpad.net/~chenker
+.. _changelog: https://meetings.opendev.org/irclogs/%23openstack-watcher/
+.. _archive: https://lists.openstack.org/archives/list/openstack-discuss@lists.openstack.org/
+.. _here: https://lists.openstack.org/mailman3/lists/openstack-discuss.lists.openstack.org/
+.. _Meeting Information: https://meetings.opendev.org/#Watcher_Team_Meeting
+.. _Meeting Agenda: https://etherpad.opendev.org/p/openstack-watcher-irc-meeting
 
 New Feature Planning
 ~~~~~~~~~~~~~~~~~~~~
@@ -87,10 +66,21 @@ Reporting a Bug
 .. Pretty self explanatory section, link directly to where people should report bugs for
    your project.
 
-You found an issue and want to make sure we are aware of it? You can do so
-`HERE`_.
+You found an issue and want to make sure we are aware of it? You can
+use the respective project's Launchpad page:
 
-.. _HERE: https://bugs.launchpad.net/watcher
+    * `watcher`_
+    * `watcher-tempest-plugin`_
+    * `watcher-dashboard`_
+    * `python-watcherclient`_
+
+.. _watcher: https://bugs.launchpad.net/watcher
+.. _watcher-tempest-plugin:
+   https://bugs.launchpad.net/watcher-tempest-plugin
+.. _watcher-dashboard:
+   https://bugs.launchpad.net/watcher-dashboard
+.. _python-watcherclient:
+   https://bugs.launchpad.net/python-watcherclient
 
 Getting Your Patch Merged
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -108,4 +98,6 @@ Project Team Lead Duties
    the common PTL guide (linked below)  or if you already have them written
    up elsewhere, you can link to that doc here.
 
-All common PTL duties are enumerated here in the `PTL guide <https://docs.openstack.org/project-team-guide/ptl.html>`_.
+All common PTL duties are enumerated here in the `PTL guide
+<https://docs.openstack.org/project-team-guide/ptl.html>`_, and in our
+`Chronological Release Liaison Guide <https://docs.openstack.org/watcher/latest/contributor/release-guide.html>`_.
