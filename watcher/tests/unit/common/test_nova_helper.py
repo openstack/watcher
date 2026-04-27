@@ -1599,6 +1599,7 @@ class TestServerWrapper(test_utils.NovaResourcesMixin, base.TestCase):
             metadata={},
             availability_zone='nova',
             pinned_availability_zone=None,
+            image={'id': '155d900f-4e14-4e4c-a73d-069cbf4541e6'},
         )
         self.assertEqual(valid_uuid, server.uuid)
 
@@ -1621,6 +1622,7 @@ class TestServerWrapper(test_utils.NovaResourcesMixin, base.TestCase):
             metadata={},
             availability_zone='nova',
             pinned_availability_zone=None,
+            image={'id': '155d900f-4e14-4e4c-a73d-069cbf4541e6'},
         )
 
     def test_server_from_openstacksdk_basic_properties(self):
@@ -1679,6 +1681,30 @@ class TestServerWrapper(test_utils.NovaResourcesMixin, base.TestCase):
         # OpenStackSDK converts flavor dict to Flavor object
         self.assertEqual('flavor-123', wrapped.flavor.id)
         self.assertEqual('m1.small', wrapped.flavor.name)
+
+    def test_server_image_backed(self):
+        sdk_server = self.create_openstacksdk_server(image={'id': 'abc123'})
+        wrapped = nova_helper.Server.from_openstacksdk(sdk_server)
+        self.assertEqual('abc123', wrapped.image)
+        self.assertFalse(wrapped.is_boot_from_volume)
+
+    def test_server_boot_from_volume_none_image(self):
+        sdk_server = self.create_openstacksdk_server(image=None)
+        wrapped = nova_helper.Server.from_openstacksdk(sdk_server)
+        self.assertIsNone(wrapped.image)
+        self.assertTrue(wrapped.is_boot_from_volume)
+
+    def test_server_boot_from_volume_empty_string_image(self):
+        sdk_server = self.create_openstacksdk_server(image='')
+        wrapped = nova_helper.Server.from_openstacksdk(sdk_server)
+        self.assertIsNone(wrapped.image)
+        self.assertTrue(wrapped.is_boot_from_volume)
+
+    def test_server_boot_from_volume_empty_dict_image(self):
+        sdk_server = self.create_openstacksdk_server(image={})
+        wrapped = nova_helper.Server.from_openstacksdk(sdk_server)
+        self.assertIsNone(wrapped.image)
+        self.assertTrue(wrapped.is_boot_from_volume)
 
 
 class TestHypervisorWrapper(test_utils.NovaResourcesMixin, base.TestCase):

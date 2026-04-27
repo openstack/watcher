@@ -1,0 +1,12 @@
+---
+features:
+  - |
+    Enhances local disk accounting for boot-from-volume instances and
+    when flavors has ephemeral and/or swap devices.
+    Watcher was unconditionally using the flavor's root disk value as local
+    compute node disk consumption for all instances, including those booting
+    disk on Cinder storage rather than the local compute node. This caused
+    the model to wrongly estimate local disk usage and migration strategies to
+    reject valid destination hosts due to perceived disk constraints.
+
+    For more information: https://blueprints.launchpad.net/watcher/+spec/improve-instances-disk-usage-model

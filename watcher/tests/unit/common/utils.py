@@ -47,6 +47,9 @@ class NovaResourcesMixin:
             'pinned_availability_zone': kwargs.pop(
                 'pinned_availability_zone', None
             ),
+            'image': kwargs.pop(
+                'image', {'id': '155d900f-4e14-4e4c-a73d-069cbf4541e6'}
+            ),
         }
         server_info.update(kwargs)
         return server.Server(**server_info)

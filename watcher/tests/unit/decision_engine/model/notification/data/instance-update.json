@@ -50,7 +50,8 @@
                     "root_gb": 1,
                     "vcpus": 1,
                     "ephemeral_gb": 0,
-                    "memory_mb": 512
+                    "memory_mb": 512,
+                    "swap": 0
                 },
                 "nova_object.version": "1.0",
                 "nova_object.namespace": "nova"
