@@ -117,10 +117,17 @@ class TestWorkloadBalance(TestBaseStrategy):
                       'Higher than threshold 25.0: True'),
             mock.call('Host usage for Node_1: host_cpu_usage_percent is 7.5. '
                       'Higher than threshold 25.0: False'),
-            mock.call('Host hostname_1 evaluated as destination for '
-                      '73b09e16-35b7-4922-804e-e8f5d9b740fc. Host usage for '
-                      'cpu would be 20.0.The threshold is: 25.0. selected: '
-                      'True')]
+            mock.call(
+                'Host %s evaluated as destination for %s. '
+                'Host usage for cpu would be %s.'
+                'The threshold is: %s. selected: %s',
+                'hostname_1',
+                '73b09e16-35b7-4922-804e-e8f5d9b740fc',
+                20.0,
+                25.0,
+                True,
+            ),
+        ]
         mock_debug.assert_has_calls(expected_calls, any_order=True)
 
     @mock.patch.object(workload_balance.LOG, 'debug', autospec=True)
@@ -143,10 +150,17 @@ class TestWorkloadBalance(TestBaseStrategy):
                       '37.121212121212125. Higher than threshold 30.0: True'),
             mock.call('Host usage for Node_1: host_ram_usage_percent is '
                       '18.181818181818183. Higher than threshold 30.0: False'),
-            mock.call('Host hostname_1 evaluated as destination for '
-                      '73b09e16-35b7-4922-804e-e8f5d9b740fc. Host usage for '
-                      'ram would be 25.0.The threshold is: 30.0. selected: '
-                      'True')]
+            mock.call(
+                'Host %s evaluated as destination for %s. '
+                'Host usage for ram would be %s.'
+                'The threshold is: %s. selected: %s',
+                'hostname_1',
+                '73b09e16-35b7-4922-804e-e8f5d9b740fc',
+                25.0,
+                30.0,
+                True,
+            ),
+        ]
         mock_debug.assert_has_calls(expected_calls, any_order=True)
 
     def test_execute_no_workload(self):
