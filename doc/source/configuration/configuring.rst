@@ -195,12 +195,10 @@ The configuration file is organized into the following sections:
 * ``[watcher_decision_engine]`` - Watcher Decision Engine module configuration
 * ``[oslo_messaging_rabbit]`` - Oslo Messaging RabbitMQ driver configuration
 * ``[cinder_client]`` - Cinder client configuration
-* ``[glance_client]`` - Glance client configuration
 * ``[gnocchi_client]`` - Gnocchi client configuration
 * ``[ironic_client]`` - Ironic client configuration
 * ``[keystone_client]`` - Keystone client configuration
-* ``[nova_client]`` - Nova client configuration
-* ``[neutron_client]`` - Neutron client configuration
+* ``[nova]`` - Nova service configuration
 * ``[placement_client]`` - Placement client configuration
 
 The Watcher configuration file is expected to be named
@@ -342,10 +340,11 @@ so that the watcher service is configured for your needs.
         #project_name = <None>
         project_name = KEYSTONE_SERVICE_PROJECT_NAME
 
-#. Configure the clients to use a specific version if desired. For example, to
-   configure Watcher to use a Nova client with version 2.1, use::
 
-    [nova_client]
+#. Configure the clients to use a specific version if desired. For example, to
+   configure Watcher to use Nova with version 2.1, use::
+
+    [nova]
 
     # Version of Nova API to use in novaclient. (string value)
     #api_version = 2.56

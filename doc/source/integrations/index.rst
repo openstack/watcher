@@ -22,10 +22,6 @@ Integration Status Matrix
          - Supported
          - Minimal
          - Unit
-       * - :ref:`Glance <glance_integration>`
-         - Experimental
-         - Missing
-         - None
        * - :ref:`Ironic <ironic_integration>`
          - Experimental
          - Minimal
@@ -36,10 +32,6 @@ Integration Status Matrix
          - Integration
        * - :ref:`MAAS <maas_integration>`
          - Deprecated
-         - Missing
-         - Unit
-       * - :ref:`Neutron <neutron_integration>`
-         - Experimental
          - Missing
          - Unit
        * - :ref:`Nova <nova_integration>`
@@ -64,15 +56,6 @@ model collector that creates a in-memory representation of the storage
 resources, strategies that propose solutions based on storage capacity
 and Actions that perform volume migration.
 
-.. _glance_integration:
-
-Glance
-^^^^^^
-The Image service integration is consumed by Nova Helper to create instances
-from images, which was used older releases of Watcher to cold migrate
-instances. This procedure is not used by Watcher anymore and this integration
-is classified as Experimental and may be removed in future releases.
-
 .. _ironic_integration:
 
 Ironic
@@ -96,15 +79,6 @@ MAAS (Metal As A Service)
 This integration allows managing bare metal servers of a MAAS service,
 which includes Actions that manage the power state of nodes. This
 integration is deprecated and will be removed in a future release.
-
-.. _neutron_integration:
-
-Neutron
-^^^^^^^
-Neutron integration is currently consumed by Nova Helper to create instance,
-which was used by older releases of Watcher to cold migrate instances. This
-procedure is not used by Watcher anymore and this integration is classified
-as Experimental and may be removed in future releases.
 
 .. _nova_integration:
 
