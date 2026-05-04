@@ -19,7 +19,6 @@ from oslo_utils import timeutils
 from watcher._i18n import _
 from watcher.common import cinder_helper
 from watcher.common import exception
-from watcher.common import nova_helper
 from watcher.decision_engine.model import element
 from watcher.decision_engine.strategy.strategies import base
 
@@ -31,9 +30,6 @@ VOLUME = "volume"
 ACTIVE = "active"
 PAUSED = 'paused'
 STOPPED = "stopped"
-status_ACTIVE = 'ACTIVE'
-status_PAUSED = 'PAUSED'
-status_SHUTOFF = 'SHUTOFF'
 AVAILABLE = "available"
 IN_USE = "in-use"
 
@@ -47,7 +43,6 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
 
     def __init__(self, config, osc=None):
         super().__init__(config, osc)
-        self._nova = None
         self._cinder = None
 
         self.live_count = 0
@@ -268,12 +263,6 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
         return self.input_parameters.get('with_attached_volume')
 
     @property
-    def nova(self):
-        if self._nova is None:
-            self._nova = nova_helper.NovaHelper(osc=self.osc)
-        return self._nova
-
-    @property
     def cinder(self):
         if self._cinder is None:
             self._cinder = cinder_helper.CinderHelper(osc=self.osc)
@@ -302,6 +291,13 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
             if cn.state == element.ServiceState.ONLINE.value
             and cn.status in default_node_scope
         }
+
+    def get_instances_by_node_name(self, node_name):
+        try:
+            node = self.compute_model.get_node_by_name(node_name)
+        except exception.ComputeNodeNotFound:
+            return []
+        return self.compute_model.get_node_instances(node)
 
     def pre_execute(self):
         self._pre_execute()
@@ -365,16 +361,12 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
             self.volume_count += 1
 
     def is_live(self, instance):
-        status = instance.status
-        state = instance.vm_state
-        return (status == status_ACTIVE and state == ACTIVE) or (
-            status == status_PAUSED and state == PAUSED
-        )
+        state = instance.state
+        return state == ACTIVE or state == PAUSED
 
     def is_cold(self, instance):
-        status = instance.status
-        state = instance.vm_state
-        return status == status_SHUTOFF and state == STOPPED
+        state = instance.state
+        return state == STOPPED
 
     def is_available(self, volume):
         return getattr(volume, 'status') == AVAILABLE
@@ -479,21 +471,20 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
             if self.with_attached_volume:
                 instances = []
                 for dic in volume.attachments:
-                    instance_id = dic.get('server_id')
-                    try:
-                        instance = self.nova.find_instance(instance_id)
-                    except exception.ComputeResourceNotFound:
-                        # if an instance can't be found, we won't consider it
-                        # for migration, but the audit should not fail because
-                        # of it
-                        LOG.debug(
-                            "Could not find instance %s it will not be "
-                            "considered for migration",
-                            instance_id,
-                        )
+                    server_id = dic.get('server_id')
+                    if server_id not in instance_target_ids:
                         continue
-                    if instance_id in instance_target_ids:
-                        instances.append(instance)
+                    try:
+                        instances.append(
+                            self.compute_model.get_instance_by_uuid(server_id)
+                        )
+                    except exception.InstanceNotFound:
+                        LOG.warning(
+                            "Instance %s attached to volume %s "
+                            "not found in compute model, skipping",
+                            server_id,
+                            volume.id,
+                        )
                 self.instances_migration(instances, action_counter)
 
             action_counter.add_pool(pool)
@@ -636,12 +627,11 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
 
         if not src_node_list:
             return None
+        instances = []
+        for node_name in src_node_list:
+            instances.extend(self.get_instances_by_node_name(node_name))
 
-        return [
-            i
-            for i in self.nova.get_instance_list()
-            if i.host in src_node_list and self.compute_model.has_node(i.uuid)
-        ]
+        return instances
 
     def get_volumes(self):
         """Get migrate target volumes
@@ -917,8 +907,8 @@ class ProjectSortFilter(SortMovingToFrontFilter):
 
         if isinstance(item, Volume):
             return getattr(item, 'os-vol-tenant-attr:tenant_id')
-        elif isinstance(item, nova_helper.Server):
-            return item.tenant_id
+        elif isinstance(item, element.Instance):
+            return item.project_id
 
 
 class ComputeHostSortFilter(SortMovingToFrontFilter):
@@ -937,7 +927,6 @@ class ComputeHostSortFilter(SortMovingToFrontFilter):
         :returns: true: compute name on where instance host equals sort_key
                   false: otherwise
         """
-
         host = self.get_host(item)
         LOG.debug("host: %s, sort_key: %s", host, sort_key)
         return host == sort_key
@@ -949,7 +938,7 @@ class ComputeHostSortFilter(SortMovingToFrontFilter):
         :returns: hostname on which item is
         """
 
-        return item.host
+        return item.host if item.host else None
 
 
 class StorageHostSortFilter(SortMovingToFrontFilter):
@@ -982,13 +971,6 @@ class ComputeSpecSortFilter(BaseFilter):
 
     def __init__(self, values=[], **kwargs):
         super().__init__(values, **kwargs)
-        self._nova = None
-
-    @property
-    def nova(self):
-        if self._nova is None:
-            self._nova = nova_helper.NovaHelper()
-        return self._nova
 
     def exec_filter(self, items, sort_key):
         result = items
@@ -1009,79 +991,50 @@ class ComputeSpecSortFilter(BaseFilter):
         """
 
         result = items
-        flavors = self.nova.get_flavor_list()
 
         if sort_key == 'mem_size':
             result = sorted(
-                items,
-                key=lambda x: float(self.get_mem_size(x, flavors)),
-                reverse=True,
+                items, key=lambda x: float(self.get_mem_size(x)), reverse=True
             )
         elif sort_key == 'vcpu_num':
             result = sorted(
-                items,
-                key=lambda x: float(self.get_vcpu_num(x, flavors)),
-                reverse=True,
+                items, key=lambda x: float(self.get_vcpu_num(x)), reverse=True
             )
         elif sort_key == 'disk_size':
             result = sorted(
-                items,
-                key=lambda x: float(self.get_disk_size(x, flavors)),
-                reverse=True,
+                items, key=lambda x: float(self.get_disk_size(x)), reverse=True
             )
         elif sort_key == 'created_at':
-            result = sorted(
-                items,
-                key=lambda x: timeutils.parse_isotime(x.created),
-                reverse=False,
-            )
+            result = sorted(items, key=lambda x: x.created, reverse=False)
 
         return result
 
-    def get_mem_size(self, item, flavors):
+    def get_mem_size(self, item):
         """Get memory size of item
 
         :param item: instance
-        :param flavors: flavors
         :returns: memory size of item
         """
 
-        LOG.debug("item: %s, flavors: %s", item, flavors)
-        for flavor in flavors:
-            LOG.debug("item.flavor: %s, flavor: %s", item.flavor, flavor)
-            if item.flavor.get('id') == flavor.id:
-                LOG.debug("flavor.ram: %s", flavor.ram)
-                return flavor.ram
+        return item.memory
 
-    def get_vcpu_num(self, item, flavors):
+    def get_vcpu_num(self, item):
         """Get vcpu number of item
 
         :param item: instance
-        :param flavors: flavors
         :returns: vcpu number of item
         """
 
-        LOG.debug("item: %s, flavors: %s", item, flavors)
-        for flavor in flavors:
-            LOG.debug("item.flavor: %s, flavor: %s", item.flavor, flavor)
-            if item.flavor.get('id') == flavor.id:
-                LOG.debug("flavor.vcpus: %s", flavor.vcpus)
-                return flavor.vcpus
+        return item.vcpus
 
-    def get_disk_size(self, item, flavors):
+    def get_disk_size(self, item):
         """Get disk size of item
 
         :param item: instance
-        :param flavors: flavors
         :returns: disk size of item
         """
 
-        LOG.debug("item: %s, flavors: %s", item, flavors)
-        for flavor in flavors:
-            LOG.debug("item.flavor: %s, flavor: %s", item.flavor, flavor)
-            if item.flavor.get('id') == flavor.id:
-                LOG.debug("flavor.disk: %s", flavor.disk)
-                return flavor.disk
+        return item.disk
 
 
 class StorageSpecSortFilter(BaseFilter):
