@@ -33,11 +33,16 @@ repos:
       - id: ruff-check
         args: ['--fix', '--unsafe-fixes']
       - id: ruff-format
-  - repo: https://opendev.org/openstack/hacking
-    rev: 8.0.0
+  - repo: local
     hooks:
       - id: hacking
-        additional_dependencies: []
+        name: hacking
+        language: python
+        description: 'Runs hacking, the OpenStack blend of flake8'
+        types: [python]
+        entry: flake8
+        require_serial: true
+        additional_dependencies: ['hacking===8.0.0']
         exclude: '^(doc|releasenotes|tools)/.*$'
   - repo: https://github.com/PyCQA/bandit
     rev: 1.9.4
