@@ -205,43 +205,77 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
             workload = instance_data['workload']
             # calculate the available resources
             free_res = self.compute_model.get_node_free_resources(host)
-            if (
-                free_res['vcpu'] >= required_cores
-                and free_res['memory'] >= required_mem
-                and free_res['disk'] >= required_disk
-            ):
-                if self._meter == 'instance_cpu_usage':
-                    usage = src_instance_workload + workload
-                    usage_percent = usage / host.vcpus * 100
-                    limit = self.threshold / 100 * host.vcpus
-                    if usage < limit:
-                        destination_hosts.append(instance_data)
-                    LOG.debug(
-                        "Host %s evaluated as destination for %s. "
-                        "Host usage for cpu would be %s."
-                        "The threshold is: %s. selected: %s",
-                        host.hostname,
-                        instance_to_migrate.uuid,
-                        usage_percent,
-                        self.threshold,
-                        usage < limit,
-                    )
-                if self._meter == 'instance_ram_usage':
-                    usage = src_instance_workload + workload
-                    usage_percent = usage / host.memory * 100
-                    limit = self.threshold / 100 * host.memory
-                    if usage < limit:
-                        destination_hosts.append(instance_data)
-                    LOG.debug(
-                        "Host %s evaluated as destination for %s. "
-                        "Host usage for ram would be %s."
-                        "The threshold is: %s. selected: %s",
-                        host.hostname,
-                        instance_to_migrate.uuid,
-                        usage_percent,
-                        self.threshold,
-                        usage < limit,
-                    )
+            if free_res['vcpu'] < required_cores:
+                LOG.debug(
+                    "Host %(host)s rejected for instance %(instance)s: "
+                    "insufficient vCPUs (available: %(available)s, "
+                    "required: %(required)s)",
+                    dict(
+                        host=host.hostname,
+                        instance=instance_to_migrate.uuid,
+                        available=free_res['vcpu'],
+                        required=required_cores,
+                    ),
+                )
+                continue
+            if free_res['memory'] < required_mem:
+                LOG.debug(
+                    "Host %(host)s rejected for instance %(instance)s: "
+                    "insufficient memory (available: %(available)s MB, "
+                    "required: %(required)s MB)",
+                    dict(
+                        host=host.hostname,
+                        instance=instance_to_migrate.uuid,
+                        available=free_res['memory'],
+                        required=required_mem,
+                    ),
+                )
+                continue
+            if free_res['disk'] < required_disk:
+                LOG.debug(
+                    "Host %(host)s rejected for instance %(instance)s: "
+                    "insufficient disk (available: %(available)s GB, "
+                    "required: %(required)s GB)",
+                    dict(
+                        host=host.hostname,
+                        instance=instance_to_migrate.uuid,
+                        available=free_res['disk'],
+                        required=required_disk,
+                    ),
+                )
+                continue
+            if self._meter == 'instance_cpu_usage':
+                usage = src_instance_workload + workload
+                usage_percent = usage / host.vcpus * 100
+                limit = self.threshold / 100 * host.vcpus
+                if usage < limit:
+                    destination_hosts.append(instance_data)
+                LOG.debug(
+                    "Host %s evaluated as destination for %s. "
+                    "Host usage for cpu would be %s."
+                    "The threshold is: %s. selected: %s",
+                    host.hostname,
+                    instance_to_migrate.uuid,
+                    usage_percent,
+                    self.threshold,
+                    usage < limit,
+                )
+            if self._meter == 'instance_ram_usage':
+                usage = src_instance_workload + workload
+                usage_percent = usage / host.memory * 100
+                limit = self.threshold / 100 * host.memory
+                if usage < limit:
+                    destination_hosts.append(instance_data)
+                LOG.debug(
+                    "Host %s evaluated as destination for %s. "
+                    "Host usage for ram would be %s."
+                    "The threshold is: %s. selected: %s",
+                    host.hostname,
+                    instance_to_migrate.uuid,
+                    usage_percent,
+                    self.threshold,
+                    usage < limit,
+                )
         return destination_hosts
 
     def group_hosts_by_cpu_or_ram_util(self):
@@ -367,6 +401,10 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
             source_nodes, avg_workload, workload_cache
         )
         if not instance_to_migrate:
+            LOG.debug(
+                "No suitable instance found to migrate from "
+                "any overloaded source node"
+            )
             return self.solution
         source_node, instance_src = instance_to_migrate
         # find the hosts that have enough resource for the VM to be migrated
@@ -376,10 +414,11 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         # sort the filtered result by workload
         # pick up the lowest one as dest server
         if not destination_hosts:
-            # for instance.
             LOG.warning(
-                "No proper target host could be found, it might "
-                "be because of there's no enough CPU/Memory/DISK"
+                "No proper target host could be found for instance "
+                "%(instance)s. Check debug logs for per-host rejection "
+                "details.",
+                dict(instance=instance_src.uuid),
             )
             return self.solution
         destination_hosts = sorted(
