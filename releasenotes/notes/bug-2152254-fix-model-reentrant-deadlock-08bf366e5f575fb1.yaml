@@ -1,0 +1,11 @@
+---
+fixes:
+  - |
+    Fixed a reentrant deadlock in ``ModelRoot``, ``StorageModelRoot``, and
+    ``BaremetalModelRoot`` where methods such as ``map_instance()``,
+    ``unmap_instance()``, and ``migrate_instance()`` could permanently
+    deadlock the calling thread. The fix replaces the global semaphore with
+    a per-instance ``threading.RLock``. As a reentrant lock, it allows the
+    same thread to re-acquire it safely, eliminating the deadlock.
+
+    See: https://bugs.launchpad.net/watcher/+bug/2152254 for more details.
