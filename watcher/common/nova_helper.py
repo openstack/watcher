@@ -123,6 +123,16 @@ class Server:
     metadata: dict
     availability_zone: str | None
     pinned_availability_zone: str | None
+    image: str | None
+
+    @property
+    def is_boot_from_volume(self) -> bool:
+        """Check if server is boot from volume.
+
+        :returns: True when the server boots from volume (image is None).
+                  False when booting from a local disk.
+        """
+        return self.image is None
 
     def __post_init__(self):
         """Validate UUID after initialization."""
@@ -139,6 +149,13 @@ class Server:
         :returns: Server dataclass instance
         :raises: InvalidUUID if server ID is not a valid UUID
         """
+
+        # When a server is boot from volume and nova api returns
+        # image = "", openstacksdk returns image=None. In any other
+        # case it returns {'id': <image id>}. We add a guard for the
+        # case where it returns {'id': None}.
+        image_data = nova_server.image.id if nova_server.image else None
+
         return cls(
             uuid=nova_server.id,
             name=nova_server.name,
@@ -154,6 +171,7 @@ class Server:
             metadata=nova_server.metadata,
             availability_zone=nova_server.availability_zone,
             pinned_availability_zone=nova_server.pinned_availability_zone,
+            image=image_data,
         )
 
 

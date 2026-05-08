@@ -49,6 +49,9 @@ class Instance(compute_resource.ComputeResource):
         "name": ovo_fields.StringField(),
         "state": ovo_fields.StringField(default=InstanceState.ACTIVE.value),
         "memory": ovo_fields.NonNegativeIntegerField(),
+        # disk is the size of storage resource assigned to the Instance in the
+        # compute node in GB. That includes root disk (for image-backed only),
+        # ephemeral, and swap.
         "disk": ovo_fields.NonNegativeIntegerField(),
         "vcpus": ovo_fields.NonNegativeIntegerField(),
         "metadata": wfields.JsonField(),

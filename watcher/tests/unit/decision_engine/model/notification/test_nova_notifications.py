@@ -276,6 +276,77 @@ class TestNovaNotifications(NotificationTestCase):
 
         self.assertEqual(element.InstanceState.PAUSED.value, instance0.state)
 
+    def test_nova_instance_update_boot_from_volume(self):
+        compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
+        self.fake_cdmc.cluster_data_model = compute_model
+        handler = novanotification.VersionedNotification(self.fake_cdmc)
+
+        instance0_uuid = '73b09e16-35b7-4922-804e-e8f5d9b740fc'
+        instance0 = compute_model.get_instance_by_uuid(instance0_uuid)
+
+        message = self.load_message('instance-update.json')
+        message['payload']['nova_object.data']['image_uuid'] = None
+
+        handler.info(
+            ctxt=self.context,
+            publisher_id=message['publisher_id'],
+            event_type=message['event_type'],
+            payload=message['payload'],
+            metadata=self.FAKE_METADATA,
+        )
+
+        self.assertEqual(0, instance0.disk)
+
+    def test_nova_instance_update_bfv_with_ephemeral(self):
+        compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
+        self.fake_cdmc.cluster_data_model = compute_model
+        handler = novanotification.VersionedNotification(self.fake_cdmc)
+
+        instance0_uuid = '73b09e16-35b7-4922-804e-e8f5d9b740fc'
+        instance0 = compute_model.get_instance_by_uuid(instance0_uuid)
+
+        message = self.load_message('instance-update.json')
+        message['payload']['nova_object.data']['image_uuid'] = None
+        flavor = message['payload']['nova_object.data']['flavor']
+        flavor['nova_object.data']['ephemeral_gb'] = 10
+        flavor['nova_object.data']['swap'] = 512
+
+        handler.info(
+            ctxt=self.context,
+            publisher_id=message['publisher_id'],
+            event_type=message['event_type'],
+            payload=message['payload'],
+            metadata=self.FAKE_METADATA,
+        )
+
+        # root=0 (BFV) + ephemeral=10 + ceil(512MB/1024)=1 => 11
+        self.assertEqual(11, instance0.disk)
+
+    def test_nova_instance_update_bfv_with_swap_above_1g(self):
+        compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
+        self.fake_cdmc.cluster_data_model = compute_model
+        handler = novanotification.VersionedNotification(self.fake_cdmc)
+
+        instance0_uuid = '73b09e16-35b7-4922-804e-e8f5d9b740fc'
+        instance0 = compute_model.get_instance_by_uuid(instance0_uuid)
+
+        message = self.load_message('instance-update.json')
+        message['payload']['nova_object.data']['image_uuid'] = None
+        flavor = message['payload']['nova_object.data']['flavor']
+        flavor['nova_object.data']['ephemeral_gb'] = 10
+        flavor['nova_object.data']['swap'] = 2048
+
+        handler.info(
+            ctxt=self.context,
+            publisher_id=message['publisher_id'],
+            event_type=message['event_type'],
+            payload=message['payload'],
+            metadata=self.FAKE_METADATA,
+        )
+
+        # root=0 (BFV) + ephemeral=10 + ceil(2048MB/1024)=2 => 12
+        self.assertEqual(12, instance0.disk)
+
     def test_nova_instance_state_building(self):
         compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
         self.fake_cdmc.cluster_data_model = compute_model

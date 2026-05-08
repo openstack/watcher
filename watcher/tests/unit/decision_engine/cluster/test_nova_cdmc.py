@@ -357,6 +357,92 @@ class TestNovaModelBuilder(test_utils.NovaResourcesMixin, base.TestCase):
             self.assertEqual('', fake_instance.pinned_az)
             self.assertEqual({}, fake_instance.flavor_extra_specs)
 
+    def test_build_instance_node_boot_from_volume(self):
+        model_builder = nova.NovaModelBuilder(osc=mock.MagicMock())
+        model_builder.model = mock.MagicMock()
+        model_builder.model.extended_attributes_enabled = False
+
+        server_info = {
+            'id': 'ef500f7e-dac8-470f-960c-169486fce711',
+            'project_id': 'ff560f7e-dbc8-771f-960c-164482fce21b',
+            'vm_state': 'active',
+            'name': 'bfv-instance',
+            'flavor': {
+                'id': 'tiny',
+                'ram': 2048,
+                'disk': 20,
+                'vcpus': 2,
+                'extra_specs': {},
+            },
+            'image': None,
+        }
+        inst = self.create_openstacksdk_server(**server_info)
+        fake_instance = model_builder._build_instance_node(
+            nova_helper.Server.from_openstacksdk(inst)
+        )
+
+        self.assertEqual(0, fake_instance.disk)
+        self.assertEqual(2048, fake_instance.memory)
+        self.assertEqual(2, fake_instance.vcpus)
+
+    def test_build_instance_node_boot_from_volume_with_ephemeral(self):
+        model_builder = nova.NovaModelBuilder(osc=mock.MagicMock())
+        model_builder.model = mock.MagicMock()
+        model_builder.model.extended_attributes_enabled = False
+
+        server_info = {
+            'id': 'ef500f7e-dac8-470f-960c-169486fce711',
+            'project_id': 'ff560f7e-dbc8-771f-960c-164482fce21b',
+            'vm_state': 'active',
+            'name': 'bfv-instance-eph',
+            'flavor': {
+                'id': 'eph',
+                'ram': 2048,
+                'disk': 20,
+                'vcpus': 2,
+                'ephemeral': 10,
+                'swap': 512,
+                'extra_specs': {},
+            },
+            'image': None,
+        }
+        inst = self.create_openstacksdk_server(**server_info)
+        fake_instance = model_builder._build_instance_node(
+            nova_helper.Server.from_openstacksdk(inst)
+        )
+
+        # root=0 (BFV) + ephemeral=10 + ceil(512MB/1024)=1 => 11
+        self.assertEqual(11, fake_instance.disk)
+
+    def test_build_instance_node_image_backed(self):
+        model_builder = nova.NovaModelBuilder(osc=mock.MagicMock())
+        model_builder.model = mock.MagicMock()
+        model_builder.model.extended_attributes_enabled = False
+
+        server_info = {
+            'id': 'ef500f7e-dac8-470f-960c-169486fce722',
+            'project_id': 'ff560f7e-dbc8-771f-960c-164482fce21b',
+            'vm_state': 'active',
+            'name': 'image-instance',
+            'flavor': {
+                'id': 'tiny',
+                'ram': 2048,
+                'disk': 20,
+                'vcpus': 2,
+                'ephemeral': 5,
+                'swap': 2048,
+                'extra_specs': {},
+            },
+            'image': {'id': '155d900f-4e14-4e4c-a73d-069cbf4541e6'},
+        }
+        inst = self.create_openstacksdk_server(**server_info)
+        fake_instance = model_builder._build_instance_node(
+            nova_helper.Server.from_openstacksdk(inst)
+        )
+
+        # root=20 + ephemeral=5 + ceil(2048MB/1024)=2 => 27
+        self.assertEqual(27, fake_instance.disk)
+
     def test_check_model(self):
         """Initialize collector ModelBuilder and test check model"""
 

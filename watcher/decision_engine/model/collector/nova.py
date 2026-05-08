@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import math
+
 import os_resource_classes as orc
 
 from futurist import waiters
@@ -493,11 +495,17 @@ class NovaModelBuilder(base.BaseModelBuilder):
         :return: An instance node for the graph.
         """
         flavor = instance.flavor
+        root_disk = 0 if instance.is_boot_from_volume else flavor["disk"]
+        # swap is in MB; math.ceil(x / 1024) is ceiling division to GB to
+        # always round up.
+        local_disk = (
+            root_disk + flavor["ephemeral"] + math.ceil(flavor["swap"] / 1024)
+        )
         instance_attributes = {
             "uuid": instance.uuid,
             "name": instance.name,
             "memory": flavor["ram"],
-            "disk": flavor["disk"],
+            "disk": local_disk,
             "vcpus": flavor["vcpus"],
             "state": instance.vm_state,
             "metadata": instance.metadata,

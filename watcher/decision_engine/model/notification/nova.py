@@ -15,6 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import math
+
 import microversion_parse
 import os_resource_classes as orc
 
@@ -85,7 +87,17 @@ class NovaNotification(base.NotificationEndpoint):
 
         memory_mb = instance_flavor_data['memory_mb']
         num_cores = instance_flavor_data['vcpus']
-        disk_gb = instance_flavor_data['root_gb']
+        # Boot-from-volume instances don't consume local compute disk.
+        disk_gb = (
+            instance_flavor_data['root_gb']
+            if instance_data.get('image_uuid')
+            else 0
+        )
+        # Ephemeral and swap are always local, even for boot-from-volume.
+        disk_gb += instance_flavor_data.get('ephemeral_gb', 0)
+        # swap is in MB; math.ceil(x / 1024) is ceiling division to GB to
+        # always round up.
+        disk_gb += math.ceil(instance_flavor_data.get('swap', 0) / 1024)
         instance_metadata = data['nova_object.data']['metadata']
 
         instance.update(
