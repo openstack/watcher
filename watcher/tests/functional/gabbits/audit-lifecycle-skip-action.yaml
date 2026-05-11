@@ -1,0 +1,209 @@
+# Test the skip-action feature of the audit lifecycle.
+#
+# Uses the dummy strategy (3 actions: 2 nop + 1 sleep). After the
+# audit produces a RECOMMENDED action plan, one action is skipped
+# before triggering execution.
+#
+# Also validates that PATCH on actions requires API microversion 1.5:
+# requests without it (or with an older version) must be rejected.
+
+fixtures:
+  - WatcherGabbiFixture
+
+defaults:
+  request_headers:
+    x-auth-token: fake-token
+    x-user-id: bbbbbbbb-1111-2222-3333-444444444444
+    x-project-id: aaaaaaaa-1111-2222-3333-444444444444
+    x-roles: admin
+    content-type: application/json
+    accept: application/json
+    openstack-api-version: infra-optim 1.5
+
+tests:
+
+  - name: create dummy audit
+    POST: /audits
+    data:
+      audit_type: ONESHOT
+      goal: dummy
+      strategy: dummy
+      parameters:
+        para1: 1.0
+        para2: test-message
+    status: 201
+    response_json_paths:
+      $.uuid: /^[a-f0-9-]+$/
+
+  - name: wait for audit succeeded
+    GET: /audits/$RESPONSE['$.uuid']
+    poll:
+      count: 300
+      delay: 0.1
+    status: 200
+    response_json_paths:
+      $.state: SUCCEEDED
+
+  - name: list action plans for audit
+    GET: /action_plans?audit_uuid=$RESPONSE['$.uuid']
+    status: 200
+    response_json_paths:
+      $.action_plans.`len`: 1
+
+  - name: verify action plan recommended
+    GET: /action_plans/$RESPONSE['$.action_plans[0].uuid']
+    status: 200
+    response_json_paths:
+      $.state: RECOMMENDED
+
+  - name: list actions for action plan
+    GET: /actions?action_plan_uuid=$RESPONSE['$.uuid']
+    status: 200
+    response_json_paths:
+      $.actions.`len`: 3
+
+  # --- Microversion gate: PATCH on action must fail without 1.5 ---
+
+  - name: skip action rejected without microversion
+    xfail: false
+    PATCH: /actions/$RESPONSE['$.actions[0].uuid']
+    request_headers:
+      openstack-api-version: infra-optim 1.0
+    data:
+      - op: replace
+        path: /state
+        value: SKIPPED
+    status: 400
+    response_strings:
+      - API microversion 1.5 or higher is required
+
+  - name: skip action rejected with microversion 1.4
+    PATCH: /actions/$HISTORY['list actions for action plan'].$RESPONSE['$.actions[0].uuid']
+    request_headers:
+      openstack-api-version: infra-optim 1.4
+    data:
+      - op: replace
+        path: /state
+        value: SKIPPED
+    status: 400
+    response_strings:
+      - API microversion 1.5 or higher is required
+
+  # --- Skip the first action with microversion 1.5 ---
+
+  - name: skip first action
+    PATCH: /actions/$HISTORY['list actions for action plan'].$RESPONSE['$.actions[0].uuid']
+    data:
+      - op: replace
+        path: /state
+        value: SKIPPED
+    status: 200
+    response_json_paths:
+      $.state: SKIPPED
+      $.status_message: Action skipped by user.
+
+  # --- Trigger action plan and wait for completion ---
+
+  - name: trigger action plan
+    PATCH: /action_plans/$HISTORY['verify action plan recommended'].$RESPONSE['$.uuid']
+    data:
+      - op: replace
+        path: /state
+        value: PENDING
+    status: 200
+
+  - name: wait for action plan succeeded
+    GET: /action_plans/$RESPONSE['$.uuid']
+    poll:
+      count: 300
+      delay: 0.1
+    status: 200
+    response_json_paths:
+      $.state: SUCCEEDED
+      $.status_message: One or more actions were skipped.
+
+  - name: verify action states after skip
+    GET: /actions?action_plan_uuid=$RESPONSE['$.uuid']
+    status: 200
+    response_json_paths:
+      $.actions.`len`: 3
+      $.actions[0].state: SKIPPED
+      $.actions[1].state: SUCCEEDED
+      $.actions[2].state: SUCCEEDED
+
+  - name: verify skipped action status_message
+    GET: /actions/$RESPONSE['$.actions[0].uuid']
+    status: 200
+    response_json_paths:
+      $.state: SKIPPED
+      $.status_message: Action skipped by user.
+
+  - name: update status_message rejected with microversion 1.4
+    PATCH: /actions/$RESPONSE['$.uuid']
+    request_headers:
+      openstack-api-version: infra-optim 1.4
+    data:
+      - op: replace
+        path: /status_message
+        value: Should be rejected.
+    status: 400
+    response_strings:
+      - API microversion 1.5 or higher is required
+
+  - name: update status_message on skipped action
+    PATCH: /actions/$HISTORY['verify skipped action status_message'].$RESPONSE['$.uuid']
+    data:
+      - op: replace
+        path: /status_message
+        value: Not needed for this maintenance window.
+    status: 200
+    response_json_paths:
+      $.state: SKIPPED
+      $.status_message: "Action skipped by user. Reason: Not needed for this maintenance window."
+
+  - name: verify updated status_message persisted
+    GET: /actions/$RESPONSE['$.uuid']
+    status: 200
+    response_json_paths:
+      $.state: SKIPPED
+      $.status_message: "Action skipped by user. Reason: Not needed for this maintenance window."
+
+  # --- Validate status_message on action plan is read-only ---
+
+  - name: patch status_message on action plan rejected
+    PATCH: /action_plans/$HISTORY['wait for action plan succeeded'].$RESPONSE['$.uuid']
+    data:
+      - op: replace
+        path: /status_message
+        value: Should not be allowed.
+    status: 400
+
+  - name: verify action plan status_message unchanged
+    GET: /action_plans/$HISTORY['wait for action plan succeeded'].$RESPONSE['$.uuid']
+    status: 200
+    response_json_paths:
+      $.status_message: One or more actions were skipped.
+
+  # --- Cleanup ---
+
+  - name: delete action plan
+    DELETE: /action_plans/$HISTORY['wait for action plan succeeded'].$RESPONSE['$.uuid']
+    status: 204
+
+  - name: verify action plan deleted
+    GET: /action_plans/$HISTORY['wait for action plan succeeded'].$RESPONSE['$.uuid']
+    status: 404
+
+  - name: verify actions deleted with action plan
+    GET: /actions?action_plan_uuid=$HISTORY['wait for action plan succeeded'].$RESPONSE['$.uuid']
+    status: 200
+    response_json_paths:
+      $.actions.`len`: 0
+
+  - name: delete audit
+    DELETE: /audits/$HISTORY['wait for audit succeeded'].$RESPONSE['$.uuid']
+    status: 204
+
+  - name: verify audit deleted
+    GET: /audits/$HISTORY['wait for audit succeeded'].$RESPONSE['$.uuid']
+    status: 404

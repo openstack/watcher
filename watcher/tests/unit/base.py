@@ -18,22 +18,19 @@ import os
 
 from unittest import mock
 
-import fixtures
 import pecan
-import testscenarios
 
 from oslo_config import cfg
 from oslo_log import log
 from oslo_messaging import conffixture
-from oslotest import base
 from pecan import testing
 
 from watcher.common import context as watcher_context
 from watcher.common import service
 from watcher.objects import base as objects_base
+from watcher.tests import base as watcher_base
 from watcher.tests.local_fixtures import conf_fixture
 from watcher.tests.local_fixtures import policy_fixture
-from watcher.tests.local_fixtures import watcher as watcher_fixtures
 
 
 CONF = cfg.CONF
@@ -44,16 +41,8 @@ except cfg.ArgsAlreadyParsedError:
 CONF.set_override('use_stderr', False)
 
 
-class BaseTestCase(testscenarios.WithScenarios, base.BaseTestCase):
+class BaseTestCase(watcher_base.WatcherBaseTestCase):
     """Test base class."""
-
-    def setUp(self):
-        # Ensure BaseTestCase's ConfigureLogging fixture is disabled since
-        # we're using our own (StandardLogging).
-        with fixtures.EnvironmentVariable('OS_LOG_CAPTURE', '0'):
-            super().setUp()
-        self.stdlog = self.useFixture(watcher_fixtures.StandardLogging())
-        self.addCleanup(cfg.CONF.reset)
 
 
 class TestCase(BaseTestCase):
@@ -151,15 +140,3 @@ class TestCase(BaseTestCase):
             return os.path.join(root, project_file)
         else:
             return root
-
-    def flags(self, **kw):
-        """Override flag variables for a test.
-
-        Example:
-            self.flags(periodic_interval=10,
-                      group='watcher_decision_engine')
-        """
-        group = kw.pop('group', None)
-        for k, v in kw.items():
-            CONF.set_override(k, v, group)
-            self.addCleanup(CONF.clear_override, k, group)

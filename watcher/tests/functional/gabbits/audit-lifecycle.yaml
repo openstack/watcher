@@ -1,0 +1,109 @@
+# End-to-end test of the audit → action plan → applier flow.
+#
+# Uses the dummy strategy which creates 2 nop actions and 1 sleep
+# action. Validates the entire pipeline from audit creation through
+# action plan execution with all three services running in-process.
+
+fixtures:
+  - WatcherGabbiFixture
+
+defaults:
+  request_headers:
+    x-auth-token: fake-token
+    x-user-id: bbbbbbbb-1111-2222-3333-444444444444
+    x-project-id: aaaaaaaa-1111-2222-3333-444444444444
+    x-roles: admin
+    content-type: application/json
+    accept: application/json
+
+tests:
+
+  - name: create dummy audit
+    POST: /audits
+    data:
+      audit_type: ONESHOT
+      goal: dummy
+      strategy: dummy
+      parameters:
+        para1: 1.0
+        para2: test-message
+    status: 201
+    response_json_paths:
+      $.uuid: /^[a-f0-9-]+$/
+
+  - name: wait for audit succeeded
+    GET: /audits/$RESPONSE['$.uuid']
+    poll:
+      count: 300
+      delay: 0.1
+    status: 200
+    response_json_paths:
+      $.state: SUCCEEDED
+
+  - name: list action plans for audit
+    GET: /action_plans?audit_uuid=$RESPONSE['$.uuid']
+    status: 200
+    response_json_paths:
+      $.action_plans.`len`: 1
+
+  - name: verify action plan state
+    GET: /action_plans/$RESPONSE['$.action_plans[0].uuid']
+    status: 200
+    response_json_paths:
+      $.state: RECOMMENDED
+
+  - name: list actions for action plan
+    GET: /actions?action_plan_uuid=$RESPONSE['$.uuid']
+    status: 200
+    response_json_paths:
+      $.actions.`len`: 3
+
+  - name: trigger action plan
+    PATCH: /action_plans/$HISTORY['verify action plan state'].$RESPONSE['$.uuid']
+    data:
+      - op: replace
+        path: /state
+        value: PENDING
+    status: 200
+
+  - name: wait for action plan succeeded
+    GET: /action_plans/$RESPONSE['$.uuid']
+    poll:
+      count: 300
+      delay: 0.1
+    status: 200
+    response_json_paths:
+      $.state: SUCCEEDED
+
+  - name: verify all actions succeeded
+    GET: /actions?action_plan_uuid=$RESPONSE['$.uuid']
+    status: 200
+    response_json_paths:
+      $.actions.`len`: 3
+      $.actions[0].state: SUCCEEDED
+      $.actions[1].state: SUCCEEDED
+      $.actions[2].state: SUCCEEDED
+
+  # --- Deletion tests ---
+
+  - name: delete action plan
+    DELETE: /action_plans/$HISTORY['wait for action plan succeeded'].$RESPONSE['$.uuid']
+    status: 204
+
+  - name: verify action plan deleted
+    GET: /action_plans/$HISTORY['wait for action plan succeeded'].$RESPONSE['$.uuid']
+    status: 404
+
+  - name: verify actions deleted with action plan
+    GET: /actions?action_plan_uuid=$HISTORY['wait for action plan succeeded'].$RESPONSE['$.uuid']
+    status: 200
+    response_json_paths:
+      $.actions.`len`: 0
+
+  - name: delete audit
+    DELETE: /audits/$HISTORY['wait for audit succeeded'].$RESPONSE['$.uuid']
+    status: 204
+
+  - name: verify audit deleted
+    GET: /audits/$HISTORY['wait for audit succeeded'].$RESPONSE['$.uuid']
+    status: 404
