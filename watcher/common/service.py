@@ -67,7 +67,6 @@ _DEFAULT_LOG_LEVELS = [
     'qpid.messaging=INFO',
     'oslo.messaging=INFO',
     'sqlalchemy=WARN',
-    'keystoneclient=INFO',
     'stevedore=INFO',
     'eventlet.wsgi.server=WARN',
     'iso8601=WARN',

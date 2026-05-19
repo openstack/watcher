@@ -11,4 +11,5 @@ deprecations:
     configuration options in the [keystone] configuration group.
 other:
   - |
-    Added support for openstacksdk as an alternative to keystoneclient.
+    Added support for openstacksdk as an alternative to keystoneclient. Usage of
+    keystoneclient has been removed and python-keystoneclient has been removed as a dependency.

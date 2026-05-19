@@ -21,7 +21,6 @@ from ironicclient import client as irclient
 from keystoneauth1 import adapter as ka_adapter
 from keystoneauth1 import loading as ka_loading
 from keystoneauth1 import session as ka_session
-from keystoneclient import client as keyclient
 from openstack import connection
 from oslo_config import cfg
 
@@ -130,7 +129,6 @@ class OpenStackClients:
 
     def reset_clients(self):
         self._session = None
-        self._keystone = None
         self._gnocchi = None
         self._cinder = None
         self._ironic = None
@@ -147,10 +145,6 @@ class OpenStackClients:
         return sess
 
     @property
-    def auth_url(self):
-        return self.keystone().auth_url
-
-    @property
     def session(self):
         if not self._session:
             self._session = self._get_keystone_session()
@@ -158,22 +152,6 @@ class OpenStackClients:
 
     def _get_client_option(self, client, option):
         return getattr(getattr(CONF, f'{client}_client'), option)
-
-    @exception.wrap_keystone_exception
-    def keystone(self):
-        if self._keystone:
-            return self._keystone
-        keystone_interface = self._get_client_option('keystone', 'interface')
-        keystone_region_name = self._get_client_option(
-            'keystone', 'region_name'
-        )
-        self._keystone = keyclient.Client(
-            interface=keystone_interface,
-            region_name=keystone_region_name,
-            session=self.session,
-        )
-
-        return self._keystone
 
     @exception.wrap_keystone_exception
     def gnocchi(self):
