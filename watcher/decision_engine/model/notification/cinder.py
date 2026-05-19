@@ -266,7 +266,7 @@ class CapacityNotificationEndpoint(CinderNotification):
             publisher_id=r'capacity.*', event_type='capacity.pool'
         )
 
-    def info(self, ctxt, publisher_id, event_type, payload, metadata):
+    def process_info(self, ctxt, publisher_id, event_type, payload, metadata):
         ctxt.request_id = metadata['message_id']
         ctxt.project_domain = event_type
         LOG.info(
@@ -302,7 +302,7 @@ class VolumeCreateEnd(VolumeNotificationEndpoint):
             event_type='volume.create.end',
         )
 
-    def info(self, ctxt, publisher_id, event_type, payload, metadata):
+    def process_info(self, ctxt, publisher_id, event_type, payload, metadata):
         ctxt.request_id = metadata['message_id']
         ctxt.project_domain = event_type
         LOG.info(
@@ -332,7 +332,7 @@ class VolumeUpdateEnd(VolumeNotificationEndpoint):
             event_type='volume.update.end',
         )
 
-    def info(self, ctxt, publisher_id, event_type, payload, metadata):
+    def process_info(self, ctxt, publisher_id, event_type, payload, metadata):
         ctxt.request_id = metadata['message_id']
         ctxt.project_domain = event_type
         LOG.info(
@@ -392,7 +392,7 @@ class VolumeDeleteEnd(VolumeNotificationEndpoint):
             event_type='volume.delete.end',
         )
 
-    def info(self, ctxt, publisher_id, event_type, payload, metadata):
+    def process_info(self, ctxt, publisher_id, event_type, payload, metadata):
         ctxt.request_id = metadata['message_id']
         ctxt.project_domain = event_type
         LOG.info(

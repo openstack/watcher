@@ -69,12 +69,12 @@ class TestSyncLockNotificationRace(test_base.TestCase):
 
     When synchronize() is rebuilding the model via execute(), a concurrent
     notification must not apply its update to the old model that will be
-    discarded. Without _sync_lock in synchronize() and in
+    discarded. Without sync_lock in synchronize() and in
     NotificationEndpoint.info(), the notification races execute(), calls
     add_node() on old_model, and the update is silently lost when
     synchronize() replaces _cluster_data_model with new_model.
 
-    This test fails without the fix and passes once _sync_lock is added to
+    This test fails without the fix and passes once sync_lock is added to
     both synchronize() and NotificationEndpoint.info().
     """
 
@@ -104,7 +104,9 @@ class TestSyncLockNotificationRace(test_base.TestCase):
             def filter_rule(self):
                 return None
 
-            def info(self, ctxt, publisher_id, event_type, payload, metadata):
+            def process_info(
+                self, ctxt, publisher_id, event_type, payload, metadata
+            ):
                 self.cluster_data_model.add_node(dummy_node)
 
         endpoint = AddNodeEndpoint(collector)
@@ -129,11 +131,8 @@ class TestSyncLockNotificationRace(test_base.TestCase):
             sync_thread.join(timeout=3)
             notif_thread.join(timeout=3)
 
-        # The node must have been added to new_model
-        # TODO(dviroel): Revert this comment one bug #2152645 is fixed
-        # collector.cluster_data_model.add_node.assert_called_once_with(
-        #     dummy_node
-        # )
+        new_model.add_node.assert_called_once_with(dummy_node)
+        old_model.add_node.assert_not_called()
 
 
 class TestComputeDataModelCollector(test_base.TestCase):

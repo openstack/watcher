@@ -44,7 +44,7 @@ class DummyNotification(base.NotificationEndpoint):
             payload={'data': {'nested': r'^T.*'}},
         )
 
-    def info(self, ctxt, publisher_id, event_type, payload, metadata):
+    def process_info(self, ctxt, publisher_id, event_type, payload, metadata):
         pass
 
 
