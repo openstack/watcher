@@ -127,6 +127,7 @@ class BaseClusterDataModelCollector(loadable.LoadableSingleton,
         super().__init__(config)
         self.osc = osc if osc else clients.OpenStackClients()
         self.lock = threading.RLock()
+        self.sync_lock = threading.RLock()
         self._audit_scope_handler = None
         self._cluster_data_model = None
         self._data_model_scope = None
@@ -188,13 +189,16 @@ class BaseClusterDataModelCollector(loadable.LoadableSingleton,
         """Synchronize the cluster data model
 
         Whenever called this synchronization will perform a drop-in replacement
-        with the existing cluster data model
+        with the existing cluster data model. The sync lock is held for the
+        full duration so notification handlers wait until the new model is
+        current before applying updates.
         """
-        try:
-            self.cluster_data_model = self.execute()
-        except Exception as e:
-            LOG.exception(e)
-            self.set_cluster_data_model_as_stale()
+        with self.sync_lock:
+            try:
+                self.cluster_data_model = self.execute()
+            except Exception as e:
+                LOG.exception(e)
+                self.set_cluster_data_model_as_stale()
 
 
 class BaseModelBuilder:

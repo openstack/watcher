@@ -357,7 +357,7 @@ class VersionedNotification(NovaNotification):
             publisher_id=self.publisher_id_regex,
         )
 
-    def info(self, ctxt, publisher_id, event_type, payload, metadata):
+    def process_info(self, ctxt, publisher_id, event_type, payload, metadata):
         LOG.info("Event '%(event)s' received from %(publisher)s "
                  "with metadata %(metadata)s",
                  dict(event=event_type,

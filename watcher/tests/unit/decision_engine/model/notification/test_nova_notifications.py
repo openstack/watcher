@@ -27,6 +27,7 @@ from watcher.common import exception
 from watcher.common import nova_helper
 from watcher.common import placement_helper
 from watcher.common import service as watcher_service
+from watcher.decision_engine.model.collector import base
 from watcher.decision_engine.model import element
 from watcher.decision_engine.model.notification import nova as novanotification
 from watcher.tests.unit import base as base_test
@@ -109,6 +110,19 @@ class TestReceiveNovaNotifications(NotificationTestCase):
             m_info.assert_called_with(
                 self.context, publisher_id, n_type,
                 expected_message, self.FAKE_METADATA)
+
+
+class DummyClusterDataModelCollector(base.BaseClusterDataModelCollector):
+    @property
+    def notification_endpoints(self):
+        return []
+
+    def get_audit_scope_handler(self, audit_scope):
+        return None
+
+    def execute(self):
+        # Return none since there are not audits
+        return
 
 
 @ddt.ddt
@@ -906,8 +920,9 @@ class TestNovaNotifications(NotificationTestCase):
     def test_info_no_cdm(self):
         # Tests that a notification is received before an audit has been
         # performed which would create the nova CDM.
-        mock_collector = mock.Mock(cluster_data_model=None)
-        handler = novanotification.VersionedNotification(mock_collector)
+        m_config = mock.Mock()
+        _collector = DummyClusterDataModelCollector(config=m_config)
+        handler = novanotification.VersionedNotification(_collector)
         payload = {
             'nova_object.data': {
                 'uuid': '9966d6bd-a45c-4e1c-9d57-3054899a3ec7',

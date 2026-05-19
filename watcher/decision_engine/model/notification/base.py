@@ -17,6 +17,11 @@
 
 import abc
 
+from oslo_log import log
+
+
+LOG = log.getLogger(__name__)
+
 
 class NotificationEndpoint(metaclass=abc.ABCMeta):
 
@@ -34,3 +39,20 @@ class NotificationEndpoint(metaclass=abc.ABCMeta):
     @property
     def cluster_data_model(self):
         return self.collector.cluster_data_model
+
+    def info(self, ctxt, publisher_id, event_type, payload, metadata):
+        """oslo.messaging entry point.
+
+        Acquires the collector sync lock before processing to ensure
+        notifications are never applied to a model that is about to be
+        replaced by an in-progress synchronization.
+        """
+        with self.collector.sync_lock:
+            self.process_info(
+                ctxt, publisher_id, event_type, payload, metadata
+            )
+
+    @abc.abstractmethod
+    def process_info(self, ctxt, publisher_id, event_type, payload, metadata):
+        """Process the notification. Subclasses must implement this."""
+        raise NotImplementedError()
