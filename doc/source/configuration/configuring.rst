@@ -197,7 +197,7 @@ The configuration file is organized into the following sections:
 * ``[cinder_client]`` - Cinder client configuration
 * ``[gnocchi_client]`` - Gnocchi client configuration
 * ``[ironic_client]`` - Ironic client configuration
-* ``[keystone_client]`` - Keystone client configuration
+* ``[keystone]`` - Keystone service configuration
 * ``[nova]`` - Nova service configuration
 * ``[placement_client]`` - Placement client configuration
 
@@ -340,6 +340,9 @@ so that the watcher service is configured for your needs.
         #project_name = <None>
         project_name = KEYSTONE_SERVICE_PROJECT_NAME
 
+   The connection to Nova and Keystone is configured instead via the [nova]
+   and [keystone] sections, although if they are absent the values from
+   [watcher_clients_auth] will be used as fallback.
 
 #. Configure the clients to use a specific version if desired. For example, to
    configure Watcher to use Nova with version 2.1, use::
