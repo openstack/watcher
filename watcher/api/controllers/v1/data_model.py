@@ -30,6 +30,67 @@ from watcher.common import policy
 from watcher.decision_engine import rpcapi
 
 
+# Frozen set of ComputeNode fields exposed through the data_model API.
+# To expose a new ComputeNode field via the API:
+#   1. Add a new minor version constant in api/controllers/v1/versions.py
+#   2. Add the prefixed field name ('node_<field>') to this set
+#   3. Add version-hiding logic in hide_fields_in_newer_versions() if needed
+FROZEN_NODE_FIELDS = frozenset(
+    {
+        'node_uuid',
+        'node_hostname',
+        'node_status',
+        'node_disabled_reason',
+        'node_state',
+        'node_memory',
+        'node_memory_mb_reserved',
+        'node_disk',
+        'node_disk_gb_reserved',
+        'node_vcpus',
+        'node_vcpu_reserved',
+        'node_memory_ratio',
+        'node_vcpu_ratio',
+        'node_disk_ratio',
+    }
+)
+
+# Frozen set of Instance fields exposed through the data_model API.
+# To expose a new Instance field via the API:
+#   1. Add a new minor version constant in api/controllers/v1/versions.py
+#   2. Add the prefixed field name ('server_<field>') to this set
+#   3. Add version-hiding logic in hide_fields_in_newer_versions() if needed
+FROZEN_SERVER_FIELDS = frozenset(
+    {
+        'server_uuid',
+        'server_watcher_exclude',
+        'server_name',
+        'server_state',
+        'server_memory',
+        'server_disk',
+        'server_vcpus',
+        'server_metadata',
+        'server_project_id',
+        'server_locked',
+        'server_pinned_az',
+        'server_flavor_extra_specs',
+    }
+)
+
+_FROZEN_ALL_FIELDS = FROZEN_NODE_FIELDS | FROZEN_SERVER_FIELDS
+
+
+def filter_data_model_fields(obj):
+    """Remove fields not in the frozen API field set from each context entry.
+
+    This prevents newly-added internal model fields from leaking into the
+    API response without an explicit microversion bump.
+    """
+    obj['context'] = [
+        {k: v for k, v in elem.items() if k in _FROZEN_ALL_FIELDS}
+        for elem in obj.get('context', [])
+    ]
+
+
 def hide_fields_in_newer_versions(obj):
     """This method hides fields that were added in newer API versions.
 
@@ -78,5 +139,6 @@ class DataModelController(rest.RestController):
         rpc_all_data_model = de_client.get_data_model_info(
             context, data_model_type, audit_uuid
         )
+        filter_data_model_fields(rpc_all_data_model)
         hide_fields_in_newer_versions(rpc_all_data_model)
         return rpc_all_data_model

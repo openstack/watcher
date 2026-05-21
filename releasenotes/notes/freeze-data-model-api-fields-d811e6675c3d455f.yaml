@@ -1,0 +1,9 @@
+---
+other:
+  - |
+    The data_model list API (``GET /v1/data_model``) now returns only a fixed
+    set of fields for compute node and server elements instead of exposing
+    every field present on the internal ``ComputeNode`` and ``Instance``
+    objects. Any internal field not included in the frozen allowlist is
+    silently excluded from the response. All fields that were documented and
+    available in the previous release are still returned.
