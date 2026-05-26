@@ -50,6 +50,7 @@ def get_test_audit_template(**kwargs):
         'name': kwargs.get('name', 'My Audit Template'),
         'description': kwargs.get('description', 'Desc. Of My Audit Template'),
         'scope': kwargs.get('scope', []),
+        'default_parameters': kwargs.get('default_parameters', {}),
         'created_at': kwargs.get('created_at'),
         'updated_at': kwargs.get('updated_at'),
         'deleted_at': kwargs.get('deleted_at'),

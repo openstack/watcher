@@ -64,7 +64,8 @@ class AuditTemplate(
 ):
     # Version 1.0: Initial version
     # Version 1.1: Added 'goal' and 'strategy' object field
-    VERSION = '1.1'
+    # Version 1.2: Added 'default_parameters' field
+    VERSION = '1.2'
 
     dbapi = db_api.get_instance()
 
@@ -74,6 +75,7 @@ class AuditTemplate(
         'name': ovo_fields.StringField(),
         'description': ovo_fields.StringField(nullable=True),
         'scope': wfields.FlexibleListOfDictField(nullable=True),
+        'default_parameters': wfields.FlexibleDictField(nullable=True),
         'goal_id': ovo_fields.IntegerField(),
         'strategy_id': ovo_fields.IntegerField(nullable=True),
         'goal': ovo_fields.ObjectField('Goal', nullable=True),

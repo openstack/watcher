@@ -44,6 +44,7 @@ will be launched automatically or will need a manual confirmation from the
 
 from http import HTTPStatus
 
+import jsonschema
 import pecan
 import wsme
 import wsmeext.pecan as wsme_pecan
@@ -73,7 +74,8 @@ def hide_fields_in_newer_versions(obj):
     These fields are only made available when the request's API version
     matches or exceeds the versions when these fields were introduced.
     """
-    pass
+    if not api_utils.allow_audit_template_default_parameters():
+        obj.default_parameters = wtypes.Unset
 
 
 class AuditTemplatePostType(wtypes.Base):
@@ -94,6 +96,11 @@ class AuditTemplatePostType(wtypes.Base):
     scope = wtypes.wsattr(types.jsontype, mandatory=False, default=[])
     """Audit Scope"""
 
+    default_parameters = wtypes.wsattr(
+        {wtypes.text: types.jsontype}, mandatory=False
+    )
+    """Default strategy parameters for this audit template"""
+
     def as_audit_template(self):
         return AuditTemplate(
             name=self.name,
@@ -103,6 +110,7 @@ class AuditTemplatePostType(wtypes.Base):
             strategy_id=self.strategy,  # Dirty trick ...
             strategy_uuid=self.strategy,
             scope=self.scope,
+            default_parameters=self.default_parameters,
         )
 
     @staticmethod
@@ -165,16 +173,17 @@ class AuditTemplatePostType(wtypes.Base):
                     )
                 )
 
+        strategy_obj = None
         if audit_template.strategy:
             try:
                 if common_utils.is_uuid_like(
                     audit_template.strategy
                 ) or common_utils.is_int_like(audit_template.strategy):
-                    strategy = objects.Strategy.get(
+                    strategy_obj = objects.Strategy.get(
                         AuditTemplatePostType._ctx, audit_template.strategy
                     )
                 else:
-                    strategy = objects.Strategy.get_by_name(
+                    strategy_obj = objects.Strategy.get_by_name(
                         AuditTemplatePostType._ctx, audit_template.strategy
                     )
             except Exception:
@@ -184,7 +193,7 @@ class AuditTemplatePostType(wtypes.Base):
 
             # Check that the strategy we indicate is actually related to the
             # specified goal
-            if strategy.goal_id != goal.id:
+            if strategy_obj.goal_id != goal.id:
                 available_strategies = objects.Strategy.list(
                     AuditTemplatePostType._ctx
                 )
@@ -197,12 +206,12 @@ class AuditTemplatePostType(wtypes.Base):
                         "'%(goal)s' goal. Possible choices: %(choices)s"
                     )
                     % dict(
-                        strategy=strategy.name,
+                        strategy=strategy_obj.name,
                         goal=goal.name,
                         choices=", ".join(choices),
                     )
                 )
-            audit_template.strategy = strategy.uuid
+            audit_template.strategy = strategy_obj.uuid
 
         # We force the UUID so that we do not need to query the DB with the
         # name afterwards
@@ -396,6 +405,9 @@ class AuditTemplate(base.APIBase):
     scope = wtypes.wsattr(types.jsontype, mandatory=False)
     """Audit Scope"""
 
+    default_parameters = wtypes.wsattr(types.jsontype, mandatory=False)
+    """Default strategy parameters for audits created from this template"""
+
     def __init__(self, **kwargs):
         super().__init__()
         self.fields = []
@@ -517,6 +529,30 @@ class AuditTemplatesController(rest.RestController):
         super().__init__()
 
     _custom_actions = {'detail': ['GET']}
+
+    @staticmethod
+    def _validate_default_parameters(strategy, default_parameters):
+        """Validate default_parameters against the strategy's schema."""
+        if default_parameters in (wtypes.Unset, None, {}):
+            return
+        if strategy is None:
+            raise exception.Invalid(
+                _('default_parameters requires a strategy to be specified')
+            )
+        schema = strategy.parameters_spec
+        if schema:
+            try:
+                # StrictDefaultValidatingDraft4Validator mutates its instance
+                # argument by filling in schema defaults in-place. Pass a copy
+                # so the original default_parameters dict is not modified
+                # before being stored in the DB.
+                common_utils.StrictDefaultValidatingDraft4Validator(
+                    schema
+                ).validate(dict(default_parameters))
+            except jsonschema.exceptions.ValidationError as e:
+                raise exception.Invalid(
+                    _('Invalid default_parameters for strategy: %s') % e
+                )
 
     def _get_audit_templates_collection(
         self,
@@ -722,7 +758,24 @@ class AuditTemplatesController(rest.RestController):
             context, 'audit_template:create', action='audit_template:create'
         )
 
+        if (
+            not api_utils.allow_audit_template_default_parameters()
+            and audit_template_postdata.default_parameters
+            not in (wtypes.Unset, None, {})
+        ):
+            raise exception.NotAcceptable()
+
         context = pecan.request.context
+        strategy_obj = None
+        if audit_template_postdata.strategy:
+            strategy_obj = objects.Strategy.get(
+                context, audit_template_postdata.strategy
+            )
+        # Validate default_parameters schema, fail if no strategy is set
+        self._validate_default_parameters(
+            strategy_obj, audit_template_postdata.default_parameters
+        )
+
         audit_template = audit_template_postdata.as_audit_template()
         audit_template_dict = audit_template.as_dict()
         new_audit_template = objects.AuditTemplate(
@@ -766,6 +819,34 @@ class AuditTemplatesController(rest.RestController):
                 pecan.request.context, audit_template
             )
 
+        # Conflict rule: changing goal or strategy when default_parameters is
+        # set requires providing a new default_parameters in the same request.
+        # Note: AuditTemplatePatchType transforms /goal -> /goal_id and
+        # /strategy -> /strategy_id before this handler runs.
+        goal_or_strategy_changing = any(
+            p['path'] in ('/goal_id', '/strategy_id') for p in patch
+        )
+        default_params_changing = any(
+            p['path'] == '/default_parameters' for p in patch
+        )
+        if (
+            not api_utils.allow_audit_template_default_parameters()
+            and default_params_changing
+        ):
+            raise exception.NotAcceptable()
+        if (
+            audit_template_to_update.default_parameters
+            and goal_or_strategy_changing
+            and not default_params_changing
+        ):
+            raise exception.Conflict(
+                _(
+                    'Updating goal or strategy on a template that has '
+                    'default_parameters requires providing updated '
+                    'default_parameters in the same request'
+                )
+            )
+
         try:
             audit_template_dict = audit_template_to_update.as_dict()
             audit_template = AuditTemplate(
@@ -773,6 +854,18 @@ class AuditTemplatesController(rest.RestController):
             )
         except api_utils.JSONPATCH_EXCEPTIONS as e:
             raise exception.PatchError(patch=patch, reason=e)
+
+        # NOTE(dviroel): If patch contains a strategy, validate method is
+        # going to translate into strategy_id
+        strategy_id = getattr(audit_template, 'strategy_id', None)
+        strategy_obj = None
+        if strategy_id not in (wtypes.Unset, None):
+            strategy_obj = objects.Strategy.get_by_id(
+                pecan.request.context, strategy_id
+            )
+        self._validate_default_parameters(
+            strategy_obj, audit_template.default_parameters
+        )
 
         # Update only the fields that have changed
         for field in objects.AuditTemplate.fields:

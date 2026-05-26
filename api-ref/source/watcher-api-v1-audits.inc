@@ -28,6 +28,13 @@ itself. In the first case, there also should be supplied
 ``audit_template_uuid``. If ``Audit`` is created without ``Audit Template``,
 ``goal`` should be provided.
 
+When an Audit is created from an Audit Template that has ``default_parameters``
+configured (API microversion 1.7 and later), those values are used as the
+strategy parameters for the new Audit. Explicit ``parameters`` supplied in the
+create request override the template defaults for the parameters they name.
+Changes made to the Audit Template's ``default_parameters`` after an Audit has
+been created do not affect that Audit.
+
 Normal response codes: 201
 
 Error codes: 400,404

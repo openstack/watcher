@@ -473,3 +473,21 @@ class DbAuditTemplateTestCase(base.DbTestCase):
             uuid=w_utils.generate_uuid(),
             name='audit_template_name',
         )
+
+    def test_audit_template_create_with_default_parameters(self):
+        default_params = {'threshold': 0.5, 'period': 300}
+        audit_template = utils.create_test_audit_template(
+            default_parameters=default_params
+        )
+        result = self.dbapi.get_audit_template_by_uuid(
+            self.context, audit_template['uuid']
+        )
+        self.assertEqual(default_params, result.default_parameters)
+
+    def test_update_audit_template_default_parameters(self):
+        audit_template = utils.create_test_audit_template()
+        new_params = {'threshold': 0.8}
+        res = self.dbapi.update_audit_template(
+            audit_template['id'], {'default_parameters': new_params}
+        )
+        self.assertEqual(new_params, res.default_parameters)

@@ -80,6 +80,7 @@ class TestListDataModelResponse(api_base.FunctionalTest):
     NODE_FIELDS_MAP = {
         '1.3': NODE_FIELDS_1_3,
         '1.6': NODE_FIELDS_1_3,
+        '1.7': NODE_FIELDS_1_3,
         'latest': NODE_FIELDS_1_3,
     }
 
@@ -105,6 +106,7 @@ class TestListDataModelResponse(api_base.FunctionalTest):
     SERVER_FIELDS_MAP = {
         '1.3': SERVER_FIELDS_1_3,
         '1.6': SERVER_FIELDS_1_6,
+        '1.7': SERVER_FIELDS_1_6,
         'latest': SERVER_FIELDS_1_6,
     }
 

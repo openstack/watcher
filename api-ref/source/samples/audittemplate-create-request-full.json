@@ -3,5 +3,6 @@
     "goal": "dummy",
     "strategy": "dummy",
     "description": "the second audit template",
-    "scope": []
+    "scope": [],
+    "default_parameters": {"para1": 5.0}
 }

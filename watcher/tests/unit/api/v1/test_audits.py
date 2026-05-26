@@ -1154,6 +1154,177 @@ class TestPost(TestPostBase):
         mock_trigger_audit.assert_not_called()
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
+    def test_create_audit_inherits_template_default_parameters(
+        self, mock_trigger_audit
+    ):
+        mock_trigger_audit.return_value = mock.ANY
+        fake_spec = {
+            "properties": {
+                "fake1": {
+                    "description": "number parameter example",
+                    "type": "number",
+                    "minimum": 1.0,
+                    "maximum": 10.2,
+                }
+            }
+        }
+        default_params = {'fake1': 5.0}
+        strategy_id = 3
+        strategy_uuid = 'e74c40e0-d825-11e2-a28f-0800200c9a71'
+        template_uuid = 'e74c40e0-d825-11e2-a28f-0800200c9a72'
+        obj_utils.create_test_strategy(
+            self.context,
+            parameters_spec=fake_spec,
+            id=strategy_id,
+            uuid=strategy_uuid,
+            name='strategy_with_default',
+        )
+        obj_utils.create_test_audit_template(
+            self.context,
+            strategy_id=strategy_id,
+            uuid=template_uuid,
+            name='template_with_defaults',
+            default_parameters=default_params,
+        )
+        audit_dict = api_utils.audit_post_data(parameters={})
+        audit_dict['audit_template_uuid'] = template_uuid
+        for k in [
+            'uuid',
+            'goal_id',
+            'strategy_id',
+            'state',
+            'interval',
+            'scope',
+            'next_run_time',
+            'hostname',
+        ]:
+            del audit_dict[k]
+
+        response = self.post_json('/audits', audit_dict)
+        self.assertEqual(HTTPStatus.CREATED, response.status_int)
+        new_audit = objects.Audit.get_by_uuid(
+            self.context, response.json['uuid']
+        )
+        self.assertEqual(default_params, new_audit.parameters)
+
+    @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
+    def test_create_audit_parameters_override_template_defaults(
+        self, mock_trigger_audit
+    ):
+        mock_trigger_audit.return_value = mock.ANY
+        fake_spec = {
+            "properties": {
+                "fake1": {
+                    "description": "number parameter example",
+                    "type": "number",
+                    "minimum": 1.0,
+                    "maximum": 10.2,
+                }
+            }
+        }
+        default_params = {'fake1': 5.0}
+        override_params = {'fake1': 8.0}
+        strategy_id = 4
+        strategy_uuid = 'e74c40e0-d825-11e2-a28f-0800200c9a73'
+        template_uuid = 'e74c40e0-d825-11e2-a28f-0800200c9a74'
+        obj_utils.create_test_strategy(
+            self.context,
+            parameters_spec=fake_spec,
+            id=strategy_id,
+            uuid=strategy_uuid,
+            name='strategy_override',
+        )
+        obj_utils.create_test_audit_template(
+            self.context,
+            strategy_id=strategy_id,
+            uuid=template_uuid,
+            name='template_override',
+            default_parameters=default_params,
+        )
+        audit_dict = api_utils.audit_post_data(parameters=override_params)
+        audit_dict['audit_template_uuid'] = template_uuid
+        for k in [
+            'uuid',
+            'goal_id',
+            'strategy_id',
+            'state',
+            'interval',
+            'scope',
+            'next_run_time',
+            'hostname',
+        ]:
+            del audit_dict[k]
+
+        response = self.post_json('/audits', audit_dict)
+        self.assertEqual(HTTPStatus.CREATED, response.status_int)
+        new_audit = objects.Audit.get_by_uuid(
+            self.context, response.json['uuid']
+        )
+        self.assertEqual(override_params, new_audit.parameters)
+
+    @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
+    def test_create_audit_parameters_partially_override_template_defaults(
+        self, mock_trigger_audit
+    ):
+        mock_trigger_audit.return_value = mock.ANY
+        fake_spec = {
+            "properties": {
+                "fake1": {
+                    "description": "first number parameter",
+                    "type": "number",
+                    "minimum": 1.0,
+                    "maximum": 10.0,
+                },
+                "fake2": {
+                    "description": "second number parameter",
+                    "type": "number",
+                    "minimum": 1.0,
+                    "maximum": 10.0,
+                },
+            }
+        }
+        default_params = {'fake1': 3.0, 'fake2': 7.0}
+        strategy_id = 5
+        strategy_uuid = 'e74c40e0-d825-11e2-a28f-0800200c9a75'
+        template_uuid = 'e74c40e0-d825-11e2-a28f-0800200c9a76'
+        obj_utils.create_test_strategy(
+            self.context,
+            parameters_spec=fake_spec,
+            id=strategy_id,
+            uuid=strategy_uuid,
+            name='strategy_partial_override',
+        )
+        obj_utils.create_test_audit_template(
+            self.context,
+            strategy_id=strategy_id,
+            uuid=template_uuid,
+            name='template_partial_override',
+            default_parameters=default_params,
+        )
+        # Only override fake1; fake2 should be inherited from the template.
+        audit_dict = api_utils.audit_post_data(parameters={'fake1': 9.0})
+        audit_dict['audit_template_uuid'] = template_uuid
+        for k in [
+            'uuid',
+            'goal_id',
+            'strategy_id',
+            'state',
+            'interval',
+            'scope',
+            'next_run_time',
+            'hostname',
+        ]:
+            del audit_dict[k]
+
+        response = self.post_json('/audits', audit_dict)
+        self.assertEqual(HTTPStatus.CREATED, response.status_int)
+        new_audit = objects.Audit.get_by_uuid(
+            self.context, response.json['uuid']
+        )
+        expected_params = {'fake1': 9.0, 'fake2': 7.0}
+        self.assertEqual(expected_params, new_audit.parameters)
+
+    @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
     @mock.patch('oslo_utils.timeutils.utcnow')
     def test_create_audit_with_name(self, mock_utcnow, mock_trigger_audit):
         mock_trigger_audit.return_value = mock.ANY

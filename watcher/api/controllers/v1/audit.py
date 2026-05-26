@@ -115,14 +115,20 @@ class AuditPostType(wtypes.Base):
 
     force = wtypes.wsattr(bool, mandatory=False)
 
-    def as_audit(self, context):
+    def _validate(self):
         audit_type_values = [val.value for val in objects.audit.AuditType]
         if self.audit_type not in audit_type_values:
             raise exception.AuditTypeNotFound(audit_type=self.audit_type)
 
         if not self.audit_template_uuid and not self.goal:
-            message = _('A valid goal or audit_template_id must be provided')
-            raise exception.Invalid(message)
+            raise exception.Invalid(
+                _('A valid goal or audit_template_id must be provided')
+            )
+
+        if self.audit_template_uuid and self.goal:
+            raise exception.Invalid(
+                'Either audit_template_uuid or goal should be provided.'
+            )
 
         if (
             self.audit_type == objects.audit.AuditType.ONESHOT.value
@@ -138,11 +144,6 @@ class AuditPostType(wtypes.Base):
                 audit_type=self.audit_type
             )
 
-        if self.audit_template_uuid and self.goal:
-            raise exception.Invalid(
-                'Either audit_template_uuid or goal should be provided.'
-            )
-
         if self.audit_type == objects.audit.AuditType.ONESHOT.value and (
             self.start_time not in (wtypes.Unset, None)
             or self.end_time not in (wtypes.Unset, None)
@@ -156,56 +157,74 @@ class AuditPostType(wtypes.Base):
                 if getattr(self, field) not in (wtypes.Unset, None):
                     raise exception.NotAcceptable()
 
-        # If audit_template_uuid was provided, we will provide any
-        # variables not included in the request, but not override
-        # those variables that were included.
-        if self.audit_template_uuid:
-            try:
-                audit_template = objects.AuditTemplate.get(
-                    context, self.audit_template_uuid
-                )
-            except exception.AuditTemplateNotFound:
-                raise exception.Invalid(
-                    message=_(
-                        'The audit template UUID or name specified is invalid'
-                    )
-                )
-            at2a = {
-                'goal': 'goal_id',
-                'strategy': 'strategy_id',
-                'scope': 'scope',
-            }
-            to_string_fields = {'goal', 'strategy'}
-            for k in at2a:
-                if not getattr(self, k):
-                    try:
-                        at_attr = getattr(audit_template, at2a[k])
-                        if at_attr and (k in to_string_fields):
-                            at_attr = str(at_attr)
-                        setattr(self, k, at_attr)
-                    except AttributeError:
-                        pass
+    def _apply_audit_template(self, context):
+        """Populate fields from the linked audit template.
 
-        # Note: If audit name was not provided, used a default name
-        if not self.name:
-            if self.strategy:
-                strategy = _get_object_by_value(
-                    context, objects.Strategy, self.strategy
+        Copies goal, strategy, and scope onto self when not already provided,
+        and merges default_parameters (user-provided values take precedence).
+        Returns the AuditTemplate object.
+        """
+        try:
+            audit_template = objects.AuditTemplate.get(
+                context, self.audit_template_uuid
+            )
+        except exception.AuditTemplateNotFound:
+            raise exception.Invalid(
+                message=_(
+                    'The audit template UUID or name specified is invalid'
                 )
-                self.name = f"{strategy.name}-{timeutils.utcnow().isoformat()}"
-            elif self.audit_template_uuid:
-                audit_template = objects.AuditTemplate.get(
-                    context, self.audit_template_uuid
-                )
-                timestamp = timeutils.utcnow().isoformat()
-                self.name = f"{audit_template.name}-{timestamp}"
-            else:
-                goal = _get_object_by_value(context, objects.Goal, self.goal)
-                self.name = f"{goal.name}-{timeutils.utcnow().isoformat()}"
-        # No more than 63 characters
+            )
+
+        at2a = {'goal': 'goal_id', 'strategy': 'strategy_id', 'scope': 'scope'}
+        to_string_fields = {'goal', 'strategy'}
+        for k, at_key in at2a.items():
+            if not getattr(self, k):
+                try:
+                    at_attr = getattr(audit_template, at_key)
+                    if at_attr and k in to_string_fields:
+                        at_attr = str(at_attr)
+                    setattr(self, k, at_attr)
+                except AttributeError:
+                    pass
+
+        if audit_template.default_parameters:
+            merged = dict(audit_template.default_parameters)
+            if self.parameters:
+                merged.update(self.parameters)
+            self.parameters = merged
+
+        return audit_template
+
+    def _generate_name(self, context, audit_template=None):
+        """Set a default audit name if none was provided."""
+        if self.name:
+            return
+
+        if self.strategy:
+            strategy = _get_object_by_value(
+                context, objects.Strategy, self.strategy
+            )
+            self.name = f"{strategy.name}-{timeutils.utcnow().isoformat()}"
+        elif audit_template:
+            self.name = (
+                f"{audit_template.name}-{timeutils.utcnow().isoformat()}"
+            )
+        else:
+            goal = _get_object_by_value(context, objects.Goal, self.goal)
+            self.name = f"{goal.name}-{timeutils.utcnow().isoformat()}"
+
+    def as_audit(self, context):
+        self._validate()
+
+        audit_template = None
+        if self.audit_template_uuid:
+            audit_template = self._apply_audit_template(context)
+
+        self._generate_name(context, audit_template)
+
         if len(self.name) > 63:
             LOG.warning("Audit: %s length exceeds 63 characters", self.name)
-            self.name = self.name[0:63]
+            self.name = self.name[:63]
 
         return Audit(
             name=self.name,

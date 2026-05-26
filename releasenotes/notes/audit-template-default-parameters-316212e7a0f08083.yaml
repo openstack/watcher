@@ -1,0 +1,19 @@
+---
+features:
+  - |
+    Audit Templates now support a ``default_parameters`` field that allows
+    operators to pre-configure strategy parameter values directly on the
+    template. Audits created from a template with ``default_parameters`` set
+    will inherit those values automatically, without requiring parameters to be
+    specified at audit creation time. Explicitly provided audit parameters take
+    precedence over template defaults.
+
+    The ``default_parameters`` field requires a strategy to be associated with
+    the audit template, and the provided values are validated against the
+    strategy's parameter schema at creation and update time.
+
+    This feature is available via Watcher API microversion 1.7 and is exposed
+    through the ``POST /v1/audit_templates`` and
+    ``PATCH /v1/audit_templates/{audit_template_ident}`` endpoints. The field
+    is returned in ``GET`` responses when the client requests API microversion
+    1.7 or higher.

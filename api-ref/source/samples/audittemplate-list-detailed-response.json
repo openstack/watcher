@@ -1,7 +1,7 @@
 {
     "audit_templates":[
         {
-            "strategy_uuid": null,
+            "strategy_uuid": "2cf86250-d309-4b81-818e-1537f3dba6e5",
             "goal_uuid": "4690f8ba-18ff-45c1-99e9-159556d23810",
             "name": "at3",
             "links": [
@@ -14,9 +14,11 @@
                     "http://controller:9322/audit_templates/b4041d8c-85d7-4224-851d-649fe48b7196"
                 }
             ],
-            "strategy_name": null,
+            "strategy_name": "dummy",
             "uuid": "b4041d8c-85d7-4224-851d-649fe48b7196",
-            "goal_name": "dummy", "scope": [],
+            "goal_name": "dummy",
+            "scope": [],
+            "default_parameters": {"para1": 5.0},
             "description": null
         }
     ]

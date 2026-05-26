@@ -155,6 +155,7 @@ class AuditTemplate(Base):
     goal_id = Column(Integer, ForeignKey('goals.id'), nullable=False)
     strategy_id = Column(Integer, ForeignKey('strategies.id'), nullable=True)
     scope = Column(JSONEncodedList)
+    default_parameters = Column(JSONEncodedDict, nullable=True)
 
     goal = orm.relationship(Goal, foreign_keys=goal_id, lazy=None)
     strategy = orm.relationship(Strategy, foreign_keys=strategy_id, lazy=None)
