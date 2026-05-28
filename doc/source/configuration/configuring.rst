@@ -90,19 +90,8 @@ Configure the Identity service for the Watcher service
 
     .. code-block:: bash
 
-      $ keystone user-create --name=watcher --pass=WATCHER_PASSWORD \
-        --email=watcher@example.com \
-        --tenant=KEYSTONE_SERVICE_PROJECT_NAME
-      $ keystone user-role-add --user=watcher \
-        --tenant=KEYSTONE_SERVICE_PROJECT_NAME --role=admin
-
-   or (by using python-openstackclient 1.8.0+)
-
-     .. code-block:: bash
-
       $ openstack user create  --password WATCHER_PASSWORD --enable \
-        --email watcher@example.com watcher \
-        --project=KEYSTONE_SERVICE_PROJECT_NAME
+        --email watcher@example.com watcher
       $ openstack role add --project KEYSTONE_SERVICE_PROJECT_NAME \
         --user watcher admin
 
@@ -112,29 +101,12 @@ Configure the Identity service for the Watcher service
 
     .. code-block:: bash
 
-      $ keystone service-create --name=watcher --type=infra-optim \
-        --description="Infrastructure Optimization service"
-
-   or (by using python-openstackclient 1.8.0+)
-
-    .. code-block:: bash
-
       $ openstack service create --name watcher infra-optim \
         --description="Infrastructure Optimization service"
 
 #. Create the endpoints by replacing YOUR_REGION and
    ``WATCHER_API_[PUBLIC|ADMIN|INTERNAL]_IP`` with your region and your
    Watcher Service's API node IP addresses (or FQDN):
-
-    .. code-block:: bash
-
-      $ keystone endpoint-create \
-      --service-id=the_service_id_above \
-      --publicurl=http://WATCHER_API_PUBLIC_IP:9322 \
-      --internalurl=http://WATCHER_API_INTERNAL_IP:9322 \
-      --adminurl=http://WATCHER_API_ADMIN_IP:9322
-
-   or (by using python-openstackclient 1.8.0+)
 
     .. code-block:: bash
 
