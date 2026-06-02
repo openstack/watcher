@@ -24,14 +24,13 @@ import uuid
 import microversion_parse
 
 from keystoneauth1 import exceptions as ksa_exc
-from keystoneauth1 import loading as ks_loading
 from openstack import exceptions as sdk_exc
 from oslo_log import log
 
 from watcher import conf
 from watcher.common import clients
 from watcher.common import exception
-from watcher.conf import clients_auth
+from watcher.common.base_helper import BaseConnectionMixin
 
 
 LOG = log.getLogger(__name__)
@@ -385,22 +384,22 @@ class ServerMigration:
         return cls(id=nova_migration.id)
 
 
-class NovaHelper:
+class NovaHelper(BaseConnectionMixin):
     def __init__(self, osc=None, session=None, context=None):
         """Create and return a helper to call the nova service
 
         :param osc: an OpenStackClients instance
-        :param session: Optional keystone session to create the openstack
-        connection.
-        :param context: Optional context object, use to get user's token to
-        create openstack connection.
+        :param session: Optional keystone session to create the
+            openstack connection.
+        :param context: Optional context object, use to get user's
+            token to create openstack connection.
         """
         self._config_overrides = False
         self._override_deprecated_configs()
         clients.check_min_nova_api_version(CONF.nova.api_version)
         self.osc = osc if osc else clients.OpenStackClients()
         self.cinder = self.osc.cinder()
-        self._create_sdk_connection(context=context, session=session)
+        self._create_sdk_connection('nova', context=context, session=session)
         self._is_pinned_az_available = None
 
     def _override_deprecated_configs(self):
@@ -415,34 +414,6 @@ class NovaHelper:
             CONF.set_override('valid_interfaces', [endpoint_type], 'nova')
 
         self._config_overrides = True
-
-    def _create_sdk_connection(self, session=None, context=None):
-        """Create and return an OpenStackSDK Connection
-
-        :param session: Optional keystone session to create the openstack
-        connection.
-        :param context: Optional context object, use to get user's token to
-        create openstack connection.
-        """
-        auth_group = 'nova'
-        nova_auth = ks_loading.load_auth_from_conf_options(CONF, 'nova')
-        if nova_auth is None:
-            # NOTE(jgilaber): if can't configure the auth from the values in
-            # [nova], use [watcher_clients_auth] as fallback
-            LOG.debug(
-                "could not load auth plugin from [nova] section, using %s "
-                "as fallback",
-                clients_auth.WATCHER_CLIENTS_AUTH,
-            )
-            auth_group = clients_auth.WATCHER_CLIENTS_AUTH
-
-        self.connection = clients.get_sdk_connection(
-            auth_group,
-            context=context,
-            session=session,
-            interface=CONF.nova.valid_interfaces,
-            region_name=CONF.nova.region_name,
-        )
 
     def is_pinned_az_available(self):
         """Check if pinned AZ is available in GET /servers/detail response.
