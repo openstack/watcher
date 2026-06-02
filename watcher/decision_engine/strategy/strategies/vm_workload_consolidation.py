@@ -93,6 +93,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         self.host_metric_delta = collections.defaultdict(
             lambda: collections.defaultdict(int)
         )
+        self.node_utilization_cache = dict()
 
     @classmethod
     def get_name(cls):
@@ -276,11 +277,27 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
                 instance.memory
             )
 
+            if source_node.hostname in self.node_utilization_cache:
+                source = self.node_utilization_cache[source_node.hostname]
+                self.node_utilization_cache[source_node.hostname] = dict(
+                    cpu=max(0, source['cpu'] - instance_util['cpu']),
+                    ram=max(0, source['ram'] - instance_util['ram']),
+                    disk=max(0, source['disk'] - instance_util['disk']),
+                )
+            if destination_node.hostname in self.node_utilization_cache:
+                dest = self.node_utilization_cache[destination_node.hostname]
+                self.node_utilization_cache[destination_node.hostname] = dict(
+                    cpu=dest['cpu'] + instance_util['cpu'],
+                    ram=dest['ram'] + instance_util['ram'],
+                    disk=dest['disk'] + instance_util['disk'],
+                )
+
     def disable_unused_nodes(self):
         """Generate actions for disabling unused nodes.
 
         :return: None
         """
+        LOG.info('Disabling unused nodes')
         for node in self.get_available_compute_nodes().values():
             if (
                 len(self.compute_model.get_node_instances(node)) == 0
@@ -383,16 +400,27 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         :param aggr: string
         :return: dict(cpu(number of cores used), ram(MB used), disk(B used))
         """
-        node_instances = self.compute_model.get_node_instances(node)
-        node_ram_util = 0
-        node_disk_util = 0
-        node_cpu_util = 0
-        for instance in node_instances:
-            instance_util = self.get_instance_utilization(instance)
-            node_cpu_util += instance_util['cpu']
-            node_ram_util += instance_util['ram']
-            node_disk_util += instance_util['disk']
-            LOG.debug("instance utilization: %s %s", instance, instance_util)
+        if node.hostname in self.node_utilization_cache:
+            cached = self.node_utilization_cache[node.hostname]
+            node_cpu_util = cached['cpu']
+            node_ram_util = cached['ram']
+            node_disk_util = cached['disk']
+        else:
+            node_instances = self.compute_model.get_node_instances(node)
+            node_ram_util = 0
+            node_disk_util = 0
+            node_cpu_util = 0
+            for instance in node_instances:
+                instance_util = self.get_instance_utilization(instance)
+                node_cpu_util += instance_util['cpu']
+                node_ram_util += instance_util['ram']
+                node_disk_util += instance_util['disk']
+                LOG.debug(
+                    "instance utilization: %s %s", instance, instance_util
+                )
+            self.node_utilization_cache[node.hostname] = dict(
+                cpu=node_cpu_util, ram=node_ram_util, disk=node_disk_util
+            )
 
         total_node_util = self._get_node_total_utilization(node)
         total_node_cpu_util = total_node_util['cpu'] or 0
@@ -543,6 +571,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         * A->B, B->A => remove A->B and B->A as they do not result
           in a new VM placement.
         """
+        LOG.info('Starting solution optimization')
         migrate_actions = (
             a
             for a in self.solution.actions
@@ -578,6 +607,25 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
                 if self.compute_model.migrate_instance(
                     instance, dst_node, src_node
                 ):
+                    # add_migration will update the node_utilization_cache
+                    # so we need to adjust the values here for the deleted
+                    # actions so that the node_utilization_cache remains
+                    # consistent.
+                    instance_util = self.get_instance_utilization(instance)
+                    if dst_node.hostname in self.node_utilization_cache:
+                        dest = self.node_utilization_cache[dst_node.hostname]
+                        self.node_utilization_cache[dst_node.hostname] = dict(
+                            cpu=max(0, dest['cpu'] - instance_util['cpu']),
+                            ram=max(0, dest['ram'] - instance_util['ram']),
+                            disk=max(0, dest['disk'] - instance_util['disk']),
+                        )
+                    if src_node.hostname in self.node_utilization_cache:
+                        source = self.node_utilization_cache[src_node.hostname]
+                        self.node_utilization_cache[src_node.hostname] = dict(
+                            cpu=source['cpu'] + instance_util['cpu'],
+                            ram=source['ram'] + instance_util['ram'],
+                            disk=source['disk'] + instance_util['disk'],
+                        )
                     self.add_migration(instance, src_node, dst_node)
 
     def offload_phase(self, cc):
@@ -598,6 +646,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
 
         :param cc: dictionary containing resource capacity coefficients
         """
+        LOG.info('Starting offload phase')
         sorted_nodes = sorted(
             self.get_available_compute_nodes().values(),
             key=lambda x: self.get_node_utilization(x)['cpu'],
@@ -655,10 +704,13 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
 
         :param cc: dictionary containing resource capacity coefficients
         """
+        LOG.info('Starting consolidation phase')
         sorted_nodes = sorted(
             self.get_available_compute_nodes().values(),
             key=lambda x: self.get_node_utilization(x)['cpu'],
         )
+        # saturated_nodes tracks hostnames to match node_utilization_cache keys
+        saturated_nodes = set()
         asc = 0
         for node in sorted_nodes:
             instances = sorted(
@@ -675,6 +727,9 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
                     continue
                 dsc = len(sorted_nodes) - 1
                 for destination_node in reversed(sorted_nodes):
+                    if destination_node.hostname in saturated_nodes:
+                        dsc -= 1
+                        continue
                     if asc >= dsc:
                         break
                     if self.instance_fits(instance, destination_node, cc):
@@ -687,6 +742,25 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
                         )
                         self.add_migration(instance, node, destination_node)
                         break
+                    else:
+                        node_util = self.get_node_utilization(destination_node)
+                        node_cap = self.get_node_capacity(destination_node)
+                        # For memory, it may happen that remaining memory is
+                        # > 0 but it is too small to host any VM. That would
+                        # lead to a node being saturated in practical terms
+                        # but not included in the saturated_nodes list.
+                        # To avoid that, a value representing a minimal
+                        # saturation threshold is created with 128MB value
+                        # for memory which is a usual minimum ram size of
+                        # real world flavors
+                        saturation_limit = {'cpu': 0, 'ram': 128, 'disk': 0}
+                        for m in ('cpu', 'ram', 'disk'):
+                            if (
+                                node_util[m]
+                                >= (node_cap[m] * cc[m]) - saturation_limit[m]
+                            ):
+                                saturated_nodes.add(destination_node.hostname)
+                                break
                     dsc -= 1
             asc += 1
 
@@ -709,20 +783,33 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         """
         LOG.info('Executing Smart Strategy')
         rcu = self.get_relative_cluster_utilization()
+        LOG.info('Relative cluster utilization: %s', rcu)
 
         cc = {'cpu': 1.0, 'ram': 1.0, 'disk': 1.0}
 
         # Offloading phase
         self.offload_phase(cc)
+        LOG.info(
+            'Offload phase complete, migrations: %s', self.number_of_migrations
+        )
 
         # Consolidation phase
         self.consolidation_phase(cc)
+        LOG.info(
+            'Consolidation phase complete, migrations: %s',
+            self.number_of_migrations,
+        )
 
         # Optimize solution
         self.optimize_solution()
+        LOG.info(
+            'Solution optimization complete, migrations: %s',
+            self.number_of_migrations,
+        )
 
         # disable unused nodes
         self.disable_unused_nodes()
+        LOG.info('Disabled %s nodes', self.number_of_released_nodes)
 
         rcu_after = self.get_relative_cluster_utilization()
         info = {
@@ -733,7 +820,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
             'relative_cluster_utilization_after': str(rcu_after),
         }
 
-        LOG.debug(info)
+        LOG.info('Strategy execution info: %s', info)
 
     def post_execute(self):
         self.solution.set_efficacy_indicators(
