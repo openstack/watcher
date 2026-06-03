@@ -57,6 +57,9 @@ class Instance(compute_resource.ComputeResource):
         "metadata": wfields.JsonField(),
         "project_id": wfields.UUIDField(),
         "locked": ovo_fields.BooleanField(default=False),
+        "host": ovo_fields.StringField(),
+        "hypervisor_hostname": ovo_fields.StringField(),
+        "created": ovo_fields.DateTimeField(),
         # New fields for extended compute model
         "pinned_az": ovo_fields.StringField(default=""),
         "flavor_extra_specs": wfields.JsonField(default={}),

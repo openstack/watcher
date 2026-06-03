@@ -15,6 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import datetime
 import os
 
 from unittest import mock
@@ -96,12 +97,34 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
         for i in range(0, instance_count):
             instance_name = f"INSTANCE_{i}"
             instance_uuid = f"d{i:02}0ef1f-dc19-4982-9383-087498bfde03"
-            if instance_name == "INSTANCE_1":
+            created = datetime.datetime.fromisoformat(
+                "2026-02-09 18:55:13+00:00"
+            )
+
+            project_id = "91FFFE30-78A0-4152-ACD2-8310FF274DC9"
+            hypervisor_hostname = "hostname_fake"
+            host = "hostname_fake"
+            if instance_name == "INSTANCE_0":
+                hypervisor_hostname = "hostname_0"
+                host = "hostname_0"
+            elif instance_name == "INSTANCE_1":
                 project_id = "26F03131-32CB-4697-9D61-9123F87A8147"
+                hypervisor_hostname = "hostname_0"
+                host = "hostname_0"
             elif instance_name == "INSTANCE_2":
                 project_id = "109F7909-0607-4712-B32C-5CC6D49D2F15"
-            else:
-                project_id = "91FFFE30-78A0-4152-ACD2-8310FF274DC9"
+                hypervisor_hostname = "hostname_1"
+                host = "hostname_1"
+            elif instance_name in ["INSTANCE_3", "INSTANCE_4", "INSTANCE_5"]:
+                hypervisor_hostname = "hostname_2"
+                host = "hostname_2"
+            elif instance_name == "INSTANCE_6":
+                hypervisor_hostname = "hostname_3"
+                host = "hostname_3"
+            elif instance_name == "INSTANCE_7":
+                hypervisor_hostname = "hostname_4"
+                host = "hostname_4"
+
             instance_attributes = {
                 "uuid": instance_uuid,
                 "name": instance_name,
@@ -111,6 +134,9 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
                 "vcpus": 10,
                 "metadata": '{"optimize": true,"top": "floor","nested": {"x": "y"}}',  # noqa: E501
                 "project_id": project_id,
+                "created": created,
+                "hypervisor_hostname": hypervisor_hostname,
+                "host": host,
             }
 
             instance = element.Instance(**instance_attributes)
