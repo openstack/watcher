@@ -184,8 +184,10 @@ class BaseClusterDataModelCollector(
 
     def get_latest_cluster_data_model(self):
         LOG.debug("Creating copy")
-        LOG.debug(self.cluster_data_model.to_xml())
-        return copy.deepcopy(self.cluster_data_model)
+        with self.lock:
+            model = self.cluster_data_model
+            LOG.debug(model.to_xml())
+            return copy.deepcopy(model)
 
     def synchronize(self):
         """Synchronize the cluster data model

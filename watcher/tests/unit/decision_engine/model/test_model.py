@@ -20,7 +20,6 @@ import threading
 
 from unittest import mock
 
-from oslo_concurrency import lockutils as oslo_lockutils
 from oslo_utils import uuidutils
 
 from watcher.common import exception
@@ -340,22 +339,14 @@ class TestModel(base.TestCase):
             model.map_instance('instance-uuid-1', 'node-uuid-1')
             done.set()
 
-        # Patch the global semaphore registry with a fresh isolated instance
-        # so that the deadlocked daemon thread cannot hold the global
-        # "model_root" semaphore and cause unrelated tests to hang.
-        with mock.patch.object(
-            oslo_lockutils, '_semaphores', oslo_lockutils.Semaphores()
-        ):
-            t = threading.Thread(target=call, daemon=True)
-            t.start()
-            # FIXME: assertFalse should become assertTrue once LP#2152254
-            # is fixed by replacing @lockutils.synchronized with a
-            # per-instance threading.RLock.
-            self.assertFalse(
-                done.wait(timeout=2),
-                "map_instance completed — expected a deadlock with the "
-                "current non-reentrant lock implementation",
-            )
+        t = threading.Thread(target=call, daemon=True)
+        t.start()
+        self.assertTrue(
+            done.wait(timeout=2),
+            "map_instance deadlocked — lock acquired by map_instance is not "
+            "reentrant, blocking the internal get_instance_by_uuid and "
+            "get_node_by_uuid calls on the same thread",
+        )
 
 
 class TestStorageModel(base.TestCase):

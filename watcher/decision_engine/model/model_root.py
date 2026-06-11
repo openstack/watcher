@@ -16,11 +16,13 @@ Openstack implementation of the cluster graph.
 """
 
 import ast
+import copy
+import functools
+import threading
 
 import networkx as nx
 
 from lxml import etree  # nosec: B410
-from oslo_concurrency import lockutils
 from oslo_config import cfg
 from oslo_log import log
 
@@ -34,6 +36,50 @@ LOG = log.getLogger(__name__)
 CONF = cfg.CONF
 
 
+def instance_lock(f):
+    """Decorator that acquires the instance-level lock before calling f."""
+
+    @functools.wraps(f)
+    def wrapper(self, *args, **kwargs):
+        with self._lock:
+            return f(self, *args, **kwargs)
+
+    return wrapper
+
+
+def with_instance_lock(cls):
+    """Class decorator that adds a per-instance RLock and safe __deepcopy__.
+
+    Wraps __init__ to initialise self._lock = threading.RLock() after the
+    original __init__ runs. Also injects __deepcopy__ so that deep copies
+    receive a fresh RLock rather than failing to copy the original one.
+    """
+    orig_init = cls.__init__
+
+    def __init__(self, *args, **kwargs):
+        orig_init(self, *args, **kwargs)
+        self._lock = threading.RLock()
+
+    def __deepcopy__(self, memo):
+        new = self.__class__.__new__(self.__class__)
+        memo[id(self)] = new
+        with self._lock:
+            for k, v in self.__dict__.items():
+                setattr(
+                    new,
+                    k,
+                    threading.RLock()
+                    if k == '_lock'
+                    else copy.deepcopy(v, memo),
+                )
+        return new
+
+    cls.__init__ = __init__
+    cls.__deepcopy__ = __deepcopy__
+    return cls
+
+
+@with_instance_lock
 class ModelRoot(nx.DiGraph, base.Model):
     """Cluster graph for an Openstack cluster."""
 
@@ -73,12 +119,12 @@ class ModelRoot(nx.DiGraph, base.Model):
                 message=_("'obj' argument type is not valid")
             )
 
-    @lockutils.synchronized("model_root")
+    @instance_lock
     def add_node(self, node):
         self.assert_node(node)
         super().add_node(node.uuid, attr=node)
 
-    @lockutils.synchronized("model_root")
+    @instance_lock
     def remove_node(self, node):
         self.assert_node(node)
         try:
@@ -87,7 +133,7 @@ class ModelRoot(nx.DiGraph, base.Model):
             LOG.exception(exc)
             raise exception.ComputeNodeNotFound(name=node.uuid)
 
-    @lockutils.synchronized("model_root")
+    @instance_lock
     def add_instance(self, instance):
         self.assert_instance(instance)
         try:
@@ -96,12 +142,12 @@ class ModelRoot(nx.DiGraph, base.Model):
             LOG.exception(exc)
             raise exception.InstanceNotFound(name=instance.uuid)
 
-    @lockutils.synchronized("model_root")
+    @instance_lock
     def remove_instance(self, instance):
         self.assert_instance(instance)
         super().remove_node(instance.uuid)
 
-    @lockutils.synchronized("model_root")
+    @instance_lock
     def map_instance(self, instance, node):
         """Map a newly created instance to a node
 
@@ -120,7 +166,7 @@ class ModelRoot(nx.DiGraph, base.Model):
 
         self.add_edge(instance.uuid, node.uuid)
 
-    @lockutils.synchronized("model_root")
+    @instance_lock
     def unmap_instance(self, instance, node):
         if isinstance(instance, str):
             instance = self.get_instance_by_uuid(instance)
@@ -133,7 +179,7 @@ class ModelRoot(nx.DiGraph, base.Model):
         self.assert_instance(instance)
         self.remove_instance(instance)
 
-    @lockutils.synchronized("model_root")
+    @instance_lock
     def migrate_instance(self, instance, source_node, destination_node):
         """Migrate single instance from source_node to destination_node
 
@@ -155,7 +201,7 @@ class ModelRoot(nx.DiGraph, base.Model):
         self.add_edge(instance.uuid, destination_node.uuid)
         return True
 
-    @lockutils.synchronized("model_root")
+    @instance_lock
     def get_all_compute_nodes(self):
         return {
             uuid: cn['attr']
@@ -163,14 +209,14 @@ class ModelRoot(nx.DiGraph, base.Model):
             if isinstance(cn['attr'], element.ComputeNode)
         }
 
-    @lockutils.synchronized("model_root")
+    @instance_lock
     def get_node_by_uuid(self, uuid):
         try:
             return self._get_by_uuid(uuid)
         except exception.ComputeResourceNotFound:
             raise exception.ComputeNodeNotFound(name=uuid)
 
-    @lockutils.synchronized("model_root")
+    @instance_lock
     def get_node_by_name(self, name):
         try:
             node_list = [
@@ -188,7 +234,7 @@ class ModelRoot(nx.DiGraph, base.Model):
         except exception.ComputeResourceNotFound:
             raise exception.ComputeNodeNotFound(name=name)
 
-    @lockutils.synchronized("model_root")
+    @instance_lock
     def get_instance_by_uuid(self, uuid):
         try:
             return self._get_by_uuid(uuid)
@@ -202,7 +248,7 @@ class ModelRoot(nx.DiGraph, base.Model):
             LOG.exception(exc)
             raise exception.ComputeResourceNotFound(name=uuid)
 
-    @lockutils.synchronized("model_root")
+    @instance_lock
     def get_node_by_instance_uuid(self, instance_uuid):
         instance = self._get_by_uuid(instance_uuid)
         for node_uuid in self.neighbors(instance.uuid):
@@ -211,7 +257,7 @@ class ModelRoot(nx.DiGraph, base.Model):
                 return node
         raise exception.InstanceNotMapped(uuid=instance_uuid)
 
-    @lockutils.synchronized("model_root")
+    @instance_lock
     def get_all_instances(self):
         return {
             uuid: inst['attr']
@@ -219,7 +265,7 @@ class ModelRoot(nx.DiGraph, base.Model):
             if isinstance(inst['attr'], element.Instance)
         }
 
-    @lockutils.synchronized("model_root")
+    @instance_lock
     def get_node_instances(self, node):
         self.assert_node(node)
         node_instances = []
@@ -252,6 +298,7 @@ class ModelRoot(nx.DiGraph, base.Model):
     def to_string(self):
         return self.to_xml()
 
+    @instance_lock
     def to_xml(self):
         root = etree.Element("ModelRoot")
         # Build compute node tree
@@ -279,6 +326,7 @@ class ModelRoot(nx.DiGraph, base.Model):
 
         return etree.tostring(root, pretty_print=True).decode('utf-8')
 
+    @instance_lock
     def to_list(self):
         ret_list = []
         for cn in sorted(
@@ -354,6 +402,7 @@ class ModelRoot(nx.DiGraph, base.Model):
         )
 
 
+@with_instance_lock
 class StorageModelRoot(nx.DiGraph, base.Model):
     """Cluster graph for an Openstack cluster."""
 
@@ -387,17 +436,17 @@ class StorageModelRoot(nx.DiGraph, base.Model):
                 message=_("'obj' argument type is not valid: %s") % type(obj)
             )
 
-    @lockutils.synchronized("storage_model")
+    @instance_lock
     def add_node(self, node):
         self.assert_node(node)
         super().add_node(node.host, attr=node)
 
-    @lockutils.synchronized("storage_model")
+    @instance_lock
     def add_pool(self, pool):
         self.assert_pool(pool)
         super().add_node(pool.name, attr=pool)
 
-    @lockutils.synchronized("storage_model")
+    @instance_lock
     def remove_node(self, node):
         self.assert_node(node)
         try:
@@ -406,7 +455,7 @@ class StorageModelRoot(nx.DiGraph, base.Model):
             LOG.exception(exc)
             raise exception.StorageNodeNotFound(name=node.host)
 
-    @lockutils.synchronized("storage_model")
+    @instance_lock
     def remove_pool(self, pool):
         self.assert_pool(pool)
         try:
@@ -415,7 +464,7 @@ class StorageModelRoot(nx.DiGraph, base.Model):
             LOG.exception(exc)
             raise exception.PoolNotFound(name=pool.name)
 
-    @lockutils.synchronized("storage_model")
+    @instance_lock
     def map_pool(self, pool, node):
         """Map a newly created pool to a node
 
@@ -431,7 +480,7 @@ class StorageModelRoot(nx.DiGraph, base.Model):
 
         self.add_edge(pool.name, node.host)
 
-    @lockutils.synchronized("storage_model")
+    @instance_lock
     def unmap_pool(self, pool, node):
         """Unmap a pool from a node
 
@@ -445,12 +494,12 @@ class StorageModelRoot(nx.DiGraph, base.Model):
 
         self.remove_edge(pool.name, node.host)
 
-    @lockutils.synchronized("storage_model")
+    @instance_lock
     def add_volume(self, volume):
         self.assert_volume(volume)
         super().add_node(volume.uuid, attr=volume)
 
-    @lockutils.synchronized("storage_model")
+    @instance_lock
     def remove_volume(self, volume):
         self.assert_volume(volume)
         try:
@@ -459,7 +508,7 @@ class StorageModelRoot(nx.DiGraph, base.Model):
             LOG.exception(exc)
             raise exception.VolumeNotFound(name=volume.uuid)
 
-    @lockutils.synchronized("storage_model")
+    @instance_lock
     def map_volume(self, volume, pool):
         """Map a newly created volume to a pool
 
@@ -475,7 +524,7 @@ class StorageModelRoot(nx.DiGraph, base.Model):
 
         self.add_edge(volume.uuid, pool.name)
 
-    @lockutils.synchronized("storage_model")
+    @instance_lock
     def unmap_volume(self, volume, pool):
         """Unmap a volume from a pool
 
@@ -493,7 +542,7 @@ class StorageModelRoot(nx.DiGraph, base.Model):
         self.assert_volume(volume)
         self.remove_volume(volume)
 
-    @lockutils.synchronized("storage_model")
+    @instance_lock
     def get_all_storage_nodes(self):
         return {
             host: cn['attr']
@@ -501,21 +550,21 @@ class StorageModelRoot(nx.DiGraph, base.Model):
             if isinstance(cn['attr'], element.StorageNode)
         }
 
-    @lockutils.synchronized("storage_model")
+    @instance_lock
     def get_node_by_name(self, name):
         try:
             return self._get_by_name(name.split("#")[0])
         except exception.StorageResourceNotFound:
             raise exception.StorageNodeNotFound(name=name)
 
-    @lockutils.synchronized("storage_model")
+    @instance_lock
     def get_pool_by_pool_name(self, name):
         try:
             return self._get_by_name(name)
         except exception.StorageResourceNotFound:
             raise exception.PoolNotFound(name=name)
 
-    @lockutils.synchronized("storage_model")
+    @instance_lock
     def get_volume_by_uuid(self, uuid):
         try:
             return self._get_by_uuid(uuid)
@@ -539,7 +588,7 @@ class StorageModelRoot(nx.DiGraph, base.Model):
             LOG.exception(exc)
             raise exception.StorageResourceNotFound(name=name)
 
-    @lockutils.synchronized("storage_model")
+    @instance_lock
     def get_node_by_pool_name(self, pool_name):
         pool = self._get_by_name(pool_name)
         for node_name in self.neighbors(pool.name):
@@ -548,7 +597,7 @@ class StorageModelRoot(nx.DiGraph, base.Model):
                 return node
         raise exception.StorageNodeNotFound(name=pool_name)
 
-    @lockutils.synchronized("storage_model")
+    @instance_lock
     def get_node_pools(self, node):
         self.assert_node(node)
         node_pools = []
@@ -559,7 +608,7 @@ class StorageModelRoot(nx.DiGraph, base.Model):
 
         return node_pools
 
-    @lockutils.synchronized("storage_model")
+    @instance_lock
     def get_pool_by_volume(self, volume):
         self.assert_volume(volume)
         volume = self._get_by_uuid(volume.uuid)
@@ -570,7 +619,7 @@ class StorageModelRoot(nx.DiGraph, base.Model):
         msg = f"for volume {volume.uuid}"
         raise exception.PoolNotFound(name=msg)
 
-    @lockutils.synchronized("storage_model")
+    @instance_lock
     def get_all_volumes(self):
         return {
             name: vol['attr']
@@ -578,7 +627,7 @@ class StorageModelRoot(nx.DiGraph, base.Model):
             if isinstance(vol['attr'], element.Volume)
         }
 
-    @lockutils.synchronized("storage_model")
+    @instance_lock
     def get_pool_volumes(self, pool):
         self.assert_pool(pool)
         volumes = []
@@ -592,6 +641,7 @@ class StorageModelRoot(nx.DiGraph, base.Model):
     def to_string(self):
         return self.to_xml()
 
+    @instance_lock
     def to_xml(self):
         root = etree.Element("ModelRoot")
         # Build storage node tree
@@ -667,6 +717,7 @@ class StorageModelRoot(nx.DiGraph, base.Model):
         return nx.algorithms.isomorphism.isomorph.is_isomorphic(G1, G2)
 
 
+@with_instance_lock
 class BaremetalModelRoot(nx.DiGraph, base.Model):
     """Cluster graph for an Openstack cluster: Baremetal Cluster."""
 
@@ -686,12 +737,12 @@ class BaremetalModelRoot(nx.DiGraph, base.Model):
                 message=_("'obj' argument type is not valid: %s") % type(obj)
             )
 
-    @lockutils.synchronized("baremetal_model")
+    @instance_lock
     def add_node(self, node):
         self.assert_node(node)
         super().add_node(node.uuid, attr=node)
 
-    @lockutils.synchronized("baremetal_model")
+    @instance_lock
     def remove_node(self, node):
         self.assert_node(node)
         try:
@@ -700,7 +751,7 @@ class BaremetalModelRoot(nx.DiGraph, base.Model):
             LOG.exception(exc)
             raise exception.IronicNodeNotFound(uuid=node.uuid)
 
-    @lockutils.synchronized("baremetal_model")
+    @instance_lock
     def get_all_ironic_nodes(self):
         return {
             uuid: cn['attr']
@@ -708,7 +759,7 @@ class BaremetalModelRoot(nx.DiGraph, base.Model):
             if isinstance(cn['attr'], element.IronicNode)
         }
 
-    @lockutils.synchronized("baremetal_model")
+    @instance_lock
     def get_node_by_uuid(self, uuid):
         try:
             return self._get_by_uuid(uuid)
@@ -725,6 +776,7 @@ class BaremetalModelRoot(nx.DiGraph, base.Model):
     def to_string(self):
         return self.to_xml()
 
+    @instance_lock
     def to_xml(self):
         root = etree.Element("ModelRoot")
         # Build Ironic node tree
