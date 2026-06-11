@@ -16,9 +16,11 @@
 # limitations under the License.
 
 import os
+import threading
 
 from unittest import mock
 
+from oslo_concurrency import lockutils as oslo_lockutils
 from oslo_utils import uuidutils
 
 from watcher.common import exception
@@ -317,6 +319,43 @@ class TestModel(base.TestCase):
         self.assertEqual(20, resources_free.get('vcpu'))
         self.assertEqual(128, resources_free.get('memory'))
         self.assertEqual(210, resources_free.get('disk'))
+
+    def test_map_instance_with_string_uuids_no_deadlock(self):
+        """map_instance with string UUIDs must complete within timeout.
+
+        Fails with @lockutils.synchronized (non-reentrant Semaphore): the
+        thread never sets `done` and done.wait() returns False, triggering
+        the assertion. Passes with a reentrant threading.RLock.
+
+        Related bug: https://bugs.launchpad.net/watcher/+bug/2152254
+        """
+        model = model_root.ModelRoot()
+        node = element.ComputeNode(uuid='node-uuid-1', hostname='host1')
+        instance = element.Instance(uuid='instance-uuid-1')
+        model.add_node(node)
+        model.add_instance(instance)
+        done = threading.Event()
+
+        def call():
+            model.map_instance('instance-uuid-1', 'node-uuid-1')
+            done.set()
+
+        # Patch the global semaphore registry with a fresh isolated instance
+        # so that the deadlocked daemon thread cannot hold the global
+        # "model_root" semaphore and cause unrelated tests to hang.
+        with mock.patch.object(
+            oslo_lockutils, '_semaphores', oslo_lockutils.Semaphores()
+        ):
+            t = threading.Thread(target=call, daemon=True)
+            t.start()
+            # FIXME: assertFalse should become assertTrue once LP#2152254
+            # is fixed by replacing @lockutils.synchronized with a
+            # per-instance threading.RLock.
+            self.assertFalse(
+                done.wait(timeout=2),
+                "map_instance completed — expected a deadlock with the "
+                "current non-reentrant lock implementation",
+            )
 
 
 class TestStorageModel(base.TestCase):
