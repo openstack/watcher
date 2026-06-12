@@ -136,17 +136,15 @@ class BaseClusterDataModelCollector(
     @property
     def cluster_data_model(self):
         if self._cluster_data_model is None:
-            self.lock.acquire()
-            self._cluster_data_model = self.execute()
-            self.lock.release()
+            with self.lock:
+                self._cluster_data_model = self.execute()
 
         return self._cluster_data_model
 
     @cluster_data_model.setter
     def cluster_data_model(self, model):
-        self.lock.acquire()
-        self._cluster_data_model = model
-        self.lock.release()
+        with self.lock:
+            self._cluster_data_model = model
 
     @property
     @abc.abstractmethod
