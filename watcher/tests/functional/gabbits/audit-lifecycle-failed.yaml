@@ -83,6 +83,9 @@ tests:
 
   - name: verify action states
     GET: /actions?action_plan_uuid=$RESPONSE['$.uuid']
+    poll:
+      count: 50
+      delay: 0.1
     status: 200
     response_json_paths:
       $.actions.`len`: 2

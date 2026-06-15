@@ -50,4 +50,8 @@ class ServiceFixture(fixtures.Fixture):
         ):
             self.service = watcher_service.Service(manager_class)
         self.service.start()
-        self.addCleanup(self.service.stop)
+        self.addCleanup(self._stop_service)
+
+    def _stop_service(self):
+        self.service.stop()
+        self.service.wait()
