@@ -9,4 +9,4 @@ fixes:
     new model is current before applying their updates, ensuring no state
     changes are lost.
 
-    See: https://bugs.launchpad.net/watcher/+bug/2152254 for more details.
+    See: https://bugs.launchpad.net/watcher/+bug/2152645 for more details.
