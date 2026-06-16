@@ -29,7 +29,11 @@ from watcher.tests.unit.decision_engine.strategy.strategies.test_base import (
 volume_uuid_mapping = faker_cluster_state.volume_uuid_mapping
 
 
-class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
+class TestZoneMigration(
+    test_utils.CinderResourcesMixin,
+    test_utils.NovaResourcesMixin,
+    TestBaseStrategy,
+):
     def setUp(self):
         super().setUp()
 
@@ -143,7 +147,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         self.assertEqual(sorted(instances), sorted(["src1", "src2"]))
 
     def test_get_instances(self):
-
         input_parameters = {
             "compute_nodes": [
                 {"src_node": "hostname_0", "dst_node": "hostname_1"},
@@ -1142,7 +1145,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         self.assertEqual(1, migration_types.get("migrate", 0))
 
     def test_execute_mixed_instances_volumes(self):
-
         self.add_volume_to_model(
             host="src1@back1#pool1",
             uuid=volume_uuid_mapping["volume_1"],
@@ -1615,7 +1617,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
     # ComputeHostSortFilter #
 
     def test_filtered_targets_compute_nodes(self):
-
         input_parameters = {
             "compute_nodes": [
                 {"src_node": "hostname_0", "dst_node": "hostname_1"},
@@ -1764,7 +1765,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
     # ComputeSpecSortFilter #
 
     def test_filtered_targets_instance_mem_size(self):
-
         self.input_parameters["compute_nodes"] = [
             {"src_node": "hostname_0", "dst_node": "hostname_2"},
             {"src_node": "hostname_1", "dst_node": "hostname_3"},
@@ -1789,7 +1789,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         )
 
     def test_filtered_targets_instance_vcpu_num(self):
-
         self.input_parameters["compute_nodes"] = [
             {"src_node": "hostname_0", "dst_node": "hostname_2"},
             {"src_node": "hostname_1", "dst_node": "hostname_3"},
@@ -1813,7 +1812,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         )
 
     def test_filtered_targets_instance_disk_size(self):
-
         self.input_parameters["compute_nodes"] = [
             {"src_node": "hostname_0", "dst_node": "hostname_2"},
             {"src_node": "hostname_1", "dst_node": "hostname_3"},

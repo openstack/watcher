@@ -577,3 +577,7 @@ class LiveMigrationFailed(WatcherException):
 
 class NovaClientError(WatcherException):
     msg_fmt = _("Nova client error: %(reason)s")
+
+
+class CinderClientError(WatcherException):
+    msg_fmt = _("Cinder client error: %(reason)s")

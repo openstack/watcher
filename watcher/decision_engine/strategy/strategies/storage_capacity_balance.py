@@ -140,8 +140,7 @@ class StorageCapacityBalance(base.WorkloadStabilizationBaseStrategy):
         valid_volumes = [
             v
             for v in status_volumes
-            if getattr(v, 'migration_status') == 'success'
-            or getattr(v, 'migration_status') is None
+            if v.migration_status == 'success' or v.migration_status is None
         ]
         LOG.info("valid volumes: %s", valid_volumes)
 
@@ -218,9 +217,7 @@ class StorageCapacityBalance(base.WorkloadStabilizationBaseStrategy):
             if free_cap > (1 - threshold) * total_cap:
                 target_pool_name = pool.name
                 index = self.dest_pools.index(pool)
-                setattr(
-                    self.dest_pools[index], 'free_capacity_gb', str(free_cap)
-                )
+                self.dest_pools[index].free_capacity_gb = free_cap
                 LOG.info(
                     "volume: get pool %s for vol %s",
                     target_pool_name,
@@ -243,10 +240,10 @@ class StorageCapacityBalance(base.WorkloadStabilizationBaseStrategy):
             )
         )
         if volume_type:
-            src_extra_specs = volume_type[0].extra_specs
+            src_extra_specs = dict(volume_type[0].extra_specs)
             src_extra_specs.pop('volume_backend_name', None)
 
-        backendname = getattr(dest_pool, 'volume_backend_name')
+        backendname = dest_pool.volume_backend_name
         dst_pool_type = self.get_volume_type_by_name(self.cinder, backendname)
 
         for src_key in src_extra_specs.keys():
@@ -271,7 +268,7 @@ class StorageCapacityBalance(base.WorkloadStabilizationBaseStrategy):
             )
         )
         for pool in reversed(self.dest_pools):
-            backendname = getattr(pool, 'volume_backend_name')
+            backendname = pool.volume_backend_name
             pool_type = self.get_volume_type_by_name(self.cinder, backendname)
             LOG.info("volume: pool %s, type %s", pool.name, pool_type)
             if pool_type is None:
@@ -288,9 +285,7 @@ class StorageCapacityBalance(base.WorkloadStabilizationBaseStrategy):
                 if target_type is None:
                     continue
                 index = self.dest_pools.index(pool)
-                setattr(
-                    self.dest_pools[index], 'free_capacity_gb', str(free_cap)
-                )
+                self.dest_pools[index].free_capacity_gb = free_cap
                 LOG.info(
                     "volume: get type %s for vol %s", target_type, volume.name
                 )
@@ -308,12 +303,7 @@ class StorageCapacityBalance(base.WorkloadStabilizationBaseStrategy):
         used_cap = float(pool.total_capacity_gb) - float(pool.free_capacity_gb)
         seek_flag = True
 
-        volumes_in_pool = list(
-            filter(
-                lambda v: getattr(v, 'os-vol-host-attr:host') == pool.name,
-                volumes,
-            )
-        )
+        volumes_in_pool = list(filter(lambda v: v.host == pool.name, volumes))
         LOG.info("volumes in pool: %s", str(volumes_in_pool))
         if not volumes_in_pool:
             return retype_dicts, migrate_dicts

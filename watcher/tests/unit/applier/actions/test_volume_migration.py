@@ -16,8 +16,6 @@ from unittest import mock
 
 import jsonschema
 
-from cinderclient import exceptions as cinder_exception
-
 from watcher.applier.actions import base as baction
 from watcher.applier.actions import volume_migration
 from watcher.common import cinder_helper
@@ -117,9 +115,7 @@ class TestMigration(base.TestCase):
         volume.availability_zone = kwargs.get('availability_zone', 'nova')
         volume.attachments = kwargs.get('attachments', [])
         volume.volume_type = kwargs.get('volume_type', 'default-type')
-        setattr(
-            volume, 'os-vol-host-attr:host', kwargs.get('host', 'current-host')
-        )
+        volume.host = kwargs.get('host', 'current-host')
         return volume
 
     @staticmethod
@@ -251,9 +247,8 @@ class TestMigration(base.TestCase):
         )
 
     def test_pre_condition_volume_not_found(self):
-        self.m_c_helper.get_volume.side_effect = cinder_exception.NotFound(
-            '404'
-        )
+        err = exception.StorageResourceNotFound()
+        self.m_c_helper.get_volume.side_effect = err
 
         # ActionSkipped is expected because the volume is not found
         self.assertRaisesRegex(
