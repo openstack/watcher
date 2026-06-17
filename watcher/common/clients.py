@@ -15,7 +15,6 @@ import warnings
 import debtcollector
 import microversion_parse
 
-from cinderclient import client as ciclient
 from gnocchiclient import client as gnclient
 from ironicclient import client as irclient
 from keystoneauth1 import loading as ka_loading
@@ -129,7 +128,6 @@ class OpenStackClients:
     def reset_clients(self):
         self._session = None
         self._gnocchi = None
-        self._cinder = None
         self._ironic = None
         self._maas = None
 
@@ -176,24 +174,6 @@ class OpenStackClients:
             session=self.session,
         )
         return self._gnocchi
-
-    @exception.wrap_keystone_exception
-    def cinder(self):
-        if self._cinder:
-            return self._cinder
-
-        cinderclient_version = self._get_client_option('cinder', 'api_version')
-        cinder_endpoint_type = self._get_client_option(
-            'cinder', 'endpoint_type'
-        )
-        cinder_region_name = self._get_client_option('cinder', 'region_name')
-        self._cinder = ciclient.Client(
-            cinderclient_version,
-            endpoint_type=cinder_endpoint_type,
-            region_name=cinder_region_name,
-            session=self.session,
-        )
-        return self._cinder
 
     @exception.wrap_keystone_exception
     def ironic(self):

@@ -13,8 +13,6 @@
 
 from unittest import mock
 
-from cinderclient import client as ciclient
-from cinderclient.v3 import client as ciclient_v3
 from gnocchiclient import client as gnclient
 from gnocchiclient.v1 import client as gnclient_v1
 from ironicclient import client as irclient
@@ -150,45 +148,6 @@ class TestClients(TestBaseClients):
         gnocchi = osc.gnocchi()
         gnocchi_cached = osc.gnocchi()
         self.assertEqual(gnocchi, gnocchi_cached)
-
-    @mock.patch.object(ciclient, 'Client')
-    @mock.patch.object(clients.OpenStackClients, 'session')
-    def test_clients_cinder(self, mock_session, mock_call):
-        osc = clients.OpenStackClients()
-        osc._cinder = None
-        osc.cinder()
-        mock_call.assert_called_once_with(
-            CONF.cinder_client.api_version,
-            endpoint_type=CONF.cinder_client.endpoint_type,
-            region_name=CONF.cinder_client.region_name,
-            session=mock_session,
-        )
-
-    @mock.patch.object(clients.OpenStackClients, 'session')
-    def test_clients_cinder_diff_vers(self, mock_session):
-        CONF.set_override('api_version', '3', group='cinder_client')
-        osc = clients.OpenStackClients()
-        osc._cinder = None
-        osc.cinder()
-        self.assertEqual(ciclient_v3.Client, type(osc.cinder()))
-
-    @mock.patch.object(clients.OpenStackClients, 'session')
-    def test_clients_cinder_diff_endpoint(self, mock_session):
-        CONF.set_override(
-            'endpoint_type', 'internalURL', group='cinder_client'
-        )
-        osc = clients.OpenStackClients()
-        osc._cinder = None
-        osc.cinder()
-        self.assertEqual('internalURL', osc.cinder().client.interface)
-
-    @mock.patch.object(clients.OpenStackClients, 'session')
-    def test_clients_cinder_cached(self, mock_session):
-        osc = clients.OpenStackClients()
-        osc._cinder = None
-        cinder = osc.cinder()
-        cinder_cached = osc.cinder()
-        self.assertEqual(cinder, cinder_cached)
 
     @mock.patch.object(irclient, 'Client')
     @mock.patch.object(clients.OpenStackClients, 'session')

@@ -158,7 +158,6 @@ class CinderModelBuilder(base.BaseModelBuilder):
     def __init__(self, osc):
         self.osc = osc
         self.model = model_root.StorageModelRoot()
-        self.cinder = osc.cinder()
         self.cinder_helper = cinder_helper.CinderHelper()
 
     def _add_physical_layer(self):
