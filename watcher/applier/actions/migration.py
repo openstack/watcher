@@ -167,7 +167,7 @@ class Migrate(base.BaseAction):
         )
 
     def migrate(self, destination=None):
-        nova = nova_helper.NovaHelper(osc=self.osc)
+        nova = nova_helper.NovaHelper()
         if destination is None:
             LOG.debug(
                 "Migrating instance %s, destination node will be "
@@ -205,7 +205,7 @@ class Migrate(base.BaseAction):
         return self.migrate(destination=self.source_node)
 
     def abort(self):
-        nova = nova_helper.NovaHelper(osc=self.osc)
+        nova = nova_helper.NovaHelper()
         try:
             nova.find_instance(self.instance_uuid)
         except exception.ComputeResourceNotFound:
@@ -230,7 +230,7 @@ class Migrate(base.BaseAction):
         - Destination node (if specified) does not exist or is disabled
         - Instance status is not ACTIVE for live migration
         """
-        nova = nova_helper.NovaHelper(osc=self.osc)
+        nova = nova_helper.NovaHelper()
 
         # Check that the instance exists
         try:

@@ -19,7 +19,6 @@ import jsonschema
 
 from watcher.applier.actions import base as baction
 from watcher.applier.actions import change_nova_service_state
-from watcher.common import clients
 from watcher.common import exception
 from watcher.common import nova_helper
 from watcher.decision_engine.model import element
@@ -31,24 +30,16 @@ class TestChangeNovaServiceState(test_utils.NovaResourcesMixin, base.TestCase):
     def setUp(self):
         super().setUp()
 
-        self.m_osc_cls = mock.Mock()
         self.m_helper_cls = mock.Mock()
         self.m_helper = mock.Mock(spec=nova_helper.NovaHelper)
         self.m_helper_cls.return_value = self.m_helper
-        self.m_osc = mock.Mock(spec=clients.OpenStackClients)
-        self.m_osc_cls.return_value = self.m_osc
 
-        m_openstack_clients = mock.patch.object(
-            clients, "OpenStackClients", self.m_osc_cls
-        )
         m_nova_helper = mock.patch.object(
             nova_helper, "NovaHelper", self.m_helper_cls
         )
 
-        m_openstack_clients.start()
         m_nova_helper.start()
 
-        self.addCleanup(m_openstack_clients.stop)
         self.addCleanup(m_nova_helper.stop)
 
         self.input_parameters = {
@@ -157,7 +148,7 @@ class TestChangeNovaServiceState(test_utils.NovaResourcesMixin, base.TestCase):
     def test_execute_change_service_state_with_enable_target(self):
         self.action.execute()
 
-        self.m_helper_cls.assert_called_once_with(osc=self.m_osc)
+        self.m_helper_cls.assert_called_once_with()
         self.m_helper.enable_service_nova_compute.assert_called_once_with(
             "compute-1"
         )
@@ -169,7 +160,7 @@ class TestChangeNovaServiceState(test_utils.NovaResourcesMixin, base.TestCase):
         self.action.input_parameters["disabled_reason"] = "watcher_disabled"
         self.action.execute()
 
-        self.m_helper_cls.assert_called_once_with(osc=self.m_osc)
+        self.m_helper_cls.assert_called_once_with()
         self.m_helper.disable_service_nova_compute.assert_called_once_with(
             "compute-1", "watcher_disabled"
         )
@@ -178,7 +169,7 @@ class TestChangeNovaServiceState(test_utils.NovaResourcesMixin, base.TestCase):
         self.action.input_parameters["disabled_reason"] = "watcher_disabled"
         self.action.revert()
 
-        self.m_helper_cls.assert_called_once_with(osc=self.m_osc)
+        self.m_helper_cls.assert_called_once_with()
         self.m_helper.disable_service_nova_compute.assert_called_once_with(
             "compute-1", "watcher_disabled"
         )
@@ -189,7 +180,7 @@ class TestChangeNovaServiceState(test_utils.NovaResourcesMixin, base.TestCase):
         )
         self.action.revert()
 
-        self.m_helper_cls.assert_called_once_with(osc=self.m_osc)
+        self.m_helper_cls.assert_called_once_with()
         self.m_helper.enable_service_nova_compute.assert_called_once_with(
             "compute-1"
         )

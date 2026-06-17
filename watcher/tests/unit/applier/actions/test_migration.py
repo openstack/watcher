@@ -19,7 +19,6 @@ import jsonschema
 
 from watcher.applier.actions import base as baction
 from watcher.applier.actions import migration
-from watcher.common import clients
 from watcher.common import exception
 from watcher.common import nova_helper
 from watcher.tests.unit import base
@@ -32,24 +31,16 @@ class TestMigration(test_utils.NovaResourcesMixin, base.TestCase):
     def setUp(self):
         super().setUp()
 
-        self.m_osc_cls = mock.Mock()
         self.m_helper_cls = mock.Mock()
         self.m_helper = mock.Mock(spec=nova_helper.NovaHelper)
         self.m_helper_cls.return_value = self.m_helper
-        self.m_osc = mock.Mock(spec=clients.OpenStackClients)
-        self.m_osc_cls.return_value = self.m_osc
 
-        m_openstack_clients = mock.patch.object(
-            clients, "OpenStackClients", self.m_osc_cls
-        )
         m_nova_helper = mock.patch.object(
             nova_helper, "NovaHelper", self.m_helper_cls
         )
 
-        m_openstack_clients.start()
         m_nova_helper.start()
 
-        self.addCleanup(m_openstack_clients.stop)
         self.addCleanup(m_nova_helper.stop)
 
         self.input_parameters = {
@@ -378,7 +369,7 @@ class TestMigration(test_utils.NovaResourcesMixin, base.TestCase):
 
         self.action.revert()
 
-        self.m_helper_cls.assert_called_once_with(osc=self.m_osc)
+        self.m_helper_cls.assert_called_once_with()
         self.m_helper.live_migrate_instance.assert_called_once_with(
             instance_id=self.INSTANCE_UUID, dest_hostname="compute1-hostname"
         )
@@ -388,7 +379,7 @@ class TestMigration(test_utils.NovaResourcesMixin, base.TestCase):
 
         self.action_cold.revert()
 
-        self.m_helper_cls.assert_called_once_with(osc=self.m_osc)
+        self.m_helper_cls.assert_called_once_with()
         self.m_helper.watcher_non_live_migrate_instance.assert_called_once_with(
             instance_id=self.INSTANCE_UUID, dest_hostname="compute1-hostname"
         )

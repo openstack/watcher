@@ -22,7 +22,7 @@ class StorageScope(base.BaseScope):
     def __init__(self, scope, config, osc=None):
         super().__init__(scope, config)
         self._osc = osc
-        self.wrapper = cinder_helper.CinderHelper(osc=self._osc)
+        self.wrapper = cinder_helper.CinderHelper()
 
     def _collect_vtype(self, volume_types, allowed_nodes):
         service_list = self.wrapper.get_storage_node_list()
@@ -60,7 +60,7 @@ class StorageScope(base.BaseScope):
                     resource="availability zones"
                 )
         for service in service_list:
-            if service.zone in zone_names or include_all_nodes:
+            if service.availability_zone in zone_names or include_all_nodes:
                 allowed_nodes.append(service.host)
 
     def exclude_resources(self, resources, **kwargs):

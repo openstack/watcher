@@ -29,7 +29,7 @@ class ComputeScope(base.BaseScope):
     def __init__(self, scope, config, osc=None):
         super().__init__(scope, config)
         self._osc = osc
-        self.wrapper = nova_helper.NovaHelper(osc=self._osc)
+        self.wrapper = nova_helper.NovaHelper()
 
     def remove_instance(self, cluster_model, instance, node_uuid):
         node = cluster_model.get_node_by_uuid(node_uuid)

@@ -70,8 +70,8 @@ class VolumeMigrate(base.BaseAction):
 
     def __init__(self, config, osc=None):
         super().__init__(config)
-        self.cinder_util = cinder_helper.CinderHelper(osc=self.osc)
-        self.nova_util = nova_helper.NovaHelper(osc=self.osc)
+        self.cinder_util = cinder_helper.CinderHelper()
+        self.nova_util = nova_helper.NovaHelper()
 
     @property
     def schema(self):

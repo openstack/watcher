@@ -32,11 +32,11 @@ class TestCinderClusterDataModelCollector(
     def test_cinder_cdmc_execute(self, m_cinder_helper_cls):
         m_cinder_helper = m_cinder_helper_cls.return_value
 
-        fake_storage_node = cinder_helper.StorageService.from_cinderclient(
-            self.create_cinder_storage_service(zone='zone')
+        fake_storage_node = cinder_helper.StorageService.from_openstacksdk(
+            self.create_openstacksdk_storage_service(zone='zone')
         )
-        fake_storage_pool = cinder_helper.StoragePool.from_cinderclient(
-            self.create_cinder_pool(
+        fake_storage_pool = cinder_helper.StoragePool.from_openstacksdk(
+            self.create_openstacksdk_pool(
                 total_volumes=1,
                 total_capacity_gb=30,
                 free_capacity_gb=20,
@@ -44,8 +44,8 @@ class TestCinderClusterDataModelCollector(
                 allocated_capacity_gb=10,
             )
         )
-        fake_volume = cinder_helper.Volume.from_cinderclient(
-            self.create_cinder_volume(
+        fake_volume = cinder_helper.Volume.from_openstacksdk(
+            self.create_openstacksdk_volume(
                 name='name',
                 status='in-use',
                 attachments=[
@@ -57,7 +57,7 @@ class TestCinderClusterDataModelCollector(
                 snapshot_id='',
                 metadata={"key": "value"},
                 volume_type="fake_type",
-                tenant_id='0c003652-0cb1-4210-9005-fd5b92b1faa2',
+                project_id='0c003652-0cb1-4210-9005-fd5b92b1faa2',
                 created_at='2017-10-30T00:00:00',
                 host='host@backend#pool',
             )
@@ -107,11 +107,11 @@ class TestCinderClusterDataModelCollector(
     ):
         m_cinder_helper = m_cinder_helper_cls.return_value
 
-        fake_storage_node = cinder_helper.StorageService.from_cinderclient(
-            self.create_cinder_storage_service(zone='zone')
+        fake_storage_node = cinder_helper.StorageService.from_openstacksdk(
+            self.create_openstacksdk_storage_service(zone='zone')
         )
-        fake_storage_pool = cinder_helper.StoragePool.from_cinderclient(
-            self.create_cinder_pool(total_capacity_gb="unknown")
+        fake_storage_pool = cinder_helper.StoragePool.from_openstacksdk(
+            self.create_openstacksdk_pool(total_capacity_gb="unknown")
         )
 
         m_cinder_helper.get_storage_node_list.return_value = [
@@ -141,11 +141,11 @@ class TestCinderClusterDataModelCollector(
     def test_cinder_cdmc_total_capacity_gb_None(self, m_cinder_helper_cls):
         m_cinder_helper = m_cinder_helper_cls.return_value
 
-        fake_storage_node = cinder_helper.StorageService.from_cinderclient(
-            self.create_cinder_storage_service(zone='zone')
+        fake_storage_node = cinder_helper.StorageService.from_openstacksdk(
+            self.create_openstacksdk_storage_service(zone='zone')
         )
-        fake_storage_pool = cinder_helper.StoragePool.from_cinderclient(
-            self.create_cinder_pool(total_capacity_gb=None)
+        fake_storage_pool = cinder_helper.StoragePool.from_openstacksdk(
+            self.create_openstacksdk_pool(total_capacity_gb=None)
         )
 
         m_cinder_helper.get_storage_node_list.return_value = [

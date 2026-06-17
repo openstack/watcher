@@ -202,7 +202,7 @@ class NovaModelBuilder(base.BaseModelBuilder):
         self.model = None
         self.model_scope = dict()
         self.no_model_scope_flag = False
-        self.nova_helper = nova_helper.NovaHelper(osc=self.osc)
+        self.nova_helper = nova_helper.NovaHelper()
         self.placement_helper = placement_helper.PlacementHelper()
         self.executor = threading.DecisionEngineThreadPool()
         self.collector_timeout = (

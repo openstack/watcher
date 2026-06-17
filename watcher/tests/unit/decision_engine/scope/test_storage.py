@@ -20,11 +20,12 @@ from watcher.common import cinder_helper
 from watcher.common import exception
 from watcher.decision_engine.scope import storage
 from watcher.tests.unit import base
+from watcher.tests.unit.common import utils as test_utils
 from watcher.tests.unit.decision_engine.model import faker_cluster_state
 from watcher.tests.unit.decision_engine.scope import fake_scopes
 
 
-class TestStorageScope(base.TestCase):
+class TestStorageScope(test_utils.CinderResourcesMixin, base.TestCase):
     def setUp(self):
         super().setUp()
         self.fake_cluster = faker_cluster_state.FakerStorageModelCollector()
@@ -34,7 +35,9 @@ class TestStorageScope(base.TestCase):
         cluster = self.fake_cluster.generate_scenario_1()
         audit_scope = fake_scopes.fake_scope_2
         mock_zone_list.return_value = [
-            mock.Mock(zone=f'zone_{i}', host=f'host_{i}@backend_{i}')
+            self.create_openstacksdk_storage_service(
+                zone=f'zone_{i}', host=f'host_{i}@backend_{i}'
+            )
             for i in range(2)
         ]
         model = storage.StorageScope(
@@ -62,7 +65,9 @@ class TestStorageScope(base.TestCase):
         allowed_nodes = []
         az_scope = [{'name': 'zone_1'}]
         mock_zone_list.return_value = [
-            mock.Mock(zone=f'zone_{i}', host=f'host_{i}@backend_{i}')
+            self.create_openstacksdk_storage_service(
+                zone=f'zone_{i}', host=f'host_{i}@backend_{i}'
+            )
             for i in range(2)
         ]
         storage.StorageScope(
@@ -100,7 +105,9 @@ class TestStorageScope(base.TestCase):
     def test_collect_vtype(self, mock_vt_list, mock_zone_list):
         allowed_nodes = []
         mock_zone_list.return_value = [
-            mock.Mock(zone=f'zone_{i}', host=f'host_{i}@backend_{i}')
+            self.create_openstacksdk_storage_service(
+                zone=f'zone_{i}', host=f'host_{i}@backend_{i}'
+            )
             for i in range(2)
         ]
 
@@ -233,7 +240,9 @@ class TestStorageScope(base.TestCase):
         audit_scope.extend(fake_scopes.fake_scope_2)
         audit_scope.extend(fake_scopes.fake_scope_1)
         mock_zone_list.return_value = [
-            mock.Mock(zone=f'zone_{i}', host=f'host_{i}@backend_{i}')
+            self.create_openstacksdk_storage_service(
+                zone=f'zone_{i}', host=f'host_{i}@backend_{i}'
+            )
             for i in range(2)
         ]
         model = storage.StorageScope(

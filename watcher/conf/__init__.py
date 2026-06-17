@@ -21,6 +21,7 @@ from oslo_config import cfg
 from watcher.conf import aetos_client
 from watcher.conf import api
 from watcher.conf import applier
+from watcher.conf import cinder
 from watcher.conf import cinder_client
 from watcher.conf import clients_auth
 from watcher.conf import collector
@@ -74,3 +75,4 @@ prometheus_client.register_opts(CONF)
 nova.register_opts(CONF)
 keystone.register_opts(CONF)
 placement.register_opts(CONF)
+cinder.register_opts(CONF)

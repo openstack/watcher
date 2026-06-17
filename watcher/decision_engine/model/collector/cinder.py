@@ -159,7 +159,7 @@ class CinderModelBuilder(base.BaseModelBuilder):
         self.osc = osc
         self.model = model_root.StorageModelRoot()
         self.cinder = osc.cinder()
-        self.cinder_helper = cinder_helper.CinderHelper(osc=self.osc)
+        self.cinder_helper = cinder_helper.CinderHelper()
 
     def _add_physical_layer(self):
         """Add the physical layer of the graph.
@@ -210,7 +210,7 @@ class CinderModelBuilder(base.BaseModelBuilder):
         # build up the storage node.
         node_attributes = {
             "host": node.host,
-            "zone": node.zone,
+            "zone": node.availability_zone,
             "state": node.state,
             "status": node.status,
             "volume_type": volume_type,
@@ -301,7 +301,7 @@ class CinderModelBuilder(base.BaseModelBuilder):
             "name": volume.name or "",
             "multiattach": volume.multiattach,
             "snapshot_id": volume.snapshot_id or "",
-            "project_id": volume.tenant_id,
+            "project_id": volume.project_id,
             "metadata": volume.metadata,
             "bootable": volume.bootable,
             "volume_type": volume.volume_type,

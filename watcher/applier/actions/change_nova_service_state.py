@@ -103,7 +103,7 @@ class ChangeNovaServiceState(base.BaseAction):
                 message=_("The target state is not defined")
             )
 
-        nova = nova_helper.NovaHelper(osc=self.osc)
+        nova = nova_helper.NovaHelper()
         if state is True:
             return nova.enable_service_nova_compute(self.host)
         else:
@@ -116,7 +116,7 @@ class ChangeNovaServiceState(base.BaseAction):
         - nova-compute service does not exist
         - nova-compute service is already in the desired state
         """
-        nova = nova_helper.NovaHelper(osc=self.osc)
+        nova = nova_helper.NovaHelper()
         services = nova.get_service_list()
         service = next((s for s in services if s.host == self.host), None)
         if service is None:
