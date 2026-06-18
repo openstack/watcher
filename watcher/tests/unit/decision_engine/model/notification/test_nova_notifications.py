@@ -20,7 +20,6 @@ import os
 from unittest import mock
 
 import ddt
-import os_resource_classes as orc
 
 from oslo_serialization import jsonutils
 
@@ -186,11 +185,6 @@ class TestNovaNotifications(NotificationTestCase):
     def test_nova_service_create(self, m_nova_helper_cls, m_placement_helper):
         mock_placement = mock.Mock(name="placement_helper")
         mock_placement.get_inventories.return_value = dict()
-        mock_placement.get_usages_for_resource_provider.return_value = {
-            orc.DISK_GB: 10,
-            orc.MEMORY_MB: 100,
-            orc.VCPU: 0,
-        }
         m_placement_helper.return_value = mock_placement
         m_get_compute_node_by_hostname = mock.Mock(
             side_effect=lambda uuid: nova_helper.Hypervisor.from_openstacksdk(
@@ -394,11 +388,6 @@ class TestNovaNotifications(NotificationTestCase):
     ):
         mock_placement = mock.Mock(name="placement_helper")
         mock_placement.get_inventories.return_value = dict()
-        mock_placement.get_usages_for_resource_provider.return_value = {
-            orc.DISK_GB: 10,
-            orc.MEMORY_MB: 100,
-            orc.VCPU: 0,
-        }
         m_placement_helper.return_value = mock_placement
         m_get_compute_node_by_hostname = mock.Mock(
             side_effect=lambda uuid: nova_helper.Hypervisor.from_openstacksdk(
@@ -511,11 +500,6 @@ class TestNovaNotifications(NotificationTestCase):
     ):
         mock_placement = mock.Mock(name="placement_helper")
         mock_placement.get_inventories.return_value = dict()
-        mock_placement.get_usages_for_resource_provider.return_value = {
-            orc.DISK_GB: 10,
-            orc.MEMORY_MB: 100,
-            orc.VCPU: 0,
-        }
         m_placement_helper.return_value = mock_placement
         m_get_compute_node_by_hostname = mock.Mock(
             side_effect=lambda uuid: nova_helper.Hypervisor.from_openstacksdk(
