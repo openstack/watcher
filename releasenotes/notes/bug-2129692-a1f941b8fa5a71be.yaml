@@ -1,0 +1,15 @@
+---
+fixes:
+  - |
+    Fixed zone migration strategy destination pool and type selection.
+    Previously, the get_dst_pool_and_type method was always selecting the
+    first matching storage pool based only on src_pool, ignoring the
+    src_type parameter. This caused incorrect volume migrations when
+    users supplied multiple values for storage_pools with the same
+    source pool but different source types.
+
+    The method now implements a two-pass matching approach:
+    first attempting to match both src_pool and src_type for exact matches,
+    then falling back to matching just src_pool if no exact match is found.
+
+    For more info see: https://bugs.launchpad.net/watcher/+bug/2129692
