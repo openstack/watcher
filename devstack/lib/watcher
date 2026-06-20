@@ -39,7 +39,6 @@ WATCHER_STATE_PATH=${WATCHER_STATE_PATH:=$DATA_DIR/watcher}
 
 WATCHER_CONF_DIR=/etc/watcher
 WATCHER_CONF=$WATCHER_CONF_DIR/watcher.conf
-WATCHER_POLICY_YAML=$WATCHER_CONF_DIR/policy.yaml.sample
 
 WATCHER_DEVSTACK_DIR=$WATCHER_DIR/devstack
 WATCHER_DEVSTACK_FILES_DIR=$WATCHER_DEVSTACK_DIR/files
@@ -126,8 +125,6 @@ function create_watcher_conf {
     iniset_rpc_backend watcher $WATCHER_CONF
 
     iniset $WATCHER_CONF database connection $(database_connection_url watcher)
-
-    iniset $WATCHER_CONF oslo_policy policy_file $WATCHER_POLICY_YAML
 
     iniset $WATCHER_CONF oslo_messaging_notifications driver "messagingv2"
 
