@@ -15,10 +15,9 @@ import collections
 
 from unittest import mock
 
-import cinderclient
-import fixtures
-
+from watcher.common import exception
 from watcher.common import utils
+from watcher.decision_engine.model import element
 from watcher.decision_engine.strategy import strategies
 from watcher.tests.unit.common import utils as test_utils
 from watcher.tests.unit.decision_engine.model import faker_cluster_state
@@ -86,42 +85,57 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         self.strategy = strategies.ZoneMigration(config=mock.Mock())
         self.strategy.input_parameters = self.input_parameters
 
-        self.m_osc = self.useFixture(
-            fixtures.MockPatch(
-                "watcher.common.clients.OpenStackClients", autospec=True
-            )
-        ).mock.return_value
-
-        self.m_n_helper = self.useFixture(
-            fixtures.MockPatch(
-                "watcher.common.nova_helper.NovaHelper", autospec=False
-            )
-        ).mock.return_value
-
-        self.m_c_helper = self.useFixture(
-            fixtures.MockPatch(
-                "watcher.common.cinder_helper.CinderHelper", autospec=False
-            )
-        ).mock.return_value
-
-    @staticmethod
-    def fake_volume(**kwargs):
-        volume = mock.MagicMock(spec=cinderclient.v3.volumes.Volume)
-        volume.id = kwargs.get('id', utils.generate_uuid())
-        volume.name = kwargs.get('name', 'fake_name')
-        volume.status = kwargs.get('status', 'available')
-        tenant_id = kwargs.get('project_id', None)
-        setattr(volume, 'os-vol-tenant-attr:tenant_id', tenant_id)
-        setattr(volume, 'os-vol-host-attr:host', kwargs.get('host'))
-        setattr(volume, 'size', kwargs.get('size', '1'))
-        setattr(
-            volume,
-            'created_at',
-            kwargs.get('created_at', '1977-01-01T00:00:00'),
+    def add_volume_to_model(self, **kwargs):
+        host = kwargs.get('host', 'fake@back#pool')
+        volume = element.Volume(
+            uuid=kwargs.get('uuid', utils.generate_uuid()),
+            name=kwargs.get('name', 'fake_name'),
+            size=kwargs.get('size', 1),
+            status=kwargs.get('status', 'available'),
+            attachments=kwargs.get('attachments', []),
+            multiattach='false',
+            snapshot_id='',
+            project_id=kwargs.get(
+                'project_id', '91FFFE30-78A0-4152-ACD2-8310FF274DC9'
+            ),
+            metadata='{}',
+            bootable='false',
+            volume_type=kwargs.get('volume_type', 'type1'),
+            created_at=kwargs.get('created_at', '1977-01-01T00:00:00'),
+            host=host,
         )
-        setattr(volume, 'attachments', kwargs.get('attachments', []))
-        volume.volume_type = kwargs.get('volume_type', 'type1')
-
+        model = self.strategy.storage_model
+        model.add_volume(volume)
+        try:
+            pool = model.get_pool_by_pool_name(host)
+        except exception.PoolNotFound:
+            pool = element.Pool(
+                name=host,
+                total_volumes=1,
+                total_capacity_gb=500,
+                free_capacity_gb=420,
+                provisioned_capacity_gb=80,
+                allocated_capacity_gb=80,
+                virtual_free=420,
+            )
+            model.add_pool(pool)
+        node_name = host.split('#')[0]
+        try:
+            node = model.get_node_by_name(node_name)
+            if volume.volume_type not in node.volume_type:
+                node.volume_type.append(volume.volume_type)
+        except exception.StorageNodeNotFound:
+            node = element.StorageNode(
+                host=node_name,
+                zone='zone',
+                status='enabled',
+                state='up',
+                volume_type=[volume.volume_type],
+            )
+            model.add_node(node)
+            model.map_pool(pool, node)
+        model.map_volume(volume, pool)
+        pool.total_volumes = len(model.get_pool_volumes(pool))
         return volume
 
     def test_get_src_node_list(self):
@@ -198,40 +212,28 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         self.assertEqual([], instances)
 
     def test_get_volumes_with_volume_not_found(self):
-        # Create a test volume without an known id
-        # so we expect it to not be in the model
-        volume_on_src1 = self.fake_volume(
-            host="src1@back1#pool1", name="volume_1"
-        )
+        # Volume on a pool that is not in the migration parameters
+        self.add_volume_to_model(host="src3@back3#pool1", name="volume_1")
 
-        # Mock cinder helper to return our tets volume
-        self.m_c_helper.get_volume_list.return_value = [volume_on_src1]
-
-        # Call get_volumes and verify the volume does not exist in the model
         volumes = self.strategy.get_volumes()
         self.assertEqual([], volumes)
 
     def test_get_volumes(self):
-        volume_on_src1 = self.fake_volume(
+        volume_on_src1 = self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_1"],
+            uuid=volume_uuid_mapping["volume_1"],
             name="volume_1",
         )
-        volume_on_src2 = self.fake_volume(
+        volume_on_src2 = self.add_volume_to_model(
             host="src2@back1#pool1",
-            id=volume_uuid_mapping["volume_2"],
+            uuid=volume_uuid_mapping["volume_2"],
             name="volume_2",
         )
-        volume_on_src3 = self.fake_volume(
+        volume_on_src3 = self.add_volume_to_model(
             host="src3@back2#pool1",
-            id=volume_uuid_mapping["volume_3"],
+            uuid=volume_uuid_mapping["volume_3"],
             name="volume_3",
         )
-        self.m_c_helper.get_volume_list.return_value = [
-            volume_on_src1,
-            volume_on_src2,
-            volume_on_src3,
-        ]
 
         volumes = self.strategy.get_volumes()
 
@@ -242,26 +244,21 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         self.assertNotIn(volume_on_src3, volumes)
 
     def test_get_volumes_no_src_type(self):
-        volume_on_src1 = self.fake_volume(
+        volume_on_src1 = self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_1"],
+            uuid=volume_uuid_mapping["volume_1"],
             name="volume_1",
         )
-        volume_on_src2 = self.fake_volume(
+        volume_on_src2 = self.add_volume_to_model(
             host="src2@back1#pool1",
-            id=volume_uuid_mapping["volume_2"],
+            uuid=volume_uuid_mapping["volume_2"],
             name="volume_2",
         )
-        volume_on_src3 = self.fake_volume(
+        volume_on_src3 = self.add_volume_to_model(
             host="src3@back2#pool1",
-            id=volume_uuid_mapping["volume_3"],
+            uuid=volume_uuid_mapping["volume_3"],
             name="volume_3",
         )
-        self.m_c_helper.get_volume_list.return_value = [
-            volume_on_src1,
-            volume_on_src2,
-            volume_on_src3,
-        ]
         self.input_parameters["storage_pools"] = [
             {
                 "src_pool": "src1@back1#pool1",
@@ -284,38 +281,27 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         self.assertNotIn(volume_on_src3, volumes)
 
     def test_get_volumes_different_types_different_pool(self):
-        volume_on_src1 = self.fake_volume(
+        volume_on_src1 = self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_1"],
+            uuid=volume_uuid_mapping["volume_1"],
             name="volume_1",
         )
-        volume_on_src2 = self.fake_volume(
+        volume_on_src2 = self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_2"],
+            uuid=volume_uuid_mapping["volume_2"],
             volume_type="type2",
             name="volume_2",
         )
-        volume_on_src3 = self.fake_volume(
+        volume_on_src3 = self.add_volume_to_model(
             host="src2@back1#pool1",
-            id=volume_uuid_mapping["volume_3"],
+            uuid=volume_uuid_mapping["volume_3"],
             name="volume_3",
         )
-        volume_on_src4 = self.fake_volume(
-            host="src2@back1#pool1",
-            id=volume_uuid_mapping["volume_3"],
-            volume_type="type2",
-            name="volume_0",
+        volume_on_src4 = self.add_volume_to_model(
+            host="src2@back1#pool1", volume_type="type2", name="volume_0"
         )
-        self.m_c_helper.get_volume_list.return_value = [
-            volume_on_src1,
-            volume_on_src2,
-            volume_on_src3,
-            volume_on_src4,
-        ]
 
         volumes = self.strategy.get_volumes()
-
-        self.m_c_helper.get_volume_list.assert_called_once_with()
 
         # src1 is in volumes since it has volume type "type1" and host
         # "src1@back1#pool1" which matches the default input parameters
@@ -335,38 +321,30 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         self.assertNotIn(volume_on_src2, volumes)
 
     def test_get_volumes_different_types_same_pool(self):
-        volume_on_src1 = self.fake_volume(
+        volume_on_src1 = self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_1"],
+            uuid=volume_uuid_mapping["volume_1"],
             name="volume_1",
         )
-        volume_on_src2 = self.fake_volume(
+        volume_on_src2 = self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_2"],
+            uuid=volume_uuid_mapping["volume_2"],
             volume_type="type2",
             name="volume_2",
         )
-        volume_on_src3 = self.fake_volume(
+        volume_on_src3 = self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_3"],
+            uuid=volume_uuid_mapping["volume_3"],
             name="volume_3",
         )
-        volume_on_src4 = self.fake_volume(
+        volume_on_src4 = self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_0"],
+            uuid=volume_uuid_mapping["volume_0"],
             volume_type="type3",
             name="volume_0",
         )
-        self.m_c_helper.get_volume_list.return_value = {
-            volume_on_src1,
-            volume_on_src2,
-            volume_on_src3,
-            volume_on_src4,
-        }
 
         volumes = self.strategy.get_volumes()
-
-        self.m_c_helper.get_volume_list.assert_called_once_with()
 
         # src1 is in volumes since it has volume type "type1" and host
         # "src1@back1#pool1" which
@@ -385,25 +363,25 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         self.assertNotIn(volume_on_src2, volumes)
 
     def test_get_volumes_all_types_in_pool(self):
-        volume_on_src1 = self.fake_volume(
+        volume_on_src1 = self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_1"],
+            uuid=volume_uuid_mapping["volume_1"],
             name="volume_1",
         )
-        volume_on_src2 = self.fake_volume(
+        volume_on_src2 = self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_2"],
+            uuid=volume_uuid_mapping["volume_2"],
             volume_type="type2",
             name="volume_2",
         )
-        volume_on_src3 = self.fake_volume(
+        volume_on_src3 = self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_3"],
+            uuid=volume_uuid_mapping["volume_3"],
             name="volume_3",
         )
-        volume_on_src4 = self.fake_volume(
+        volume_on_src4 = self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_0"],
+            uuid=volume_uuid_mapping["volume_0"],
             volume_type="type2",
             name="volume_4",
         )
@@ -421,16 +399,8 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
                 "dst_type": "type3",
             },
         ]
-        self.m_c_helper.get_volume_list.return_value = [
-            volume_on_src1,
-            volume_on_src2,
-            volume_on_src3,
-            volume_on_src4,
-        ]
 
         volumes = self.strategy.get_volumes()
-
-        self.m_c_helper.get_volume_list.assert_called_once_with()
 
         # all volumes are selected since they match the src_pool and src_type
         # in the input parameters
@@ -440,24 +410,24 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         self.assertIn(volume_on_src2, volumes)
 
     def test_get_volumes_type_in_all_pools(self):
-        volume_on_src1 = self.fake_volume(
+        volume_on_src1 = self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_1"],
+            uuid=volume_uuid_mapping["volume_1"],
             name="volume_1",
         )
-        volume_on_src2 = self.fake_volume(
+        volume_on_src2 = self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_2"],
+            uuid=volume_uuid_mapping["volume_2"],
             name="volume_2",
         )
-        volume_on_src3 = self.fake_volume(
+        volume_on_src3 = self.add_volume_to_model(
             host="src2@back1#pool1",
-            id=volume_uuid_mapping["volume_3"],
+            uuid=volume_uuid_mapping["volume_3"],
             name="volume_3",
         )
-        volume_on_src4 = self.fake_volume(
+        volume_on_src4 = self.add_volume_to_model(
             host="src2@back1#pool1",
-            id=volume_uuid_mapping["volume_0"],
+            uuid=volume_uuid_mapping["volume_0"],
             name="volume_0",
         )
         self.input_parameters["storage_pools"] = [
@@ -474,16 +444,8 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
                 "dst_type": "type3",
             },
         ]
-        self.m_c_helper.get_volume_list.return_value = [
-            volume_on_src1,
-            volume_on_src2,
-            volume_on_src3,
-            volume_on_src4,
-        ]
 
         volumes = self.strategy.get_volumes()
-
-        self.m_c_helper.get_volume_list.assert_called_once_with()
 
         # all volumes are selected since they match the src_pool and src_type
         # in the input parameters
@@ -493,56 +455,49 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         self.assertIn(volume_on_src2, volumes)
 
     def test_get_volumes_select_no_volumes(self):
-        volume_on_src1 = self.fake_volume(
+        self.add_volume_to_model(
             host="src2@back1#pool1",
-            id=volume_uuid_mapping["volume_1"],
+            uuid=volume_uuid_mapping["volume_1"],
             name="volume_1",
         )
-        volume_on_src2 = self.fake_volume(
+        self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_2"],
+            uuid=volume_uuid_mapping["volume_2"],
             volume_type="type2",
             name="volume_2",
         )
-        volume_on_src3 = self.fake_volume(
+        self.add_volume_to_model(
             host="src3@back1#pool1",
-            id=volume_uuid_mapping["volume_3"],
+            uuid=volume_uuid_mapping["volume_3"],
             name="volume_3",
         )
-        self.m_c_helper.get_volume_list.return_value = [
-            volume_on_src1,
-            volume_on_src2,
-            volume_on_src3,
-        ]
 
         volumes = self.strategy.get_volumes()
-
-        self.m_c_helper.get_volume_list.assert_called_once_with()
 
         # no volumes are selected since none of the volumes match the src_pool
         # and src_type in the input parameters
         self.assertEqual(len(volumes), 0)
 
     def test_get_volumes_duplicated_input(self):
-        volume_on_src1 = self.fake_volume(
+        volume_on_src1 = self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_1"],
+            uuid=volume_uuid_mapping["volume_1"],
             name="volume_1",
         )
-        volume_on_src2 = self.fake_volume(
+        volume_on_src2 = self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_2"],
+            uuid=volume_uuid_mapping["volume_2"],
             name="volume_2",
         )
-        volume_on_src3 = self.fake_volume(
+        volume_on_src3 = self.add_volume_to_model(
             host="src2@back1#pool1",
-            id=volume_uuid_mapping["volume_3"],
+            uuid=volume_uuid_mapping["volume_3"],
             volume_type="type2",
             name="volume_3",
         )
-        volume_on_src4 = self.fake_volume(
+        volume_on_src4 = self.add_volume_to_model(
             host="src2@back1#pool1",
-            id=volume_uuid_mapping["volume_0"],
+            uuid=volume_uuid_mapping["volume_0"],
             name="volume_4",
         )
         self.input_parameters["storage_pools"] = [
@@ -559,16 +514,8 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
                 "dst_type": "type3",
             },
         ]
-        self.m_c_helper.get_volume_list.return_value = [
-            volume_on_src1,
-            volume_on_src2,
-            volume_on_src3,
-            volume_on_src4,
-        ]
 
         volumes = self.strategy.get_volumes()
-
-        self.m_c_helper.get_volume_list.assert_called_once_with()
 
         # src4 is in volumes since it has volume type "type1" and host
         # "src2@back1#pool1" which matches the default input parameters for
@@ -591,8 +538,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         self.input_parameters["compute_nodes"] = [
             {"src_node": "hostname_0", "dst_node": "hostname_1"}
         ]
-
-        self.m_c_helper.get_volume_list.return_value = []
 
         solution = self.strategy.execute()
 
@@ -630,7 +575,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
 
     def test_execute_live_migrate_instance_no_dst_node(self):
         self.input_parameters["compute_nodes"] = [{"src_node": "hostname_0"}]
-        self.m_c_helper.get_volume_list.return_value = []
         solution = self.strategy.execute()
         self.assertEqual(2, len(solution.actions))
         self.assertEqual(
@@ -659,7 +603,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
             {"src_node": "hostname_0", "dst_node": "hostname_1"},
             {"src_node": "hostname_3", "dst_node": "hostname_4"},
         ]
-        self.m_c_helper.get_volume_list.return_value = []
         solution = self.strategy.execute()
 
         migration_types = collections.Counter(
@@ -674,12 +617,11 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         self.assertEqual(100, global_efficacy_value)
 
     def test_execute_migrate_volume(self):
-        volume_on_src1 = self.fake_volume(
+        self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_1"],
+            uuid=volume_uuid_mapping["volume_1"],
             name="volume_1",
         )
-        self.m_c_helper.get_volume_list.return_value = [volume_on_src1]
 
         solution = self.strategy.execute()
 
@@ -694,14 +636,11 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         self.assertEqual(100, global_efficacy_value)
 
     def test_execute_migrate_volume_no_dst_type(self):
-        volume_on_src1 = self.fake_volume(
+        self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_1"],
+            uuid=volume_uuid_mapping["volume_1"],
             name="volume_1",
         )
-        self.m_c_helper.get_volume_list.return_value = [volume_on_src1]
-
-        self.m_n_helper.get_instance_list.return_value = []
 
         self.input_parameters["storage_pools"] = [
             {
@@ -724,12 +663,11 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         self.assertEqual(100, global_efficacy_value)
 
     def test_execute_migrate_volume_no_dst_pool(self):
-        volume_on_src1 = self.fake_volume(
+        self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_1"],
+            uuid=volume_uuid_mapping["volume_1"],
             name="volume_1",
         )
-        self.m_c_helper.get_volume_list.return_value = [volume_on_src1]
         self.input_parameters["storage_pools"] = [
             {
                 "src_pool": "src1@back1#pool1",
@@ -743,12 +681,11 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         self.assertEqual(len(solution.actions), 0)
 
     def test_execute_migrate_volume_dst_pool(self):
-        volume_on_src1 = self.fake_volume(
+        self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_1"],
+            uuid=volume_uuid_mapping["volume_1"],
             name="volume_1",
         )
-        self.m_c_helper.get_volume_list.return_value = [volume_on_src1]
         self.input_parameters["storage_pools"] = [
             {
                 "src_pool": "src1@back1#pool1",
@@ -757,7 +694,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
                 "dst_type": "type1",
             }
         ]
-        self.m_n_helper.get_instance_list.return_value = []
         solution = self.strategy.execute()
         # check that there is one volume migration proposed
         migration_types = collections.Counter(
@@ -772,14 +708,13 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
 
     def test_execute_migrate_volume_no_compute_nodes(self):
         vol_attach = [{"server_id": "d010ef1f-dc19-4982-9383-087498bfde03"}]
-        volume_on_src1 = self.fake_volume(
+        self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_1"],
+            uuid=volume_uuid_mapping["volume_1"],
             name="volume_1",
             status="in-use",
             attachments=vol_attach,
         )
-        self.m_c_helper.get_volume_list.return_value = [volume_on_src1]
         self.input_parameters["storage_pools"] = [
             {
                 "src_pool": "src1@back1#pool1",
@@ -805,13 +740,12 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         self.assertEqual(1, migration_types.get("migrate", 0))
 
     def test_execute_retype_volume(self):
-        volume_on_src2 = self.fake_volume(
+        self.add_volume_to_model(
             host="src2@back1#pool1",
-            id=volume_uuid_mapping["volume_2"],
+            uuid=volume_uuid_mapping["volume_2"],
             volume_type="type2",
             name="volume_2",
         )
-        self.m_c_helper.get_volume_list.return_value = [volume_on_src2]
 
         solution = self.strategy.execute()
 
@@ -826,13 +760,12 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         self.assertEqual(100, global_efficacy_value)
 
     def test_execute_swap_volume(self):
-        volume_on_src1 = self.fake_volume(
+        self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_1"],
+            uuid=volume_uuid_mapping["volume_1"],
             name="volume_1",
+            status="in-use",
         )
-        volume_on_src1.status = "in-use"
-        self.m_c_helper.get_volume_list.return_value = [volume_on_src1]
 
         solution = self.strategy.execute()
 
@@ -850,26 +783,21 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         self.assertEqual(100, global_efficacy_value)
 
     def test_execute_migrate_volumes_no_src_type(self):
-        volume_on_src1 = self.fake_volume(
+        self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_1"],
+            uuid=volume_uuid_mapping["volume_1"],
             name="volume_1",
         )
-        volume_on_src2 = self.fake_volume(
+        self.add_volume_to_model(
             host="src2@back1#pool1",
-            id=volume_uuid_mapping["volume_2"],
+            uuid=volume_uuid_mapping["volume_2"],
             name="volume_2",
         )
-        volume_on_src3 = self.fake_volume(
+        self.add_volume_to_model(
             host="src3@back2#pool1",
-            id=volume_uuid_mapping["volume_3"],
+            uuid=volume_uuid_mapping["volume_3"],
             name="volume_3",
         )
-        self.m_c_helper.get_volume_list.return_value = [
-            volume_on_src1,
-            volume_on_src2,
-            volume_on_src3,
-        ]
         self.input_parameters["storage_pools"] = [
             {
                 "src_pool": "src1@back1#pool1",
@@ -898,34 +826,25 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         self.assertEqual(100, global_efficacy_value)
 
     def test_execute_migrate_volumes_different_types_different_pool(self):
-        volume_on_src1 = self.fake_volume(
+        self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_1"],
+            uuid=volume_uuid_mapping["volume_1"],
             name="volume_1",
         )
-        volume_on_src2 = self.fake_volume(
+        self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_2"],
+            uuid=volume_uuid_mapping["volume_2"],
             volume_type="type2",
             name="volume_2",
         )
-        volume_on_src3 = self.fake_volume(
+        self.add_volume_to_model(
             host="src2@back1#pool1",
-            id=volume_uuid_mapping["volume_3"],
+            uuid=volume_uuid_mapping["volume_3"],
             name="volume_3",
         )
-        volume_on_src4 = self.fake_volume(
-            host="src2@back1#pool1",
-            id=volume_uuid_mapping["volume_3"],
-            volume_type="type2",
-            name="volume_0",
+        self.add_volume_to_model(
+            host="src2@back1#pool1", volume_type="type2", name="volume_0"
         )
-        self.m_c_helper.get_volume_list.return_value = [
-            volume_on_src1,
-            volume_on_src2,
-            volume_on_src3,
-            volume_on_src4,
-        ]
 
         solution = self.strategy.execute()
 
@@ -942,35 +861,29 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         self.assertEqual(100, global_efficacy_value)
 
     def test_execute_migrate_volumes_different_types_same_pool(self):
-        volume_on_src1 = self.fake_volume(
+        self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_1"],
+            uuid=volume_uuid_mapping["volume_1"],
             name="volume_1",
         )
-        volume_on_src2 = self.fake_volume(
+        self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_2"],
+            uuid=volume_uuid_mapping["volume_2"],
             volume_type="type2",
             name="volume_2",
         )
-        volume_on_src3 = self.fake_volume(
+        self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_3"],
+            uuid=volume_uuid_mapping["volume_3"],
             name="volume_3",
         )
-        volume_on_src4 = self.fake_volume(
+        self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_0"],
+            uuid=volume_uuid_mapping["volume_0"],
             volume_type="type3",
             name="volume_0",
         )
 
-        self.m_c_helper.get_volume_list.return_value = [
-            volume_on_src1,
-            volume_on_src2,
-            volume_on_src3,
-            volume_on_src4,
-        ]
         solution = self.strategy.execute()
 
         self.assertEqual(2, len(solution.actions))
@@ -985,25 +898,25 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         self.assertEqual(100, global_efficacy_value)
 
     def test_execute_migrate_volumes_all_types_in_pool(self):
-        volume_on_src1 = self.fake_volume(
+        self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_1"],
+            uuid=volume_uuid_mapping["volume_1"],
             name="volume_1",
         )
-        volume_on_src2 = self.fake_volume(
+        self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_2"],
+            uuid=volume_uuid_mapping["volume_2"],
             volume_type="type2",
             name="volume_2",
         )
-        volume_on_src3 = self.fake_volume(
+        self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_3"],
+            uuid=volume_uuid_mapping["volume_3"],
             name="volume_3",
         )
-        volume_on_src4 = self.fake_volume(
+        self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_0"],
+            uuid=volume_uuid_mapping["volume_0"],
             volume_type="type2",
             name="volume_4",
         )
@@ -1021,12 +934,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
                 "dst_type": "type3",
             },
         ]
-        self.m_c_helper.get_volume_list.return_value = [
-            volume_on_src1,
-            volume_on_src2,
-            volume_on_src3,
-            volume_on_src4,
-        ]
         solution = self.strategy.execute()
 
         self.assertEqual(2, len(solution.actions))
@@ -1042,24 +949,24 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         self.assertEqual(50, global_efficacy_value)
 
     def test_execute_migrate_volumes_type_in_all_pools(self):
-        volume_on_src1 = self.fake_volume(
+        self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_1"],
+            uuid=volume_uuid_mapping["volume_1"],
             name="volume_1",
         )
-        volume_on_src2 = self.fake_volume(
+        self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_2"],
+            uuid=volume_uuid_mapping["volume_2"],
             name="volume_2",
         )
-        volume_on_src3 = self.fake_volume(
+        self.add_volume_to_model(
             host="src2@back1#pool1",
-            id=volume_uuid_mapping["volume_3"],
+            uuid=volume_uuid_mapping["volume_3"],
             name="volume_3",
         )
-        volume_on_src4 = self.fake_volume(
+        self.add_volume_to_model(
             host="src2@back1#pool1",
-            id=volume_uuid_mapping["volume_0"],
+            uuid=volume_uuid_mapping["volume_0"],
             name="volume_0",
         )
         self.input_parameters["storage_pools"] = [
@@ -1076,12 +983,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
                 "dst_type": "type3",
             },
         ]
-        self.m_c_helper.get_volume_list.return_value = [
-            volume_on_src1,
-            volume_on_src2,
-            volume_on_src3,
-            volume_on_src4,
-        ]
         solution = self.strategy.execute()
 
         self.assertEqual(4, len(solution.actions))
@@ -1097,27 +998,22 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         self.assertEqual(100, global_efficacy_value)
 
     def test_execute_migrate_volumes_select_no_volumes(self):
-        volume_on_src1 = self.fake_volume(
+        self.add_volume_to_model(
             host="src2@back1#pool1",
-            id=volume_uuid_mapping["volume_1"],
+            uuid=volume_uuid_mapping["volume_1"],
             name="volume_1",
         )
-        volume_on_src2 = self.fake_volume(
+        self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_2"],
+            uuid=volume_uuid_mapping["volume_2"],
             volume_type="type2",
             name="volume_2",
         )
-        volume_on_src3 = self.fake_volume(
+        self.add_volume_to_model(
             host="src3@back1#pool1",
-            id=volume_uuid_mapping["volume_3"],
+            uuid=volume_uuid_mapping["volume_3"],
             name="volume_3",
         )
-        self.m_c_helper.get_volume_list.return_value = [
-            volume_on_src1,
-            volume_on_src2,
-            volume_on_src3,
-        ]
         solution = self.strategy.execute()
         self.assertEqual(0, len(solution.actions))
 
@@ -1127,8 +1023,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
             {"src_node": "hostname_2", "dst_node": "hostname_3"},
         ]
         self.input_parameters["parallel_per_node"] = 4
-
-        self.m_c_helper.get_volume_list.return_value = []
 
         solution = self.strategy.execute()
 
@@ -1152,8 +1046,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         ]
         self.input_parameters["parallel_per_node"] = 1
 
-        self.m_c_helper.get_volume_list.return_value = []
-
         solution = self.strategy.execute()
 
         migration_types = collections.Counter(
@@ -1170,20 +1062,16 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         self.assertEqual(40.0, global_efficacy_value)
 
     def test_execute_migrate_volume_parallel(self):
-        volume_on_src1_1 = self.fake_volume(
+        self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_1"],
+            uuid=volume_uuid_mapping["volume_1"],
             name="volume_1",
         )
-        volume_on_src1_2 = self.fake_volume(
+        self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_2"],
+            uuid=volume_uuid_mapping["volume_2"],
             name="volume_2",
         )
-        self.m_c_helper.get_volume_list.return_value = [
-            volume_on_src1_1,
-            volume_on_src1_2,
-        ]
 
         solution = self.strategy.execute()
 
@@ -1200,20 +1088,16 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
     def test_execute_parallel_per_pool(self):
         self.input_parameters["parallel_per_pool"] = 1
 
-        volume_on_src1_1 = self.fake_volume(
+        self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_1"],
+            uuid=volume_uuid_mapping["volume_1"],
             name="volume_1",
         )
-        volume_on_src1_2 = self.fake_volume(
+        self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_2"],
+            uuid=volume_uuid_mapping["volume_2"],
             name="volume_2",
         )
-        self.m_c_helper.get_volume_list.return_value = [
-            volume_on_src1_1,
-            volume_on_src1_2,
-        ]
 
         solution = self.strategy.execute()
 
@@ -1231,26 +1115,21 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         self.input_parameters["parallel_total"] = 1
         self.input_parameters["parallel_per_pool"] = 1
 
-        volume_on_src1_1 = self.fake_volume(
+        self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_1"],
+            uuid=volume_uuid_mapping["volume_1"],
             name="volume_1",
         )
-        volume_on_src1_2 = self.fake_volume(
+        self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_2"],
+            uuid=volume_uuid_mapping["volume_2"],
             name="volume_2",
         )
-        volume_on_src2_1 = self.fake_volume(
+        self.add_volume_to_model(
             host="src2@back1#pool1",
-            id=volume_uuid_mapping["volume_3"],
+            uuid=volume_uuid_mapping["volume_3"],
             name="volume_3",
         )
-        self.m_c_helper.get_volume_list.return_value = [
-            volume_on_src1_1,
-            volume_on_src1_2,
-            volume_on_src2_1,
-        ]
 
         solution = self.strategy.execute()
 
@@ -1264,26 +1143,21 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
 
     def test_execute_mixed_instances_volumes(self):
 
-        volume_on_src1_1 = self.fake_volume(
+        self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_1"],
+            uuid=volume_uuid_mapping["volume_1"],
             name="volume_1",
         )
-        volume_on_src1_2 = self.fake_volume(
+        self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_2"],
+            uuid=volume_uuid_mapping["volume_2"],
             name="volume_2",
         )
-        volume_on_src2_1 = self.fake_volume(
+        self.add_volume_to_model(
             host="src2@back1#pool1",
-            id=volume_uuid_mapping["volume_3"],
+            uuid=volume_uuid_mapping["volume_3"],
             name="volume_3",
         )
-        self.m_c_helper.get_volume_list.return_value = [
-            volume_on_src1_1,
-            volume_on_src1_2,
-            volume_on_src2_1,
-        ]
         self.strategy.input_parameters["compute_nodes"] = [
             {"src_node": "hostname_0", "dst_node": "hostname_1"}
         ]
@@ -1393,47 +1267,28 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         ]
         self.input_parameters["with_attached_volume"] = True
 
-        volume_on_src1_1 = self.fake_volume(
+        self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_1"],
+            uuid=volume_uuid_mapping["volume_1"],
             name="volume_1",
+            status='in-use',
+            attachments=[
+                {
+                    "server_id": "d010ef1f-dc19-4982-9383-087498bfde03",
+                    "attachment_id": "attachment1",
+                }
+            ],
         )
-        volume_on_src1_2 = self.fake_volume(
+        self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_2"],
+            uuid=volume_uuid_mapping["volume_2"],
             name="volume_2",
         )
-        volume_on_src2_1 = self.fake_volume(
+        self.add_volume_to_model(
             host="src2@back1#pool1",
-            id=volume_uuid_mapping["volume_3"],
+            uuid=volume_uuid_mapping["volume_3"],
             name="volume_3",
         )
-        self.m_c_helper.get_volume_list.return_value = [
-            volume_on_src1_1,
-            volume_on_src1_2,
-            volume_on_src2_1,
-        ]
-
-        volume_on_src1_1.status = 'in-use'
-        volume_on_src1_1.attachments = [
-            {
-                "server_id": "d010ef1f-dc19-4982-9383-087498bfde03",
-                "attachment_id": "attachment1",
-            }
-        ]
-
-        self.input_parameters["compute_nodes"] = [
-            {"src_node": "hostname_0", "dst_node": "hostname_1"}
-        ]
-        self.input_parameters["storage_pools"] = [
-            {
-                "src_pool": "src1@back1#pool1",
-                "dst_pool": "dst1@back1#pool1",
-                "src_type": "type1",
-                "dst_type": "type1",
-            }
-        ]
-        self.input_parameters["with_attached_volume"] = True
 
         solution = self.strategy.execute()
         # Check migrations
@@ -1537,34 +1392,28 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         False.
         """
 
-        volume_on_src1_1 = self.fake_volume(
+        self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_1"],
+            uuid=volume_uuid_mapping["volume_1"],
             name="volume_1",
+            status='in-use',
+            attachments=[
+                {
+                    "server_id": "d030ef1f-dc19-4982-9383-087498bfde03",
+                    "attachment_id": "attachment1",
+                }
+            ],
         )
-        volume_on_src1_2 = self.fake_volume(
+        self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_2"],
+            uuid=volume_uuid_mapping["volume_2"],
             name="volume_2",
         )
-        volume_on_src2_1 = self.fake_volume(
+        self.add_volume_to_model(
             host="src2@back1#pool1",
-            id=volume_uuid_mapping["volume_3"],
+            uuid=volume_uuid_mapping["volume_3"],
             name="volume_3",
         )
-        self.m_c_helper.get_volume_list.return_value = [
-            volume_on_src1_1,
-            volume_on_src1_2,
-            volume_on_src2_1,
-        ]
-
-        volume_on_src1_1.status = 'in-use'
-        volume_on_src1_1.attachments = [
-            {
-                "server_id": "d030ef1f-dc19-4982-9383-087498bfde03",
-                "attachment_id": "attachment1",
-            }
-        ]
 
         self.input_parameters["compute_nodes"] = [
             {"src_node": "hostname_0", "dst_node": "hostname_1"}
@@ -1676,20 +1525,19 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         migration target list but no longer exists in the compute model,
         the strategy should log a warning and continue rather than fail.
         """
-        volume_on_src1 = self.fake_volume(
-            host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_1"],
-            name="volume_1",
-        )
-        volume_on_src1.status = 'in-use'
         missing_instance_uuid = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
-        volume_on_src1.attachments = [
-            {
-                "server_id": missing_instance_uuid,
-                "attachment_id": "attachment1",
-            }
-        ]
-        self.m_c_helper.get_volume_list.return_value = [volume_on_src1]
+        volume_on_src1 = self.add_volume_to_model(
+            host="src1@back1#pool1",
+            uuid=volume_uuid_mapping["volume_1"],
+            name="volume_1",
+            status='in-use',
+            attachments=[
+                {
+                    "server_id": missing_instance_uuid,
+                    "attachment_id": "attachment1",
+                }
+            ],
+        )
 
         self.input_parameters["compute_nodes"] = [
             {"src_node": "hostname_0", "dst_node": "hostname_1"}
@@ -1778,7 +1626,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
             "compute_node": ["hostname_0", "hostname_2"]
         }
         self.strategy.input_parameters = input_parameters
-        self.m_c_helper.get_volume_list.return_value = []
 
         instance0 = self.strategy.compute_model.get_instance_by_uuid(
             "d000ef1f-dc19-4982-9383-087498bfde03"
@@ -1816,27 +1663,22 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
     # StorageHostSortFilter #
 
     def test_filtered_targets_storage_pools(self):
-        volume_on_src1 = self.fake_volume(
+        volume_on_src1 = self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_1"],
+            uuid=volume_uuid_mapping["volume_1"],
             name="volume_1",
         )
-        volume_on_src2 = self.fake_volume(
+        volume_on_src2 = self.add_volume_to_model(
             host="src2@back1#pool1",
-            id=volume_uuid_mapping["volume_2"],
+            uuid=volume_uuid_mapping["volume_2"],
             volume_type="type2",
             name="volume_2",
         )
-        volume_on_src3 = self.fake_volume(
+        self.add_volume_to_model(
             host="src3@back2#pool1",
-            id=volume_uuid_mapping["volume_3"],
+            uuid=volume_uuid_mapping["volume_3"],
             name="volume_3",
         )
-        self.m_c_helper.get_volume_list.return_value = [
-            volume_on_src1,
-            volume_on_src2,
-            volume_on_src3,
-        ]
 
         self.input_parameters["priority"] = {
             "storage_pool": ["src1@back1#pool1", "src2@back1#pool1"]
@@ -1858,31 +1700,25 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
             "project": ["91FFFE30-78A0-4152-ACD2-8310FF274DC9"]
         }
 
-        volume_on_src1 = self.fake_volume(
+        volume_on_src1 = self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_1"],
+            uuid=volume_uuid_mapping["volume_1"],
             name="volume_1",
             project_id="26F03131-32CB-4697-9D61-9123F87A8147",
         )
-        volume_on_src2 = self.fake_volume(
+        volume_on_src2 = self.add_volume_to_model(
             host="src2@back1#pool1",
-            id=volume_uuid_mapping["volume_2"],
+            uuid=volume_uuid_mapping["volume_2"],
             name="volume_2",
             volume_type="type2",
             project_id="91FFFE30-78A0-4152-ACD2-8310FF274DC9",
         )
-        volume_on_src3 = self.fake_volume(
+        self.add_volume_to_model(
             host="src3@back2#pool1",
-            id=volume_uuid_mapping["volume_3"],
+            uuid=volume_uuid_mapping["volume_3"],
             name="volume_3",
             project_id="26F03131-32CB-4697-9D61-9123F87A8148",
         )
-
-        self.m_c_helper.get_volume_list.return_value = [
-            volume_on_src1,
-            volume_on_src2,
-            volume_on_src3,
-        ]
 
         targets = self.strategy.filtered_targets()
 
@@ -1936,8 +1772,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
 
         self.input_parameters["priority"] = {"compute": ["mem_size"]}
 
-        self.m_c_helper.get_volume_list.return_value = []
-
         instance0 = self.strategy.compute_model.get_instance_by_uuid(
             "d000ef1f-dc19-4982-9383-087498bfde03"
         )
@@ -1963,8 +1797,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
 
         self.input_parameters["priority"] = {"compute": ["vcpu_num"]}
 
-        self.m_c_helper.get_volume_list.return_value = []
-
         instance0 = self.strategy.compute_model.get_instance_by_uuid(
             "d000ef1f-dc19-4982-9383-087498bfde03"
         )
@@ -1987,8 +1819,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
             {"src_node": "hostname_1", "dst_node": "hostname_3"},
         ]
         self.input_parameters["priority"] = {"compute": ["disk_size"]}
-
-        self.m_c_helper.get_volume_list.return_value = []
 
         instance0 = self.strategy.compute_model.get_instance_by_uuid(
             "d000ef1f-dc19-4982-9383-087498bfde03"
@@ -2013,8 +1843,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
 
         self.input_parameters["priority"] = {"compute": ["created_at"]}
 
-        self.m_c_helper.get_volume_list.return_value = []
-
         instance0 = self.strategy.compute_model.get_instance_by_uuid(
             "d000ef1f-dc19-4982-9383-087498bfde03"
         )
@@ -2033,30 +1861,25 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
     # StorageSpecSortFilter #
 
     def test_filtered_targets_storage_size(self):
-        volume_on_src1 = self.fake_volume(
+        volume_on_src1 = self.add_volume_to_model(
             host="src1@back1#pool1",
-            size="1",
-            id=volume_uuid_mapping["volume_1"],
+            size=1,
+            uuid=volume_uuid_mapping["volume_1"],
             name="volume_1",
         )
-        volume_on_src2 = self.fake_volume(
+        volume_on_src2 = self.add_volume_to_model(
             host="src2@back1#pool1",
-            size="2",
-            id=volume_uuid_mapping["volume_2"],
+            size=2,
+            uuid=volume_uuid_mapping["volume_2"],
             volume_type="type2",
             name="volume_2",
         )
-        volume_on_src3 = self.fake_volume(
+        self.add_volume_to_model(
             host="src3@back2#pool1",
-            size="3",
-            id=volume_uuid_mapping["volume_3"],
+            size=3,
+            uuid=volume_uuid_mapping["volume_3"],
             name="volume_3",
         )
-        self.m_c_helper.get_volume_list.return_value = [
-            volume_on_src1,
-            volume_on_src2,
-            volume_on_src3,
-        ]
 
         self.input_parameters["priority"] = {"storage": ["size"]}
 
@@ -2066,30 +1889,25 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         )
 
     def test_filtered_targets_storage_created_at(self):
-        volume_on_src1 = self.fake_volume(
+        volume_on_src1 = self.add_volume_to_model(
             host="src1@back1#pool1",
-            id=volume_uuid_mapping["volume_1"],
+            uuid=volume_uuid_mapping["volume_1"],
             name="volume_1",
             created_at="2017-10-30T00:00:00",
         )
-        volume_on_src2 = self.fake_volume(
+        volume_on_src2 = self.add_volume_to_model(
             host="src2@back1#pool1",
-            id=volume_uuid_mapping["volume_2"],
+            uuid=volume_uuid_mapping["volume_2"],
             volume_type="type2",
             name="volume_2",
             created_at="1977-03-29T03:03:03",
         )
-        volume_on_src3 = self.fake_volume(
+        self.add_volume_to_model(
             host="src3@back2#pool1",
-            id=volume_uuid_mapping["volume_3"],
+            uuid=volume_uuid_mapping["volume_3"],
             name="volume_3",
             created_at="1977-03-29T03:03:03",
         )
-        self.m_c_helper.get_volume_list.return_value = [
-            volume_on_src1,
-            volume_on_src2,
-            volume_on_src3,
-        ]
 
         self.input_parameters["priority"] = {"storage": ["created_at"]}
 

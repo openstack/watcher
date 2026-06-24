@@ -12,12 +12,10 @@
 # limitations under the License.
 #
 
-from cinderclient.v3.volumes import Volume
 from oslo_log import log
 from oslo_utils import timeutils
 
 from watcher._i18n import _
-from watcher.common import cinder_helper
 from watcher.common import exception
 from watcher.decision_engine.model import element
 from watcher.decision_engine.strategy.strategies import base
@@ -43,7 +41,6 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
 
     def __init__(self, config, osc=None):
         super().__init__(config, osc)
-        self._cinder = None
 
         self.live_count = 0
         self.planned_live_count = 0
@@ -262,12 +259,6 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
     def with_attached_volume(self):
         return self.input_parameters.get('with_attached_volume')
 
-    @property
-    def cinder(self):
-        if self._cinder is None:
-            self._cinder = cinder_helper.CinderHelper(osc=self.osc)
-        return self._cinder
-
     def get_available_compute_nodes(self):
         default_node_scope = [
             element.ServiceState.ENABLED.value,
@@ -369,10 +360,10 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
         return state == STOPPED
 
     def is_available(self, volume):
-        return getattr(volume, 'status') == AVAILABLE
+        return volume.status == AVAILABLE
 
     def is_in_use(self, volume):
-        return getattr(volume, 'status') == IN_USE
+        return volume.status == IN_USE
 
     def get_host_by_pool(self, pool):
         """Get host name from pool name
@@ -433,7 +424,7 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
                 LOG.debug('total reached limit')
                 break
 
-            pool = getattr(volume, 'os-vol-host-attr:host')
+            pool = volume.host
             if action_counter.is_pool_max(pool):
                 LOG.debug(
                     "%s has objects to be migrated, but it has"
@@ -483,7 +474,7 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
                             "Instance %s attached to volume %s "
                             "not found in compute model, skipping",
                             server_id,
-                            volume.id,
+                            volume.uuid,
                         )
                 self.instances_migration(instances, action_counter)
 
@@ -571,7 +562,7 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
         }
         self.solution.add_action(
             action_type="volume_migrate",
-            resource_id=volume.id,
+            resource_id=volume.uuid,
             input_parameters=parameters,
         )
         self.planned_volume_count += 1
@@ -584,7 +575,7 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
         }
         self.solution.add_action(
             action_type="volume_migrate",
-            resource_id=volume.id,
+            resource_id=volume.uuid,
             input_parameters=parameters,
         )
         self.planned_volume_count += 1
@@ -640,25 +631,16 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
         """
 
         def _is_src_type(volume, src_type):
-            return src_type is None or (
-                src_type is not None and volume.volume_type == src_type
-            )
+            return src_type is None or volume.volume_type == src_type
 
         target_volumes = []
-        for volume in self.cinder.get_volume_list():
-            if not self.storage_model.has_node(volume.id):
-                # skip volumes that are not in the storage model to satisfy
-                # scope constraints
-                continue
+        for volume in self.storage_model.get_all_volumes().values():
+            pool_name = volume.host
             for migrate_input in self.migrate_storage_pools:
                 src_pool = migrate_input["src_pool"]
                 src_type = migrate_input.get("src_type")
-                if getattr(
-                    volume, 'os-vol-host-attr:host'
-                ) == src_pool and _is_src_type(volume, src_type):
+                if pool_name == src_pool and _is_src_type(volume, src_type):
                     target_volumes.append(volume)
-                    # once the volume satisfies one the storage_pools
-                    # inputs, we don't need to check the rest
                     break
 
         return target_volumes
@@ -905,9 +887,7 @@ class ProjectSortFilter(SortMovingToFrontFilter):
         :returns: project id
         """
 
-        if isinstance(item, Volume):
-            return getattr(item, 'os-vol-tenant-attr:tenant_id')
-        elif isinstance(item, element.Instance):
+        if isinstance(item, (element.Volume, element.Instance)):
             return item.project_id
 
 
@@ -960,7 +940,7 @@ class StorageHostSortFilter(SortMovingToFrontFilter):
         return host == sort_key
 
     def get_host(self, item):
-        return getattr(item, 'os-vol-host-attr:host')
+        return item.host
 
 
 class ComputeSpecSortFilter(BaseFilter):
