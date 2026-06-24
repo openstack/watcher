@@ -1600,6 +1600,7 @@ class TestServerWrapper(test_utils.NovaResourcesMixin, base.TestCase):
             availability_zone='nova',
             pinned_availability_zone=None,
             image={'id': '155d900f-4e14-4e4c-a73d-069cbf4541e6'},
+            hypervisor_hostname='compute-1',
         )
         self.assertEqual(valid_uuid, server.uuid)
 
@@ -1623,6 +1624,7 @@ class TestServerWrapper(test_utils.NovaResourcesMixin, base.TestCase):
             availability_zone='nova',
             pinned_availability_zone=None,
             image={'id': '155d900f-4e14-4e4c-a73d-069cbf4541e6'},
+            hypervisor_hostname='compute-1',
         )
 
     def test_server_from_openstacksdk_basic_properties(self):
@@ -1637,6 +1639,8 @@ class TestServerWrapper(test_utils.NovaResourcesMixin, base.TestCase):
             is_locked=True,
             metadata={'key': 'value'},
             pinned_availability_zone='az1',
+            compute_host='compute-1',
+            hypervisor_hostname='hypervisor-1',
         )
 
         wrapped = nova_helper.Server.from_openstacksdk(sdk_server)
@@ -1649,6 +1653,8 @@ class TestServerWrapper(test_utils.NovaResourcesMixin, base.TestCase):
         self.assertTrue(wrapped.locked)
         self.assertEqual({'key': 'value'}, wrapped.metadata)
         self.assertEqual('az1', wrapped.pinned_availability_zone)
+        self.assertEqual('compute-1', wrapped.host)
+        self.assertEqual('hypervisor-1', wrapped.hypervisor_hostname)
 
     def test_server_from_openstacksdk_extended_attributes(self):
         """Test Server.from_openstacksdk with extended attributes."""

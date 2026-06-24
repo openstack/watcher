@@ -123,6 +123,7 @@ class Server:
     availability_zone: str | None
     pinned_availability_zone: str | None
     image: str | None
+    hypervisor_hostname: str | None
 
     @property
     def is_boot_from_volume(self) -> bool:
@@ -171,6 +172,7 @@ class Server:
             availability_zone=nova_server.availability_zone,
             pinned_availability_zone=nova_server.pinned_availability_zone,
             image=image_data,
+            hypervisor_hostname=nova_server.hypervisor_hostname,
         )
 
 

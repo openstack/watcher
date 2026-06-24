@@ -13,6 +13,8 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
+import datetime
+
 from http import HTTPStatus
 from unittest import mock
 
@@ -302,6 +304,10 @@ class TestFilterDataModelFields(api_base.FunctionalTest):
             (ovo_fields.BooleanField, False),
             (ovo_fields.NonNegativeFloatField, 1.0),
             (ovo_fields.NonNegativeIntegerField, 0),
+            (
+                ovo_fields.DateTimeField,
+                datetime.datetime.fromisoformat("2026-02-08 18:55:13+00:00"),
+            ),
             (wfields.JsonField, {}),
         ]
         for name, field in obj.fields.items():

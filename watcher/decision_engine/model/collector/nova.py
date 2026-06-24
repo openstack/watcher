@@ -511,6 +511,9 @@ class NovaModelBuilder(base.BaseModelBuilder):
             "metadata": instance.metadata,
             "project_id": instance.tenant_id,
             "locked": instance.locked,
+            "created": instance.created,
+            "host": instance.host,
+            "hypervisor_hostname": instance.hypervisor_hostname,
             # NOTE(dviroel): new attributes are updated if
             # extended feature is enabled
             "flavor_extra_specs": {},

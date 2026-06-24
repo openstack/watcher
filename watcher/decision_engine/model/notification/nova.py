@@ -112,6 +112,11 @@ class NovaNotification(base.NotificationEndpoint):
                 'disk': disk_gb,
                 'metadata': instance_metadata,
                 'project_id': instance_data['tenant_id'],
+                'host': instance_data['host'],
+                # In Nova notifications InstancePayload the hypervisor_hostname
+                # is in the node field.
+                'hypervisor_hostname': instance_data['node'],
+                'created': instance_data['created_at'],
             }
         )
 

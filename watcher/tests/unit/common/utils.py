@@ -13,6 +13,7 @@
 # under the License.
 #
 
+
 """Utilities for Watcher tests of code from the common module."""
 
 from openstack.compute.v2 import aggregate
@@ -35,7 +36,7 @@ class NovaResourcesMixin:
             'id': kwargs.pop('id', 'd010ef1f-dc19-4982-9383-087498bfde03'),
             'name': kwargs.pop('name', 'test-server'),
             'created_at': kwargs.pop('created_at', '2026-01-09T12:00:00Z'),
-            'compute_host': kwargs.pop('compute_host', None),
+            'compute_host': kwargs.pop('compute_host', 'host0'),
             'vm_state': kwargs.pop('vm_state', None),
             'task_state': kwargs.pop('task_state', None),
             'power_state': kwargs.pop('power_state', None),
@@ -51,6 +52,7 @@ class NovaResourcesMixin:
             'image': kwargs.pop(
                 'image', {'id': '155d900f-4e14-4e4c-a73d-069cbf4541e6'}
             ),
+            'hypervisor_hostname': kwargs.pop('hypervisor_hostname', 'host0'),
         }
         server_info.update(kwargs)
         return server.Server(**server_info)

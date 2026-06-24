@@ -15,6 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import datetime
 import time
 
 from unittest import mock
@@ -326,6 +327,7 @@ class TestNovaModelBuilder(
             },
             'vm_state': 'active',
             'name': 'instance1',
+            'hypervisor_hostname': 'hypervisor0',
         }
 
         fake_instance = self.create_openstacksdk_server(**server_info)
@@ -341,6 +343,12 @@ class TestNovaModelBuilder(
         self.assertEqual(fake_instance.memory, 333)
         self.assertEqual(fake_instance.disk, 222)
         self.assertEqual(fake_instance.vcpus, 4)
+        self.assertEqual(
+            fake_instance.created,
+            datetime.datetime.fromisoformat('2026-01-09T12:00:00Z'),
+        )
+        self.assertEqual(fake_instance.host, 'host0')
+        self.assertEqual(fake_instance.hypervisor_hostname, 'hypervisor0')
         self.assertEqual(
             fake_instance.project_id, 'ff560f7e-dbc8-771f-960c-164482fce21b'
         )
