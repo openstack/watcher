@@ -18,7 +18,6 @@ import microversion_parse
 from cinderclient import client as ciclient
 from gnocchiclient import client as gnclient
 from ironicclient import client as irclient
-from keystoneauth1 import adapter as ka_adapter
 from keystoneauth1 import loading as ka_loading
 from keystoneauth1 import session as ka_session
 from openstack import connection
@@ -133,7 +132,6 @@ class OpenStackClients:
         self._cinder = None
         self._ironic = None
         self._maas = None
-        self._placement = None
 
     def _get_keystone_session(self):
         auth = ka_loading.load_auth_from_conf_options(
@@ -253,27 +251,3 @@ class OpenStackClients:
             maas_client.connect, url, apikey=api_key, timeout=timeout
         )
         return self._maas
-
-    @exception.wrap_keystone_exception
-    def placement(self):
-        if self._placement:
-            return self._placement
-
-        placement_version = self._get_client_option('placement', 'api_version')
-        placement_interface = self._get_client_option('placement', 'interface')
-        placement_region_name = self._get_client_option(
-            'placement', 'region_name'
-        )
-        # Set accept header on every request to ensure we notify placement
-        # service of our response body media type preferences.
-        headers = {'accept': 'application/json'}
-        self._placement = ka_adapter.Adapter(
-            session=self.session,
-            service_type='placement',
-            default_microversion=placement_version,
-            interface=placement_interface,
-            region_name=placement_region_name,
-            additional_headers=headers,
-        )
-
-        return self._placement

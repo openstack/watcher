@@ -19,7 +19,6 @@ from gnocchiclient import client as gnclient
 from gnocchiclient.v1 import client as gnclient_v1
 from ironicclient import client as irclient
 from ironicclient.v1 import client as irclient_v1
-from keystoneauth1 import adapter as ka_adapter
 from keystoneauth1 import loading as ka_loading
 
 from watcher import conf
@@ -240,21 +239,6 @@ class TestClients(TestBaseClients):
         ironic = osc.ironic()
         ironic_cached = osc.ironic()
         self.assertEqual(ironic, ironic_cached)
-
-    @mock.patch.object(ka_adapter, 'Adapter')
-    @mock.patch.object(clients.OpenStackClients, 'session')
-    def test_clients_placement(self, mock_session, mock_call):
-        osc = clients.OpenStackClients()
-        osc.placement()
-        headers = {'accept': 'application/json'}
-        mock_call.assert_called_once_with(
-            session=mock_session,
-            service_type='placement',
-            default_microversion=CONF.placement_client.api_version,
-            interface=CONF.placement_client.interface,
-            region_name=CONF.placement_client.region_name,
-            additional_headers=headers,
-        )
 
 
 class TestGetSDKConnection(TestBaseClients):
