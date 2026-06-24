@@ -518,6 +518,10 @@ class VolumeNotFound(StorageResourceNotFound):
     msg_fmt = _("The volume '%(name)s' could not be found")
 
 
+class VolumeTypeNotFound(StorageResourceNotFound):
+    msg_fmt = _("The volume type '%(name)s' could not be found")
+
+
 class VolumeNotReachedStatus(StorageResourceNotFound):
     msg_fmt = _("Volume %(name)s did not reach status %(status)s.")
 

@@ -59,6 +59,8 @@ class TestCinderClusterDataModelCollector(base.TestCase):
             snapshot_id='',
             metadata='{"key": "value"}',
             bootable='false',
+            volume_type='fake_type',
+            created_at='2017-10-30T00:00:00',
         )
         setattr(fake_volume, 'name', 'name')
         setattr(
