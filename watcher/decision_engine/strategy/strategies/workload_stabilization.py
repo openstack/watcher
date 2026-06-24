@@ -21,7 +21,6 @@ import itertools
 import math
 import random
 
-import oslo_cache
 import oslo_utils
 
 from oslo_config import cfg
@@ -35,15 +34,6 @@ from watcher.decision_engine.strategy.strategies import base
 
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF
-
-
-def _set_memoize(conf):
-    oslo_cache.configure(conf)
-    region = oslo_cache.create_region()
-    configured_region = oslo_cache.configure_cache_region(conf, region)
-    return oslo_cache.core.get_memoization_decorator(
-        conf, configured_region, 'cache'
-    )
 
 
 class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
@@ -67,8 +57,6 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
 
     It assumes that live migrations are possible in your cluster.
     """
-
-    MEMOIZE = _set_memoize(CONF)
 
     DATASOURCE_METRICS = [
         'host_cpu_usage',
@@ -265,7 +253,6 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
             instance_load['vcpus'] / float(host_vcpus)
         )
 
-    @MEMOIZE
     def get_instance_load(self, instance):
         """Gathering instance load through ceilometer/gnocchi statistic.
 

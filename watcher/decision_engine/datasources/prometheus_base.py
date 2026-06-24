@@ -63,6 +63,7 @@ class PrometheusBase(base.DataSourceBase):
         config. The prometheus_fqdn_label allows override of the required label
         in Prometheus scrape configs that specifies each target's fqdn.
         """
+        super().__init__()
         self.prometheus = self._setup_prometheus_client()
         self.prometheus_fqdn_label = self._get_fqdn_label()
         self.prometheus_fqdn_labels = self._build_prometheus_fqdn_labels()
@@ -372,7 +373,7 @@ class PrometheusBase(base.DataSourceBase):
             return set()
         return set(response['data'])
 
-    def statistic_aggregation(
+    def _statistic_aggregation(
         self,
         resource=None,
         resource_type=None,

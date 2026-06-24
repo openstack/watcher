@@ -19,6 +19,7 @@ from oslo_config import cfg
 from oslo_log import log
 
 from watcher.common import exception
+from watcher.decision_engine.datasources import cache as metric_cache_module
 
 
 CONF = cfg.CONF
@@ -56,6 +57,18 @@ class DataSourceBase:
         instance_l3_cache_usage=None,
         instance_root_disk_size=None,
     )
+
+    def __init__(self):
+        self._metric_cache = metric_cache_module.MetricDataCache()
+
+    @property
+    def metric_cache(self):
+        """The per-execution metric cache."""
+        return self._metric_cache
+
+    @metric_cache.setter
+    def metric_cache(self, cache):
+        self._metric_cache = cache
 
     def _get_meter(self, meter_name):
         """Retrieve the meter from the metric map or raise error"""
@@ -124,7 +137,7 @@ class DataSourceBase:
         pass
 
     @abc.abstractmethod
-    def statistic_aggregation(
+    def _statistic_aggregation(
         self,
         resource=None,
         resource_type=None,
@@ -151,6 +164,98 @@ class DataSourceBase:
         """
 
         pass
+
+    def statistic_aggregation(
+        self,
+        resource=None,
+        resource_type=None,
+        meter_name=None,
+        period=300,
+        aggregate='mean',
+        granularity=300,
+    ):
+        """Return a metric value, serving from cache when available.
+
+        On a cache miss, delegates to _statistic_aggregation and stores the
+        result. Values can be pre-populated via inject_metric so that
+        subsequent calls return the injected value without querying the
+        datasource.
+        """
+        try:
+            resource_uuid = resource.uuid
+        except AttributeError:
+            LOG.warning(
+                "Failed to retrieve uuid from resource %s, "
+                "skipping cache lookup and result caching.",
+                resource,
+            )
+            # Return and do not cache, it is expected all resources
+            # to have their uuid
+            return self._statistic_aggregation(
+                resource=resource,
+                resource_type=resource_type,
+                meter_name=meter_name,
+                period=period,
+                aggregate=aggregate,
+                granularity=granularity,
+            )
+        cached = self._metric_cache.get(
+            resource_uuid, meter_name, aggregate, period, granularity
+        )
+        if cached is not None:
+            return cached
+        value = self._statistic_aggregation(
+            resource=resource,
+            resource_type=resource_type,
+            meter_name=meter_name,
+            period=period,
+            aggregate=aggregate,
+            granularity=granularity,
+        )
+        self._metric_cache.put(
+            resource_uuid,
+            meter_name,
+            value,
+            aggregate=aggregate,
+            period=period,
+            granularity=granularity,
+        )
+        return value
+
+    def inject_metric(
+        self,
+        resource_uuid,
+        metric,
+        aggregation,
+        period,
+        value,
+        granularity=300,
+        simulated=False,
+    ):
+        """Store a metric value in the cache under the given key.
+
+        Subsequent statistic_aggregation calls with a resource whose uuid
+        matches resource_uuid, and the same metric, aggregation, period, and
+        granularity will return value without querying the datasource.
+
+        :param resource_uuid: UUID of the resource the metric belongs to
+        :param metric: Metric name as a key from METRIC_MAP
+        :param aggregation: Aggregation method (e.g. 'mean', 'max', 'min')
+        :param period: Time span in seconds the value covers
+        :param value: The metric value to store
+        :param granularity: Datasource granularity in seconds (default 300)
+        :param simulated: True if the value is a projected/simulated value
+            rather than one retrieved from the datasource (default False)
+        """
+        self._metric_cache.put(
+            resource_uuid,
+            metric,
+            value,
+            aggregate=aggregation,
+            period=period,
+            granularity=granularity,
+            simulated=simulated,
+        )
 
     @abc.abstractmethod
     def statistic_series(

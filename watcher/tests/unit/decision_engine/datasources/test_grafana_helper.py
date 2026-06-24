@@ -24,6 +24,7 @@ from oslo_config import cfg
 from oslo_log import log
 
 from watcher.common import exception
+from watcher.decision_engine.datasources import base as datasource_base
 from watcher.decision_engine.datasources import grafana
 from watcher.tests.unit import base
 
@@ -72,7 +73,7 @@ class TestGrafana(base.BaseTestCase):
         stat_agg_patcher = mock.patch.object(
             self.m_grafana,
             'statistic_aggregation',
-            spec=grafana.GrafanaHelper.statistic_aggregation,
+            spec=datasource_base.DataSourceBase.statistic_aggregation,
         )
         self.mock_aggregation = stat_agg_patcher.start()
         self.addCleanup(stat_agg_patcher.stop)

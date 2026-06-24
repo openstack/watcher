@@ -69,15 +69,22 @@ can be set to a value as required). Implementing the ``statistic_series`` can
 always be re-visited if the requisite interest and work cycles are volunteered
 by the interested parties.
 
+The Prometheus-specific query logic is implemented in
+``_statistic_aggregation``. The public ``statistic_aggregation`` method is
+provided by ``DataSourceBase`` and wraps ``_statistic_aggregation`` with an
+in-memory cache. Repeated calls within the same audit execution with identical
+resource UUID, metric name, aggregation, and period are served from the cache
+without contacting Prometheus.
+
 One further note about a limitation in the implemented
-``statistic_aggregation`` function. This function is defined with a
+``_statistic_aggregation`` function. This function is defined with a
 ``granularity`` parameter, to be used when querying whichever of the Watcher
 ``DataSourceBase`` metrics providers. In the case of Prometheus, we do not
 fetch and then process individual metrics across the specified time period.
 Instead we use the PromQL querying operators and functions, so that the
 server itself will process the request across the specified parameters and
 then return the result. So ``granularity`` parameter is redundant and remains
-unused for the Prometheus implementation of ``statistic_aggregation``. The
+unused for the Prometheus implementation of ``_statistic_aggregation``. The
 granularity of the data fetched by Prometheus server is specified in
 configuration as the server ``scrape_interval`` (current default 15 seconds).
 
