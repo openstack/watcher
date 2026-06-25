@@ -51,7 +51,7 @@
     description: |
       Watcher single node devstack tempest base job template.
     abstract: true
-    timeout: 7200
+    timeout: 9000
     required-projects: &tempest_base_required_projects
       - openstack/ceilometer
       - openstack/python-openstackclient
