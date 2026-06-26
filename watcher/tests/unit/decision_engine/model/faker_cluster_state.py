@@ -101,6 +101,10 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
                 "2026-02-09 18:55:13+00:00"
             )
 
+            vcpus = 10
+            memory = 2
+            disk = 20
+            state = "active"
             project_id = "91FFFE30-78A0-4152-ACD2-8310FF274DC9"
             hypervisor_hostname = "hostname_fake"
             host = "hostname_fake"
@@ -111,16 +115,30 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
                 project_id = "26F03131-32CB-4697-9D61-9123F87A8147"
                 hypervisor_hostname = "hostname_0"
                 host = "hostname_0"
+                created = datetime.datetime.fromisoformat(
+                    "2026-02-08 18:55:13+00:00"
+                )
+                project_id = "26F03131-32CB-4697-9D61-9123F87A8147"
+                vcpus = 11
+                memory = 3
+                disk = 18
             elif instance_name == "INSTANCE_2":
+                created = datetime.datetime.fromisoformat(
+                    "2026-02-07 18:55:13+00:00"
+                )
                 project_id = "109F7909-0607-4712-B32C-5CC6D49D2F15"
                 hypervisor_hostname = "hostname_1"
                 host = "hostname_1"
+                vcpus = 12
+                memory = 1
+                disk = 19
             elif instance_name in ["INSTANCE_3", "INSTANCE_4", "INSTANCE_5"]:
                 hypervisor_hostname = "hostname_2"
                 host = "hostname_2"
             elif instance_name == "INSTANCE_6":
                 hypervisor_hostname = "hostname_3"
                 host = "hostname_3"
+                state = "stopped"
             elif instance_name == "INSTANCE_7":
                 hypervisor_hostname = "hostname_4"
                 host = "hostname_4"
@@ -128,15 +146,16 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
             instance_attributes = {
                 "uuid": instance_uuid,
                 "name": instance_name,
-                "memory": 2,
-                "disk": 20,
+                "memory": memory,
+                "disk": disk,
                 "disk_capacity": 20,
-                "vcpus": 10,
+                "vcpus": vcpus,
                 "metadata": '{"optimize": true,"top": "floor","nested": {"x": "y"}}',  # noqa: E501
                 "project_id": project_id,
                 "created": created,
                 "hypervisor_hostname": hypervisor_hostname,
                 "host": host,
+                "state": state,
             }
 
             instance = element.Instance(**instance_attributes)

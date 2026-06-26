@@ -18,8 +18,6 @@ from unittest import mock
 import cinderclient
 import fixtures
 
-from watcher.common import exception
-from watcher.common import nova_helper
 from watcher.common import utils
 from watcher.decision_engine.strategy import strategies
 from watcher.tests.unit.common import utils as test_utils
@@ -47,6 +45,13 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         self.m_s_model = p_s_model.start()
         self.addCleanup(p_s_model.stop)
 
+        # Fake Model content:
+        # hostname_0 has instance_0 and instance_1
+        # hostname_1 has instance_2
+        # hostname_2 has instance_3, instance_4 and instance_5
+        # hostname_3 has instance_6
+        # hostname_4 has instance_7
+        # instance_8 - 34 are not mapped to any node
         model = self.fake_c_cluster.generate_scenario_1()
         self.m_c_model.return_value = model
 
@@ -119,80 +124,77 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
 
         return volume
 
-    @staticmethod
-    def fake_flavor(**kwargs):
-        flavor = mock.MagicMock()
-        flavor.id = kwargs.get('id', None)
-        flavor.ram = kwargs.get('mem_size', '1')
-        flavor.vcpus = kwargs.get('vcpu_num', '1')
-        flavor.disk = kwargs.get('disk_size', '1')
-
-        return flavor
-
     def test_get_src_node_list(self):
         instances = self.strategy.get_src_node_list()
         self.assertEqual(sorted(instances), sorted(["src1", "src2"]))
 
     def test_get_instances(self):
-        server_info = {
-            "compute_host": "src1",
-            "name": "INSTANCE_1",
-            "id": "d010ef1f-dc19-4982-9383-087498bfde03",
-            "vm_state": "active",
-        }
-        instance_on_src1 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        server_info = {
-            "compute_host": "src2",
-            "name": "INSTANCE_2",
-            "id": "d020ef1f-dc19-4982-9383-087498bfde03",
-            "vm_state": "active",
-        }
-        instance_on_src2 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        server_info = {
-            "compute_host": "src3",
-            "name": "INSTANCE_3",
-            "id": "d030ef1f-dc19-4982-9383-087498bfde03",
-            "vm_state": "active",
-        }
-        instance_on_src3 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        self.m_n_helper.get_instance_list.return_value = [
-            instance_on_src1,
-            instance_on_src2,
-            instance_on_src3,
-        ]
 
+        input_parameters = {
+            "compute_nodes": [
+                {"src_node": "hostname_0", "dst_node": "hostname_1"},
+                {"src_node": "hostname_2", "dst_node": "hostname_3"},
+            ]
+        }
+
+        self.strategy.input_parameters = input_parameters
         instances = self.strategy.get_instances()
 
-        # src1,src2 is in instances
-        # src3 is not in instances
-        self.assertIn(instance_on_src1, instances)
-        self.assertIn(instance_on_src2, instances)
-        self.assertNotIn(instance_on_src3, instances)
+        instance0 = self.strategy.compute_model.get_instance_by_uuid(
+            "d000ef1f-dc19-4982-9383-087498bfde03"
+        )
+        instance1 = self.strategy.compute_model.get_instance_by_uuid(
+            "d010ef1f-dc19-4982-9383-087498bfde03"
+        )
+        instance2 = self.strategy.compute_model.get_instance_by_uuid(
+            "d020ef1f-dc19-4982-9383-087498bfde03"
+        )
+        instance3 = self.strategy.compute_model.get_instance_by_uuid(
+            "d030ef1f-dc19-4982-9383-087498bfde03"
+        )
+        instance4 = self.strategy.compute_model.get_instance_by_uuid(
+            "d040ef1f-dc19-4982-9383-087498bfde03"
+        )
+        instance5 = self.strategy.compute_model.get_instance_by_uuid(
+            "d050ef1f-dc19-4982-9383-087498bfde03"
+        )
+        instance6 = self.strategy.compute_model.get_instance_by_uuid(
+            "d060ef1f-dc19-4982-9383-087498bfde03"
+        )
+        instance7 = self.strategy.compute_model.get_instance_by_uuid(
+            "d070ef1f-dc19-4982-9383-087498bfde03"
+        )
+        instance8 = self.strategy.compute_model.get_instance_by_uuid(
+            "d080ef1f-dc19-4982-9383-087498bfde03"
+        )
+        instance9 = self.strategy.compute_model.get_instance_by_uuid(
+            "d090ef1f-dc19-4982-9383-087498bfde03"
+        )
+
+        self.assertEqual(len(instances), 5)
+        self.assertIn(instance0, instances)
+        self.assertIn(instance1, instances)
+        self.assertNotIn(instance2, instances)
+        self.assertIn(instance3, instances)
+        self.assertIn(instance4, instances)
+        self.assertIn(instance5, instances)
+        self.assertNotIn(instance6, instances)
+        self.assertNotIn(instance7, instances)
+        self.assertNotIn(instance8, instances)
+        self.assertNotIn(instance9, instances)
 
     def test_get_instances_with_instance_not_found(self):
-        # Create a test instance without a known id
-        # so we expect it to not be in the model
-        server_info = {
-            "compute_host": "src1",
-            "name": "INSTANCE_1",
-            "id": "d8f0ef1f-dc19-4982-9383-087498bfde03",
-            "vm_state": "active",
+        # The src_node is not in the model, we expect it
+        # to return an empty list
+
+        input_parameters = {
+            "compute_nodes": [
+                {"src_node": "hostname_10", "dst_node": "hostname_1"}
+            ]
         }
-        instance_on_src1 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-
-        # Mock nova helper to return our test instance
-        self.m_n_helper.get_instance_list.return_value = [instance_on_src1]
-
-        # Verify that the instance does not exist in the model
+        self.strategy.input_parameters = input_parameters
         instances = self.strategy.get_instances()
+
         self.assertEqual([], instances)
 
     def test_get_volumes_with_volume_not_found(self):
@@ -586,16 +588,9 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
     # execute #
 
     def test_execute_live_migrate_instance(self):
-        server_info = {
-            "compute_host": "src1",
-            "name": "INSTANCE_1",
-            "id": "d010ef1f-dc19-4982-9383-087498bfde03",
-            "vm_state": "active",
-        }
-        instance_on_src1 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        self.m_n_helper.get_instance_list.return_value = [instance_on_src1]
+        self.input_parameters["compute_nodes"] = [
+            {"src_node": "hostname_0", "dst_node": "hostname_1"}
+        ]
 
         self.m_c_helper.get_volume_list.return_value = []
 
@@ -607,42 +602,63 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
                 for action in solution.actions
             ]
         )
-        self.assertEqual(1, migration_types.get("live", 0))
+        self.assertEqual(2, migration_types.get("live", 0))
         global_efficacy_value = solution.global_efficacy[0].get('value', 0)
         self.assertEqual(100, global_efficacy_value)
+        self.assertEqual(
+            "live", solution.actions[0]['input_parameters']['migration_type']
+        )
+        self.assertEqual(
+            "hostname_0",
+            solution.actions[0]['input_parameters']['source_node'],
+        )
+        self.assertEqual(
+            "hostname_1",
+            solution.actions[0]['input_parameters'].get('destination_node'),
+        )
+        self.assertEqual(
+            "live", solution.actions[1]['input_parameters']['migration_type']
+        )
+        self.assertEqual(
+            "hostname_0",
+            solution.actions[1]['input_parameters']['source_node'],
+        )
+        self.assertEqual(
+            "hostname_1",
+            solution.actions[1]['input_parameters'].get('destination_node'),
+        )
 
     def test_execute_live_migrate_instance_no_dst_node(self):
-        server_info = {
-            "compute_host": "src1",
-            "name": "INSTANCE_1",
-            "id": "d010ef1f-dc19-4982-9383-087498bfde03",
-            "vm_state": "active",
-        }
-        instance_on_src1 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        self.m_n_helper.get_instance_list.return_value = [instance_on_src1]
+        self.input_parameters["compute_nodes"] = [{"src_node": "hostname_0"}]
         self.m_c_helper.get_volume_list.return_value = []
-        self.input_parameters["compute_nodes"] = [{"src_node": "src1"}]
         solution = self.strategy.execute()
-        migration_params = solution.actions[0]['input_parameters']
-        # since we have not passed 'dst_node' in the input, we should not have
-        # a destination_node in the generated migration action
-        self.assertNotIn('destination_node', migration_params)
+        self.assertEqual(2, len(solution.actions))
+        self.assertEqual(
+            "live", solution.actions[0]['input_parameters']['migration_type']
+        )
+        self.assertEqual(
+            "hostname_0",
+            solution.actions[0]['input_parameters']['source_node'],
+        )
+        self.assertIsNone(
+            solution.actions[0]['input_parameters'].get('destination_node')
+        )
+        self.assertEqual(
+            "live", solution.actions[1]['input_parameters']['migration_type']
+        )
+        self.assertEqual(
+            "hostname_0",
+            solution.actions[1]['input_parameters']['source_node'],
+        )
+        self.assertIsNone(
+            solution.actions[1]['input_parameters'].get('destination_node')
+        )
 
     def test_execute_cold_migrate_instance(self):
-        server_info = {
-            "compute_host": "src1",
-            "name": "INSTANCE_1",
-            "id": "d010ef1f-dc19-4982-9383-087498bfde03",
-            "status": "SHUTOFF",
-            "vm_state": "stopped",
-        }
-        instance_on_src1 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        self.m_n_helper.get_instance_list.return_value = [instance_on_src1]
-
+        self.strategy.input_parameters["compute_nodes"] = [
+            {"src_node": "hostname_0", "dst_node": "hostname_1"},
+            {"src_node": "hostname_3", "dst_node": "hostname_4"},
+        ]
         self.m_c_helper.get_volume_list.return_value = []
         solution = self.strategy.execute()
 
@@ -653,6 +669,7 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
             ]
         )
         self.assertEqual(1, migration_types.get("cold", 0))
+        self.assertEqual(2, migration_types.get("live", 0))
         global_efficacy_value = solution.global_efficacy[1].get('value', 0)
         self.assertEqual(100, global_efficacy_value)
 
@@ -663,8 +680,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
             name="volume_1",
         )
         self.m_c_helper.get_volume_list.return_value = [volume_on_src1]
-
-        self.m_n_helper.get_instance_list.return_value = []
 
         solution = self.strategy.execute()
 
@@ -722,7 +737,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
                 "dst_type": "type1",
             }
         ]
-        self.m_n_helper.get_instance_list.return_value = []
         solution = self.strategy.execute()
         # check that there are no volume migrations proposed, because the input
         # parameters do not have a dst_pool and dst_type==src_type
@@ -757,18 +771,7 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         self.assertEqual(100, global_efficacy_value)
 
     def test_execute_migrate_volume_no_compute_nodes(self):
-        server_info = {
-            "compute_host": "src1",
-            "name": "INSTANCE_1",
-            "id": "d010ef1f-dc19-4982-9383-087498bfde03",
-            "vm_state": "active",
-        }
-        instance_on_src1 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        vol_attach = [{"server_id": instance_on_src1.uuid}]
-        self.m_n_helper.get_instance_list.return_value = [instance_on_src1]
-        self.m_n_helper.find_instance.return_value = instance_on_src1
+        vol_attach = [{"server_id": "d010ef1f-dc19-4982-9383-087498bfde03"}]
         volume_on_src1 = self.fake_volume(
             host="src1@back1#pool1",
             id=volume_uuid_mapping["volume_1"],
@@ -786,7 +789,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
             }
         ]
         self.input_parameters["compute_nodes"] = None
-        self.m_n_helper.get_instance_list.return_value = [instance_on_src1]
         self.input_parameters["with_attached_volume"] = True
 
         # check that the solution contains one volume migration and no
@@ -811,8 +813,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         )
         self.m_c_helper.get_volume_list.return_value = [volume_on_src2]
 
-        self.m_n_helper.get_instance_list.return_value = []
-
         solution = self.strategy.execute()
 
         migration_types = collections.Counter(
@@ -833,8 +833,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         )
         volume_on_src1.status = "in-use"
         self.m_c_helper.get_volume_list.return_value = [volume_on_src1]
-
-        self.m_n_helper.get_instance_list.return_value = []
 
         solution = self.strategy.execute()
 
@@ -884,7 +882,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
                 "dst_type": "type3",
             },
         ]
-        self.m_n_helper.get_instance_list.return_value = []
 
         solution = self.strategy.execute()
 
@@ -929,7 +926,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
             volume_on_src3,
             volume_on_src4,
         ]
-        self.m_n_helper.get_instance_list.return_value = []
 
         solution = self.strategy.execute()
 
@@ -975,7 +971,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
             volume_on_src3,
             volume_on_src4,
         ]
-        self.m_n_helper.get_instance_list.return_value = []
         solution = self.strategy.execute()
 
         self.assertEqual(2, len(solution.actions))
@@ -1032,7 +1027,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
             volume_on_src3,
             volume_on_src4,
         ]
-        self.m_n_helper.get_instance_list.return_value = []
         solution = self.strategy.execute()
 
         self.assertEqual(2, len(solution.actions))
@@ -1088,7 +1082,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
             volume_on_src3,
             volume_on_src4,
         ]
-        self.m_n_helper.get_instance_list.return_value = []
         solution = self.strategy.execute()
 
         self.assertEqual(4, len(solution.actions))
@@ -1125,33 +1118,15 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
             volume_on_src2,
             volume_on_src3,
         ]
-        self.m_n_helper.get_instance_list.return_value = []
         solution = self.strategy.execute()
         self.assertEqual(0, len(solution.actions))
 
     def test_execute_live_migrate_instance_parallel(self):
-        server_info = {
-            "compute_host": "src1",
-            "name": "INSTANCE_1",
-            "id": "d010ef1f-dc19-4982-9383-087498bfde03",
-            "vm_state": "active",
-        }
-        instance_on_src1_1 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        server_info = {
-            "compute_host": "src2",
-            "name": "INSTANCE_2",
-            "id": "d020ef1f-dc19-4982-9383-087498bfde03",
-            "vm_state": "active",
-        }
-        instance_on_src1_2 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        self.m_n_helper.get_instance_list.return_value = [
-            instance_on_src1_1,
-            instance_on_src1_2,
+        self.strategy.input_parameters["compute_nodes"] = [
+            {"src_node": "hostname_0", "dst_node": "hostname_1"},
+            {"src_node": "hostname_2", "dst_node": "hostname_3"},
         ]
+        self.input_parameters["parallel_per_node"] = 4
 
         self.m_c_helper.get_volume_list.return_value = []
 
@@ -1163,35 +1138,19 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
                 for action in solution.actions
             ]
         )
-        self.assertEqual(2, migration_types.get("live", 0))
+        # We should have 5 live migrations, 2 from hostname_0 and 3
+        # from hostname_2
+        self.assertEqual(5, migration_types.get("live", 0))
         global_efficacy_value = solution.global_efficacy[0].get('value', 0)
+        # global efficacy is 100 as we migrate 5/5 instances
         self.assertEqual(100, global_efficacy_value)
 
     def test_execute_parallel_per_node(self):
-        self.input_parameters["parallel_per_node"] = 1
-
-        server_info = {
-            "compute_host": "src1",
-            "name": "INSTANCE_1",
-            "id": "d010ef1f-dc19-4982-9383-087498bfde03",
-            "vm_state": "active",
-        }
-        instance_on_src1_1 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        server_info = {
-            "compute_host": "src1",
-            "name": "INSTANCE_2",
-            "id": "d020ef1f-dc19-4982-9383-087498bfde03",
-            "vm_state": "active",
-        }
-        instance_on_src1_2 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        self.m_n_helper.get_instance_list.return_value = [
-            instance_on_src1_1,
-            instance_on_src1_2,
+        self.strategy.input_parameters["compute_nodes"] = [
+            {"src_node": "hostname_0", "dst_node": "hostname_1"},
+            {"src_node": "hostname_2", "dst_node": "hostname_3"},
         ]
+        self.input_parameters["parallel_per_node"] = 1
 
         self.m_c_helper.get_volume_list.return_value = []
 
@@ -1203,9 +1162,12 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
                 for action in solution.actions
             ]
         )
-        self.assertEqual(1, migration_types.get("live", 0))
+        # We should have 2 live migrations, 1 from from hostname_0 and 1
+        # from hostname_2
+        self.assertEqual(2, migration_types.get("live", 0))
+        # global efficacy is 40 as we migrate 2/5 instances
         global_efficacy_value = solution.global_efficacy[0].get('value', 0)
-        self.assertEqual(50.0, global_efficacy_value)
+        self.assertEqual(40.0, global_efficacy_value)
 
     def test_execute_migrate_volume_parallel(self):
         volume_on_src1_1 = self.fake_volume(
@@ -1222,8 +1184,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
             volume_on_src1_1,
             volume_on_src1_2,
         ]
-
-        self.m_n_helper.get_instance_list.return_value = []
 
         solution = self.strategy.execute()
 
@@ -1254,8 +1214,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
             volume_on_src1_1,
             volume_on_src1_2,
         ]
-
-        self.m_n_helper.get_instance_list.return_value = []
 
         solution = self.strategy.execute()
 
@@ -1294,8 +1252,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
             volume_on_src2_1,
         ]
 
-        self.m_n_helper.get_instance_list.return_value = []
-
         solution = self.strategy.execute()
 
         migration_types = collections.Counter(
@@ -1307,28 +1263,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         self.assertEqual(1, migration_types.get("migrate", 0))
 
     def test_execute_mixed_instances_volumes(self):
-        server_info = {
-            "compute_host": "src1",
-            "name": "INSTANCE_1",
-            "id": "d010ef1f-dc19-4982-9383-087498bfde03",
-            "vm_state": "active",
-        }
-        instance_on_src1_1 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        server_info = {
-            "compute_host": "src2",
-            "name": "INSTANCE_2",
-            "id": "d020ef1f-dc19-4982-9383-087498bfde03",
-            "vm_state": "active",
-        }
-        instance_on_src2_2 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        self.m_n_helper.get_instance_list.return_value = [
-            instance_on_src1_1,
-            instance_on_src2_2,
-        ]
 
         volume_on_src1_1 = self.fake_volume(
             host="src1@back1#pool1",
@@ -1350,9 +1284,8 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
             volume_on_src1_2,
             volume_on_src2_1,
         ]
-
-        self.input_parameters["compute_nodes"] = [
-            {"src_node": "src1", "dst_node": "dst1"}
+        self.strategy.input_parameters["compute_nodes"] = [
+            {"src_node": "hostname_0", "dst_node": "hostname_1"}
         ]
         self.input_parameters["storage_pools"] = [
             {
@@ -1394,12 +1327,22 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
                 'action_type': 'migrate',
                 'input_parameters': {
                     'migration_type': 'live',
-                    'source_node': 'src1',
-                    'destination_node': 'dst1',
+                    'source_node': 'hostname_0',
+                    'destination_node': 'hostname_1',
+                    'resource_name': 'INSTANCE_0',
+                    'resource_id': 'd000ef1f-dc19-4982-9383-087498bfde03',
+                },
+            },
+            {
+                'action_type': 'migrate',
+                'input_parameters': {
+                    'migration_type': 'live',
+                    'source_node': 'hostname_0',
+                    'destination_node': 'hostname_1',
                     'resource_name': 'INSTANCE_1',
                     'resource_id': 'd010ef1f-dc19-4982-9383-087498bfde03',
                 },
-            }
+            },
         ]
         migrated_volumes = [
             action
@@ -1409,7 +1352,7 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         self.assertEqual(2, action_types.get("volume_migrate", 0))
         self.assertEqual(expected_vmigrations, migrated_volumes)
 
-        self.assertEqual(1, action_types.get("migrate", 0))
+        self.assertEqual(2, action_types.get("migrate", 0))
         migrated_vms = [
             action
             for action in solution.actions
@@ -1437,38 +1380,18 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         self.assertEqual(second_action['migration_type'], 'live')
 
     def test_execute_mixed_instances_volumes_with_attached(self):
-        server_info = {
-            "compute_host": "src1",
-            "name": "INSTANCE_1",
-            "id": "d010ef1f-dc19-4982-9383-087498bfde03",
-            "vm_state": "active",
-        }
-        instance_on_src1_1 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        server_info = {
-            "compute_host": "src2",
-            "name": "INSTANCE_2",
-            "id": "d020ef1f-dc19-4982-9383-087498bfde03",
-            "vm_state": "active",
-        }
-        instance_on_src2_2 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        server_info = {
-            "compute_host": "src1",
-            "name": "INSTANCE_3",
-            "id": "d030ef1f-dc19-4982-9383-087498bfde03",
-            "vm_state": "active",
-        }
-        instance_on_src1_3 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        self.m_n_helper.get_instance_list.return_value = [
-            instance_on_src1_1,
-            instance_on_src2_2,
-            instance_on_src1_3,
+        self.input_parameters["compute_nodes"] = [
+            {"src_node": "hostname_0", "dst_node": "hostname_1"}
         ]
+        self.input_parameters["storage_pools"] = [
+            {
+                "src_pool": "src1@back1#pool1",
+                "dst_pool": "dst1@back1#pool1",
+                "src_type": "type1",
+                "dst_type": "type1",
+            }
+        ]
+        self.input_parameters["with_attached_volume"] = True
 
         volume_on_src1_1 = self.fake_volume(
             host="src1@back1#pool1",
@@ -1500,7 +1423,7 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         ]
 
         self.input_parameters["compute_nodes"] = [
-            {"src_node": "src1", "dst_node": "dst1"}
+            {"src_node": "hostname_0", "dst_node": "hostname_1"}
         ]
         self.input_parameters["storage_pools"] = [
             {
@@ -1511,8 +1434,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
             }
         ]
         self.input_parameters["with_attached_volume"] = True
-
-        self.m_n_helper.find_instance.return_value = instance_on_src1_3
 
         solution = self.strategy.execute()
         # Check migrations
@@ -1544,28 +1465,30 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
                 'action_type': 'migrate',
                 'input_parameters': {
                     'migration_type': 'live',
-                    'source_node': 'src1',
-                    'destination_node': 'dst1',
-                    'resource_name': 'INSTANCE_3',
-                    'resource_id': 'd030ef1f-dc19-4982-9383-087498bfde03',
+                    'source_node': 'hostname_0',
+                    'destination_node': 'hostname_1',
+                    'resource_name': 'INSTANCE_1',
+                    'resource_id': 'd010ef1f-dc19-4982-9383-087498bfde03',
                 },
             },
             {
                 'action_type': 'migrate',
                 'input_parameters': {
                     'migration_type': 'live',
-                    'source_node': 'src1',
-                    'destination_node': 'dst1',
-                    'resource_name': 'INSTANCE_1',
-                    'resource_id': 'd010ef1f-dc19-4982-9383-087498bfde03',
+                    'source_node': 'hostname_0',
+                    'destination_node': 'hostname_1',
+                    'resource_name': 'INSTANCE_0',
+                    'resource_id': 'd000ef1f-dc19-4982-9383-087498bfde03',
                 },
             },
         ]
+
         migrated_volumes = [
             action
             for action in solution.actions
             if action['action_type'] == 'volume_migrate'
         ]
+
         self.assertEqual(2, action_types.get("volume_migrate", 0))
         self.assertEqual(expected_vol_migrations, migrated_volumes)
         migrated_vms = [
@@ -1607,43 +1530,12 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
     def test_execute_mixed_instances_volumes_with_attached_not_found(self):
         """Test that the strategy handles properly an instance not found.
 
-        If a instance is missing when checking the volume attachments, the
-        strategy execution should not fail, just skip that instance. The
-        instance should still be migrated, but in the regular order, as if
-        with_attached_volume was False.
+        If the instance attached to the volume is not in criteria to be
+        migrated, the strategy execution should not fail, just skip that
+        instance. The instances not attached to be migrated should still
+        be migrated, but in the regular order, as if with_attached_volume was
+        False.
         """
-        server_info = {
-            "compute_host": "src1",
-            "name": "INSTANCE_1",
-            "id": "d010ef1f-dc19-4982-9383-087498bfde03",
-            "vm_state": "active",
-        }
-        instance_on_src1_1 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        server_info = {
-            "compute_host": "src2",
-            "name": "INSTANCE_2",
-            "id": "d020ef1f-dc19-4982-9383-087498bfde03",
-            "vm_state": "active",
-        }
-        instance_on_src2_2 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        server_info = {
-            "compute_host": "src1",
-            "name": "INSTANCE_3",
-            "id": "d030ef1f-dc19-4982-9383-087498bfde03",
-            "vm_state": "active",
-        }
-        instance_on_src1_3 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        self.m_n_helper.get_instance_list.return_value = [
-            instance_on_src1_1,
-            instance_on_src2_2,
-            instance_on_src1_3,
-        ]
 
         volume_on_src1_1 = self.fake_volume(
             host="src1@back1#pool1",
@@ -1669,13 +1561,13 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         volume_on_src1_1.status = 'in-use'
         volume_on_src1_1.attachments = [
             {
-                "server_id": "d010ef1f-dc19-4982-9383-087498bfde03",
+                "server_id": "d030ef1f-dc19-4982-9383-087498bfde03",
                 "attachment_id": "attachment1",
             }
         ]
 
         self.input_parameters["compute_nodes"] = [
-            {"src_node": "src1", "dst_node": "dst1"}
+            {"src_node": "hostname_0", "dst_node": "hostname_1"}
         ]
         self.input_parameters["storage_pools"] = [
             {
@@ -1686,11 +1578,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
             }
         ]
         self.input_parameters["with_attached_volume"] = True
-
-        uuid = "d010ef1f-dc19-4982-9383-087498bfde03"
-        self.m_n_helper.find_instance.side_effect = (
-            exception.ComputeResourceNotFound(uuid)
-        )
 
         solution = self.strategy.execute()
         # Check migrations
@@ -1722,20 +1609,20 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
                 'action_type': 'migrate',
                 'input_parameters': {
                     'migration_type': 'live',
-                    'source_node': 'src1',
-                    'destination_node': 'dst1',
-                    'resource_name': 'INSTANCE_1',
-                    'resource_id': 'd010ef1f-dc19-4982-9383-087498bfde03',
+                    'source_node': 'hostname_0',
+                    'destination_node': 'hostname_1',
+                    'resource_name': 'INSTANCE_0',
+                    'resource_id': 'd000ef1f-dc19-4982-9383-087498bfde03',
                 },
             },
             {
                 'action_type': 'migrate',
                 'input_parameters': {
                     'migration_type': 'live',
-                    'source_node': 'src1',
-                    'destination_node': 'dst1',
-                    'resource_name': 'INSTANCE_3',
-                    'resource_id': 'd030ef1f-dc19-4982-9383-087498bfde03',
+                    'source_node': 'hostname_0',
+                    'destination_node': 'hostname_1',
+                    'resource_name': 'INSTANCE_1',
+                    'resource_id': 'd010ef1f-dc19-4982-9383-087498bfde03',
                 },
             },
         ]
@@ -1782,6 +1669,59 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         ][0]
         self.assertEqual(100, live_ind)
 
+    def test_volumes_migration_skips_instance_not_in_model(self):
+        """Test that volumes_migration skips instances missing from model.
+
+        If a volume's attachment references an instance UUID that is in the
+        migration target list but no longer exists in the compute model,
+        the strategy should log a warning and continue rather than fail.
+        """
+        volume_on_src1 = self.fake_volume(
+            host="src1@back1#pool1",
+            id=volume_uuid_mapping["volume_1"],
+            name="volume_1",
+        )
+        volume_on_src1.status = 'in-use'
+        missing_instance_uuid = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+        volume_on_src1.attachments = [
+            {
+                "server_id": missing_instance_uuid,
+                "attachment_id": "attachment1",
+            }
+        ]
+        self.m_c_helper.get_volume_list.return_value = [volume_on_src1]
+
+        self.input_parameters["compute_nodes"] = [
+            {"src_node": "hostname_0", "dst_node": "hostname_1"}
+        ]
+        self.input_parameters["storage_pools"] = [
+            {"src_pool": "src1@back1#pool1", "dst_pool": "dst1@back1#pool1"}
+        ]
+        self.input_parameters["with_attached_volume"] = True
+
+        fake_target = mock.Mock()
+        fake_target.uuid = missing_instance_uuid
+
+        action_counter = strategies.zone_migration.ActionCounter(6, 2, 2)
+        self.strategy.volumes_migration(
+            [volume_on_src1], action_counter, [fake_target]
+        )
+
+        # Volume migration action should still be created
+        volume_actions = [
+            a
+            for a in self.strategy.solution.actions
+            if a['action_type'] == 'volume_migrate'
+        ]
+        self.assertEqual(1, len(volume_actions))
+        # No instance migration since the instance was not in the model
+        instance_actions = [
+            a
+            for a in self.strategy.solution.actions
+            if a['action_type'] == 'migrate'
+        ]
+        self.assertEqual(0, len(instance_actions))
+
     def test_instance_migration_exists(self):
         fake_actions = [
             {'action_type': 'migrate', 'resource_id': 'instance1'},
@@ -1827,46 +1767,50 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
     # ComputeHostSortFilter #
 
     def test_filtered_targets_compute_nodes(self):
-        server_info = {
-            "compute_host": "src1",
-            "name": "INSTANCE_1",
-            "id": "d010ef1f-dc19-4982-9383-087498bfde03",
-            "vm_state": "active",
-        }
-        instance_on_src1 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        server_info = {
-            "compute_host": "src2",
-            "name": "INSTANCE_2",
-            "id": "d020ef1f-dc19-4982-9383-087498bfde03",
-            "vm_state": "active",
-        }
-        instance_on_src2 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        server_info = {
-            "compute_host": "src3",
-            "name": "INSTANCE_3",
-            "id": "d030ef1f-dc19-4982-9383-087498bfde03",
-            "vm_state": "active",
-        }
-        instance_on_src3 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        self.m_n_helper.get_instance_list.return_value = [
-            instance_on_src1,
-            instance_on_src2,
-            instance_on_src3,
-        ]
 
+        input_parameters = {
+            "compute_nodes": [
+                {"src_node": "hostname_0", "dst_node": "hostname_1"},
+                {"src_node": "hostname_2", "dst_node": "hostname_3"},
+            ]
+        }
+        input_parameters["priority"] = {
+            "compute_node": ["hostname_0", "hostname_2"]
+        }
+        self.strategy.input_parameters = input_parameters
         self.m_c_helper.get_volume_list.return_value = []
 
-        self.input_parameters["priority"] = {"compute_node": ["src1", "src2"]}
+        instance0 = self.strategy.compute_model.get_instance_by_uuid(
+            "d000ef1f-dc19-4982-9383-087498bfde03"
+        )
+        instance1 = self.strategy.compute_model.get_instance_by_uuid(
+            "d010ef1f-dc19-4982-9383-087498bfde03"
+        )
+        instance3 = self.strategy.compute_model.get_instance_by_uuid(
+            "d030ef1f-dc19-4982-9383-087498bfde03"
+        )
+        instance4 = self.strategy.compute_model.get_instance_by_uuid(
+            "d040ef1f-dc19-4982-9383-087498bfde03"
+        )
+        instance5 = self.strategy.compute_model.get_instance_by_uuid(
+            "d050ef1f-dc19-4982-9383-087498bfde03"
+        )
 
         targets = self.strategy.filtered_targets()
         self.assertEqual(
-            targets.get('instance'), [instance_on_src1, instance_on_src2]
+            targets.get('instance'),
+            [instance0, instance1, instance3, instance4, instance5],
+        )
+
+        # Test with different priority
+        input_parameters["priority"] = {
+            "compute_node": ["hostname_2", "hostname_0"]
+        }
+        self.strategy.input_parameters = input_parameters
+        targets = self.strategy.filtered_targets()
+        self.assertEqual(
+            targets.get('instance'),
+            [instance3, instance4, instance5, instance0, instance1],
         )
 
     # StorageHostSortFilter #
@@ -1894,8 +1838,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
             volume_on_src3,
         ]
 
-        self.m_n_helper.get_instance_list.return_value = []
-
         self.input_parameters["priority"] = {
             "storage_pool": ["src1@back1#pool1", "src2@back1#pool1"]
         }
@@ -1908,62 +1850,32 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
     # ProjectSortFilter #
 
     def test_filtered_targets_project(self):
-        server_info = {
-            "compute_host": "src1",
-            "name": "INSTANCE_1",
-            "id": "d010ef1f-dc19-4982-9383-087498bfde03",
-            "project_id": "pj2",
-            "vm_state": "active",
-        }
-        instance_on_src1 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        server_info = {
-            "compute_host": "src2",
-            "name": "INSTANCE_2",
-            "id": "d020ef1f-dc19-4982-9383-087498bfde03",
-            "project_id": "pj1",
-            "vm_state": "active",
-        }
-        instance_on_src2 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        server_info = {
-            "compute_host": "src3",
-            "name": "INSTANCE_3",
-            "id": "d030ef1f-dc19-4982-9383-087498bfde03",
-            "project_id": "pj3",
-            "vm_state": "active",
-        }
-        instance_on_src3 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        self.m_n_helper.get_instance_list.return_value = [
-            instance_on_src1,
-            instance_on_src2,
-            instance_on_src3,
+        self.input_parameters["compute_nodes"] = [
+            {"src_node": "hostname_0", "dst_node": "hostname_1"},
+            {"src_node": "hostname_2", "dst_node": "hostname_3"},
         ]
-
-        self.m_c_helper.get_volume_list.return_value = []
+        self.input_parameters["priority"] = {
+            "project": ["91FFFE30-78A0-4152-ACD2-8310FF274DC9"]
+        }
 
         volume_on_src1 = self.fake_volume(
             host="src1@back1#pool1",
             id=volume_uuid_mapping["volume_1"],
             name="volume_1",
-            project_id="pj2",
+            project_id="26F03131-32CB-4697-9D61-9123F87A8147",
         )
         volume_on_src2 = self.fake_volume(
             host="src2@back1#pool1",
             id=volume_uuid_mapping["volume_2"],
             name="volume_2",
             volume_type="type2",
-            project_id="pj1",
+            project_id="91FFFE30-78A0-4152-ACD2-8310FF274DC9",
         )
         volume_on_src3 = self.fake_volume(
             host="src3@back2#pool1",
             id=volume_uuid_mapping["volume_3"],
             name="volume_3",
-            project_id="pj3",
+            project_id="26F03131-32CB-4697-9D61-9123F87A8148",
         )
 
         self.m_c_helper.get_volume_list.return_value = [
@@ -1972,11 +1884,29 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
             volume_on_src3,
         ]
 
-        self.input_parameters["priority"] = {"project": ["pj1"]}
-
         targets = self.strategy.filtered_targets()
+
+        # Instance 0, 3, 4 and 5 are in the project
+        # 91FFFE30-78A0-4152-ACD2-8310FF274DC9
+        instance0 = self.strategy.compute_model.get_instance_by_uuid(
+            "d000ef1f-dc19-4982-9383-087498bfde03"
+        )
+        instance1 = self.strategy.compute_model.get_instance_by_uuid(
+            "d010ef1f-dc19-4982-9383-087498bfde03"
+        )
+        instance3 = self.strategy.compute_model.get_instance_by_uuid(
+            "d030ef1f-dc19-4982-9383-087498bfde03"
+        )
+        instance4 = self.strategy.compute_model.get_instance_by_uuid(
+            "d040ef1f-dc19-4982-9383-087498bfde03"
+        )
+        instance5 = self.strategy.compute_model.get_instance_by_uuid(
+            "d050ef1f-dc19-4982-9383-087498bfde03"
+        )
+
         self.assertEqual(
-            targets.get('instance'), [instance_on_src2, instance_on_src1]
+            targets.get('instance'),
+            [instance0, instance3, instance4, instance5, instance1],
         )
         self.assertEqual(
             targets.get('volume'), [volume_on_src2, volume_on_src1]
@@ -1984,7 +1914,13 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         self.assertEqual(
             targets,
             {
-                "instance": [instance_on_src2, instance_on_src1],
+                "instance": [
+                    instance0,
+                    instance3,
+                    instance4,
+                    instance5,
+                    instance1,
+                ],
                 "volume": [volume_on_src2, volume_on_src1],
             },
         )
@@ -1992,232 +1928,106 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
     # ComputeSpecSortFilter #
 
     def test_filtered_targets_instance_mem_size(self):
-        flavor_64 = self.create_openstacksdk_flavor(
-            id="1", ram="64", vcpus=1, disk=1
-        )
-        flavor_128 = self.create_openstacksdk_flavor(
-            id="2", ram=128, vcpus=1, disk=1
-        )
-        flavor_512 = self.create_openstacksdk_flavor(
-            id="3", ram=512, vcpus=1, disk=1
-        )
-        self.m_n_helper.get_flavor_list.return_value = [
-            flavor_64,
-            flavor_128,
-            flavor_512,
-        ]
 
-        server_info = {
-            "compute_host": "src1",
-            "name": "INSTANCE_1",
-            "id": "d010ef1f-dc19-4982-9383-087498bfde03",
-            "flavor": {"id": "1"},
-            "vm_state": "active",
-        }
-        instance_on_src1 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        server_info = {
-            "compute_host": "src2",
-            "name": "INSTANCE_2",
-            "id": "d020ef1f-dc19-4982-9383-087498bfde03",
-            "flavor": {"id": "2"},
-            "vm_state": "active",
-        }
-        instance_on_src2 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        server_info = {
-            "compute_host": "src3",
-            "name": "INSTANCE_3",
-            "id": "d030ef1f-dc19-4982-9383-087498bfde03",
-            "flavor": {"id": "3"},
-            "vm_state": "active",
-        }
-        instance_on_src3 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        self.m_n_helper.get_instance_list.return_value = [
-            instance_on_src1,
-            instance_on_src2,
-            instance_on_src3,
+        self.input_parameters["compute_nodes"] = [
+            {"src_node": "hostname_0", "dst_node": "hostname_2"},
+            {"src_node": "hostname_1", "dst_node": "hostname_3"},
         ]
-
-        self.m_c_helper.get_volume_list.return_value = []
 
         self.input_parameters["priority"] = {"compute": ["mem_size"]}
 
+        self.m_c_helper.get_volume_list.return_value = []
+
+        instance0 = self.strategy.compute_model.get_instance_by_uuid(
+            "d000ef1f-dc19-4982-9383-087498bfde03"
+        )
+        instance1 = self.strategy.compute_model.get_instance_by_uuid(
+            "d010ef1f-dc19-4982-9383-087498bfde03"
+        )
+        instance2 = self.strategy.compute_model.get_instance_by_uuid(
+            "d020ef1f-dc19-4982-9383-087498bfde03"
+        )
+
         targets = self.strategy.filtered_targets()
+
         self.assertEqual(
-            targets.get('instance'), [instance_on_src2, instance_on_src1]
+            targets.get('instance'), [instance1, instance0, instance2]
         )
 
     def test_filtered_targets_instance_vcpu_num(self):
-        flavor_1 = self.create_openstacksdk_flavor(
-            id="1", ram=1, vcpus=1, disk=1
-        )
-        flavor_2 = self.create_openstacksdk_flavor(
-            id="2", ram=1, vcpus=2, disk=1
-        )
-        flavor_3 = self.create_openstacksdk_flavor(
-            id="3", ram=1, vcpus=3, disk=1
-        )
-        self.m_n_helper.get_flavor_list.return_value = [
-            flavor_1,
-            flavor_2,
-            flavor_3,
-        ]
 
-        server_info = {
-            "compute_host": "src1",
-            "name": "INSTANCE_1",
-            "id": "d010ef1f-dc19-4982-9383-087498bfde03",
-            "flavor": {"id": "1"},
-            "vm_state": "active",
-        }
-        instance_on_src1 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        server_info = {
-            "compute_host": "src2",
-            "name": "INSTANCE_2",
-            "id": "d020ef1f-dc19-4982-9383-087498bfde03",
-            "flavor": {"id": "2"},
-            "vm_state": "active",
-        }
-        instance_on_src2 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        server_info = {
-            "compute_host": "src3",
-            "name": "INSTANCE_3",
-            "id": "d030ef1f-dc19-4982-9383-087498bfde03",
-            "flavor": {"id": "3"},
-            "vm_state": "active",
-        }
-        instance_on_src3 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        self.m_n_helper.get_instance_list.return_value = [
-            instance_on_src1,
-            instance_on_src2,
-            instance_on_src3,
+        self.input_parameters["compute_nodes"] = [
+            {"src_node": "hostname_0", "dst_node": "hostname_2"},
+            {"src_node": "hostname_1", "dst_node": "hostname_3"},
         ]
-
-        self.m_c_helper.get_volume_list.return_value = []
 
         self.input_parameters["priority"] = {"compute": ["vcpu_num"]}
 
+        self.m_c_helper.get_volume_list.return_value = []
+
+        instance0 = self.strategy.compute_model.get_instance_by_uuid(
+            "d000ef1f-dc19-4982-9383-087498bfde03"
+        )
+        instance1 = self.strategy.compute_model.get_instance_by_uuid(
+            "d010ef1f-dc19-4982-9383-087498bfde03"
+        )
+        instance2 = self.strategy.compute_model.get_instance_by_uuid(
+            "d020ef1f-dc19-4982-9383-087498bfde03"
+        )
+
         targets = self.strategy.filtered_targets()
         self.assertEqual(
-            targets.get('instance'), [instance_on_src2, instance_on_src1]
+            targets.get('instance'), [instance2, instance1, instance0]
         )
 
     def test_filtered_targets_instance_disk_size(self):
-        flavor_1 = self.create_openstacksdk_flavor(
-            id="1", ram=1, vcpus=1, disk=1
-        )
-        flavor_2 = self.create_openstacksdk_flavor(
-            id="2", ram=1, vcpus=1, disk=2
-        )
-        flavor_3 = self.create_openstacksdk_flavor(
-            id="3", ram=1, vcpus=1, disk=3
-        )
-        self.m_n_helper.get_flavor_list.return_value = [
-            flavor_1,
-            flavor_2,
-            flavor_3,
-        ]
 
-        server_info = {
-            "compute_host": "src1",
-            "name": "INSTANCE_1",
-            "id": "d010ef1f-dc19-4982-9383-087498bfde03",
-            "flavor": {"id": "1"},
-            "vm_state": "active",
-        }
-        instance_on_src1 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        server_info = {
-            "compute_host": "src2",
-            "name": "INSTANCE_2",
-            "id": "d020ef1f-dc19-4982-9383-087498bfde03",
-            "flavor": {"id": "2"},
-            "vm_state": "active",
-        }
-        instance_on_src2 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        server_info = {
-            "compute_host": "src3",
-            "name": "INSTANCE_3",
-            "id": "d030ef1f-dc19-4982-9383-087498bfde03",
-            "flavor": {"id": "3"},
-            "vm_state": "active",
-        }
-        instance_on_src3 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        self.m_n_helper.get_instance_list.return_value = [
-            instance_on_src1,
-            instance_on_src2,
-            instance_on_src3,
+        self.input_parameters["compute_nodes"] = [
+            {"src_node": "hostname_0", "dst_node": "hostname_2"},
+            {"src_node": "hostname_1", "dst_node": "hostname_3"},
         ]
+        self.input_parameters["priority"] = {"compute": ["disk_size"]}
 
         self.m_c_helper.get_volume_list.return_value = []
 
-        self.input_parameters["priority"] = {"compute": ["disk_size"]}
+        instance0 = self.strategy.compute_model.get_instance_by_uuid(
+            "d000ef1f-dc19-4982-9383-087498bfde03"
+        )
+        instance1 = self.strategy.compute_model.get_instance_by_uuid(
+            "d010ef1f-dc19-4982-9383-087498bfde03"
+        )
+        instance2 = self.strategy.compute_model.get_instance_by_uuid(
+            "d020ef1f-dc19-4982-9383-087498bfde03"
+        )
 
         targets = self.strategy.filtered_targets()
         self.assertEqual(
-            targets.get('instance'), [instance_on_src2, instance_on_src1]
+            targets.get('instance'), [instance0, instance2, instance1]
         )
 
     def test_filtered_targets_instance_created_at(self):
-        server_info = {
-            "compute_host": "src1",
-            "name": "INSTANCE_1",
-            "id": "d010ef1f-dc19-4982-9383-087498bfde03",
-            "created_at": "2017-10-30T00:00:00",
-            "vm_state": "active",
-        }
-        instance_on_src1 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        server_info = {
-            "compute_host": "src2",
-            "name": "INSTANCE_2",
-            "id": "d020ef1f-dc19-4982-9383-087498bfde03",
-            "created_at": "1977-03-29T03:03:03",
-            "vm_state": "active",
-        }
-        instance_on_src2 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        server_info = {
-            "compute_host": "src3",
-            "name": "INSTANCE_3",
-            "id": "d030ef1f-dc19-4982-9383-087498bfde03",
-            "created_at": "1977-03-29T03:03:03",
-            "vm_state": "active",
-        }
-        instance_on_src3 = nova_helper.Server.from_openstacksdk(
-            self.create_openstacksdk_server(**server_info)
-        )
-        self.m_n_helper.get_instance_list.return_value = [
-            instance_on_src1,
-            instance_on_src2,
-            instance_on_src3,
+        self.input_parameters["compute_nodes"] = [
+            {"src_node": "hostname_0", "dst_node": "hostname_2"},
+            {"src_node": "hostname_1", "dst_node": "hostname_3"},
         ]
-
-        self.m_c_helper.get_volume_list.return_value = []
 
         self.input_parameters["priority"] = {"compute": ["created_at"]}
 
+        self.m_c_helper.get_volume_list.return_value = []
+
+        instance0 = self.strategy.compute_model.get_instance_by_uuid(
+            "d000ef1f-dc19-4982-9383-087498bfde03"
+        )
+        instance1 = self.strategy.compute_model.get_instance_by_uuid(
+            "d010ef1f-dc19-4982-9383-087498bfde03"
+        )
+        instance2 = self.strategy.compute_model.get_instance_by_uuid(
+            "d020ef1f-dc19-4982-9383-087498bfde03"
+        )
+
         targets = self.strategy.filtered_targets()
         self.assertEqual(
-            targets.get('instance'), [instance_on_src2, instance_on_src1]
+            targets.get('instance'), [instance2, instance1, instance0]
         )
 
     # StorageSpecSortFilter #
@@ -2247,8 +2057,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
             volume_on_src2,
             volume_on_src3,
         ]
-
-        self.m_n_helper.get_instance_list.return_value = []
 
         self.input_parameters["priority"] = {"storage": ["size"]}
 
@@ -2282,8 +2090,6 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
             volume_on_src2,
             volume_on_src3,
         ]
-
-        self.m_n_helper.get_instance_list.return_value = []
 
         self.input_parameters["priority"] = {"storage": ["created_at"]}
 

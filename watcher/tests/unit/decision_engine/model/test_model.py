@@ -145,17 +145,20 @@ class TestModel(base.TestCase):
     def test_get_node_by_instance_uuid(self):
         model = model_root.ModelRoot()
         uuid_ = f"{uuidutils.generate_uuid()}"
-        node = element.ComputeNode(id=1)
+        node = element.ComputeNode(id=1, hostname="hostname_0")
         node.uuid = uuid_
         model.add_node(node)
         self.assertEqual(node, model.get_node_by_uuid(uuid_))
         uuid_ = f"{uuidutils.generate_uuid()}"
         instance = element.Instance(id=1)
         instance.uuid = uuid_
+        instance.host = "hostname_0"
         model.add_instance(instance)
         self.assertEqual(instance, model.get_instance_by_uuid(uuid_))
         model.map_instance(instance, node)
         self.assertEqual(node, model.get_node_by_instance_uuid(instance.uuid))
+        mapped_instance = model.get_instance_by_uuid(uuid_)
+        self.assertEqual(mapped_instance.host, "hostname_0")
 
     def test_add_node(self):
         model = model_root.ModelRoot()
@@ -305,9 +308,9 @@ class TestModel(base.TestCase):
         node = element.ComputeNode(uuid="Node_0")
         resources_used = model.get_node_used_resources(node)
 
-        self.assertEqual(20, resources_used.get('vcpu'))
-        self.assertEqual(4, resources_used.get('memory'))
-        self.assertEqual(40, resources_used.get('disk'))
+        self.assertEqual(21, resources_used.get('vcpu'))
+        self.assertEqual(5, resources_used.get('memory'))
+        self.assertEqual(38, resources_used.get('disk'))
 
     def test_get_node_free_resources(self):
         fake_cluster = faker_cluster_state.FakerModelCollector()
@@ -315,9 +318,9 @@ class TestModel(base.TestCase):
         node = model.get_node_by_uuid("Node_0")
         resources_free = model.get_node_free_resources(node)
 
-        self.assertEqual(20, resources_free.get('vcpu'))
-        self.assertEqual(128, resources_free.get('memory'))
-        self.assertEqual(210, resources_free.get('disk'))
+        self.assertEqual(19, resources_free.get('vcpu'))
+        self.assertEqual(127, resources_free.get('memory'))
+        self.assertEqual(212, resources_free.get('disk'))
 
     def test_map_instance_with_string_uuids_no_deadlock(self):
         """map_instance with string UUIDs must complete within timeout.
