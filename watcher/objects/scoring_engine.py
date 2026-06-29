@@ -51,7 +51,8 @@ class ScoringEngine(
         'metainfo': ovo_fields.StringField(nullable=True),
     }
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def get(cls, context, scoring_engine_id):
         """Find a scoring engine based on its id or uuid
 
@@ -71,7 +72,8 @@ class ScoringEngine(
         else:
             raise exception.InvalidIdentity(identity=scoring_engine_id)
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def get_by_id(cls, context, scoring_engine_id):
         """Find a scoring engine based on its id
 
@@ -92,7 +94,8 @@ class ScoringEngine(
         )
         return scoring_engine
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def get_by_uuid(cls, context, scoring_engine_uuid):
         """Find a scoring engine based on its uuid
 
@@ -113,7 +116,8 @@ class ScoringEngine(
         )
         return scoring_engine
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def get_by_name(cls, context, scoring_engine_name):
         """Find a scoring engine based on its name
 
@@ -134,7 +138,8 @@ class ScoringEngine(
         )
         return scoring_engine
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def list(
         cls,
         context,

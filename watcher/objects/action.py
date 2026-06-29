@@ -62,7 +62,8 @@ class Action(
     }
     object_fields = {'action_plan': (objects.ActionPlan, 'action_plan_id')}
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def get(cls, context, action_id, eager=False):
         """Find a action based on its id or uuid and return a Action object.
 
@@ -77,7 +78,8 @@ class Action(
         else:
             raise exception.InvalidIdentity(identity=action_id)
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def get_by_id(cls, context, action_id, eager=False):
         """Find a action based on its integer id and return a Action object.
 
@@ -89,7 +91,8 @@ class Action(
         action = cls._from_db_object(cls(context), db_action, eager=eager)
         return action
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def get_by_uuid(cls, context, uuid, eager=False):
         """Find a action based on uuid and return a :class:`Action` object.
 
@@ -102,7 +105,8 @@ class Action(
         action = cls._from_db_object(cls(context), db_action, eager=eager)
         return action
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def list(
         cls,
         context,

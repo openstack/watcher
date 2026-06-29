@@ -170,7 +170,8 @@ class Audit(
         else:
             self._old_state, self._state = self._state, value
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def get(cls, context, audit_id, eager=False):
         """Find a audit based on its id or uuid and return a Audit object.
 
@@ -191,7 +192,8 @@ class Audit(
         else:
             raise exception.InvalidIdentity(identity=audit_id)
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def get_by_id(cls, context, audit_id, eager=False):
         """Find a audit based on its integer id and return a Audit object.
 
@@ -209,7 +211,8 @@ class Audit(
         audit = cls._from_db_object(cls(context), db_audit, eager=eager)
         return audit
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def get_by_uuid(cls, context, uuid, eager=False):
         """Find a audit based on uuid and return a :class:`Audit` object.
 
@@ -228,7 +231,8 @@ class Audit(
         audit = cls._from_db_object(cls(context), db_audit, eager=eager)
         return audit
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def get_by_name(cls, context, name, eager=False):
         """Find an audit based on name and return a :class:`Audit` object.
 
@@ -247,7 +251,8 @@ class Audit(
         audit = cls._from_db_object(cls(context), db_audit, eager=eager)
         return audit
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def list(
         cls,
         context,

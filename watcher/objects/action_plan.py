@@ -171,7 +171,8 @@ class ActionPlan(
         else:
             self._old_state, self._state = self._state, value
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def get(cls, context, action_plan_id, eager=False):
         """Find a action_plan based on its id or uuid and return a Action object.
 
@@ -186,7 +187,8 @@ class ActionPlan(
         else:
             raise exception.InvalidIdentity(identity=action_plan_id)
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def get_by_id(cls, context, action_plan_id, eager=False):
         """Find a action_plan based on its integer id and return a ActionPlan object.
 
@@ -202,7 +204,8 @@ class ActionPlan(
         )
         return action_plan
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def get_by_uuid(cls, context, uuid, eager=False):
         """Find a action_plan based on uuid and return a :class:`ActionPlan` object.
 
@@ -219,7 +222,8 @@ class ActionPlan(
         )
         return action_plan
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def list(
         cls,
         context,

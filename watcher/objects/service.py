@@ -46,7 +46,8 @@ class Service(
         ),
     }
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def get(cls, context, service_id):
         """Find a service based on its id
 
@@ -66,7 +67,8 @@ class Service(
         else:
             raise exception.InvalidIdentity(identity=service_id)
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def get_by_name(cls, context, name):
         """Find a service based on name
 
@@ -79,7 +81,8 @@ class Service(
         service = cls._from_db_object(cls(context), db_service)
         return service
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def list(
         cls,
         context,

@@ -38,7 +38,8 @@ class ActionDescription(
         'description': ovo_fields.StringField(),
     }
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def get(cls, context, action_id):
         """Find a action description based on its id
 
@@ -60,7 +61,8 @@ class ActionDescription(
         else:
             raise exception.InvalidIdentity(identity=action_id)
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def get_by_type(cls, context, action_type):
         """Find a action description based on action type
 
@@ -75,7 +77,8 @@ class ActionDescription(
         action = cls._from_db_object(cls(context), db_action)
         return action
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def list(
         cls,
         context,

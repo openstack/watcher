@@ -43,7 +43,8 @@ class EfficacyIndicator(
         'value': wfields.NumericField(),
     }
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def get(cls, context, efficacy_indicator_id):
         """Find an efficacy indicator object given its ID or UUID
 
@@ -57,7 +58,8 @@ class EfficacyIndicator(
         else:
             raise exception.InvalidIdentity(identity=efficacy_indicator_id)
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def get_by_id(cls, context, efficacy_indicator_id):
         """Find an efficacy indicator given its integer ID
 
@@ -72,7 +74,8 @@ class EfficacyIndicator(
         )
         return efficacy_indicator
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def get_by_uuid(cls, context, uuid):
         """Find an efficacy indicator given its UUID
 
@@ -88,7 +91,8 @@ class EfficacyIndicator(
         )
         return efficacy_indicator
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def list(
         cls,
         context,

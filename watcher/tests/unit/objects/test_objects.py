@@ -48,7 +48,8 @@ class MyObj(
     def obj_load_attr(self, attrname):
         setattr(self, attrname, 'loaded!')
 
-    @ovo_base.remotable_classmethod
+    @classmethod
+    @ovo_base.remotable
     def query(cls, context):
         obj = cls(context)
         obj.foo = 1
@@ -89,7 +90,8 @@ class MyObj2:
     def obj_name(cls):
         return 'MyObj'
 
-    @ovo_base.remotable_classmethod
+    @classmethod
+    @ovo_base.remotable
     def get(cls, *args, **kwargs):
         pass
 

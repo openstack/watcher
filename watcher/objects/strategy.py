@@ -47,7 +47,8 @@ class Strategy(
 
     object_fields = {'goal': (objects.Goal, 'goal_id')}
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def get(cls, context, strategy_id, eager=False):
         """Find a strategy based on its id or uuid
 
@@ -68,7 +69,8 @@ class Strategy(
         else:
             raise exception.InvalidIdentity(identity=strategy_id)
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def get_by_id(cls, context, strategy_id, eager=False):
         """Find a strategy based on its integer id
 
@@ -88,7 +90,8 @@ class Strategy(
         strategy = cls._from_db_object(cls(context), db_strategy, eager=eager)
         return strategy
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def get_by_uuid(cls, context, uuid, eager=False):
         """Find a strategy based on uuid
 
@@ -109,7 +112,8 @@ class Strategy(
         strategy = cls._from_db_object(cls(context), db_strategy, eager=eager)
         return strategy
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def get_by_name(cls, context, name, eager=False):
         """Find a strategy based on name
 
@@ -125,7 +129,8 @@ class Strategy(
         strategy = cls._from_db_object(cls(context), db_strategy, eager=eager)
         return strategy
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def list(
         cls,
         context,

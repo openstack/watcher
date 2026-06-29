@@ -41,7 +41,8 @@ class Goal(
         'efficacy_specification': wfields.FlexibleListOfDictField(),
     }
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def get(cls, context, goal_id):
         """Find a goal based on its id or uuid
 
@@ -61,7 +62,8 @@ class Goal(
         else:
             raise exception.InvalidIdentity(identity=goal_id)
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def get_by_id(cls, context, goal_id):
         """Find a goal based on its integer id
 
@@ -78,7 +80,8 @@ class Goal(
         goal = cls._from_db_object(cls(context), db_goal)
         return goal
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def get_by_uuid(cls, context, uuid):
         """Find a goal based on uuid
 
@@ -95,7 +98,8 @@ class Goal(
         goal = cls._from_db_object(cls(context), db_goal)
         return goal
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def get_by_name(cls, context, name):
         """Find a goal based on name
 
@@ -107,7 +111,8 @@ class Goal(
         goal = cls._from_db_object(cls(context), db_goal)
         return goal
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def list(
         cls,
         context,

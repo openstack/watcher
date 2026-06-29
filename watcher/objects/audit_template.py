@@ -85,7 +85,8 @@ class AuditTemplate(
         'strategy': (objects.Strategy, 'strategy_id'),
     }
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def get(cls, context, audit_template_id, eager=False):
         """Find an audit template based on its id or uuid
 
@@ -106,7 +107,8 @@ class AuditTemplate(
         else:
             raise exception.InvalidIdentity(identity=audit_template_id)
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def get_by_id(cls, context, audit_template_id, eager=False):
         """Find an audit template based on its integer id
 
@@ -128,7 +130,8 @@ class AuditTemplate(
         )
         return audit_template
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def get_by_uuid(cls, context, uuid, eager=False):
         """Find an audit template based on uuid
 
@@ -150,7 +153,8 @@ class AuditTemplate(
         )
         return audit_template
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def get_by_name(cls, context, name, eager=False):
         """Find an audit template based on name
 
@@ -167,7 +171,8 @@ class AuditTemplate(
         )
         return audit_template
 
-    @base.remotable_classmethod
+    @classmethod
+    @base.remotable
     def list(
         cls,
         context,
