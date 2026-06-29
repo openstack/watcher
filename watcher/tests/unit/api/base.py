@@ -21,8 +21,6 @@
 
 # NOTE(deva): import auth_token so we can override a config option
 
-import copy
-
 from unittest import mock
 from urllib import parse as urlparse
 
@@ -313,29 +311,14 @@ class FunctionalTest(base.DbTestCase):
 class AdminRoleTest(base.DbTestCase):
     def setUp(self):
         super().setUp()
-        token_info = {
-            'token': {'project': {'id': 'admin'}, 'user': {'id': 'admin'}}
-        }
-        self.context = watcher_context.RequestContext(
-            auth_token_info=token_info, project_id='admin', user_id='admin'
+
+    def _create_context(self, *args, **kwargs):
+        return watcher_context.RequestContext(
+            *args,
+            project_id='admin',
+            project_domain_id='fake_proj_domain_id',
+            user_id='admin',
+            user_domain_id='fake_user_domain_id',
+            roles=['admin'],
+            **kwargs,
         )
-
-        def make_context(*args, **kwargs):
-            # If context hasn't been constructed with token_info
-            if not kwargs.get('auth_token_info'):
-                kwargs['auth_token_info'] = copy.deepcopy(token_info)
-            if not kwargs.get('project_id'):
-                kwargs['project_id'] = 'admin'
-            if not kwargs.get('user_id'):
-                kwargs['user_id'] = 'admin'
-            if not kwargs.get('roles'):
-                kwargs['roles'] = ['admin']
-
-            context = watcher_context.RequestContext(*args, **kwargs)
-            return watcher_context.RequestContext.from_dict(context.to_dict())
-
-        p = mock.patch.object(
-            watcher_context, 'make_context', side_effect=make_context
-        )
-        self.mock_make_context = p.start()
-        self.addCleanup(p.stop)

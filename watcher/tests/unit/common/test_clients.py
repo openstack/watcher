@@ -255,7 +255,7 @@ class TestGetSDKConnection(TestBaseClients):
         context_obj = context.RequestContext(
             auth_token='test_token',
             project_id='test_project_id',
-            project_domain='test_project_domain_id',
+            project_domain_id='test_project_domain_id',
         )
         mock_connection = mock.Mock()
         mock_connect.return_value = mock_connection
