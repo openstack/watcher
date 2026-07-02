@@ -31,9 +31,9 @@ from pecan import testing
 from watcher.common import context as watcher_context
 from watcher.common import service
 from watcher.objects import base as objects_base
-from watcher.tests.fixtures import conf_fixture
-from watcher.tests.fixtures import policy_fixture
-from watcher.tests.fixtures import watcher as watcher_fixtures
+from watcher.tests.local_fixtures import conf_fixture
+from watcher.tests.local_fixtures import policy_fixture
+from watcher.tests.local_fixtures import watcher as watcher_fixtures
 
 
 CONF = cfg.CONF

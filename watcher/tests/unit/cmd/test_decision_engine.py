@@ -24,7 +24,7 @@ from watcher.cmd.eventlet import decisionengine
 from watcher.common import service as watcher_service
 from watcher.decision_engine import sync
 from watcher.decision_engine.audit import continuous
-from watcher.tests.fixtures import watcher as watcher_fixtures
+from watcher.tests.local_fixtures import watcher as watcher_fixtures
 from watcher.tests.unit import base
 
 
