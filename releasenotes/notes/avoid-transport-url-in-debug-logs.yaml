@@ -1,0 +1,8 @@
+---
+security:
+  - |
+    Hardened service debug logging so service start and stop messages no
+    longer include the configured messaging transport URL. This avoids writing
+    credentials embedded in the transport URL to service logs when debug
+    logging is enabled. This is a security hardening enhancement and not a
+    security vulnerability fix.
