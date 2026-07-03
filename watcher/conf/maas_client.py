@@ -23,6 +23,7 @@ MAAS_CLIENT_OPTS = [
     cfg.StrOpt('url',
                help='MaaS URL, example: http://1.2.3.4:5240/MAAS'),
     cfg.StrOpt('api_key',
+               secret=True,
                help='MaaS API authentication key.'),
     cfg.IntOpt('timeout',
                default=60,
