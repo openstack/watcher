@@ -258,7 +258,7 @@ class Service(service.ServiceBase):
         )
 
     def start(self):
-        LOG.debug("Connecting to '%s'", CONF.transport_url)
+        LOG.debug("Connecting to messaging transport")
         if self.conductor_topic_handler:
             self.conductor_topic_handler.start()
         if self.notification_handler:
@@ -267,7 +267,7 @@ class Service(service.ServiceBase):
             self.heartbeat.start()
 
     def stop(self):
-        LOG.debug("Disconnecting from '%s'", CONF.transport_url)
+        LOG.debug("Disconnecting from messaging transport")
         if self.conductor_topic_handler:
             self.conductor_topic_handler.stop()
         if self.notification_handler:

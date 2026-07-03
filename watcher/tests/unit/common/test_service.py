@@ -107,6 +107,28 @@ class TestService(base.TestCase):
             dummy_service.conductor_topic_handler, om.rpc.server.RPCServer
         )
 
+    @mock.patch.object(service.LOG, 'debug', autospec=True)
+    def test_transport_url_not_logged(self, mock_debug):
+        transport_url = 'rabbit://api:secret-pass@example.com:5672/'
+        CONF.set_override('transport_url', transport_url)
+
+        dummy_service = service.Service(DummyManager)
+        dummy_service.conductor_topic_handler = None
+        dummy_service.notification_handler = None
+        dummy_service.heartbeat = None
+
+        dummy_service.start()
+        dummy_service.stop()
+
+        logged = ' '.join(
+            str(arg) for call in mock_debug.call_args_list for arg in call.args
+        )
+
+        self.assertNotIn(transport_url, logged)
+        self.assertNotIn('secret-pass', logged)
+        mock_debug.assert_any_call("Connecting to messaging transport")
+        mock_debug.assert_any_call("Disconnecting from messaging transport")
+
 
 class TestServiceMonitoringBase(db_base.DbTestCase):
     def setUp(self):

@@ -30,7 +30,10 @@ GRAFANA_CLIENT_OPTS = [
     # TODO(Dantali0n) each individual metric could have its own token.
     # A similar structure to the database_map would solve this.
     cfg.StrOpt(
-        'token', default=None, help="Authentication token to gain access"
+        'token',
+        default=None,
+        secret=True,
+        help="Authentication token to gain access",
     ),
     # TODO(Dantali0n) each individual metric could have its own base url.
     # A similar structure to the database_map would solve this.
