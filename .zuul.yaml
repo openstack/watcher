@@ -23,7 +23,7 @@
 
 - job:
     name: watcher-tempest-gnocchi
-    parent: watcher-tempest-base-two-node
+    parent: watcher-tempest-base-three-node
     description: |
       Watcher multinode devstack tempest job with Gnocchi as datasource. This
       job uses fake metrics injection and does not requires ceilometer-acompute
@@ -115,9 +115,9 @@
         /etc/hosts: logs
 
 - job:
-    name: watcher-tempest-base-two-node
+    name: watcher-tempest-base-three-node
     parent: watcher-tempest-base
-    nodeset: openstack-two-node-noble
+    nodeset: openstack-three-node-noble
     abstract: true
     description: |
       Watcher multinode devstack tempest job base template.
@@ -199,7 +199,7 @@
 
 - job:
     name: watcher-tempest-prometheus
-    parent: watcher-tempest-base-two-node
+    parent: watcher-tempest-base-three-node
     description: |
       Watcher multinode devstack tempest job with Prometheus as datasource.
       This job uses fake metrics injection and does not require ceilometer-acompute
