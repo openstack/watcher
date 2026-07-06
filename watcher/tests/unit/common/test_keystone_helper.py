@@ -16,7 +16,7 @@
 from openstack.identity.v3 import service as ks_service
 
 from watcher.common import keystone_helper
-from watcher.tests.fixtures import watcher as watcher_fixtures
+from watcher.tests.local_fixtures import watcher as watcher_fixtures
 from watcher.tests.unit import base as test
 
 

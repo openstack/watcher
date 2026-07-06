@@ -21,7 +21,7 @@ from stevedore import extension as stevedore_extension
 from watcher.common import clients
 from watcher.common import exception
 from watcher.decision_engine.loading import default as default_loading
-from watcher.tests.fixtures import conf_fixture
+from watcher.tests.local_fixtures import conf_fixture
 from watcher.tests.unit import base
 from watcher.tests.unit.decision_engine.model import faker_cluster_state
 

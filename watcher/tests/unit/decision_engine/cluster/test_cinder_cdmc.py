@@ -16,7 +16,7 @@ from unittest import mock
 from watcher.common import cinder_helper
 from watcher.common import exception
 from watcher.decision_engine.model.collector import cinder
-from watcher.tests.fixtures import conf_fixture
+from watcher.tests.local_fixtures import conf_fixture
 from watcher.tests.unit import base
 
 

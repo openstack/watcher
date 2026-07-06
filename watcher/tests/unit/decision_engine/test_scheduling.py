@@ -27,7 +27,7 @@ from watcher import objects
 from watcher.decision_engine import scheduling
 from watcher.decision_engine.loading import default as default_loading
 from watcher.decision_engine.strategy.strategies import dummy_strategy
-from watcher.tests.fixtures import watcher as watcher_fixtures
+from watcher.tests.local_fixtures import watcher as watcher_fixtures
 from watcher.tests.unit import base
 from watcher.tests.unit.db import base as db_base
 from watcher.tests.unit.decision_engine.model import faker_cluster_state
