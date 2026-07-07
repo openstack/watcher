@@ -9,7 +9,6 @@
     check:
       jobs:
         - watcher-tempest-api-jammy
-        - watcher-grenade
         - watcher-tempest-gnocchi
         - watcherclient-tempest-functional
         - watcher-tempest-api-ipv6-only
@@ -17,7 +16,6 @@
     gate:
       jobs:
         - watcher-tempest-api-jammy
-        - watcher-grenade
         - watcher-tempest-gnocchi
         - watcherclient-tempest-functional
         - watcher-tempest-api-ipv6-only
@@ -171,7 +169,14 @@
     description: This is integrated job testing on Ubuntu jammy(22.04)
     parent: watcher-tempest-base
     nodeset: openstack-single-node-jammy
+    required-projects:
+      - name: openstack/tempest
+        override-checkout: 46.3.0
+      - name: openstack/watcher-tempest-plugin
+        override-checkout: 3.7.0
     vars:
+      devstack_localrc:
+        TEMPEST_VENV_UPPER_CONSTRAINTS: '/opt/stack/requirements/upper-constraints.txt'
       python_version: '3.9'
 
 - job:
@@ -181,16 +186,6 @@
       Watcher single node devstack tempest job for IPv6-only deployment.
     required-projects: *tempest_base_required_projects
     vars: *tempest_base_vars
-    irrelevant-files: *irrelevant_files
-
-- job:
-    name: watcher-grenade
-    parent: grenade
-    required-projects: *tempest_base_required_projects
-    vars:
-      <<: *tempest_base_vars
-      devstack_plugins:
-        watcher: https://opendev.org/openstack/watcher
     irrelevant-files: *irrelevant_files
 
 - job:
