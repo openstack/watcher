@@ -32,6 +32,7 @@ SERVICE_OPTS = [
     cfg.HostAddressOpt(
         'host',
         default=socket.gethostname(),
+        sample_default='<HOSTNAME>',
         help=_(
             'Name of this node. This can be an opaque '
             'identifier. It is not necessarily a hostname, '
