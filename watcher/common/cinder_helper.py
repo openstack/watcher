@@ -103,13 +103,6 @@ class CinderHelper:
         except cinder_exception.NotFound:
             return self.cinder.volumes.find(name=volume)
 
-    def _has_snapshot(self, volume):
-        """Judge volume has a snapshot"""
-        volume = self.get_volume(volume)
-        if volume.snapshot_id:
-            return True
-        return False
-
     def get_deleting_volume(self, volume):
         volume = self.get_volume(volume)
         all_volume = self.get_volume_list()
@@ -324,42 +317,3 @@ class CinderHelper:
         self.cinder.volumes.retype(volume, dest_type, "on-demand")
 
         return self.check_retyped(volume, dest_type)
-
-    def create_volume(
-        self, cinder, volume, dest_type, retry=120, retry_interval=10
-    ):
-        """Create volume of volume with dest_type using cinder"""
-        volume = self.get_volume(volume)
-        LOG.debug("start creating new volume")
-        new_volume = cinder.volumes.create(
-            getattr(volume, 'size'),
-            name=getattr(volume, 'name'),
-            volume_type=dest_type,
-            availability_zone=getattr(volume, 'availability_zone'),
-        )
-        while getattr(new_volume, 'status') != 'available' and retry:
-            new_volume = cinder.volumes.get(new_volume.id)
-            LOG.debug('Waiting volume creation of %s', new_volume)
-            time.sleep(retry_interval)
-            retry -= 1
-            LOG.debug("retry count: %s", retry)
-
-        if getattr(new_volume, 'status') != 'available':
-            error_msg = _("Failed to create volume '%(volume)s. ") % {
-                'volume': new_volume.id
-            }
-            raise Exception(error_msg)
-
-        LOG.debug("Volume %s was created successfully.", new_volume)
-        return new_volume
-
-    def delete_volume(self, volume):
-        """Delete volume"""
-        volume = self.get_volume(volume)
-        self.cinder.volumes.delete(volume)
-        result = self.check_volume_deleted(volume)
-        if not result:
-            error_msg = _("Failed to delete volume '%(volume)s. ") % {
-                'volume': volume.id
-            }
-            raise Exception(error_msg)
