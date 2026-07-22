@@ -184,6 +184,19 @@ class CinderNotification(base.NotificationEndpoint):
         if 'glance_metadata' in data:
             bootable = True
 
+        try:
+            # Notifications send volume_type as ID, not name;
+            # resolve to name for consistency with the collector.
+            volume_type_name = self.cinder.get_volume_type_name_by_id(
+                data['volume_type']
+            )
+        except exception.VolumeTypeNotFound as exc:
+            # If volume_type name can not be find for any reason
+            # let's not update it but not block the rest of updates.
+            # Periodic collector sync will update.
+            LOG.exception(exc)
+            volume_type_name = volume.volume_type
+
         volume.update(
             {
                 "name": data['display_name'] or "",
@@ -194,6 +207,9 @@ class CinderNotification(base.NotificationEndpoint):
                 "project_id": data['tenant_id'],
                 "metadata": data['metadata'],
                 "bootable": bootable,
+                "volume_type": volume_type_name,
+                "created_at": data['created_at'],
+                "host": data['host'],
             }
         )
 

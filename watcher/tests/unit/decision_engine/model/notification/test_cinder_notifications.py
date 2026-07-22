@@ -377,7 +377,10 @@ class TestCinderNotifications(NotificationTestCase):
         )
 
         m_cinder_helper.return_value = mock.Mock(
-            get_storage_pool_by_name=m_get_storage_pool_by_name
+            get_storage_pool_by_name=m_get_storage_pool_by_name,
+            get_volume_type_name_by_id=mock.Mock(
+                side_effect=lambda type_id: type_id
+            ),
         )
 
         storage_model = self.fake_cdmc.generate_scenario_1()
@@ -406,6 +409,9 @@ class TestCinderNotifications(NotificationTestCase):
         self.assertEqual(380, pool_0.free_capacity_gb)
         self.assertEqual(120, pool_0.allocated_capacity_gb)
         self.assertEqual(120, pool_0.provisioned_capacity_gb)
+        self.assertEqual('type_0', volume_00.volume_type)
+        self.assertEqual('2017-10-30T00:00:00', volume_00.created_at)
+        self.assertEqual('host_0@backend_0#pool_0', volume_00.host)
 
     @mock.patch.object(cinder_helper, 'CinderHelper')
     def test_cinder_bootable_volume_create(self, m_cinder_helper):
@@ -427,7 +433,10 @@ class TestCinderNotifications(NotificationTestCase):
         )
 
         m_cinder_helper.return_value = mock.Mock(
-            get_storage_pool_by_name=m_get_storage_pool_by_name
+            get_storage_pool_by_name=m_get_storage_pool_by_name,
+            get_volume_type_name_by_id=mock.Mock(
+                side_effect=lambda type_id: type_id
+            ),
         )
 
         storage_model = self.fake_cdmc.generate_scenario_1()
@@ -494,6 +503,9 @@ class TestCinderNotifications(NotificationTestCase):
             get_storage_pool_by_name=m_get_storage_pool_by_name,
             get_storage_node_by_name=m_get_storage_node_by_name,
             get_volume_type_by_backendname=m_get_volume_type_by_backendname,
+            get_volume_type_name_by_id=mock.Mock(
+                side_effect=lambda type_id: type_id
+            ),
         )
 
         storage_model = self.fake_cdmc.generate_scenario_1()
@@ -534,7 +546,10 @@ class TestCinderNotifications(NotificationTestCase):
             side_effect=exception.PoolNotFound(name="TEST")
         )
         m_cinder_helper.return_value = mock.Mock(
-            get_storage_pool_by_name=m_get_storage_pool_by_name
+            get_storage_pool_by_name=m_get_storage_pool_by_name,
+            get_volume_type_name_by_id=mock.Mock(
+                side_effect=lambda type_id: type_id
+            ),
         )
 
         storage_model = self.fake_cdmc.generate_scenario_1()
@@ -585,7 +600,10 @@ class TestCinderNotifications(NotificationTestCase):
         )
 
         m_cinder_helper.return_value = mock.Mock(
-            get_storage_pool_by_name=m_get_storage_pool_by_name
+            get_storage_pool_by_name=m_get_storage_pool_by_name,
+            get_volume_type_name_by_id=mock.Mock(
+                side_effect=lambda type_id: type_id
+            ),
         )
 
         message = self.load_message('scenario_1_volume-update.json')
@@ -599,6 +617,9 @@ class TestCinderNotifications(NotificationTestCase):
         # check that name of volume_0 was updated in the model
         volume_0 = storage_model.get_volume_by_uuid(volume_0_name)
         self.assertEqual('name_01', volume_0.name)
+        self.assertEqual('type_0', volume_0.volume_type)
+        self.assertEqual('2017-10-30T00:00:00', volume_0.created_at)
+        self.assertEqual('host_0@backend_0#pool_0', volume_0.host)
 
     @mock.patch.object(cinder_helper, 'CinderHelper')
     def test_cinder_volume_delete(self, m_cinder_helper):

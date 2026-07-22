@@ -76,6 +76,13 @@ class CinderHelper:
     def get_volume_type_list(self):
         return self.cinder.volume_types.list()
 
+    def get_volume_type_name_by_id(self, volume_type_id):
+        """Return the volume type name for a given volume type ID."""
+        try:
+            return self.cinder.volume_types.get(volume_type_id).name
+        except cinder_exception.NotFound:
+            raise exception.VolumeTypeNotFound(name=volume_type_id)
+
     def get_volume_snapshots_list(self):
         return self.cinder.volume_snapshots.list(
             search_opts={'all_tenants': True}

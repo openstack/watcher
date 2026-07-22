@@ -11,6 +11,8 @@
     "volume_attachment": [{"server_id": "server", "attachment_id": "attachment"}],
     "snapshot_id": "",
     "tenant_id": "91FFFE30-78A0-4152-ACD2-8310FF274DC9",
-    "metadata": {"readonly": false, "attached_mode": "rw"}
+    "metadata": {"readonly": false, "attached_mode": "rw"},
+    "volume_type": "type_0",
+    "created_at": "2017-10-30T00:00:00"
   }
 }

@@ -315,9 +315,23 @@ class FakerStorageModelCollector(base.BaseClusterDataModelCollector):
             "4d1c952d-95d0-4aac-82aa-c3cb509af9f3",
         ]
 
+        volume_pool_hosts = [
+            "host_0@backend_0#pool_0",
+            "host_0@backend_0#pool_0",
+            "host_0@backend_0#pool_1",
+            "host_0@backend_0#pool_1",
+            "host_1@backend_1#pool_0",
+            "host_1@backend_1#pool_0",
+            "host_1@backend_1#pool_1",
+            "host_1@backend_1#pool_1",
+            "host_1@backend_1#pool_1",
+        ]
+
         for k in range(volume_count):
             uuid = volume_uuid_mapping[k]
             name = f"name_{k}"
+            host = volume_pool_hosts[k]
+            vtype = "type_0" if "backend_0" in host else "type_1"
             volume_attributes = {
                 "size": 40,
                 "status": "in-use",
@@ -329,6 +343,9 @@ class FakerStorageModelCollector(base.BaseClusterDataModelCollector):
                 "project_id": "91FFFE30-78A0-4152-ACD2-8310FF274DC9",
                 "metadata": '{"readonly": false,"attached_mode": "rw"}',
                 "bootable": 'False',
+                "volume_type": vtype,
+                "created_at": f"2017-10-30T0{k}:00:00",
+                "host": host,
             }
             volume = element.Volume(**volume_attributes)
             model.add_volume(volume)

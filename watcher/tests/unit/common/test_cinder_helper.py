@@ -115,6 +115,7 @@ class TestCinderHelper(base.TestCase):
     @staticmethod
     def fake_volume_type(**kwargs):
         volume_type = mock.MagicMock(spec=CinderVolType)
+        volume_type.id = kwargs.get('id', 'fake-type-id')
         volume_type.name = kwargs.get('name', 'fake_type')
         extra_specs = {'volume_backend_name': 'backend'}
         volume_type.extra_specs = kwargs.get('extra_specs', extra_specs)
@@ -150,6 +151,24 @@ class TestCinderHelper(base.TestCase):
         )
 
         self.assertEqual([], volume_type_name)
+
+    def test_get_volume_type_name_by_id_found(self, mock_cinder):
+        volume_type1 = self.fake_volume_type(id='abc-123', name='my_type')
+        cinder_util = cinder_helper.CinderHelper()
+        cinder_util.cinder.volume_types.get.return_value = volume_type1
+        result = cinder_util.get_volume_type_name_by_id('abc-123')
+        self.assertEqual('my_type', result)
+
+    def test_get_volume_type_name_by_id_not_found(self, mock_cinder):
+        cinder_util = cinder_helper.CinderHelper()
+        cinder_util.cinder.volume_types.get.side_effect = (
+            cinder_exception.NotFound(404)
+        )
+        self.assertRaises(
+            exception.VolumeTypeNotFound,
+            cinder_util.get_volume_type_name_by_id,
+            'unknown-id',
+        )
 
     @staticmethod
     def fake_volume(**kwargs):

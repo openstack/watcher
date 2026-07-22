@@ -12,6 +12,8 @@
     "snapshot_id": "",
     "tenant_id": "52044438-21f2-4a48-add4-d48bab20f7e1",
     "metadata": {"readonly": false, "attached_mode": "rw"},
-    "glance_metadata": {}
+    "glance_metadata": {},
+    "volume_type": "type_0",
+    "created_at": "2017-10-30T00:00:00"
   }
 }

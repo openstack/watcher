@@ -50,6 +50,9 @@ class Volume(storage_resource.StorageResource):
         "project_id": wfields.UUIDField(),
         "metadata": wfields.JsonField(),
         "bootable": ovo_fields.BooleanField(),
+        "volume_type": ovo_fields.StringField(),
+        "created_at": ovo_fields.StringField(),
+        "host": ovo_fields.StringField(),
     }
 
     def accept(self, visitor):

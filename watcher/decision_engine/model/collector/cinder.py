@@ -302,6 +302,9 @@ class CinderModelBuilder(base.BaseModelBuilder):
             "project_id": getattr(volume, 'os-vol-tenant-attr:tenant_id'),
             "metadata": volume.metadata,
             "bootable": volume.bootable,
+            "volume_type": volume.volume_type,
+            "created_at": volume.created_at,
+            "host": getattr(volume, 'os-vol-host-attr:host'),
         }
 
         return element.Volume(**volume_attributes)
