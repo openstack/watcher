@@ -492,7 +492,132 @@ class TestVMWorkloadConsolidation(TestBaseStrategy):
             }
         )
         self.assertEqual(expected, self.strategy.solution.actions)
+
+        cache_before_n1 = self.strategy.node_utilization_cache[
+            n1.hostname
+        ].copy()
+        cache_before_n2 = self.strategy.node_utilization_cache[
+            n2.hostname
+        ].copy()
+
         self.strategy.optimize_solution()
         del expected[3]
         del expected[1]
         self.assertEqual(expected, self.strategy.solution.actions)
+
+        cache_after_n1 = self.strategy.node_utilization_cache[n1.hostname]
+        cache_after_n2 = self.strategy.node_utilization_cache[n2.hostname]
+        # INSTANCE_7 round-trip (Node_0->Node_1->Node_0) was collapsed
+        # into a no-op, so cache should remain unchanged.
+        for m in ('cpu', 'ram', 'disk'):
+            self.assertAlmostEqual(cache_after_n1[m], cache_before_n1[m])
+            self.assertAlmostEqual(cache_after_n2[m], cache_before_n2[m])
+
+    def test_node_utilization_cache_populated(self):
+        model = self.fake_c_cluster.generate_scenario_1()
+        self.m_c_model.return_value = model
+        self.fake_metrics.model = model
+        node_0 = model.get_node_by_uuid("Node_0")
+
+        self.assertEqual({}, self.strategy.node_utilization_cache)
+
+        result = self.strategy.get_node_utilization(node_0)
+        self.assertIn(node_0.hostname, self.strategy.node_utilization_cache)
+        cached = self.strategy.node_utilization_cache[node_0.hostname]
+        self.assertEqual(result['cpu'], cached['cpu'])
+        self.assertEqual(result['ram'], cached['ram'])
+        self.assertEqual(result['disk'], cached['disk'])
+
+        result2 = self.strategy.get_node_utilization(node_0)
+        self.assertEqual(result, result2)
+
+    def test_node_utilization_cache_updated_after_migration(self):
+        model = self.fake_c_cluster.generate_scenario_1()
+        self.m_c_model.return_value = model
+        self.fake_metrics.model = model
+        node_0 = model.get_node_by_uuid("Node_0")
+        node_1 = model.get_node_by_uuid("Node_1")
+
+        data_src = self.m_datasource.return_value
+        data_src.get_host_cpu_usage = mock.Mock(return_value=30)
+        data_src.get_host_ram_usage = mock.Mock(return_value=512 * 1024)
+
+        self.strategy.get_node_utilization(node_0)
+        self.strategy.get_node_utilization(node_1)
+        before_0 = self.strategy.node_utilization_cache[node_0.hostname]
+        before_1 = self.strategy.node_utilization_cache[node_1.hostname]
+
+        instance = model.get_instance_by_uuid('INSTANCE_0')
+        instance_util = self.strategy.get_instance_utilization(instance)
+        self.strategy.add_migration(instance, node_0, node_1)
+
+        after_0 = self.strategy.node_utilization_cache[node_0.hostname]
+        after_1 = self.strategy.node_utilization_cache[node_1.hostname]
+
+        self.assertAlmostEqual(
+            after_0['cpu'], before_0['cpu'] - instance_util['cpu']
+        )
+        self.assertAlmostEqual(
+            after_0['ram'], before_0['ram'] - instance_util['ram']
+        )
+        self.assertAlmostEqual(
+            after_0['disk'], before_0['disk'] - instance_util['disk']
+        )
+
+        self.assertAlmostEqual(
+            after_1['cpu'], before_1['cpu'] + instance_util['cpu']
+        )
+        self.assertAlmostEqual(
+            after_1['ram'], before_1['ram'] + instance_util['ram']
+        )
+        self.assertAlmostEqual(
+            after_1['disk'], before_1['disk'] + instance_util['disk']
+        )
+
+    def test_optimize_solution_cache_consistent_after_multihop(self):
+        model = self.fake_c_cluster.generate_scenario_2()
+        self.m_c_model.return_value = model
+        self.fake_metrics.model = model
+        node_0 = model.get_node_by_uuid("Node_0")
+        node_1 = model.get_node_by_uuid("Node_1")
+        node_2 = model.get_node_by_uuid("Node_2")
+
+        data_src = self.m_datasource.return_value
+        data_src.get_host_cpu_usage = mock.Mock(return_value=30)
+        data_src.get_host_ram_usage = mock.Mock(return_value=512 * 1024)
+
+        self.strategy.get_node_utilization(node_0)
+        self.strategy.get_node_utilization(node_1)
+        self.strategy.get_node_utilization(node_2)
+
+        instance = model.get_instance_by_uuid('INSTANCE_0')
+        instance_util = self.strategy.get_instance_utilization(instance)
+
+        before_0 = self.strategy.node_utilization_cache[node_0.hostname].copy()
+        before_1 = self.strategy.node_utilization_cache[node_1.hostname].copy()
+        before_2 = self.strategy.node_utilization_cache[node_2.hostname].copy()
+
+        self.strategy.add_migration(instance, node_0, node_1)
+        self.strategy.add_migration(instance, node_1, node_2)
+        self.strategy.optimize_solution()
+
+        after_0 = self.strategy.node_utilization_cache[node_0.hostname]
+        after_1 = self.strategy.node_utilization_cache[node_1.hostname]
+        after_2 = self.strategy.node_utilization_cache[node_2.hostname]
+
+        for metric in ('cpu', 'ram', 'disk'):
+            self.assertAlmostEqual(
+                after_0[metric],
+                before_0[metric] - instance_util[metric],
+                msg="Node_0 (source) used resources should decrease",
+            )
+            self.assertAlmostEqual(
+                after_1[metric],
+                before_1[metric],
+                msg="Node_1 (intermediate) cache should not change",
+            )
+            self.assertAlmostEqual(
+                after_2[metric],
+                before_2[metric] + instance_util[metric],
+                msg="Node_2 (destination) used resources should increase",
+            )
