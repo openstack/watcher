@@ -15,6 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import time
+
 from unittest import mock
 
 import futurist
@@ -54,8 +56,8 @@ class TestDecisionEngineThreadPool(base.TestCase):
         self.m_threadpool._threadpool = executor.get_futurist_pool_executor(1)
 
     @staticmethod
-    def noop_function(*args, **kwargs):
-        pass
+    def slow_function(*args, **kwargs):
+        time.sleep(1)
 
     def test_singleton(self):
         """Ensure only one object of DecisionEngineThreadPool can be created"""
@@ -166,7 +168,7 @@ class TestDecisionEngineThreadPool(base.TestCase):
         # create a collection of futures from submitted m_function tasks
         futures = [
             self.m_threadpool.submit(
-                TestDecisionEngineThreadPool.noop_function
+                TestDecisionEngineThreadPool.slow_function
             )
             for i in range(3)
         ]
