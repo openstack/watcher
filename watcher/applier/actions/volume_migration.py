@@ -15,7 +15,6 @@
 
 import jsonschema
 
-from cinderclient import exceptions as cinder_exception
 from oslo_log import log
 
 from watcher import conf
@@ -225,7 +224,7 @@ class VolumeMigrate(base.BaseAction):
         """
         try:
             volume = self.cinder_util.get_volume(self.volume_id)
-        except cinder_exception.NotFound:
+        except exception.StorageResourceNotFound:
             raise exception.ActionSkipped(
                 _("Volume %s not found") % self.volume_id
             )
@@ -265,7 +264,7 @@ class VolumeMigrate(base.BaseAction):
             self.migration_type in (self.SWAP, self.MIGRATE)
             and self.destination_node
         ):
-            current_host = getattr(volume, 'os-vol-host-attr:host')
+            current_host = volume.host
             if current_host == self.destination_node:
                 raise exception.ActionSkipped(
                     _("Volume is already on node %s") % self.destination_node

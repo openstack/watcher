@@ -172,7 +172,7 @@ class CinderModelBuilder(base.BaseModelBuilder):
         for pool in self.call_retry(self.cinder_helper.get_storage_pool_list):
             pool = self._build_storage_pool(pool)
             self.model.add_pool(pool)
-            storage_name = getattr(pool, 'name')
+            storage_name = pool.name
             try:
                 storage_node = self.model.get_node_by_name(storage_name)
                 # Connect the instance to its compute node
@@ -193,7 +193,7 @@ class CinderModelBuilder(base.BaseModelBuilder):
         """Build a storage node from a Cinder storage node
 
         :param node: A storage node
-        :type node: :py:class:`~cinderclient.v3.services.Service`
+        :type node: :py:class:`~watcher.common.cinder_helper.StorageService`
         """
         # node.host is formatted as host@backendname since ocata,
         # or may be only host as of ocata
@@ -223,7 +223,7 @@ class CinderModelBuilder(base.BaseModelBuilder):
         """Build a storage pool from a Cinder storage pool
 
         :param pool: A storage pool
-        :type pool: :py:class:`~cinderclient.v3.pools.Pool`
+        :type pool: :py:class:`~watcher.common.cinder_helper.StoragePool`
         :raises: exception.InvalidPoolAttributeValue
         """
         # build up the storage pool.
@@ -244,7 +244,9 @@ class CinderModelBuilder(base.BaseModelBuilder):
                 LOG.debug(
                     "Attribute %s for pool %s is not provided", attr, pool.name
                 )
-            except ValueError:
+            # trying to convert None or "unknown" capacity values to an int
+            # will raise TypeError or ValueError
+            except (ValueError, TypeError):
                 raise exception.InvalidPoolAttributeValue(
                     name=pool.name, attribute=attr
                 )
@@ -264,7 +266,7 @@ class CinderModelBuilder(base.BaseModelBuilder):
         for vol in volumes:
             volume = self._build_volume_node(vol)
             self.model.add_volume(volume)
-            pool_name = getattr(vol, 'os-vol-host-attr:host')
+            pool_name = vol.host
             if pool_name is None:
                 # The volume is not attached to any pool
                 continue
@@ -279,7 +281,7 @@ class CinderModelBuilder(base.BaseModelBuilder):
 
         Create an volume node for the graph using cinder and the
         `volume` cinder object.
-        :param instance: Cinder Volume object.
+        :param volume: :py:class:`~watcher.common.cinder_helper.Volume`
         :return: A volume node for the graph.
         """
         attachments = [
@@ -299,12 +301,12 @@ class CinderModelBuilder(base.BaseModelBuilder):
             "name": volume.name or "",
             "multiattach": volume.multiattach,
             "snapshot_id": volume.snapshot_id or "",
-            "project_id": getattr(volume, 'os-vol-tenant-attr:tenant_id'),
+            "project_id": volume.tenant_id,
             "metadata": volume.metadata,
             "bootable": volume.bootable,
             "volume_type": volume.volume_type,
             "created_at": volume.created_at,
-            "host": getattr(volume, 'os-vol-host-attr:host'),
+            "host": volume.host,
         }
 
         return element.Volume(**volume_attributes)

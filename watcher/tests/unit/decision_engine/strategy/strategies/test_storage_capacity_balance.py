@@ -22,99 +22,106 @@ from watcher.common import cinder_helper
 from watcher.common import clients
 from watcher.common import utils
 from watcher.decision_engine.strategy import strategies
+from watcher.tests.unit.common import utils as test_utils
 from watcher.tests.unit.decision_engine.model import faker_cluster_state
 from watcher.tests.unit.decision_engine.strategy.strategies.test_base import (
     TestBaseStrategy,
 )
 
 
-class TestStorageCapacityBalance(TestBaseStrategy):
+class TestStorageCapacityBalance(
+    test_utils.CinderResourcesMixin, TestBaseStrategy
+):
+    def create_cinder_pool(self, **kwargs):
+        return cinder_helper.StoragePool.from_cinderclient(
+            super().create_cinder_pool(**kwargs)
+        )
+
+    def create_cinder_volume(self, **kwargs):
+        return cinder_helper.Volume.from_cinderclient(
+            super().create_cinder_volume(**kwargs)
+        )
+
+    def create_cinder_volume_snapshot(self, **kwargs):
+        return cinder_helper.VolumeSnapshot.from_cinderclient(
+            super().create_cinder_volume_snapshot(**kwargs)
+        )
+
+    def create_cinder_volume_type(self, **kwargs):
+        return cinder_helper.VolumeType.from_cinderclient(
+            super().create_cinder_volume_type(**kwargs)
+        )
+
     def setUp(self):
         super().setUp()
 
-        def test_fake_pool(name, free, total, allocated):
-            fake_pool = mock.MagicMock()
-            fake_pool.name = name
-            fake_pool.pool_name = name.split('#')[1]
-            fake_pool.volume_backend_name = name.split('#')[1]
-            fake_pool.free_capacity_gb = free
-            fake_pool.total_capacity_gb = total
-            fake_pool.allocated_capacity_gb = allocated
-            fake_pool.max_over_subscription_ratio = 1.0
-
-            return fake_pool
-
-        self.fake_pool1 = test_fake_pool(
-            'host1@IPSAN-1#pool1', '60', '100', '90'
+        self.fake_pool1 = self.create_cinder_pool(
+            name='host1@IPSAN-1#pool1',
+            free_capacity_gb='60',
+            total_capacity_gb='100',
+            allocated_capacity_gb='90',
+            volume_backend_name='pool1',
         )
-
-        self.fake_pool2 = test_fake_pool(
-            'host1@IPSAN-1#pool2', '20', '100', '80'
+        self.fake_pool2 = self.create_cinder_pool(
+            name='host1@IPSAN-1#pool2',
+            free_capacity_gb='20',
+            total_capacity_gb='100',
+            allocated_capacity_gb='80',
+            volume_backend_name='pool2',
         )
-
-        self.fake_pool3 = test_fake_pool(
-            'host1@IPSAN-1#local_vstorage', '20', '100', '80'
+        self.fake_pool3 = self.create_cinder_pool(
+            name='host1@IPSAN-1#local_vstorage',
+            free_capacity_gb='20',
+            total_capacity_gb='100',
+            allocated_capacity_gb='80',
+            volume_backend_name='local_vstorage',
         )
         self.fake_pools = [self.fake_pool1, self.fake_pool2, self.fake_pool3]
 
-        def test_fake_vol(
-            id,
-            name,
-            size,
-            status,
-            bootable,
-            migration_status=None,
+        self.fake_vol1 = self.create_cinder_volume(
+            id='922d4762-0bc5-4b30-9cb9-48ab644dd861',
+            name='test_volume1',
+            size=4,
+            status='available',
+            bootable='true',
+            migration_status='success',
+            volume_type='type2',
+            host='host1@IPSAN-1#pool2',
+        )
+        self.fake_vol2 = self.create_cinder_volume(
+            id='922d4762-0bc5-4b30-9cb9-48ab644dd862',
+            name='test_volume2',
+            size=10,
+            status='in-use',
             volume_type=None,
-        ):
-            fake_vol = mock.MagicMock()
-            fake_vol.id = id
-            fake_vol.name = name
-            fake_vol.size = size
-            fake_vol.status = status
-            fake_vol.bootable = bootable
-            fake_vol.migration_status = migration_status
-            fake_vol.volume_type = volume_type
-            setattr(fake_vol, 'os-vol-host-attr:host', 'host1@IPSAN-1#pool2')
-
-            return fake_vol
-
-        self.fake_vol1 = test_fake_vol(
-            '922d4762-0bc5-4b30-9cb9-48ab644dd861',
-            'test_volume1',
-            4,
-            'available',
-            'true',
-            'success',
+            host='host1@IPSAN-1#pool2',
+        )
+        self.fake_vol3 = self.create_cinder_volume(
+            id='922d4762-0bc5-4b30-9cb9-48ab644dd863',
+            name='test_volume3',
+            size=4,
+            status='in-use',
+            bootable='true',
             volume_type='type2',
+            host='host1@IPSAN-1#pool2',
         )
-        self.fake_vol2 = test_fake_vol(
-            '922d4762-0bc5-4b30-9cb9-48ab644dd862',
-            'test_volume2',
-            10,
-            'in-use',
-            'false',
+        self.fake_vol4 = self.create_cinder_volume(
+            id='922d4762-0bc5-4b30-9cb9-48ab644dd864',
+            name='test_volume4',
+            size=10,
+            status='error',
+            bootable='true',
+            volume_type=None,
+            host='host1@IPSAN-1#pool2',
         )
-        self.fake_vol3 = test_fake_vol(
-            '922d4762-0bc5-4b30-9cb9-48ab644dd863',
-            'test_volume3',
-            4,
-            'in-use',
-            'true',
-            volume_type='type2',
-        )
-        self.fake_vol4 = test_fake_vol(
-            '922d4762-0bc5-4b30-9cb9-48ab644dd864',
-            'test_volume4',
-            10,
-            'error',
-            'true',
-        )
-        self.fake_vol5 = test_fake_vol(
-            '922d4762-0bc5-4b30-9cb9-48ab644dd865',
-            'test_volume5',
-            15,
-            'in-use',
-            'true',
+        self.fake_vol5 = self.create_cinder_volume(
+            id='922d4762-0bc5-4b30-9cb9-48ab644dd865',
+            name='test_volume5',
+            size=15,
+            status='in-use',
+            bootable='true',
+            volume_type=None,
+            host='host1@IPSAN-1#pool2',
         )
 
         self.fake_volumes = [
@@ -125,26 +132,19 @@ class TestStorageCapacityBalance(TestBaseStrategy):
             self.fake_vol5,
         ]
 
-        def test_fake_snap(vol_id):
-            fake_snap = mock.MagicMock()
-            fake_snap.volume_id = vol_id
-
-            return fake_snap
-
         self.fake_snap = [
-            test_fake_snap('922d4762-0bc5-4b30-9cb9-48ab644dd865')
+            self.create_cinder_volume_snapshot(
+                volume_id='922d4762-0bc5-4b30-9cb9-48ab644dd865'
+            )
         ]
 
-        def test_fake_volume_type(type_name, extra_specs):
-            fake_type = mock.MagicMock()
-            fake_type.name = type_name
-            fake_type.extra_specs = extra_specs
-
-            return fake_type
-
         self.fake_types = [
-            test_fake_volume_type('type1', {'volume_backend_name': 'pool1'}),
-            test_fake_volume_type('type2', {'volume_backend_name': 'pool2'}),
+            self.create_cinder_volume_type(
+                name='type1', extra_specs={'volume_backend_name': 'pool1'}
+            ),
+            self.create_cinder_volume_type(
+                name='type2', extra_specs={'volume_backend_name': 'pool2'}
+            ),
         ]
 
         self.fake_c_cluster = faker_cluster_state.FakerStorageModelCollector()
@@ -265,12 +265,12 @@ class TestStorageCapacityBalance(TestBaseStrategy):
         solution = self.strategy.execute()
         self.assertEqual(len(solution.actions), 1)
 
-        setattr(self.fake_pool1, 'free_capacity_gb', '60')
+        self.fake_pool1.free_capacity_gb = 60.0
         self.strategy.input_parameters.update({'volume_threshold': 50.0})
         solution = self.strategy.execute()
         self.assertEqual(len(solution.actions), 2)
 
-        setattr(self.fake_pool1, 'free_capacity_gb', '60')
+        self.fake_pool1.free_capacity_gb = 60.0
         self.strategy.input_parameters.update({'volume_threshold': 60.0})
 
         solution = self.strategy.execute()
