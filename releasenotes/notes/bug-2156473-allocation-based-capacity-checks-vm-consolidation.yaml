@@ -1,0 +1,14 @@
+---
+fixes:
+  - |
+    The vm_workload_consolidation strategy now enforces allocation-based
+    capacity checks in addition to utilization-based checks. Previously,
+    only actual CPU, RAM, and disk utilization was verified, which allowed
+    the algorithm to pack more instances onto a node than Nova's placement
+    service would permit. The strategy now also checks that flavor-level
+    allocations (vcpus, memory, disk) do not exceed node capacity,
+    producing more conservative but correct migration plans that align
+    with Nova's placement constraints.
+
+    See: `Bug #2156473 <https://bugs.launchpad.net/watcher/+bug/2156473>`_
+    for more details.
