@@ -271,6 +271,13 @@ class NovaNotification(base.NotificationEndpoint):
                 current_node = None
 
             LOG.debug("Mapped node %s found", node.uuid)
+            if current_node:
+                # Invalidate resource cache: instance attributes (vcpus,
+                # memory, disk) may have changed before this call (e.g.
+                # resize), so cached totals for the node would be stale.
+                self.cluster_data_model.invalidate_node_resource_cache(
+                    current_node
+                )
             if current_node and node != current_node:
                 LOG.debug(
                     "Unmapping instance %s from %s", instance.uuid, node.uuid

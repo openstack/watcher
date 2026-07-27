@@ -288,6 +288,95 @@ class TestNovaNotifications(NotificationTestCase):
 
         self.assertEqual(element.InstanceState.PAUSED.value, instance0.state)
 
+    def test_instance_update_resize_same_node_cache(self):
+        compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
+        self.fake_cdmc.cluster_data_model = compute_model
+        handler = novanotification.VersionedNotification(self.fake_cdmc)
+
+        instance0_uuid = '73b09e16-35b7-4922-804e-e8f5d9b740fc'
+        node0 = compute_model.get_node_by_name('hostname_0')
+        node1 = compute_model.get_node_by_name('hostname_1')
+
+        # Populate the resource cache before the notification.
+        used0_before = compute_model.get_node_used_resources(node0)
+
+        self.assertEqual(10, used0_before['vcpu'])
+        self.assertEqual(2, used0_before['memory'])
+        self.assertEqual(20, used0_before['disk'])
+        compute_model.get_node_used_resources(node1)
+        self.assertEqual(
+            {
+                'fa69c544-906b-4a6a-a9c6-c1f7a8078c73': {
+                    'vcpu': 10,
+                    'memory': 2,
+                    'disk': 20,
+                },
+                'af69c544-906b-4a6a-a9c6-c1f7a8078c73': {
+                    'vcpu': 10,
+                    'memory': 2,
+                    'disk': 20,
+                },
+            },
+            compute_model._node_resource_cache,
+        )
+
+        # Simulate a same-node resize: instance stays on hostname_0 but
+        # gets new resources (vcpus 10->4, memory 2->1024, disk 20->50).
+        message = self.load_message('instance-update.json')
+        payload_data = message['payload']['nova_object.data']
+        payload_data['uuid'] = instance0_uuid
+        payload_data['host'] = 'hostname_0'
+        payload_data['node'] = 'hostname_0'
+        flavor = payload_data['flavor']['nova_object.data']
+        flavor['vcpus'] = 4
+        flavor['memory_mb'] = 1024
+        flavor['root_gb'] = 50
+
+        handler.info(
+            ctxt=self.context,
+            publisher_id=message['publisher_id'],
+            event_type=message['event_type'],
+            payload=message['payload'],
+            metadata=self.FAKE_METADATA,
+        )
+        # Cache for node0 should be cleaned to ensure consistency
+        self.assertEqual(
+            {
+                'af69c544-906b-4a6a-a9c6-c1f7a8078c73': {
+                    'vcpu': 10,
+                    'memory': 2,
+                    'disk': 20,
+                }
+            },
+            compute_model._node_resource_cache,
+        )
+
+        # Cache must reflect the post-resize resources, not stale or
+        # double-counted values.
+        used0_after = compute_model.get_node_used_resources(node0)
+        self.assertEqual(4, used0_after['vcpu'])
+        self.assertEqual(1024, used0_after['memory'])
+        self.assertEqual(50, used0_after['disk'])
+        used1_after = compute_model.get_node_used_resources(node1)
+        self.assertEqual(10, used1_after['vcpu'])
+        self.assertEqual(2, used1_after['memory'])
+        self.assertEqual(20, used1_after['disk'])
+        self.assertEqual(
+            {
+                'fa69c544-906b-4a6a-a9c6-c1f7a8078c73': {
+                    'vcpu': 4,
+                    'memory': 1024,
+                    'disk': 50,
+                },
+                'af69c544-906b-4a6a-a9c6-c1f7a8078c73': {
+                    'vcpu': 10,
+                    'memory': 2,
+                    'disk': 20,
+                },
+            },
+            compute_model._node_resource_cache,
+        )
+
     def test_nova_instance_update_boot_from_volume(self):
         compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
         self.fake_cdmc.cluster_data_model = compute_model
