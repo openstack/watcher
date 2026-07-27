@@ -233,3 +233,14 @@ def allow_list_extend_compute_model():
     return pecan.request.version.minor >= (
         versions.VERSIONS.MINOR_6_EXT_COMPUTE_MODEL.value
     )
+
+
+def allow_audit_template_default_parameters():
+    """Check if we should support default_parameters in AuditTemplate.
+
+    Version 1.7 of the API added support for pre-configured strategy
+    parameters in audit templates.
+    """
+    return pecan.request.version.minor >= (
+        versions.VERSIONS.MINOR_7_AUDIT_TEMPLATE_DEFAULT_PARAMS.value
+    )

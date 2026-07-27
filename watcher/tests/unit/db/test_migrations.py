@@ -57,7 +57,11 @@ class MySQLDbMigrationsTestCase(
         self.engine = enginefacade.writer.get_engine()
         self.dbapi = dbapi.get_instance()
         self.alembic_config = migration._alembic_config()
-        self.revisions_tested = {"15f7375ca737", "7150a7d8f228"}
+        self.revisions_tested = {
+            "15f7375ca737",
+            "7150a7d8f228",
+            "f56ba02662b4",
+        }
 
     def _apply_migration(self, connection, revision):
         if revision not in self.revisions_tested:
@@ -133,6 +137,15 @@ class MySQLDbDataMigrationsTestCase(MySQLDbMigrationsTestCase):
         with connection.begin():
             connection.execute(ap_table.insert(), ap_values)
 
+    def _create_manual_audit_template(self, connection, **kwargs):
+        at_values = utils.get_test_audit_template(**kwargs)
+        at_values = self._transform_mutable_fields_to_text(at_values)
+        metadata = sqlalchemy.MetaData()
+        metadata.reflect(bind=self.engine)
+        at_table = sqlalchemy.Table('audit_templates', metadata)
+        with connection.begin():
+            connection.execute(at_table.insert(), at_values)
+
     def _create_manual_audit(self, connection, **kwargs):
         audit_values = utils.get_test_audit(**kwargs)
         audit_values = self._transform_mutable_fields_to_text(audit_values)
@@ -180,15 +193,11 @@ class MySQLDbDataMigrationsTestCase(MySQLDbMigrationsTestCase):
             name="STRATEGY_ID_1",
             display_name='My Strategy 1',
         )
-        self.audit_template = utils.create_test_audit_template(
-            name="Audit Template", id=1, uuid=None
+        self._create_manual_audit_template(
+            connection, name="Audit Template", id=1, uuid=None
         )
         self._create_manual_audit(
-            connection,
-            audit_template_id=self.audit_template.id,
-            id=1,
-            uuid=None,
-            name="AUDIT_1",
+            connection, audit_template_id=1, id=1, uuid=None, name="AUDIT_1"
         )
         self._create_manual_action_plan(
             connection, audit_id=1, id=1, uuid=None
@@ -277,6 +286,14 @@ class MySQLDbDataMigrationsTestCase(MySQLDbMigrationsTestCase):
         )
         self.assertTrue(
             oslodbutils.column_exists(connection, "audits", "status_message")
+        )
+
+    def _check_f56ba02662b4(self, connection):
+        """Check new default_parameters column in audit_templates."""
+        self.assertTrue(
+            oslodbutils.column_exists(
+                connection, "audit_templates", "default_parameters"
+            )
         )
 
     def test_migration_revisions(self):

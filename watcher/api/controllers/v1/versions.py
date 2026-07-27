@@ -25,7 +25,10 @@ class VERSIONS(enum.Enum):
     MINOR_4_WEBHOOK_API = 4  # v1.4: Add webhook trigger API
     MINOR_5_SKIPPED_ACTION = 5  # v1.5: Add skipped action support
     MINOR_6_EXT_COMPUTE_MODEL = 6  # v1.6: Extend compute data model API
-    MINOR_MAX_VERSION = 6
+    MINOR_7_AUDIT_TEMPLATE_DEFAULT_PARAMS = (
+        7  # v1.7: Add default_parameters to AuditTemplate
+    )
+    MINOR_MAX_VERSION = 7
 
 
 # This is the version 1 API

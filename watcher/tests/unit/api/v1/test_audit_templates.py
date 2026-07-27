@@ -442,6 +442,63 @@ class TestListAuditTemplate(FunctionalTestWithSetup):
         )
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
 
+    def test_get_audit_template_hides_default_parameters_old_microversion(
+        self,
+    ):
+        audit_template = obj_utils.create_test_audit_template(
+            self.context,
+            strategy_id=self.fake_strategy1.id,
+            default_parameters={'threshold': 0.5},
+        )
+        response = self.get_json(
+            f'/audit_templates/{audit_template.uuid}',
+            headers={'OpenStack-API-Version': 'infra-optim 1.6'},
+        )
+        self.assertNotIn('default_parameters', response)
+
+    def test_get_audit_template_shows_default_parameters_new_microversion(
+        self,
+    ):
+        default_params = {'threshold': 0.5, 'period': 300}
+        audit_template = obj_utils.create_test_audit_template(
+            self.context,
+            strategy_id=self.fake_strategy1.id,
+            default_parameters=default_params,
+        )
+        response = self.get_json(
+            f'/audit_templates/{audit_template.uuid}',
+            headers={'OpenStack-API-Version': 'infra-optim 1.7'},
+        )
+        self.assertEqual(default_params, response['default_parameters'])
+
+    def test_detail_hides_default_parameters_old_microversion(self):
+        obj_utils.create_test_audit_template(
+            self.context,
+            strategy_id=self.fake_strategy1.id,
+            default_parameters={'threshold': 0.5},
+        )
+        response = self.get_json(
+            '/audit_templates/detail',
+            headers={'OpenStack-API-Version': 'infra-optim 1.6'},
+        )
+        self.assertNotIn('default_parameters', response['audit_templates'][0])
+
+    def test_detail_shows_default_parameters_new_microversion(self):
+        default_params = {'threshold': 0.5, 'period': 300}
+        obj_utils.create_test_audit_template(
+            self.context,
+            strategy_id=self.fake_strategy1.id,
+            default_parameters=default_params,
+        )
+        response = self.get_json(
+            '/audit_templates/detail',
+            headers={'OpenStack-API-Version': 'infra-optim 1.7'},
+        )
+        self.assertEqual(
+            default_params,
+            response['audit_templates'][0]['default_parameters'],
+        )
+
 
 class TestPatch(FunctionalTestWithSetup):
     def setUp(self):
@@ -673,6 +730,255 @@ class TestPatch(FunctionalTestWithSetup):
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])
 
+    def test_patch_default_parameters(self):
+        default_params = {'threshold': 0.7}
+        template = obj_utils.create_test_audit_template(
+            self.context,
+            uuid=utils.generate_uuid(),
+            name='template-with-strategy',
+            strategy_id=self.fake_strategy1.id,
+        )
+        response = self.patch_json(
+            f'/audit_templates/{template.uuid}',
+            [
+                {
+                    'path': '/default_parameters',
+                    'value': default_params,
+                    'op': 'replace',
+                }
+            ],
+            headers={'OpenStack-API-Version': 'infra-optim 1.7'},
+        )
+        self.assertEqual(HTTPStatus.OK, response.status_code)
+        response = self.get_json(
+            f'/audit_templates/{template.uuid}',
+            headers={'OpenStack-API-Version': 'infra-optim 1.7'},
+        )
+        self.assertEqual(default_params, response['default_parameters'])
+
+    def test_patch_sets_default_parameters_on_template_without_defaults(self):
+        template = obj_utils.create_test_audit_template(
+            self.context,
+            uuid=utils.generate_uuid(),
+            name='template-no-defaults',
+            strategy_id=self.fake_strategy1.id,
+            default_parameters={},
+        )
+        # Confirm template starts without default_parameters
+        response = self.get_json(
+            f'/audit_templates/{template.uuid}',
+            headers={'OpenStack-API-Version': 'infra-optim 1.7'},
+        )
+        self.assertEqual({}, response['default_parameters'])
+
+        new_params = {'threshold': 0.5, 'period': 300}
+        response = self.patch_json(
+            f'/audit_templates/{template.uuid}',
+            [
+                {
+                    'path': '/default_parameters',
+                    'value': new_params,
+                    'op': 'replace',
+                }
+            ],
+            headers={'OpenStack-API-Version': 'infra-optim 1.7'},
+        )
+        self.assertEqual(HTTPStatus.OK, response.status_code)
+        self.assertEqual(new_params, response.json['default_parameters'])
+
+    def test_patch_goal_with_default_parameters_conflict(self):
+        template = obj_utils.create_test_audit_template(
+            self.context,
+            uuid=utils.generate_uuid(),
+            name='template-with-defaults',
+            strategy_id=self.fake_strategy1.id,
+            default_parameters={'threshold': 0.5},
+        )
+        response = self.patch_json(
+            f'/audit_templates/{template.uuid}',
+            [
+                {
+                    'path': '/goal',
+                    'value': self.fake_goal1.uuid,
+                    'op': 'replace',
+                }
+            ],
+            headers={'OpenStack-API-Version': 'infra-optim 1.7'},
+            expect_errors=True,
+        )
+        self.assertEqual(HTTPStatus.CONFLICT, response.status_int)
+
+    def test_patch_strategy_with_default_parameters_conflict(self):
+        template = obj_utils.create_test_audit_template(
+            self.context,
+            uuid=utils.generate_uuid(),
+            name='template-with-defaults2',
+            strategy_id=self.fake_strategy1.id,
+            default_parameters={'threshold': 0.5},
+        )
+        response = self.patch_json(
+            f'/audit_templates/{template.uuid}',
+            [
+                {
+                    'path': '/strategy',
+                    'value': self.fake_strategy1.uuid,
+                    'op': 'replace',
+                }
+            ],
+            headers={'OpenStack-API-Version': 'infra-optim 1.7'},
+            expect_errors=True,
+        )
+        self.assertEqual(HTTPStatus.CONFLICT, response.status_int)
+
+    def test_patch_goal_and_default_parameters_together(self):
+        template = obj_utils.create_test_audit_template(
+            self.context,
+            uuid=utils.generate_uuid(),
+            name='template-with-defaults3',
+            strategy_id=self.fake_strategy1.id,
+            default_parameters={'threshold': 0.5},
+        )
+        response = self.patch_json(
+            f'/audit_templates/{template.uuid}',
+            [
+                {
+                    'path': '/goal',
+                    'value': self.fake_goal1.uuid,
+                    'op': 'replace',
+                },
+                {
+                    'path': '/default_parameters',
+                    'value': None,
+                    'op': 'replace',
+                },
+            ],
+            headers={'OpenStack-API-Version': 'infra-optim 1.7'},
+        )
+        self.assertEqual(HTTPStatus.OK, response.status_code)
+
+    def test_patch_strategy_and_default_parameters_together(self):
+        template = obj_utils.create_test_audit_template(
+            self.context,
+            uuid=utils.generate_uuid(),
+            name='template-with-defaults4',
+            strategy_id=self.fake_strategy1.id,
+            default_parameters={'threshold': 0.5},
+        )
+        response = self.patch_json(
+            f'/audit_templates/{template.uuid}',
+            [
+                {
+                    'path': '/strategy',
+                    'value': self.fake_strategy1.uuid,
+                    'op': 'replace',
+                },
+                {
+                    'path': '/default_parameters',
+                    'value': None,
+                    'op': 'replace',
+                },
+            ],
+            headers={'OpenStack-API-Version': 'infra-optim 1.7'},
+        )
+        self.assertEqual(HTTPStatus.OK, response.status_code)
+
+    def test_patch_default_parameters_invalid_schema(self):
+        fake_spec = {
+            'properties': {
+                'threshold': {
+                    'description': 'threshold parameter',
+                    'type': 'number',
+                    'minimum': 0.0,
+                    'maximum': 1.0,
+                }
+            }
+        }
+        strategy = obj_utils.create_test_strategy(
+            self.context,
+            id=10,
+            uuid=utils.generate_uuid(),
+            name='strategy_with_schema',
+            goal_id=self.fake_goal1.id,
+            parameters_spec=fake_spec,
+        )
+        template = obj_utils.create_test_audit_template(
+            self.context,
+            uuid=utils.generate_uuid(),
+            name='template-schema-invalid',
+            strategy_id=strategy.id,
+        )
+        response = self.patch_json(
+            f'/audit_templates/{template.uuid}',
+            [
+                {
+                    'path': '/default_parameters',
+                    'value': {'threshold': 99.0},
+                    'op': 'replace',
+                }
+            ],
+            headers={'OpenStack-API-Version': 'infra-optim 1.7'},
+            expect_errors=True,
+        )
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
+
+    def test_patch_default_parameters_without_strategy(self):
+        template = obj_utils.create_test_audit_template(
+            self.context,
+            uuid=utils.generate_uuid(),
+            name='template-no-strategy',
+            strategy_id=None,
+        )
+        response = self.patch_json(
+            f'/audit_templates/{template.uuid}',
+            [
+                {
+                    'path': '/default_parameters',
+                    'value': {'threshold': 0.5},
+                    'op': 'replace',
+                }
+            ],
+            headers={'OpenStack-API-Version': 'infra-optim 1.7'},
+            expect_errors=True,
+        )
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
+
+    def test_patch_response_hides_default_parameters_old_microversion(self):
+        template = obj_utils.create_test_audit_template(
+            self.context,
+            uuid=utils.generate_uuid(),
+            name='template-old-mv',
+            strategy_id=self.fake_strategy1.id,
+            default_parameters={'threshold': 0.5},
+        )
+        response = self.patch_json(
+            f'/audit_templates/{template.uuid}',
+            [{'path': '/description', 'value': 'updated', 'op': 'replace'}],
+            headers={'OpenStack-API-Version': 'infra-optim 1.6'},
+        )
+        self.assertEqual(HTTPStatus.OK, response.status_code)
+        self.assertNotIn('default_parameters', response.json)
+
+    def test_patch_default_parameters_old_microversion_rejected(self):
+        template = obj_utils.create_test_audit_template(
+            self.context,
+            uuid=utils.generate_uuid(),
+            name='template-old-mv-patch',
+            strategy_id=self.fake_strategy1.id,
+        )
+        response = self.patch_json(
+            f'/audit_templates/{template.uuid}',
+            [
+                {
+                    'path': '/default_parameters',
+                    'value': {'threshold': 0.5},
+                    'op': 'replace',
+                }
+            ],
+            headers={'OpenStack-API-Version': 'infra-optim 1.6'},
+            expect_errors=True,
+        )
+        self.assertEqual(HTTPStatus.NOT_ACCEPTABLE, response.status_int)
+
 
 class TestPost(FunctionalTestWithSetup):
     @mock.patch.object(timeutils, 'utcnow')
@@ -902,6 +1208,125 @@ class TestPost(FunctionalTestWithSetup):
         )
         response = self.post_json('/audit_templates', audit_template_dict)
         self.assertEqual(HTTPStatus.CREATED, response.status_int)
+
+    def test_create_audit_template_with_default_parameters(self):
+        default_params = {'threshold': 0.5, 'period': 300}
+        audit_template_dict = post_get_test_audit_template(
+            goal=self.fake_goal1.uuid, strategy=self.fake_strategy1.uuid
+        )
+        audit_template_dict['default_parameters'] = default_params
+        response = self.post_json(
+            '/audit_templates',
+            audit_template_dict,
+            headers={'OpenStack-API-Version': 'infra-optim 1.7'},
+        )
+        self.assertEqual(HTTPStatus.CREATED, response.status_int)
+        self.assertEqual(default_params, response.json['default_parameters'])
+
+    def test_create_audit_template_default_parameters_old_microversion(self):
+        audit_template_dict = post_get_test_audit_template(
+            goal=self.fake_goal1.uuid, strategy=self.fake_strategy1.uuid
+        )
+        audit_template_dict['default_parameters'] = {'threshold': 0.5}
+        response = self.post_json(
+            '/audit_templates',
+            audit_template_dict,
+            headers={'OpenStack-API-Version': 'infra-optim 1.6'},
+            expect_errors=True,
+        )
+        self.assertEqual(HTTPStatus.NOT_ACCEPTABLE, response.status_int)
+
+    def _create_strategy_with_schema(self):
+        fake_spec = {
+            'properties': {
+                'threshold': {
+                    'description': 'threshold parameter',
+                    'type': 'number',
+                    'minimum': 0.0,
+                    'maximum': 1.0,
+                }
+            }
+        }
+        return obj_utils.create_test_strategy(
+            self.context,
+            id=10,
+            uuid=utils.generate_uuid(),
+            name='strategy_with_schema',
+            goal_id=self.fake_goal1.id,
+            parameters_spec=fake_spec,
+        )
+
+    def test_create_audit_template_default_parameters_invalid_schema(self):
+        strategy = self._create_strategy_with_schema()
+        audit_template_dict = post_get_test_audit_template(
+            goal=self.fake_goal1.uuid, strategy=strategy.uuid
+        )
+        audit_template_dict['default_parameters'] = {'threshold': 99.0}
+        response = self.post_json(
+            '/audit_templates',
+            audit_template_dict,
+            headers={'OpenStack-API-Version': 'infra-optim 1.7'},
+            expect_errors=True,
+        )
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
+
+    def test_create_audit_template_default_parameters_not_mutated(self):
+        """Validation must not inject defaults into default_parameters."""
+        fake_spec = {
+            'properties': {
+                'threshold': {
+                    'description': 'main parameter',
+                    'type': 'number',
+                    'minimum': 0.0,
+                    'maximum': 1.0,
+                },
+                'period': {
+                    'description': 'parameter with a schema default',
+                    'type': 'number',
+                    'minimum': 60,
+                    'default': 300,
+                },
+            }
+        }
+        strategy = obj_utils.create_test_strategy(
+            self.context,
+            id=11,
+            uuid=utils.generate_uuid(),
+            name='strategy_with_default_period',
+            goal_id=self.fake_goal1.id,
+            parameters_spec=fake_spec,
+        )
+        audit_template_dict = post_get_test_audit_template(
+            goal=self.fake_goal1.uuid, strategy=strategy.uuid
+        )
+        # Provide only 'threshold'; 'period' is absent
+        audit_template_dict['default_parameters'] = {'threshold': 0.5}
+        response = self.post_json(
+            '/audit_templates',
+            audit_template_dict,
+            headers={'OpenStack-API-Version': 'infra-optim 1.7'},
+        )
+        self.assertEqual(HTTPStatus.CREATED, response.status_int)
+        stored = self.get_json(
+            f'/audit_templates/{response.json["uuid"]}',
+            headers={'OpenStack-API-Version': 'infra-optim 1.7'},
+        )
+        # 'period' must NOT have been injected by the schema validator.
+        self.assertEqual({'threshold': 0.5}, stored['default_parameters'])
+
+    def test_create_audit_template_default_parameters_no_strategy(self):
+        audit_template_dict = post_get_test_audit_template(
+            goal=self.fake_goal1.uuid
+        )
+        del audit_template_dict['strategy']
+        audit_template_dict['default_parameters'] = {'threshold': 0.5}
+        response = self.post_json(
+            '/audit_templates',
+            audit_template_dict,
+            headers={'OpenStack-API-Version': 'infra-optim 1.7'},
+            expect_errors=True,
+        )
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
 
 
 class TestDelete(api_base.FunctionalTest):

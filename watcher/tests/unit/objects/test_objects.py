@@ -464,7 +464,7 @@ class TestObject(_LocalTest, _TestObject):
 expected_object_fingerprints = {
     'Goal': '1.0-93881622db05e7b67a65ca885b4a022e',
     'Strategy': '1.1-73f164491bdd4c034f48083a51bdeb7b',
-    'AuditTemplate': '1.1-b291973ffc5efa2c61b24fe34fdccc0b',
+    'AuditTemplate': '1.2-9d775b1dbb7cc1219cac5707e8a70e27',
     'Audit': '1.8-9cadb11a1fbe7200fb32891b37672a62',
     'ActionPlan': '2.3-dad26bdb60307f461572739463108a59',
     'Action': '2.1-71073c74c2ecc3a3d7c7103d0072d366',

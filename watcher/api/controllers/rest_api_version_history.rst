@@ -56,3 +56,9 @@ Added new server attributes, ``server_flavor_extra_specs`` and
 selecting ``compute`` as the ``data_model_type`` parameter. The collection of
 these extended attributes is controlled by
 ``[compute_model] enable_extended_attributes`` configuration option.
+
+1.7
+---
+Added ``default_parameters`` field to Audit Template. When set, audits
+created from the template inherit these strategy parameter values unless
+overridden at audit creation time. Requires a strategy to be specified.

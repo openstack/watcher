@@ -38,6 +38,7 @@ Request
    - strategy: audittemplate_strategy
    - description: audittemplate_description
    - scope: audittemplate_scope
+   - default_parameters: audittemplate_default_parameters
 
 **Example Audit Template creation request without a specified strategy:**
 
@@ -65,6 +66,7 @@ version 1:
     - goal_uuid: goal_uuid
     - goal_name: goal_name
     - scope: audittemplate_scope
+    - default_parameters: audittemplate_default_parameters
     - links: links
 
 **Example JSON representation of an Audit Template:**
@@ -149,6 +151,7 @@ Response
     - goal_uuid: goal_uuid
     - goal_name: goal_name
     - scope: audittemplate_scope
+    - default_parameters: audittemplate_default_parameters
     - links: links
     - description: audittemplate_description
 
@@ -187,6 +190,7 @@ Response
     - goal_uuid: goal_uuid
     - goal_name: goal_name
     - scope: audittemplate_scope
+    - default_parameters: audittemplate_default_parameters
     - links: links
     - description: audittemplate_description
 
@@ -202,9 +206,14 @@ Update Audit Template
 
 Updates an Audit Template with the given information.
 
+When ``default_parameters`` is set on the template, changing ``goal`` or
+``strategy`` without also providing an updated ``default_parameters`` in the
+same request returns ``409 Conflict``. This prevents stale parameter values
+from silently becoming invalid after a goal or strategy change.
+
 Normal response codes: 200
 
-Error codes: 400,404
+Error codes: 400,404,409
 
 Request
 -------
@@ -230,6 +239,7 @@ Response
     - goal_uuid: goal_uuid
     - goal_name: goal_name
     - scope: audittemplate_scope
+    - default_parameters: audittemplate_default_parameters
     - links: links
     - description: audittemplate_description
 

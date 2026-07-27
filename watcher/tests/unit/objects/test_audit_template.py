@@ -97,6 +97,10 @@ class TestAuditTemplateObject(base.DbTestCase):
             self.context, audit_template_id, eager=self.eager
         )
         self.assertEqual(self.context, audit_template._context)
+        self.assertEqual(
+            self.fake_audit_template['default_parameters'],
+            audit_template.default_parameters,
+        )
         self.eager_load_audit_template_assert(audit_template, self.fake_goal)
 
     @mock.patch.object(db_api.Connection, 'get_audit_template_by_uuid')
@@ -110,6 +114,10 @@ class TestAuditTemplateObject(base.DbTestCase):
             self.context, uuid, eager=self.eager
         )
         self.assertEqual(self.context, audit_template._context)
+        self.assertEqual(
+            self.fake_audit_template['default_parameters'],
+            audit_template.default_parameters,
+        )
         self.eager_load_audit_template_assert(audit_template, self.fake_goal)
 
     @mock.patch.object(db_api.Connection, 'get_audit_template_by_name')
@@ -123,6 +131,10 @@ class TestAuditTemplateObject(base.DbTestCase):
             self.context, name, eager=self.eager
         )
         self.assertEqual(self.context, audit_template._context)
+        self.assertEqual(
+            self.fake_audit_template['default_parameters'],
+            audit_template.default_parameters,
+        )
         self.eager_load_audit_template_assert(audit_template, self.fake_goal)
 
     def test_get_bad_id_and_uuid(self):
@@ -152,6 +164,10 @@ class TestAuditTemplateObject(base.DbTestCase):
         self.assertEqual(1, len(audit_templates))
         self.assertIsInstance(audit_templates[0], objects.AuditTemplate)
         self.assertEqual(self.context, audit_templates[0]._context)
+        self.assertEqual(
+            self.fake_audit_template['default_parameters'],
+            audit_templates[0].default_parameters,
+        )
         for audit_template in audit_templates:
             self.eager_load_audit_template_assert(
                 audit_template, self.fake_goal
@@ -178,7 +194,34 @@ class TestAuditTemplateObject(base.DbTestCase):
             uuid, {'goal_id': self.fake_goal.id}
         )
         self.assertEqual(self.context, audit_template._context)
+        self.assertEqual(
+            self.fake_audit_template['default_parameters'],
+            audit_template.default_parameters,
+        )
         self.eager_load_audit_template_assert(audit_template, self.fake_goal)
+
+    @mock.patch.object(db_api.Connection, 'update_audit_template')
+    @mock.patch.object(db_api.Connection, 'get_audit_template_by_uuid')
+    def test_save_default_parameters(
+        self, mock_get_audit_template, mock_update_audit_template
+    ):
+        new_params = {'threshold': 0.75}
+        mock_get_audit_template.return_value = self.fake_audit_template
+        fake_saved = self.fake_audit_template.copy()
+        fake_saved['updated_at'] = timeutils.utcnow()
+        fake_saved['default_parameters'] = new_params
+        mock_update_audit_template.return_value = fake_saved
+        uuid = self.fake_audit_template['uuid']
+        audit_template = objects.AuditTemplate.get_by_uuid(
+            self.context, uuid, eager=self.eager
+        )
+        audit_template.default_parameters = new_params
+        audit_template.save()
+
+        mock_update_audit_template.assert_called_once_with(
+            uuid, {'default_parameters': new_params}
+        )
+        self.assertEqual(new_params, audit_template.default_parameters)
 
     @mock.patch.object(db_api.Connection, 'get_audit_template_by_uuid')
     def test_refresh(self, mock_get_audit_template):
@@ -227,6 +270,30 @@ class TestCreateDeleteAuditTemplateObject(base.DbTestCase):
             expected_audit_template
         )
         self.assertEqual(self.context, audit_template._context)
+        self.assertEqual(
+            self.fake_audit_template['default_parameters'],
+            audit_template.default_parameters,
+        )
+
+    @mock.patch.object(db_api.Connection, 'create_audit_template')
+    def test_create_with_default_parameters(self, mock_create_audit_template):
+        default_params = {'threshold': 0.5, 'period': 300}
+        goal = utils.create_test_goal()
+        self.fake_audit_template['goal_id'] = goal.id
+        self.fake_audit_template['default_parameters'] = default_params
+        mock_create_audit_template.return_value = self.fake_audit_template
+        audit_template = objects.AuditTemplate(
+            self.context, **self.fake_audit_template
+        )
+        audit_template.create()
+        expected_audit_template = self.fake_audit_template.copy()
+        expected_audit_template['created_at'] = expected_audit_template[
+            'created_at'
+        ].replace(tzinfo=datetime.timezone.utc)
+        mock_create_audit_template.assert_called_once_with(
+            expected_audit_template
+        )
+        self.assertEqual(default_params, audit_template.default_parameters)
 
     @mock.patch.object(db_api.Connection, 'soft_delete_audit_template')
     @mock.patch.object(db_api.Connection, 'get_audit_template_by_uuid')

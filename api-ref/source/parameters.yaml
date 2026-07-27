@@ -311,7 +311,10 @@ audit_next_run_time:
   type: string
 audit_parameters:
   description: |
-    The strategy parameters for this audit.
+    The strategy parameters for this audit. When creating an audit from an
+    Audit Template that has ``default_parameters`` configured, these values
+    override the template defaults for the parameters they name. Parameters
+    not specified here are taken from the template's ``default_parameters``.
   in: body
   required: false
   type: JSON
@@ -358,6 +361,15 @@ audit_type:
   type: string
 
 # Audit Template
+audittemplate_default_parameters:
+  description: |
+    Default strategy parameter values for audits created from this template.
+    When set, audits inherit these values unless overridden at creation time.
+    Requires a strategy to be specified on the template.
+  in: body
+  required: false
+  type: JSON
+  min_version: 1.7
 audittemplate_description:
   description: |
     Short description of the Audit Template.

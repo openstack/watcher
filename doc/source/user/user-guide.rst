@@ -111,6 +111,31 @@ The command to create your audit template would then be:
   $ openstack optimize audittemplate create my_first_audit_template <your_goal> \
     --strategy <your_strategy>
 
+You can also pre-configure strategy parameter values on the template using
+``default_parameters``. Audits created from that template will inherit those
+values automatically, so you do not need to specify them at audit creation
+time:
+
+.. code:: bash
+
+  $ openstack optimize audittemplate create my_first_audit_template <your_goal> \
+    --strategy <your_strategy> \
+    --default-parameters <param_name>=<value>
+
+.. note::
+
+   ``default_parameters`` requires API microversion 1.7 or later. Pass
+   ``--os-infra-optim-api-version 1.7`` to the client to enable it.
+   Use ``openstack optimize strategy show <your_strategy>`` to discover the
+   accepted parameter names and their types.
+
+.. note::
+
+   Changes to ``default_parameters`` on an Audit Template do **not**
+   cascade to Audits that were already created from it. Each Audit captures
+   the effective parameters at creation time and is not affected by
+   subsequent template edits.
+
 Then, you can create an audit. An audit is a request for optimizing your
 cluster depending on the specified :ref:`goal <goal_definition>`.
 
@@ -139,6 +164,19 @@ format), your can append ``-p`` to input required parameters:
 
   $ openstack optimize audit create -a <your_audit_template> \
     -p <your_strategy_para1>=5.5 -p <your_strategy_para2>=hi
+
+If the Audit Template has ``default_parameters`` configured, new Audits
+created from it will inherit those values automatically. You do not need to
+supply ``-p`` unless you want to override a specific parameter:
+
+.. code:: bash
+
+  $ openstack optimize audit create -a <your_audit_template> \
+    -p <your_strategy_para1>=8.0
+
+Explicit ``-p`` values take precedence over the template's
+``default_parameters`` for the parameters they name. Parameters not
+overridden are taken from the template defaults.
 
 Input parameter could cause audit creation failure, when:
 
