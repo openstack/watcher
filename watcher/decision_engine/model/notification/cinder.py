@@ -268,7 +268,6 @@ class CapacityNotificationEndpoint(CinderNotification):
 
     def process_info(self, ctxt, publisher_id, event_type, payload, metadata):
         ctxt.request_id = metadata['message_id']
-        ctxt.project_domain = event_type
         LOG.info(
             "Event '%(event)s' received from %(publisher)s "
             "with metadata %(metadata)s",
@@ -304,7 +303,6 @@ class VolumeCreateEnd(VolumeNotificationEndpoint):
 
     def process_info(self, ctxt, publisher_id, event_type, payload, metadata):
         ctxt.request_id = metadata['message_id']
-        ctxt.project_domain = event_type
         LOG.info(
             "Event '%(event)s' received from %(publisher)s "
             "with metadata %(metadata)s",
@@ -334,7 +332,6 @@ class VolumeUpdateEnd(VolumeNotificationEndpoint):
 
     def process_info(self, ctxt, publisher_id, event_type, payload, metadata):
         ctxt.request_id = metadata['message_id']
-        ctxt.project_domain = event_type
         LOG.info(
             "Event '%(event)s' received from %(publisher)s "
             "with metadata %(metadata)s",
@@ -394,7 +391,6 @@ class VolumeDeleteEnd(VolumeNotificationEndpoint):
 
     def process_info(self, ctxt, publisher_id, event_type, payload, metadata):
         ctxt.request_id = metadata['message_id']
-        ctxt.project_domain = event_type
         LOG.info(
             "Event '%(event)s' received from %(publisher)s "
             "with metadata %(metadata)s",
