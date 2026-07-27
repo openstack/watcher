@@ -46,7 +46,7 @@ class TestComputeScope(base.TestCase):
             for i in range(4)
         ]
         model = compute.ComputeScope(
-            audit_scope, mock.Mock(), osc=mock.Mock()
+            audit_scope, mock.Mock()
         ).get_scoped_model(cluster)
 
         # NOTE(adisky):INSTANCE_6 is not excluded from model it will be tagged
@@ -60,14 +60,12 @@ class TestComputeScope(base.TestCase):
     @mock.patch.object(nova_helper.NovaHelper, 'get_service_list')
     def test_get_scoped_model_without_scope(self, mock_zone_list):
         model = self.fake_cluster.generate_scenario_1()
-        compute.ComputeScope(
-            [], mock.Mock(), osc=mock.Mock()
-        ).get_scoped_model(model)
+        compute.ComputeScope([], mock.Mock()).get_scoped_model(model)
         assert not mock_zone_list.called
 
     def test_remove_instance(self):
         model = self.fake_cluster.generate_scenario_1()
-        compute.ComputeScope([], mock.Mock(), osc=mock.Mock()).remove_instance(
+        compute.ComputeScope([], mock.Mock()).remove_instance(
             model,
             model.get_instance_by_uuid('d020ef1f-dc19-4982-9383-087498bfde03'),
             'Node_1',
@@ -90,9 +88,7 @@ class TestComputeScope(base.TestCase):
             mock.Mock(id=i, hosts=[f'Node_{i}']) for i in range(2)
         ]
         compute.ComputeScope(
-            [{'host_aggregates': [{'id': 1}, {'id': 2}]}],
-            mock.Mock(),
-            osc=mock.Mock(),
+            [{'host_aggregates': [{'id': 1}, {'id': 2}]}], mock.Mock()
         )._collect_aggregates([{'id': 1}, {'id': 2}], allowed_nodes)
         self.assertEqual(['Node_1'], allowed_nodes)
 
@@ -103,7 +99,7 @@ class TestComputeScope(base.TestCase):
             mock.Mock(id=i, hosts=[f'Node_{i}']) for i in range(2)
         ]
         compute.ComputeScope(
-            [{'host_aggregates': [{'id': '*'}]}], mock.Mock(), osc=mock.Mock()
+            [{'host_aggregates': [{'id': '*'}]}], mock.Mock()
         )._collect_aggregates([{'id': '*'}], allowed_nodes)
         self.assertEqual(['Node_0', 'Node_1'], allowed_nodes)
 
@@ -112,9 +108,7 @@ class TestComputeScope(base.TestCase):
         allowed_nodes = []
         mock_aggregate.return_value = [mock.Mock(id=i) for i in range(2)]
         scope_handler = compute.ComputeScope(
-            [{'host_aggregates': [{'id': '*'}, {'id': 1}]}],
-            mock.Mock(),
-            osc=mock.Mock(),
+            [{'host_aggregates': [{'id': '*'}, {'id': 1}]}], mock.Mock()
         )
         self.assertRaises(
             exception.WildcardCharacterIsUsed,
@@ -135,9 +129,7 @@ class TestComputeScope(base.TestCase):
         mock_aggregate.return_value = mock_collection
 
         compute.ComputeScope(
-            [{'host_aggregates': [{'name': 'HA_1'}, {'id': 0}]}],
-            mock.Mock(),
-            osc=mock.Mock(),
+            [{'host_aggregates': [{'name': 'HA_1'}, {'id': 0}]}], mock.Mock()
         )._collect_aggregates([{'name': 'HA_1'}, {'id': 0}], allowed_nodes)
         self.assertEqual(['Node_0', 'Node_1'], allowed_nodes)
 
@@ -152,9 +144,7 @@ class TestComputeScope(base.TestCase):
             for i in range(2)
         ]
         compute.ComputeScope(
-            [{'availability_zones': [{'name': "AZ1"}]}],
-            mock.Mock(),
-            osc=mock.Mock(),
+            [{'availability_zones': [{'name': "AZ1"}]}], mock.Mock()
         )._collect_zones([{'name': "AZ1"}], allowed_nodes)
         self.assertEqual(['Node_0', 'Node_1'], sorted(allowed_nodes))
 
@@ -169,9 +159,7 @@ class TestComputeScope(base.TestCase):
             for i in range(2)
         ]
         compute.ComputeScope(
-            [{'availability_zones': [{'name': "*"}]}],
-            mock.Mock(),
-            osc=mock.Mock(),
+            [{'availability_zones': [{'name': "*"}]}], mock.Mock()
         )._collect_zones([{'name': "*"}], allowed_nodes)
         self.assertEqual(
             ['Node_0', 'Node_1', 'Node_2', 'Node_3'], sorted(allowed_nodes)
@@ -190,7 +178,6 @@ class TestComputeScope(base.TestCase):
         scope_handler = compute.ComputeScope(
             [{'availability_zones': [{'name': "*"}, {'name': 'AZ1'}]}],
             mock.Mock(),
-            osc=mock.Mock(),
         )
         self.assertRaises(
             exception.WildcardCharacterIsUsed,
@@ -225,9 +212,7 @@ class TestComputeScope(base.TestCase):
         nodes_to_exclude = []
         instance_metadata = []
         projects_to_exclude = []
-        compute.ComputeScope(
-            [], mock.Mock(), osc=mock.Mock()
-        ).exclude_resources(
+        compute.ComputeScope([], mock.Mock()).exclude_resources(
             resources_to_exclude,
             instances=instances_to_exclude,
             nodes=nodes_to_exclude,
@@ -253,7 +238,7 @@ class TestComputeScope(base.TestCase):
         instance_metadata = [{'optimize': True}]
         instances_to_remove = set()
         compute.ComputeScope(
-            [], mock.Mock(), osc=mock.Mock()
+            [], mock.Mock()
         ).exclude_instances_with_given_metadata(
             instance_metadata, cluster, instances_to_remove
         )
@@ -265,7 +250,7 @@ class TestComputeScope(base.TestCase):
         instance_metadata = [{'optimize': False}]
         instances_to_remove = set()
         compute.ComputeScope(
-            [], mock.Mock(), osc=mock.Mock()
+            [], mock.Mock()
         ).exclude_instances_with_given_metadata(
             instance_metadata, cluster, instances_to_remove
         )
@@ -279,7 +264,7 @@ class TestComputeScope(base.TestCase):
             '109F7909-0607-4712-B32C-5CC6D49D2F15',
         ]
         compute.ComputeScope(
-            [], mock.Mock(), osc=mock.Mock()
+            [], mock.Mock()
         ).exclude_instances_with_given_project(
             projects_to_exclude, cluster, instances_to_exclude
         )
@@ -293,9 +278,9 @@ class TestComputeScope(base.TestCase):
 
     def test_remove_nodes_from_model(self):
         model = self.fake_cluster.generate_scenario_1()
-        compute.ComputeScope(
-            [], mock.Mock(), osc=mock.Mock()
-        ).remove_nodes_from_model(['hostname_1', 'hostname_2'], model)
+        compute.ComputeScope([], mock.Mock()).remove_nodes_from_model(
+            ['hostname_1', 'hostname_2'], model
+        )
         expected_edges = [
             ('d000ef1f-dc19-4982-9383-087498bfde03', 'Node_0'),
             ('d010ef1f-dc19-4982-9383-087498bfde03', 'Node_0'),
@@ -306,9 +291,7 @@ class TestComputeScope(base.TestCase):
 
     def test_update_exclude_instances_in_model(self):
         model = self.fake_cluster.generate_scenario_1()
-        compute.ComputeScope(
-            [], mock.Mock(), osc=mock.Mock()
-        ).update_exclude_instance_in_model(
+        compute.ComputeScope([], mock.Mock()).update_exclude_instance_in_model(
             [
                 'd010ef1f-dc19-4982-9383-087498bfde03',
                 'd020ef1f-dc19-4982-9383-087498bfde03',
@@ -345,7 +328,7 @@ class TestComputeScope(base.TestCase):
             mock.Mock(id=i, name=f"HA_{i}") for i in range(2)
         ]
         model = compute.ComputeScope(
-            audit_scope, mock.Mock(), osc=mock.Mock()
+            audit_scope, mock.Mock()
         ).get_scoped_model(cluster)
         self.assertEqual(0, len(model.edges()))
 
@@ -361,7 +344,7 @@ class TestComputeScope(base.TestCase):
             for i in range(4)
         ]
         model = compute.ComputeScope(
-            audit_scope, mock.Mock(), osc=mock.Mock()
+            audit_scope, mock.Mock()
         ).get_scoped_model(cluster)
 
         # NOTE(adisky):INSTANCE_6 is not excluded from model it will be tagged

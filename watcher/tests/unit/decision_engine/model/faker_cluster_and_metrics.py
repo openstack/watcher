@@ -25,7 +25,7 @@ from watcher.decision_engine.model.collector import base
 
 
 class FakerModelCollector(base.BaseClusterDataModelCollector):
-    def __init__(self, config=None, osc=None, audit_scope=None):
+    def __init__(self, config=None, audit_scope=None):
         if config is None:
             config = mock.Mock()
         super().__init__(config)

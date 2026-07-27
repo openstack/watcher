@@ -19,9 +19,8 @@ from watcher.decision_engine.scope import base
 class StorageScope(base.BaseScope):
     """Storage Audit Scope Handler"""
 
-    def __init__(self, scope, config, osc=None):
+    def __init__(self, scope, config):
         super().__init__(scope, config)
-        self._osc = osc
         self.wrapper = cinder_helper.CinderHelper()
 
     def _collect_vtype(self, volume_types, allowed_nodes):

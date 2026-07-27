@@ -133,9 +133,6 @@ class NovaClusterDataModelCollector(base.BaseClusterDataModelCollector):
         "additionalProperties": False,
     }
 
-    def __init__(self, config, osc=None):
-        super().__init__(config, osc)
-
     @property
     def notification_endpoints(self):
         """Associated notification endpoints
@@ -169,7 +166,7 @@ class NovaClusterDataModelCollector(base.BaseClusterDataModelCollector):
             LOG.debug("No audit scope, Don't Build compute data model")
             return
 
-        builder = NovaModelBuilder(self.osc)
+        builder = NovaModelBuilder()
         try:
             return builder.execute(self._data_model_scope)
         except Exception as e:
@@ -197,8 +194,7 @@ class NovaModelBuilder(base.BaseModelBuilder):
     commented out.
     """
 
-    def __init__(self, osc):
-        self.osc = osc
+    def __init__(self):
         self.model = None
         self.model_scope = dict()
         self.no_model_scope_flag = False

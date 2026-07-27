@@ -41,7 +41,7 @@ class TestStorageScope(test_utils.CinderResourcesMixin, base.TestCase):
             for i in range(2)
         ]
         model = storage.StorageScope(
-            audit_scope, mock.Mock(), osc=mock.Mock()
+            audit_scope, mock.Mock()
         ).get_scoped_model(cluster)
         expected_edges = [
             (
@@ -55,9 +55,7 @@ class TestStorageScope(test_utils.CinderResourcesMixin, base.TestCase):
     @mock.patch.object(cinder_helper.CinderHelper, 'get_storage_node_list')
     def test_get_scoped_model_without_scope(self, mock_zone_list):
         cluster = self.fake_cluster.generate_scenario_1()
-        storage.StorageScope(
-            [], mock.Mock(), osc=mock.Mock()
-        ).get_scoped_model(cluster)
+        storage.StorageScope([], mock.Mock()).get_scoped_model(cluster)
         assert not mock_zone_list.called
 
     @mock.patch.object(cinder_helper.CinderHelper, 'get_storage_node_list')
@@ -71,7 +69,7 @@ class TestStorageScope(test_utils.CinderResourcesMixin, base.TestCase):
             for i in range(2)
         ]
         storage.StorageScope(
-            [{'availability _zones': az_scope}], mock.Mock(), osc=mock.Mock()
+            [{'availability _zones': az_scope}], mock.Mock()
         )._collect_zones(az_scope, allowed_nodes)
         self.assertEqual(['host_1@backend_1'], sorted(allowed_nodes))
 
@@ -79,7 +77,7 @@ class TestStorageScope(test_utils.CinderResourcesMixin, base.TestCase):
         az_scope = [{'name': '*'}]
         del allowed_nodes[:]
         storage.StorageScope(
-            [{'availability _zones': az_scope}], mock.Mock(), osc=mock.Mock()
+            [{'availability _zones': az_scope}], mock.Mock()
         )._collect_zones(az_scope, allowed_nodes)
         self.assertEqual(
             ['host_0@backend_0', 'host_1@backend_1'], sorted(allowed_nodes)
@@ -89,7 +87,7 @@ class TestStorageScope(test_utils.CinderResourcesMixin, base.TestCase):
         az_scope = [{'name': '*'}, {'name': 'zone_0'}]
         del allowed_nodes[:]
         scope_handler = storage.StorageScope(
-            [{'availability _zones': az_scope}], mock.Mock(), osc=mock.Mock()
+            [{'availability _zones': az_scope}], mock.Mock()
         )
         self.assertRaises(
             exception.WildcardCharacterIsUsed,
@@ -121,7 +119,7 @@ class TestStorageScope(test_utils.CinderResourcesMixin, base.TestCase):
 
         vt_scope = [{'name': 'type_1'}]
         storage.StorageScope(
-            [{'volume_types': vt_scope}], mock.Mock(), osc=mock.Mock()
+            [{'volume_types': vt_scope}], mock.Mock()
         )._collect_vtype(vt_scope, allowed_nodes)
         self.assertEqual(['host_1@backend_1'], sorted(allowed_nodes))
 
@@ -129,7 +127,7 @@ class TestStorageScope(test_utils.CinderResourcesMixin, base.TestCase):
         vt_scope = [{'name': '*'}]
         del allowed_nodes[:]
         storage.StorageScope(
-            [{'volume_types': vt_scope}], mock.Mock(), osc=mock.Mock()
+            [{'volume_types': vt_scope}], mock.Mock()
         )._collect_vtype(vt_scope, allowed_nodes)
         self.assertEqual(
             ['host_0@backend_0', 'host_1@backend_1'], sorted(allowed_nodes)
@@ -139,7 +137,7 @@ class TestStorageScope(test_utils.CinderResourcesMixin, base.TestCase):
         vt_scope = [{'name': '*'}, {'name': 'type_0'}]
         del allowed_nodes[:]
         scope_handler = storage.StorageScope(
-            [{'volume_types': vt_scope}], mock.Mock(), osc=mock.Mock()
+            [{'volume_types': vt_scope}], mock.Mock()
         )
         self.assertRaises(
             exception.WildcardCharacterIsUsed,
@@ -168,9 +166,7 @@ class TestStorageScope(test_utils.CinderResourcesMixin, base.TestCase):
                 ]
             },
         ]
-        storage.StorageScope(
-            resources, mock.Mock(), osc=mock.Mock()
-        ).exclude_resources(
+        storage.StorageScope(resources, mock.Mock()).exclude_resources(
             resources,
             pools=pools_to_exclude,
             projects=projects_to_exclude,
@@ -191,9 +187,7 @@ class TestStorageScope(test_utils.CinderResourcesMixin, base.TestCase):
             faker_cluster_state.volume_uuid_mapping['volume_0'],
             faker_cluster_state.volume_uuid_mapping['volume_3'],
         ]
-        storage.StorageScope([], mock.Mock(), osc=mock.Mock()).exclude_volumes(
-            exclude, cluster
-        )
+        storage.StorageScope([], mock.Mock()).exclude_volumes(exclude, cluster)
         self.assertNotIn(exclude[0], cluster.get_all_volumes().keys())
         self.assertNotIn(exclude[1], cluster.get_all_volumes().keys())
 
@@ -202,18 +196,16 @@ class TestStorageScope(test_utils.CinderResourcesMixin, base.TestCase):
         exclude = ['host_0@backend_0#pool_0']
         node_name = (exclude[0].split('#'))[0]
 
-        storage.StorageScope([], mock.Mock(), osc=mock.Mock()).exclude_pools(
-            exclude, cluster
-        )
+        storage.StorageScope([], mock.Mock()).exclude_pools(exclude, cluster)
         node = cluster.get_node_by_name(node_name)
         self.assertNotIn(exclude, cluster.get_node_pools(node))
 
     def test_exclude_projects(self):
         cluster = self.fake_cluster.generate_scenario_1()
         exclude = ['project_1', 'project_2']
-        storage.StorageScope(
-            [], mock.Mock(), osc=mock.Mock()
-        ).exclude_projects(exclude, cluster)
+        storage.StorageScope([], mock.Mock()).exclude_projects(
+            exclude, cluster
+        )
         projects = []
         volumes = cluster.get_all_volumes()
         for volume_id in volumes:
@@ -225,9 +217,9 @@ class TestStorageScope(test_utils.CinderResourcesMixin, base.TestCase):
     def test_remove_nodes_from_model(self):
         cluster = self.fake_cluster.generate_scenario_1()
         nodes_to_remove = ['host_0@backend_0']
-        storage.StorageScope(
-            [], mock.Mock(), osc=mock.Mock()
-        ).remove_nodes_from_model(nodes_to_remove, cluster)
+        storage.StorageScope([], mock.Mock()).remove_nodes_from_model(
+            nodes_to_remove, cluster
+        )
         self.assertEqual(
             ['host_1@backend_1'], list(cluster.get_all_storage_nodes())
         )
@@ -246,7 +238,7 @@ class TestStorageScope(test_utils.CinderResourcesMixin, base.TestCase):
             for i in range(2)
         ]
         model = storage.StorageScope(
-            audit_scope, mock.Mock(), osc=mock.Mock()
+            audit_scope, mock.Mock()
         ).get_scoped_model(cluster)
         expected_edges = [
             (

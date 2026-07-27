@@ -19,9 +19,8 @@ from watcher.decision_engine.scope import base
 class BaremetalScope(base.BaseScope):
     """Baremetal Audit Scope Handler"""
 
-    def __init__(self, scope, config, osc=None):
+    def __init__(self, scope, config):
         super().__init__(scope, config)
-        self._osc = osc
 
     def exclude_resources(self, resources, **kwargs):
         nodes_to_exclude = kwargs.get('nodes')

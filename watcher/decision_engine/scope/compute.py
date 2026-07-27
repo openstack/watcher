@@ -26,9 +26,8 @@ LOG = log.getLogger(__name__)
 class ComputeScope(base.BaseScope):
     """Compute Audit Scope Handler"""
 
-    def __init__(self, scope, config, osc=None):
+    def __init__(self, scope, config):
         super().__init__(scope, config)
-        self._osc = osc
         self.wrapper = nova_helper.NovaHelper()
 
     def remove_instance(self, cluster_model, instance, node_uuid):

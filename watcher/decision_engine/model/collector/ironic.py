@@ -34,9 +34,6 @@ class BaremetalClusterDataModelCollector(base.BaseClusterDataModelCollector):
     representation of the resources exposed by the baremetal service.
     """
 
-    def __init__(self, config, osc=None):
-        super().__init__(config, osc)
-
     @property
     def notification_endpoints(self):
         """Associated notification endpoints

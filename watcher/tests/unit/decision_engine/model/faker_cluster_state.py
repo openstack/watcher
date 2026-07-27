@@ -35,7 +35,7 @@ volume_uuid_mapping = {
 
 
 class FakerModelCollector(base.BaseClusterDataModelCollector):
-    def __init__(self, config=None, osc=None, audit_scope=None):
+    def __init__(self, config=None, audit_scope=None):
         if config is None:
             config = mock.Mock(period=777)
         super().__init__(config)
@@ -226,7 +226,7 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
 
 
 class FakerStorageModelCollector(base.BaseClusterDataModelCollector):
-    def __init__(self, config=None, osc=None, audit_scope=None):
+    def __init__(self, config=None, audit_scope=None):
         if config is None:
             config = mock.Mock(period=777)
         super().__init__(config)
@@ -374,7 +374,7 @@ class FakerStorageModelCollector(base.BaseClusterDataModelCollector):
 
 
 class FakerBaremetalModelCollector(base.BaseClusterDataModelCollector):
-    def __init__(self, config=None, osc=None):
+    def __init__(self, config=None):
         if config is None:
             config = mock.Mock(period=777)
         super().__init__(config)
@@ -425,7 +425,7 @@ class FakerBaremetalModelCollector(base.BaseClusterDataModelCollector):
 
 
 class FakerEmptyModelCollector(base.BaseClusterDataModelCollector):
-    def __init__(self, config=None, osc=None):
+    def __init__(self, config=None):
         if config is None:
             config = mock.Mock(period=777)
         super().__init__(config)

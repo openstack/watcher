@@ -93,9 +93,6 @@ class CinderClusterDataModelCollector(base.BaseClusterDataModelCollector):
         },
     }
 
-    def __init__(self, config, osc=None):
-        super().__init__(config, osc)
-
     @property
     def notification_endpoints(self):
         """Associated notification endpoints
@@ -137,7 +134,7 @@ class CinderClusterDataModelCollector(base.BaseClusterDataModelCollector):
             LOG.debug("No audit scope, Don't Build storage data model")
             return
 
-        builder = CinderModelBuilder(self.osc)
+        builder = CinderModelBuilder()
         try:
             return builder.execute(self._data_model_scope)
         except Exception as e:
@@ -155,8 +152,7 @@ class CinderModelBuilder(base.BaseModelBuilder):
 
     """
 
-    def __init__(self, osc):
-        self.osc = osc
+    def __init__(self):
         self.model = model_root.StorageModelRoot()
         self.cinder_helper = cinder_helper.CinderHelper()
 

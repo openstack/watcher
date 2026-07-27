@@ -238,7 +238,7 @@ class TestNovaModelBuilder(
 
     @mock.patch.object(nova_helper, 'NovaHelper', mock.MagicMock())
     def test_add_instance_node(self):
-        model_builder = nova.NovaModelBuilder(osc=mock.MagicMock())
+        model_builder = nova.NovaModelBuilder()
         model_builder.model = mock.MagicMock()
         mock_node = nova_helper.Hypervisor.from_openstacksdk(
             self.create_openstacksdk_hypervisor()
@@ -309,7 +309,7 @@ class TestNovaModelBuilder(
         pinned_az_available,
         m_is_pinned_az_available,
     ):
-        model_builder = nova.NovaModelBuilder(osc=mock.MagicMock())
+        model_builder = nova.NovaModelBuilder()
         model_builder.model = mock.MagicMock()
         model_builder.model.extended_attributes_enabled = extended_attr_enabled
         m_is_pinned_az_available.return_value = pinned_az_available
@@ -364,7 +364,7 @@ class TestNovaModelBuilder(
             self.assertEqual({}, fake_instance.flavor_extra_specs)
 
     def test_build_instance_node_boot_from_volume(self):
-        model_builder = nova.NovaModelBuilder(osc=mock.MagicMock())
+        model_builder = nova.NovaModelBuilder()
         model_builder.model = mock.MagicMock()
         model_builder.model.extended_attributes_enabled = False
 
@@ -392,7 +392,7 @@ class TestNovaModelBuilder(
         self.assertEqual(2, fake_instance.vcpus)
 
     def test_build_instance_node_boot_from_volume_with_ephemeral(self):
-        model_builder = nova.NovaModelBuilder(osc=mock.MagicMock())
+        model_builder = nova.NovaModelBuilder()
         model_builder.model = mock.MagicMock()
         model_builder.model.extended_attributes_enabled = False
 
@@ -421,7 +421,7 @@ class TestNovaModelBuilder(
         self.assertEqual(11, fake_instance.disk)
 
     def test_build_instance_node_image_backed(self):
-        model_builder = nova.NovaModelBuilder(osc=mock.MagicMock())
+        model_builder = nova.NovaModelBuilder()
         model_builder.model = mock.MagicMock()
         model_builder.model.extended_attributes_enabled = False
 
@@ -461,7 +461,7 @@ class TestNovaModelBuilder(
             }
         ]
 
-        t_nova_cluster = nova.NovaModelBuilder(mock.Mock())
+        t_nova_cluster = nova.NovaModelBuilder()
         self.assertTrue(t_nova_cluster._check_model_scope(m_scope))
 
     def test_check_model_update_false(self):
@@ -479,7 +479,7 @@ class TestNovaModelBuilder(
             }
         ]
 
-        t_nova_cluster = nova.NovaModelBuilder(mock.Mock())
+        t_nova_cluster = nova.NovaModelBuilder()
         self.assertTrue(t_nova_cluster._check_model_scope(m_scope))
         self.assertFalse(t_nova_cluster._check_model_scope(m_scope))
 
@@ -507,7 +507,7 @@ class TestNovaModelBuilder(
             }
         ]
 
-        t_nova_cluster = nova.NovaModelBuilder(mock.Mock())
+        t_nova_cluster = nova.NovaModelBuilder()
         self.assertTrue(t_nova_cluster._check_model_scope(m_scope_one))
         self.assertTrue(t_nova_cluster._check_model_scope(m_scope_two))
 
@@ -529,7 +529,7 @@ class TestNovaModelBuilder(
             'host_aggregates': [{'id': 5}, {'id': 4}],
         }
 
-        t_nova_cluster = nova.NovaModelBuilder(mock.Mock())
+        t_nova_cluster = nova.NovaModelBuilder()
         t_nova_cluster._merge_compute_scope(m_scope_one)
         t_nova_cluster._merge_compute_scope(m_scope_two)
 
@@ -553,7 +553,7 @@ class TestNovaModelBuilder(
 
         m_scope = [{'id': 5}]
 
-        t_nova_cluster = nova.NovaModelBuilder(mock.Mock())
+        t_nova_cluster = nova.NovaModelBuilder()
         result = set()
         t_nova_cluster._collect_aggregates(m_scope, result)
 
@@ -563,7 +563,7 @@ class TestNovaModelBuilder(
     def test_collect_aggregates_none(self, m_nova):
         """Test collect_aggregates with host_aggregates None"""
         result = set()
-        t_nova_cluster = nova.NovaModelBuilder(mock.Mock())
+        t_nova_cluster = nova.NovaModelBuilder()
         t_nova_cluster._collect_aggregates(None, result)
 
         self.assertEqual(set(), result)
@@ -588,7 +588,7 @@ class TestNovaModelBuilder(
 
         m_scope = [{'name': 'av_a'}]
 
-        t_nova_cluster = nova.NovaModelBuilder(mock.Mock())
+        t_nova_cluster = nova.NovaModelBuilder()
         result = set()
         t_nova_cluster._collect_zones(m_scope, result)
 
@@ -598,7 +598,7 @@ class TestNovaModelBuilder(
     def test_collect_zones_none(self, m_nova):
         """Test collect_zones with availability_zones None"""
         result = set()
-        t_nova_cluster = nova.NovaModelBuilder(mock.Mock())
+        t_nova_cluster = nova.NovaModelBuilder()
         t_nova_cluster._collect_zones(None, result)
 
         self.assertEqual(set(), result)
@@ -737,7 +737,7 @@ class TestNovaModelBuilder(
             }
         ]
 
-        t_nova_cluster = nova.NovaModelBuilder(mock.Mock())
+        t_nova_cluster = nova.NovaModelBuilder()
         t_nova_cluster.execute(m_scope)
         m_nova.return_value.get_compute_node_by_name.assert_any_call(
             'hostone', servers=True, detailed=True
@@ -871,7 +871,7 @@ class TestNovaModelBuilder(
 
         m_add_instance_node.side_effect = mock.Mock(side_effect=fake_collector)
 
-        t_nova_cluster = nova.NovaModelBuilder(mock.Mock())
+        t_nova_cluster = nova.NovaModelBuilder()
         # NOTE(dviroel): ModelBuilder reads the timeout directly
         # from the configuration and don't allow value lower than 30s
         # Here we need to set the value to 0.1 to simulate
@@ -910,7 +910,7 @@ class TestNovaModelBuilder(
         )
         m_collect_zones.side_effect = mock.Mock(side_effect=fake_collector)
 
-        t_nova_cluster = nova.NovaModelBuilder(mock.Mock())
+        t_nova_cluster = nova.NovaModelBuilder()
         # NOTE(dviroel): ModelBuilder reads the timeout directly
         # from the configuration and don't allow value lower than 30s
         # Setting timeout to 0 so waiter will return immediately
@@ -1010,7 +1010,7 @@ class TestNovaModelBuilder(
             }
         ]
 
-        t_nova_cluster = nova.NovaModelBuilder(mock.Mock())
+        t_nova_cluster = nova.NovaModelBuilder()
         model = t_nova_cluster.execute(m_scope)
 
         compute_nodes = model.get_all_compute_nodes()
@@ -1030,6 +1030,6 @@ class TestNovaModelBuilder(
 
         self.flags(compute_resources_collector_timeout=123, group='collector')
 
-        t_nova_cluster = nova.NovaModelBuilder(mock.Mock())
+        t_nova_cluster = nova.NovaModelBuilder()
 
         self.assertEqual(t_nova_cluster.collector_timeout, 123)
