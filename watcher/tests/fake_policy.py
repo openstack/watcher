@@ -16,8 +16,12 @@
 policy_data = """
 {
     "admin_api": "role:admin or role:administrator",
+    "service_api": "",
+    "admin_or_service_api": "",
     "show_password": "!",
     "default": "rule:admin_api",
+
+    "webhook:trigger": "",
 
     "action:detail": "",
     "action:get": "",

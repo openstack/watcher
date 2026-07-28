@@ -22,6 +22,7 @@ from watcher.common.policies import goal
 from watcher.common.policies import scoring_engine
 from watcher.common.policies import service
 from watcher.common.policies import strategy
+from watcher.common.policies import webhooks
 
 
 def list_rules():
@@ -36,4 +37,5 @@ def list_rules():
         scoring_engine.list_rules(),
         service.list_rules(),
         strategy.list_rules(),
+        webhooks.list_rules(),
     )
