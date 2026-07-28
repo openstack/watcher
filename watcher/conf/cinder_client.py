@@ -17,6 +17,8 @@
 
 from oslo_config import cfg
 
+from watcher._i18n import _
+
 
 cinder_client = cfg.OptGroup(
     name='cinder_client', title='Configuration Options for Cinder'
@@ -26,11 +28,24 @@ CINDER_CLIENT_OPTS = [
     cfg.StrOpt(
         'api_version',
         default='3',
+        deprecated_for_removal=True,
+        deprecated_reason=_(
+            'To replace the frozen cinderclient with the '
+            'openstacksdk block-storage proxy, the options need to '
+            'be under the [cinder] group.'
+        ),
+        deprecated_since='2026.2',
         help='Version of Cinder API to use in cinderclient.',
     ),
     cfg.StrOpt(
         'endpoint_type',
         default='publicURL',
+        deprecated_for_removal=True,
+        deprecated_reason=_(
+            'This option was replaced by the valid_interfaces '
+            'option defined by keystoneauth.'
+        ),
+        deprecated_since='2026.2',
         choices=[
             'public',
             'internal',
@@ -43,6 +58,12 @@ CINDER_CLIENT_OPTS = [
     ),
     cfg.StrOpt(
         'region_name',
+        deprecated_for_removal=True,
+        deprecated_reason=_(
+            'This option was replaced by the region_name '
+            'option defined by keystoneauth.'
+        ),
+        deprecated_since='2026.2',
         help='Region in Identity service catalog to use for '
         'communication with the OpenStack service.',
     ),

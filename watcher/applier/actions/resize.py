@@ -78,7 +78,7 @@ class Resize(base.BaseAction):
         return self.input_parameters.get(self.FLAVOR)
 
     def resize(self):
-        nova = nova_helper.NovaHelper(osc=self.osc)
+        nova = nova_helper.NovaHelper()
         LOG.debug(
             "Resize instance %s to %s flavor", self.instance_uuid, self.flavor
         )
@@ -118,7 +118,7 @@ class Resize(base.BaseAction):
         Failing conditions:
         - Flavor does not exist
         """
-        nova = nova_helper.NovaHelper(osc=self.osc)
+        nova = nova_helper.NovaHelper()
 
         # Check that the instance exists
         try:

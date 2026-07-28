@@ -69,7 +69,7 @@ class StorageCapacityBalance(base.WorkloadStabilizationBaseStrategy):
     @property
     def cinder(self):
         if not self._cinder:
-            self._cinder = cinder_helper.CinderHelper(osc=self.osc)
+            self._cinder = cinder_helper.CinderHelper()
         return self._cinder
 
     @classmethod

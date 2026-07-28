@@ -17,25 +17,26 @@ import functools
 import time
 import uuid
 
-from cinderclient import exceptions as cinder_exception
+from openstack import exceptions as sdk_exc
 from oslo_log import log
 
+from watcher import conf
 from watcher._i18n import _
-from watcher.common import clients
+from watcher.common import base_helper
 from watcher.common import exception
 
 
 LOG = log.getLogger(__name__)
+CONF = conf.CONF
 
 
 def handle_cinder_error(resource_type, id_arg_index=1):
-    """Decorator to handle exceptions from cinderclient.
+    """Decorator to handle exceptions from the block_storage proxy.
 
-    This decorator catches cinderclient exceptions and handles them
-    as follows:
+    This decorator catches the proxy exceptions and handles them as follows:
     - NotFound exceptions: logs a debug message and raises
       StorageResourceNotFound
-    - Other cinderclient exceptions: re-raises as CinderClientError
+    - Other block_storage proxy exceptions: re-raises as CinderClientError
 
     Use this for methods that call the Cinder API where a missing
     resource is a valid outcome but other errors should be propagated.
@@ -52,7 +53,7 @@ def handle_cinder_error(resource_type, id_arg_index=1):
         def wrapper(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
-            except cinder_exception.NotFound:
+            except sdk_exc.NotFoundException:
                 if len(args) > id_arg_index:
                     resource_id = args[id_arg_index]
                 else:
@@ -60,7 +61,7 @@ def handle_cinder_error(resource_type, id_arg_index=1):
                 LOG.debug("%s %s was not found", resource_type, resource_id)
                 msg = f"{resource_id} of type {resource_type}"
                 raise exception.StorageResourceNotFound(name=msg)
-            except cinder_exception.ClientException as e:
+            except sdk_exc.SDKException as e:
                 LOG.error("Cinder client error: %s", e)
                 raise exception.CinderClientError(reason=str(e))
 
@@ -73,25 +74,25 @@ def handle_cinder_error(resource_type, id_arg_index=1):
 class StorageService:
     """Pure dataclass for Cinder storage service data.
 
-    Extracted from cinderclient Service object with all attributes
+    Extracted from openstacksdk Service object with all attributes
     resolved at construction time.
     """
 
     host: str
-    zone: str
+    availability_zone: str
     state: str
     status: str
 
     @classmethod
-    def from_cinderclient(cls, service):
-        """Create from a cinderclient Service object.
+    def from_openstacksdk(cls, service):
+        """Create from an openstacksdk block_storage Service object.
 
-        :param service: cinderclient Service object
+        :param service: openstacksdk block_storage Service object
         :returns: StorageService dataclass instance
         """
         return cls(
             host=service.host,
-            zone=service.zone,
+            availability_zone=service.availability_zone,
             state=service.state,
             status=service.status,
         )
@@ -101,7 +102,7 @@ class StorageService:
 class StoragePool:
     """Pure dataclass for Cinder storage pool data.
 
-    Extracted from cinderclient Pool object with all attributes
+    Extracted from openstacksdk Pools object with all attributes
     resolved at construction time. Not frozen because
     storage_capacity_balance strategy mutates free_capacity_gb.
     """
@@ -118,21 +119,20 @@ class StoragePool:
     capabilities: dict
 
     @classmethod
-    def from_cinderclient(cls, pool):
-        """Create from a cinderclient Pool object.
+    def from_openstacksdk(cls, pool):
+        """Create from an openstacksdk Pools object.
 
-        :param pool: cinderclient Pool object (from detailed list)
+        :param pool: openstacksdk Pools object (from backend_pools())
         :returns: StoragePool dataclass instance
         """
-        pool_dict = pool.to_dict()
-        capabilities = pool_dict.get('capabilities', {})
-        capacity_values = {}
+        capabilities = pool.capabilities or {}
         capacity_fields = [
             'total_capacity_gb',
             'free_capacity_gb',
             'provisioned_capacity_gb',
             'allocated_capacity_gb',
         ]
+        capacity_values = {}
         for field in capacity_fields:
             value = capabilities.pop(field, None)
             if value == "unknown" or value is None:
@@ -144,12 +144,12 @@ class StoragePool:
                 capacity_values[field] = float(value)
         return cls(
             name=pool.name,
-            pool_name=pool_dict.get('pool_name'),
-            total_volumes=pool_dict.get('total_volumes', 0),
+            pool_name=capabilities.get('pool_name'),
+            total_volumes=int(capabilities.get('total_volumes', 0) or 0),
             max_over_subscription_ratio=float(
-                pool_dict.get('max_over_subscription_ratio', 1.0)
+                capabilities.get('max_over_subscription_ratio', 1.0)
             ),
-            volume_backend_name=pool_dict.get('volume_backend_name'),
+            volume_backend_name=capabilities.get('volume_backend_name'),
             capabilities=capabilities,
             **capacity_values,
         )
@@ -159,9 +159,9 @@ class StoragePool:
 class Volume:
     """Pure dataclass for Cinder volume data.
 
-    Extracted from cinderclient Volume object with all attributes
-    resolved at construction time. Hyphenated cinderclient
-    attributes are mapped to valid Python field names.
+    Extracted from openstacksdk Volume object with all attributes
+    resolved at construction time. Hyphenated openstacksdk JSON keys
+    are mapped to clean Python field names.
     """
 
     id: str
@@ -174,10 +174,10 @@ class Volume:
     metadata: dict
     bootable: str
     created_at: str
-    tenant_id: str
+    project_id: str
     host: str | None
     migration_status: str | None
-    name_id: str | None
+    mig_name_id: str | None
     snapshot_id: str | None
 
     def __post_init__(self):
@@ -188,13 +188,12 @@ class Volume:
             raise exception.InvalidUUID(uuid=self.id)
 
     @classmethod
-    def from_cinderclient(cls, volume):
-        """Create from a cinderclient Volume object.
+    def from_openstacksdk(cls, volume):
+        """Create from an openstacksdk Volume object.
 
-        :param volume: cinderclient Volume object
+        :param volume: openstacksdk Volume object
         :returns: Volume dataclass instance
         """
-        vol_dict = volume.to_dict()
         return cls(
             id=volume.id,
             name=volume.name,
@@ -202,15 +201,15 @@ class Volume:
             status=volume.status,
             volume_type=volume.volume_type,
             attachments=volume.attachments,
-            multiattach=volume.multiattach,
+            multiattach=volume.is_multiattach,
             snapshot_id=volume.snapshot_id,
             metadata=volume.metadata,
-            bootable=volume.bootable,
-            created_at=volume.created_at,
+            bootable=str(volume.is_bootable).lower(),
+            created_at=str(volume.created_at),
             migration_status=volume.migration_status,
-            host=vol_dict.get('os-vol-host-attr:host'),
-            tenant_id=vol_dict['os-vol-tenant-attr:tenant_id'],
-            name_id=vol_dict.get('os-vol-mig-status-attr:name_id'),
+            host=volume.host,
+            project_id=volume.project_id,
+            mig_name_id=volume.migration_id,
         )
 
 
@@ -218,7 +217,7 @@ class Volume:
 class VolumeType:
     """Pure dataclass for Cinder volume type data.
 
-    Extracted from cinderclient VolumeType object with all
+    Extracted from openstacksdk Type object with all
     attributes resolved at construction time.
     """
 
@@ -234,10 +233,10 @@ class VolumeType:
             raise exception.InvalidUUID(uuid=self.id)
 
     @classmethod
-    def from_cinderclient(cls, volume_type):
-        """Create from a cinderclient VolumeType object.
+    def from_openstacksdk(cls, volume_type):
+        """Create from an openstacksdk Type object.
 
-        :param volume_type: cinderclient VolumeType object
+        :param volume_type: openstacksdk Type object
         :returns: VolumeType dataclass instance
         """
         return cls(
@@ -251,106 +250,141 @@ class VolumeType:
 class VolumeSnapshot:
     """Pure dataclass for Cinder volume snapshot data.
 
-    Extracted from cinderclient Snapshot object with all attributes
+    Extracted from openstacksdk Snapshot object with all attributes
     resolved at construction time.
     """
 
     volume_id: str
 
     @classmethod
-    def from_cinderclient(cls, snapshot):
-        """Create from a cinderclient Snapshot object.
+    def from_openstacksdk(cls, snapshot):
+        """Create from an openstacksdk Snapshot object.
 
-        :param snapshot: cinderclient Snapshot object
+        :param snapshot: openstacksdk Snapshot object
         :returns: VolumeSnapshot dataclass instance
         """
         return cls(volume_id=snapshot.volume_id)
 
 
-class CinderHelper:
-    def __init__(self, osc=None):
-        """:param osc: an OpenStackClients instance"""
-        self.osc = osc if osc else clients.OpenStackClients()
-        self.cinder = self.osc.cinder()
+class CinderHelper(base_helper.BaseConnectionMixin):
+    def __init__(self, session=None, context=None):
+        """Create a helper to call the cinder service.
+
+        :param session: Optional keystone session to create
+            the openstack connection.
+        :param context: Optional context object, used to get
+            user's token to create openstack connection.
+        """
+        self._config_overrides = False
+        self._override_deprecated_configs()
+        self._create_sdk_connection('cinder', context=context, session=session)
+
+    def _override_deprecated_configs(self) -> None:
+        """Apply deprecated cinder_client config overrides."""
+        if self._config_overrides:
+            return
+
+        if (
+            CONF.cinder.valid_interfaces is None
+            and CONF.cinder.interface is None
+        ):
+            # NOTE(jgilaber): ensure the endpoint_type option from
+            # cinder_client is processed and set with the right format in
+            # [cinder] valid_interfaces, if the latter is not set
+            endpoint_type = CONF.cinder_client.endpoint_type.replace('URL', '')
+            CONF.set_override('valid_interfaces', [endpoint_type], 'cinder')
+
+        self._config_overrides = True
 
     @handle_cinder_error("Storage service")
-    def get_storage_node_list(self):
+    def get_storage_node_list(self) -> list[StorageService]:
+        """Return all cinder-volume storage services."""
         return [
-            StorageService.from_cinderclient(s)
-            for s in self.cinder.services.list(binary='cinder-volume')
+            StorageService.from_openstacksdk(s)
+            for s in self.connection.block_storage.services(
+                binary='cinder-volume'
+            )
         ]
 
-    def get_storage_node_by_name(self, name):
-        """Get storage node by name(host@backendname)"""
-        try:
-            storages = [
-                storage
-                for storage in self.get_storage_node_list()
-                if storage.host == name
-            ]
-            if len(storages) != 1:
-                raise exception.StorageNodeNotFound(name=name)
-            return storages[0]
-        except Exception as exc:
-            LOG.exception(exc)
+    @handle_cinder_error("Storage service")
+    def get_storage_node_by_name(self, name: str) -> StorageService:
+        """Get a storage node by name.
+
+        :param name: Storage node name (host@backendname).
+        :returns: Matching storage service.
+        :raises StorageNodeNotFound: If no unique match
+            is found.
+        """
+        storages = [
+            storage
+            for storage in self.get_storage_node_list()
+            if storage.host == name
+        ]
+        if len(storages) != 1:
             raise exception.StorageNodeNotFound(name=name)
+        return storages[0]
 
     @handle_cinder_error("Storage pool")
-    def get_storage_pool_list(self):
+    def get_storage_pool_list(self) -> list[StoragePool]:
+        """Return all cinder backend storage pools."""
         return [
-            StoragePool.from_cinderclient(p)
-            for p in self.cinder.pools.list(detailed=True)
+            StoragePool.from_openstacksdk(p)
+            for p in self.connection.block_storage.backend_pools()
         ]
 
-    def get_storage_pool_by_name(self, name):
-        """Get pool by name(host@backend#poolname)"""
-        try:
-            pools = [
-                pool
-                for pool in self.get_storage_pool_list()
-                if pool.name == name
-            ]
-            if len(pools) != 1:
-                raise exception.PoolNotFound(name=name)
-            return pools[0]
-        except Exception as exc:
-            LOG.exception(exc)
+    @handle_cinder_error("Storage pool")
+    def get_storage_pool_by_name(self, name: str) -> StoragePool:
+        """Get a storage pool by name.
+
+        :param name: Pool name (host@backend#poolname).
+        :returns: Matching storage pool.
+        :raises PoolNotFound: If no unique match is found.
+        """
+        pools = [
+            pool for pool in self.get_storage_pool_list() if pool.name == name
+        ]
+        if len(pools) != 1:
             raise exception.PoolNotFound(name=name)
+        return pools[0]
 
     @handle_cinder_error("Volume")
-    def get_volume_list(self):
+    def get_volume_list(self) -> list[Volume]:
+        """Return all volumes across all projects."""
         return [
-            Volume.from_cinderclient(v)
-            for v in self.cinder.volumes.list(
-                search_opts={'all_tenants': True}
-            )
+            Volume.from_openstacksdk(v)
+            for v in self.connection.block_storage.volumes(all_projects=True)
         ]
 
     @handle_cinder_error("Volume type")
-    def get_volume_type_list(self):
+    def get_volume_type_list(self) -> list[VolumeType]:
+        """Return all volume types."""
         return [
-            VolumeType.from_cinderclient(vt)
-            for vt in self.cinder.volume_types.list()
+            VolumeType.from_openstacksdk(vt)
+            for vt in self.connection.block_storage.types()
         ]
 
-    def get_volume_type_name_by_id(self, volume_type_id):
+    def get_volume_type_name_by_id(self, volume_type_id: str) -> str:
         """Return the volume type name for a given volume type ID."""
         try:
-            return self.cinder.volume_types.get(volume_type_id).name
-        except cinder_exception.NotFound:
+            return self.connection.block_storage.get_type(volume_type_id).name
+        except sdk_exc.NotFoundException:
             raise exception.VolumeTypeNotFound(name=volume_type_id)
 
     @handle_cinder_error("Snapshot")
-    def get_volume_snapshots_list(self):
+    def get_volume_snapshots_list(self) -> list[VolumeSnapshot]:
+        """Return all volume snapshots across all projects."""
         return [
-            VolumeSnapshot.from_cinderclient(s)
-            for s in self.cinder.volume_snapshots.list(
-                search_opts={'all_tenants': True}
-            )
+            VolumeSnapshot.from_openstacksdk(s)
+            for s in self.connection.block_storage.snapshots(all_projects=True)
         ]
 
-    def get_volume_type_by_backendname(self, backendname):
-        """Return a list of volume type"""
+    def get_volume_type_by_backendname(self, backendname: str) -> list[str]:
+        """Return volume type names for a backend.
+
+        :param backendname: The volume backend name to match.
+        :returns: List of volume type names whose
+            ``volume_backend_name`` extra spec matches.
+        """
         volume_type_list = self.get_volume_type_list()
 
         volume_type = [
@@ -362,48 +396,65 @@ class CinderHelper:
         return volume_type
 
     @handle_cinder_error("Volume")
-    def get_volume(self, volume):
+    def get_volume(self, volume: str | Volume) -> Volume:
+        """Get a volume by ID or Volume object.
+
+        :param volume: Volume ID string or Volume instance.
+        :returns: The retrieved volume.
+        """
         if isinstance(volume, str):
             volume_id = volume
         else:
             volume_id = volume.id
 
         try:
-            v = self.cinder.volumes.get(volume_id)
-            return Volume.from_cinderclient(v)
-        except cinder_exception.NotFound:
-            v = self.cinder.volumes.find(name=volume_id)
-            return Volume.from_cinderclient(v)
+            v = self.connection.block_storage.get_volume(volume_id)
+            return Volume.from_openstacksdk(v)
+        except sdk_exc.NotFoundException:
+            v = self.connection.block_storage.find_volume(
+                volume_id, ignore_missing=False
+            )
+            return Volume.from_openstacksdk(v)
 
-    def get_deleting_volume(self, volume):
+    def get_deleting_volume(self, volume: str | Volume) -> Volume | bool:
+        """Get the shadow volume being deleted after migration.
+
+        :param volume: Volume ID string or Volume instance.
+        :returns: The deleting shadow volume, or False if
+            not found.
+        """
         volume = self.get_volume(volume)
         all_volume = self.get_volume_list()
         for _volume in all_volume:
-            if _volume.name_id == volume.id:
+            if _volume.mig_name_id == volume.id:
                 return _volume
         return False
 
-    def _can_get_volume(self, volume_id):
-        """Check to get volume with volume_id"""
+    def _can_get_volume(self, volume_id: str) -> bool:
+        """Check whether a volume can be retrieved.
+
+        :param volume_id: The volume ID to look up.
+        :returns: True if the volume exists, False otherwise.
+        """
         try:
-            volume = self.get_volume(volume_id)
-            if not volume:
-                raise exception.VolumeNotFound(name=volume_id)
+            self.get_volume(volume_id)
         except exception.StorageResourceNotFound:
             return False
-        else:
-            return True
+        return True
 
-    def _check_backend_matches_type(self, pool, volume_type):
-        """Check if a storage pool matches volume type requirements.
+    def _check_backend_matches_type(
+        self, pool: StoragePool, volume_type: VolumeType
+    ) -> bool:
+        """Check if a pool matches volume type requirements.
 
-        Verifies that all extra_specs properties defined in the volume
-        type are present in the pool's capabilities with matching values.
+        Verifies that all extra_specs properties defined in the
+        volume type are present in the pool's capabilities with
+        matching values.
 
-        :param pool: StoragePool dataclass instance
-        :param volume_type: VolumeType dataclass instance
-        :returns: True if pool matches all volume type requirements,
-                  False otherwise
+        :param pool: StoragePool dataclass instance.
+        :param volume_type: VolumeType dataclass instance.
+        :returns: True if pool matches all volume type
+            requirements, False otherwise.
         """
         for field_name, field_value in volume_type.extra_specs.items():
             pool_value = pool.capabilities.get(field_name)
@@ -422,10 +473,10 @@ class CinderHelper:
                 return False
         return True
 
-    def get_volume_types_for_pool(self, pool):
+    def get_volume_types_for_pool(self, pool: StoragePool) -> list[str]:
         """Return a list of volume types that can be associated with a pool.
 
-        :param pool: StoragePool dataclass instance
+        :param pool: StoragePool dataclass instance.
         :returns: List of volume types that can be scheduled in the input pool
         """
         volume_type_list = self.get_volume_type_list()
@@ -442,8 +493,16 @@ class CinderHelper:
 
         return pool_volume_types
 
-    def check_volume_deleted(self, volume, retry=120, retry_interval=10):
-        """Check volume has been deleted"""
+    def check_volume_deleted(
+        self, volume: str | Volume, retry: int = 120, retry_interval: int = 10
+    ) -> bool:
+        """Wait for a volume to be deleted.
+
+        :param volume: Volume ID string or Volume instance.
+        :param retry: Maximum number of polling attempts.
+        :param retry_interval: Seconds between attempts.
+        :returns: True if deleted, False on timeout.
+        """
         volume = self.get_volume(volume)
         while self._can_get_volume(volume.id) and retry:
             volume = self.get_volume(volume.id)
@@ -458,7 +517,15 @@ class CinderHelper:
         LOG.debug("Volume %s was deleted successfully.", volume.id)
         return True
 
-    def check_migrated(self, volume, retry_interval=10):
+    def check_migrated(
+        self, volume: str | Volume, retry_interval: int = 10
+    ) -> bool:
+        """Wait for volume migration to complete.
+
+        :param volume: Volume ID string or Volume instance.
+        :param retry_interval: Seconds between poll attempts.
+        :returns: True if migration succeeded, False on error.
+        """
         volume = self.get_volume(volume)
         final_status = ('success', 'error')
         while volume.migration_status not in final_status:
@@ -466,12 +533,11 @@ class CinderHelper:
             LOG.debug('Waiting the migration of %s', volume.id)
             time.sleep(retry_interval)
             if volume.migration_status == 'error':
-                error_msg = (
+                LOG.error(
                     "Volume migration error : "
-                    f"volume {volume.id} is now on host "
-                    f"'{volume.host}'."
+                    "volume %(volume)s is now on host '%(host)s'.",
+                    {'volume': volume.id, 'host': volume.host},
                 )
-                LOG.error(error_msg)
                 return False
 
         if volume.migration_status == 'success':
@@ -480,12 +546,11 @@ class CinderHelper:
                 if not self.check_volume_deleted(deleting_volume.id):
                     return False
         else:
-            error_msg = (
+            LOG.error(
                 "Volume migration error : "
-                f"volume {volume.id} is now on host "
-                f"'{volume.host}'."
+                "volume %(volume)s is now on host '%(host)s'.",
+                {'volume': volume.id, 'host': volume.host},
             )
-            LOG.error(error_msg)
             return False
         LOG.debug(
             "Volume migration succeeded : "
@@ -494,7 +559,16 @@ class CinderHelper:
         )
         return True
 
-    def check_retyped(self, volume, dst_type, retry_interval=10):
+    def check_retyped(
+        self, volume: str | Volume, dst_type: str, retry_interval: int = 10
+    ) -> bool:
+        """Wait for volume retype to complete.
+
+        :param volume: Volume ID string or Volume instance.
+        :param dst_type: Target volume type name.
+        :param retry_interval: Seconds between poll attempts.
+        :returns: True if retype succeeded, False on error.
+        """
         volume = self.get_volume(volume)
         valid_status = ('available', 'in-use')
         # A volume retype is correct when the type is the dst_type
@@ -540,8 +614,16 @@ class CinderHelper:
         return True
 
     @handle_cinder_error("Volume")
-    def migrate(self, volume, dest_node):
-        """Migrate volume to dest_node"""
+    def migrate(self, volume: str | Volume, dest_node: str) -> bool:
+        """Migrate a volume to a destination node.
+
+        :param volume: Volume ID string or Volume instance.
+        :param dest_node: Destination pool name
+            (host@backend#pool).
+        :returns: True if migration succeeded, False on error.
+        :raises Invalid: If the volume type is incompatible
+            with the destination pool.
+        """
         volume = self.get_volume(volume)
         pool = self.get_storage_pool_by_name(dest_node)
         dest_types = self.get_volume_types_for_pool(pool)
@@ -564,13 +646,22 @@ class CinderHelper:
             {'volume': volume.id, 'host': volume.host},
         )
 
-        self.cinder.volumes.migrate_volume(volume.id, dest_node, False, True)
+        self.connection.block_storage.migrate_volume(
+            volume.id, host=dest_node, force_host_copy=False, lock_volume=True
+        )
 
         return self.check_migrated(volume)
 
     @handle_cinder_error("Volume")
-    def retype(self, volume, dest_type):
-        """Retype volume to dest_type with on-demand option"""
+    def retype(self, volume: str | Volume, dest_type: str) -> bool:
+        """Retype a volume with on-demand migration policy.
+
+        :param volume: Volume ID string or Volume instance.
+        :param dest_type: Target volume type name.
+        :returns: True if retype succeeded, False on error.
+        :raises Invalid: If the volume already has the target
+            type.
+        """
         volume = self.get_volume(volume)
         if volume.volume_type == dest_type:
             raise exception.Invalid(
@@ -582,6 +673,8 @@ class CinderHelper:
             {'volume': volume.id, 'host': volume.host},
         )
 
-        self.cinder.volumes.retype(volume.id, dest_type, "on-demand")
+        self.connection.block_storage.retype_volume(
+            volume.id, new_type=dest_type, migration_policy="on-demand"
+        )
 
         return self.check_retyped(volume, dest_type)

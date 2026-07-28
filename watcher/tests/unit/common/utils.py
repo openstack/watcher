@@ -16,11 +16,11 @@
 
 """Utilities for Watcher tests of code from the common module."""
 
-from cinderclient.v3 import pools
-from cinderclient.v3 import services
-from cinderclient.v3 import volume_snapshots
-from cinderclient.v3 import volume_types
-from cinderclient.v3 import volumes
+from openstack.block_storage.v3 import service as block_service
+from openstack.block_storage.v3 import snapshot as block_snapshot
+from openstack.block_storage.v3 import stats
+from openstack.block_storage.v3 import type as block_type
+from openstack.block_storage.v3 import volume as block_volume
 from openstack.compute.v2 import aggregate
 from openstack.compute.v2 import flavor
 from openstack.compute.v2 import hypervisor
@@ -180,11 +180,11 @@ class PlacementResourcesMixin:
 
 
 class CinderResourcesMixin:
-    def create_cinder_volume(self, **kwargs):
-        """Create a cinder_helper.Volume dataclass instance.
+    def create_openstacksdk_volume(self, **kwargs):
+        """Create a real OpenStackSDK block_storage Volume.
 
         :param kwargs: volume attributes
-        :returns: cinder_helper.Volume instance
+        :returns: openstack.block_storage.v3.volume.Volume
         """
         volume_info = {
             'id': kwargs.pop('id', 'd010ef1f-dc19-4982-9383-087498bfde03'),
@@ -193,23 +193,24 @@ class CinderResourcesMixin:
             'status': kwargs.pop('status', 'available'),
             'volume_type': kwargs.pop('volume_type', 'fake_type'),
             'attachments': kwargs.pop('attachments', []),
-            'multiattach': kwargs.pop('multiattach', False),
+            'is_multiattach': kwargs.pop('multiattach', False),
             'metadata': kwargs.pop('metadata', {}),
             'bootable': kwargs.pop('bootable', 'false'),
             'created_at': kwargs.pop('created_at', '2026-01-09T12:00:00'),
-            'os-vol-tenant-attr:tenant_id': kwargs.pop('tenant_id', None),
+            'project_id': kwargs.pop('project_id', None),
             'os-vol-host-attr:host': kwargs.pop('host', None),
             'migration_status': kwargs.pop('migration_status', None),
-            'os-vol-mig-status-attr:name_id': kwargs.pop('name_id', None),
+            'os-vol-mig-status-attr:name_id': kwargs.pop('mig_name_id', None),
             'snapshot_id': kwargs.pop('snapshot_id', None),
         }
-        return volumes.Volume(volumes.VolumeManager, volume_info)
+        volume_info.update(kwargs)
+        return block_volume.Volume(**volume_info)
 
-    def create_cinder_pool(self, **kwargs):
-        """Create a cinder_helper.StoragePool dataclass instance.
+    def create_openstacksdk_pool(self, **kwargs):
+        """Create a real OpenStackSDK block_storage Pools.
 
         :param kwargs: pool attributes
-        :returns: cinder_helper.StoragePool instance
+        :returns: openstack.block_storage.v3.stats.Pools
         """
         name = kwargs.pop('name', 'host@backend#pool')
         pool_name = kwargs.pop('pool_name', None)
@@ -223,47 +224,44 @@ class CinderResourcesMixin:
         provisioned_capacity_gb = kwargs.pop('provisioned_capacity_gb', 50.0)
         allocated_capacity_gb = kwargs.pop('allocated_capacity_gb', 50.0)
         capabilities = kwargs.pop('capabilities', {})
+        capabilities.setdefault('pool_name', pool_name)
         capabilities.setdefault('total_capacity_gb', total_capacity_gb)
         capabilities.setdefault('free_capacity_gb', free_capacity_gb)
         capabilities.setdefault(
             'provisioned_capacity_gb', provisioned_capacity_gb
         )
         capabilities.setdefault('allocated_capacity_gb', allocated_capacity_gb)
-        pool_info = {
-            'name': name,
-            'pool_name': pool_name,
-            'total_volumes': kwargs.pop('total_volumes', 0),
-            'total_capacity_gb': total_capacity_gb,
-            'free_capacity_gb': free_capacity_gb,
-            'provisioned_capacity_gb': provisioned_capacity_gb,
-            'allocated_capacity_gb': allocated_capacity_gb,
-            'max_over_subscription_ratio': kwargs.pop(
-                'max_over_subscription_ratio', 1.0
-            ),
-            'volume_backend_name': backend_name,
-            'capabilities': capabilities,
-        }
-        return pools.Pool(pools.PoolManager, pool_info)
+        capabilities.setdefault('volume_backend_name', backend_name)
+        capabilities.setdefault(
+            'total_volumes', kwargs.pop('total_volumes', 0)
+        )
+        capabilities.setdefault(
+            'max_over_subscription_ratio',
+            kwargs.pop('max_over_subscription_ratio', 1.0),
+        )
+        pool_info = {'name': name, 'capabilities': capabilities}
+        return stats.Pools(**pool_info)
 
-    def create_cinder_storage_service(self, **kwargs):
-        """Create a cinder_helper.StorageService dataclass instance.
+    def create_openstacksdk_storage_service(self, **kwargs):
+        """Create a real OpenStackSDK block_storage Service.
 
         :param kwargs: service attributes
-        :returns: cinder_helper.StorageService instance
+        :returns: openstack.block_storage.v3.service.Service
         """
         service_info = {
             'host': kwargs.pop('host', 'host@backend'),
-            'zone': kwargs.pop('zone', 'nova'),
+            'zone': kwargs.pop('availability_zone', 'nova'),
             'state': kwargs.pop('state', 'up'),
             'status': kwargs.pop('status', 'enabled'),
         }
-        return services.Service(services.ServiceManager, service_info)
+        service_info.update(kwargs)
+        return block_service.Service(**service_info)
 
-    def create_cinder_volume_type(self, **kwargs):
-        """Create a cinder_helper.VolumeType dataclass instance.
+    def create_openstacksdk_volume_type(self, **kwargs):
+        """Create a real OpenStackSDK block_storage Type.
 
         :param kwargs: volume type attributes
-        :returns: cinder_helper.VolumeType instance
+        :returns: openstack.block_storage.v3.type.Type
         """
         type_info = {
             'id': kwargs.pop('id', 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'),
@@ -272,15 +270,14 @@ class CinderResourcesMixin:
                 'extra_specs', {'volume_backend_name': 'backend'}
             ),
         }
-        return volume_types.VolumeType(
-            volume_types.VolumeTypeManager, type_info
-        )
+        type_info.update(kwargs)
+        return block_type.Type(**type_info)
 
-    def create_cinder_volume_snapshot(self, **kwargs):
-        """Create a cinder_helper.VolumeSnapshot dataclass instance.
+    def create_openstacksdk_volume_snapshot(self, **kwargs):
+        """Create a real OpenStackSDK block_storage Snapshot.
 
         :param kwargs: snapshot attributes
-        :returns: cinder_helper.VolumeSnapshot instance
+        :returns: openstack.block_storage.v3.snapshot.Snapshot
         """
         snapshot_info = {
             'id': kwargs.pop(
@@ -291,6 +288,5 @@ class CinderResourcesMixin:
                 'volume_id', 'd010ef1f-dc19-4982-9383-087498bfde03'
             ),
         }
-        return volume_snapshots.Snapshot(
-            volume_snapshots.SnapshotManager, snapshot_info
-        )
+        snapshot_info.update(kwargs)
+        return block_snapshot.Snapshot(**snapshot_info)

@@ -1,0 +1,16 @@
+---
+upgrade:
+  - |
+    Connection settings for Cinder should be added
+    directly to the [cinder] section of the configuration now, instead of
+    [cinder_client].
+deprecations:
+  - |
+    The cinder_client configuration options (api_version, endpoint_type,
+    region_name) are deprecated and will be removed in a future release.
+    Operators should migrate to the keystoneauth adapter configuration
+    options in the [cinder] configuration group.
+other:
+  - |
+    Replaced python-cinderclient with the openstacksdk block-storage proxy
+    in CinderHelper.

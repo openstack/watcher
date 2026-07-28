@@ -309,7 +309,10 @@ class TestCinderNotifications(NotificationTestCase):
         # storage_node_by_name mock
         return_node_mock = mock.Mock()
         return_node_mock.configure_mock(
-            host='host_2@backend_2', zone='nova', state='up', status='enabled'
+            host='host_2@backend_2',
+            availability_zone='nova',
+            state='up',
+            status='enabled',
         )
 
         m_get_storage_node_by_name = mock.Mock(
@@ -488,7 +491,10 @@ class TestCinderNotifications(NotificationTestCase):
         # create storage_node_by_name mock
         return_node_mock = mock.Mock()
         return_node_mock.configure_mock(
-            host='host_2@backend_2', zone='nova', state='up', status='enabled'
+            host='host_2@backend_2',
+            availability_zone='nova',
+            state='up',
+            status='enabled',
         )
 
         m_get_storage_node_by_name = mock.Mock(

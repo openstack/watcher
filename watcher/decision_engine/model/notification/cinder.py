@@ -82,7 +82,7 @@ class CinderNotification(base.NotificationEndpoint):
             )
             storage_node = element.StorageNode(
                 host=_node.host,
-                zone=_node.zone,
+                zone=_node.availability_zone,
                 state=_node.state,
                 status=_node.status,
                 volume_type=_volume_type,

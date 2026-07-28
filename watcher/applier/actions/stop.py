@@ -66,7 +66,7 @@ class Stop(base.BaseAction):
         return self.resource_id
 
     def stop(self):
-        nova = nova_helper.NovaHelper(osc=self.osc)
+        nova = nova_helper.NovaHelper()
         LOG.debug("Stopping instance %s", self.instance_uuid)
 
         try:
@@ -115,7 +115,7 @@ class Stop(base.BaseAction):
 
     def _revert_stop(self):
         """Revert the stop action by trying to start the instance"""
-        nova = nova_helper.NovaHelper(osc=self.osc)
+        nova = nova_helper.NovaHelper()
         LOG.debug("Starting instance %s", self.instance_uuid)
 
         try:
@@ -161,7 +161,7 @@ class Stop(base.BaseAction):
         - Instance does not exist
         - Instance is stopped
         """
-        nova = nova_helper.NovaHelper(osc=self.osc)
+        nova = nova_helper.NovaHelper()
 
         # Check that the instance exists
         try:

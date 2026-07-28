@@ -90,7 +90,7 @@ def handle_nova_error(resource_type, id_arg_index=1):
                     resource_id = 'unknown'
                 LOG.debug("%s %s was not found", resource_type, resource_id)
                 msg = f"{resource_id} of type {resource_type}"
-                raise exception.ComputeResourceNotFound(msg)
+                raise exception.ComputeResourceNotFound(name=msg)
             except sdk_exc.SDKException as e:
                 LOG.error("Nova client error: %s", e)
                 raise exception.NovaClientError(reason=str(e))
@@ -387,10 +387,9 @@ class ServerMigration:
 
 
 class NovaHelper(BaseConnectionMixin):
-    def __init__(self, osc=None, session=None, context=None):
+    def __init__(self, session=None, context=None):
         """Create and return a helper to call the nova service
 
-        :param osc: an OpenStackClients instance
         :param session: Optional keystone session to create the
             openstack connection.
         :param context: Optional context object, use to get user's
@@ -399,8 +398,6 @@ class NovaHelper(BaseConnectionMixin):
         self._config_overrides = False
         self._override_deprecated_configs()
         clients.check_min_nova_api_version(CONF.nova.api_version)
-        self.osc = osc if osc else clients.OpenStackClients()
-        self.cinder = self.osc.cinder()
         self._create_sdk_connection('nova', context=context, session=session)
         self._is_pinned_az_available = None
 

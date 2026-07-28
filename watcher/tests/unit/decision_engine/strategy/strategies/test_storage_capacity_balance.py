@@ -18,6 +18,8 @@
 
 from unittest import mock
 
+import fixtures
+
 from watcher.common import cinder_helper
 from watcher.common import clients
 from watcher.common import utils
@@ -32,44 +34,44 @@ from watcher.tests.unit.decision_engine.strategy.strategies.test_base import (
 class TestStorageCapacityBalance(
     test_utils.CinderResourcesMixin, TestBaseStrategy
 ):
-    def create_cinder_pool(self, **kwargs):
-        return cinder_helper.StoragePool.from_cinderclient(
-            super().create_cinder_pool(**kwargs)
+    def create_openstacksdk_pool(self, **kwargs):
+        return cinder_helper.StoragePool.from_openstacksdk(
+            super().create_openstacksdk_pool(**kwargs)
         )
 
-    def create_cinder_volume(self, **kwargs):
-        return cinder_helper.Volume.from_cinderclient(
-            super().create_cinder_volume(**kwargs)
+    def create_openstacksdk_volume(self, **kwargs):
+        return cinder_helper.Volume.from_openstacksdk(
+            super().create_openstacksdk_volume(**kwargs)
         )
 
-    def create_cinder_volume_snapshot(self, **kwargs):
-        return cinder_helper.VolumeSnapshot.from_cinderclient(
-            super().create_cinder_volume_snapshot(**kwargs)
+    def create_openstacksdk_volume_snapshot(self, **kwargs):
+        return cinder_helper.VolumeSnapshot.from_openstacksdk(
+            super().create_openstacksdk_volume_snapshot(**kwargs)
         )
 
-    def create_cinder_volume_type(self, **kwargs):
-        return cinder_helper.VolumeType.from_cinderclient(
-            super().create_cinder_volume_type(**kwargs)
+    def create_openstacksdk_volume_type(self, **kwargs):
+        return cinder_helper.VolumeType.from_openstacksdk(
+            super().create_openstacksdk_volume_type(**kwargs)
         )
 
     def setUp(self):
         super().setUp()
 
-        self.fake_pool1 = self.create_cinder_pool(
+        self.fake_pool1 = self.create_openstacksdk_pool(
             name='host1@IPSAN-1#pool1',
             free_capacity_gb='60',
             total_capacity_gb='100',
             allocated_capacity_gb='90',
             volume_backend_name='pool1',
         )
-        self.fake_pool2 = self.create_cinder_pool(
+        self.fake_pool2 = self.create_openstacksdk_pool(
             name='host1@IPSAN-1#pool2',
             free_capacity_gb='20',
             total_capacity_gb='100',
             allocated_capacity_gb='80',
             volume_backend_name='pool2',
         )
-        self.fake_pool3 = self.create_cinder_pool(
+        self.fake_pool3 = self.create_openstacksdk_pool(
             name='host1@IPSAN-1#local_vstorage',
             free_capacity_gb='20',
             total_capacity_gb='100',
@@ -78,7 +80,7 @@ class TestStorageCapacityBalance(
         )
         self.fake_pools = [self.fake_pool1, self.fake_pool2, self.fake_pool3]
 
-        self.fake_vol1 = self.create_cinder_volume(
+        self.fake_vol1 = self.create_openstacksdk_volume(
             id='922d4762-0bc5-4b30-9cb9-48ab644dd861',
             name='test_volume1',
             size=4,
@@ -88,7 +90,7 @@ class TestStorageCapacityBalance(
             volume_type='type2',
             host='host1@IPSAN-1#pool2',
         )
-        self.fake_vol2 = self.create_cinder_volume(
+        self.fake_vol2 = self.create_openstacksdk_volume(
             id='922d4762-0bc5-4b30-9cb9-48ab644dd862',
             name='test_volume2',
             size=10,
@@ -96,7 +98,7 @@ class TestStorageCapacityBalance(
             volume_type=None,
             host='host1@IPSAN-1#pool2',
         )
-        self.fake_vol3 = self.create_cinder_volume(
+        self.fake_vol3 = self.create_openstacksdk_volume(
             id='922d4762-0bc5-4b30-9cb9-48ab644dd863',
             name='test_volume3',
             size=4,
@@ -105,7 +107,7 @@ class TestStorageCapacityBalance(
             volume_type='type2',
             host='host1@IPSAN-1#pool2',
         )
-        self.fake_vol4 = self.create_cinder_volume(
+        self.fake_vol4 = self.create_openstacksdk_volume(
             id='922d4762-0bc5-4b30-9cb9-48ab644dd864',
             name='test_volume4',
             size=10,
@@ -114,7 +116,7 @@ class TestStorageCapacityBalance(
             volume_type=None,
             host='host1@IPSAN-1#pool2',
         )
-        self.fake_vol5 = self.create_cinder_volume(
+        self.fake_vol5 = self.create_openstacksdk_volume(
             id='922d4762-0bc5-4b30-9cb9-48ab644dd865',
             name='test_volume5',
             size=15,
@@ -133,16 +135,16 @@ class TestStorageCapacityBalance(
         ]
 
         self.fake_snap = [
-            self.create_cinder_volume_snapshot(
+            self.create_openstacksdk_volume_snapshot(
                 volume_id='922d4762-0bc5-4b30-9cb9-48ab644dd865'
             )
         ]
 
         self.fake_types = [
-            self.create_cinder_volume_type(
+            self.create_openstacksdk_volume_type(
                 name='type1', extra_specs={'volume_backend_name': 'pool1'}
             ),
-            self.create_cinder_volume_type(
+            self.create_openstacksdk_volume_type(
                 name='type2', extra_specs={'volume_backend_name': 'pool2'}
             ),
         ]
@@ -151,10 +153,10 @@ class TestStorageCapacityBalance(
 
         osc = clients.OpenStackClients()
 
-        p_cinder = mock.patch.object(osc, 'cinder')
-        p_cinder.start()
-        self.addCleanup(p_cinder.stop)
-        self.m_cinder = cinder_helper.CinderHelper(osc=osc)
+        self.useFixture(
+            fixtures.MockPatch("watcher.common.clients.get_sdk_connection")
+        )
+        self.m_cinder = cinder_helper.CinderHelper()
 
         self.m_cinder.get_storage_pool_list = mock.Mock(
             return_value=self.fake_pools

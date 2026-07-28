@@ -287,7 +287,7 @@ class ResizeActionValidator(BaseActionValidator):
     action_name = "resize"
 
     def validate_parents(self, resource_action_map, action):
-        nova = nova_helper.NovaHelper(osc=self.osc)
+        nova = nova_helper.NovaHelper()
         instance_uuid = action['input_parameters']['resource_id']
         parent_actions = resource_action_map.get(instance_uuid)
         host_of_instance = nova.get_hostname(
