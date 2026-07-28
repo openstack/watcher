@@ -1,0 +1,12 @@
+---
+security:
+  - |
+    Adds policy enforcement to the webhook trigger endpoint
+    (``POST /v1/webhooks/{audit_uuid}``). When ``[api] enable_webhooks_auth``
+    is ``True`` (the default), the new ``webhook:trigger`` policy rule is
+    enforced, requiring the caller to hold the ``admin``, ``administrator``,
+    or ``service`` role. Requests that do not satisfy the rule are rejected
+    with HTTP 403. When ``enable_webhooks_auth`` is ``False`` the endpoint
+    remains unauthenticated and no policy check is applied. For more details,
+    please see
+    `Bug #2161771 <https://bugs.launchpad.net/watcher/+bug/2161771>`_.
