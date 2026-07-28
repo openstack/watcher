@@ -13,10 +13,18 @@
 from http import HTTPStatus
 from unittest import mock
 
+import ddt
+
+from oslo_config import cfg
+
 from watcher import objects
+from watcher.common import context as watcher_context
 from watcher.decision_engine import rpcapi as deapi
 from watcher.tests.unit.api import base as api_base
 from watcher.tests.unit.objects import utils as obj_utils
+
+
+CONF = cfg.CONF
 
 
 class TestPost(api_base.FunctionalTest):
@@ -77,3 +85,105 @@ class TestPost(api_base.FunctionalTest):
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])
+
+
+@ddt.ddt
+class TestWebhookPolicyEnforcement(api_base.FunctionalTest):
+    def setUp(self):
+        super().setUp()
+        obj_utils.create_test_goal(self.context)
+        obj_utils.create_test_strategy(self.context)
+        obj_utils.create_test_audit_template(self.context)
+
+    def _create_event_audit(self):
+        return obj_utils.create_test_audit(
+            self.context, audit_type=objects.audit.AuditType.EVENT.value
+        )
+
+    def _set_admin_or_service_policy(self):
+        self.policy.set_rules(
+            {
+                'admin_or_service_api': (
+                    'role:admin or role:administrator or role:service'
+                ),
+                'webhook:trigger': 'rule:admin_or_service_api',
+            }
+        )
+
+    def _make_context_with_roles(self, roles):
+        def make_context(*args, **kwargs):
+            kwargs.setdefault('project_id', 'fake_project')
+            kwargs.setdefault('user_id', 'fake_user')
+            kwargs['roles'] = roles
+            context = watcher_context.RequestContext(*args, **kwargs)
+            return watcher_context.RequestContext.from_dict(context.to_dict())
+
+        return make_context
+
+    @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
+    def test_trigger_policy_disallowed_without_admin_or_service_role(
+        self, mock_trigger_audit
+    ):
+        CONF.set_override('enable_webhooks_auth', True, group='api')
+        self._set_admin_or_service_policy()
+        audit = self._create_event_audit()
+        response = self.post_json(
+            '/webhooks/{}'.format(audit['uuid']),
+            {},
+            headers={'OpenStack-API-Version': 'infra-optim 1.4'},
+            expect_errors=True,
+        )
+        self.assertEqual(HTTPStatus.FORBIDDEN, response.status_int)
+        mock_trigger_audit.assert_not_called()
+
+    @mock.patch.object(watcher_context.RequestContext, 'from_environ')
+    @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
+    @ddt.data("admin", "service")
+    def test_trigger_policy_allowed_with_role(
+        self, role, mock_trigger_audit, mock_from_environ
+    ):
+        CONF.set_override('enable_webhooks_auth', True, group='api')
+        self._set_admin_or_service_policy()
+        mock_from_environ.side_effect = self._make_context_with_roles([role])
+        audit = self._create_event_audit()
+        response = self.post_json(
+            '/webhooks/{}'.format(audit['uuid']),
+            {},
+            headers={'OpenStack-API-Version': 'infra-optim 1.4'},
+        )
+        self.assertEqual(HTTPStatus.ACCEPTED, response.status_int)
+        mock_trigger_audit.assert_called_once_with(mock.ANY, audit['uuid'])
+
+    @mock.patch.object(watcher_context.RequestContext, 'from_environ')
+    @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
+    @ddt.data("member", "reader")
+    def test_trigger_policy_disallowed_with_role(
+        self, role, mock_trigger_audit, mock_from_environ
+    ):
+        CONF.set_override('enable_webhooks_auth', True, group='api')
+        self._set_admin_or_service_policy()
+        mock_from_environ.side_effect = self._make_context_with_roles([role])
+        audit = self._create_event_audit()
+        response = self.post_json(
+            '/webhooks/{}'.format(audit['uuid']),
+            {},
+            headers={'OpenStack-API-Version': 'infra-optim 1.4'},
+            expect_errors=True,
+        )
+        self.assertEqual(HTTPStatus.FORBIDDEN, response.status_int)
+        mock_trigger_audit.assert_not_called()
+
+    @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
+    def test_trigger_policy_not_enforced_when_auth_disabled(
+        self, mock_trigger_audit
+    ):
+        CONF.set_override('enable_webhooks_auth', False, group='api')
+        self._set_admin_or_service_policy()
+        audit = self._create_event_audit()
+        response = self.post_json(
+            '/webhooks/{}'.format(audit['uuid']),
+            {},
+            headers={'OpenStack-API-Version': 'infra-optim 1.4'},
+        )
+        self.assertEqual(HTTPStatus.ACCEPTED, response.status_int)
+        mock_trigger_audit.assert_called_once_with(mock.ANY, audit['uuid'])

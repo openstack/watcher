@@ -12,22 +12,19 @@
 
 from oslo_policy import policy
 
+from watcher.common.policies import base
 
-RULE_ADMIN_API = 'rule:admin_api'
-RULE_ADMIN_OR_SERVICE = 'rule:admin_or_service_api'
-ROLE_ADMIN_OR_ADMINISTRATOR = 'role:admin or role:administrator'
-ALWAYS_DENY = '!'
+
+WEBHOOK = 'webhook:%s'
 
 rules = [
-    policy.RuleDefault(
-        name='admin_api', check_str=ROLE_ADMIN_OR_ADMINISTRATOR
-    ),
-    policy.RuleDefault(
-        name='admin_or_service_api',
-        check_str='rule:admin_api or role:service',
-        description='Default rule for service or admin APIs.',
-    ),
-    policy.RuleDefault(name='show_password', check_str=ALWAYS_DENY),
+    policy.DocumentedRuleDefault(
+        name=WEBHOOK % 'trigger',
+        check_str=base.RULE_ADMIN_OR_SERVICE,
+        description='Trigger an audit via webhook. Enforced only when '
+        'enable_webhooks_auth is enabled.',
+        operations=[{'path': '/v1/webhooks/{audit_uuid}', 'method': 'POST'}],
+    )
 ]
 
 

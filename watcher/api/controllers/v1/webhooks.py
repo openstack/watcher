@@ -19,6 +19,7 @@ from http import HTTPStatus
 import pecan
 import wsmeext.pecan as wsme_pecan
 
+from oslo_config import cfg
 from oslo_log import log
 from pecan import rest
 from wsme import types as wtypes
@@ -27,9 +28,11 @@ from watcher import objects
 from watcher.api.controllers.v1 import types
 from watcher.api.controllers.v1 import utils
 from watcher.common import exception
+from watcher.common import policy
 from watcher.decision_engine import rpcapi
 
 
+CONF = cfg.CONF
 LOG = log.getLogger(__name__)
 
 
@@ -49,9 +52,15 @@ class WebhookController(rest.RestController):
         :param audit_ident: UUID or name of an audit.
         """
 
+        context = pecan.request.context
+
+        if CONF.api.enable_webhooks_auth:
+            policy.enforce(
+                context, 'webhook:trigger', action='webhook:trigger'
+            )
+
         LOG.debug("Webhook trigger Audit: %s.", audit_ident)
 
-        context = pecan.request.context
         audit = utils.get_resource('Audit', audit_ident)
         if audit is None:
             raise exception.AuditNotFound(audit=audit_ident)
