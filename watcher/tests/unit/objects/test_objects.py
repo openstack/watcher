@@ -242,7 +242,7 @@ class _TestObject:
         )
 
     def test_with_alternate_context(self):
-        ctxt1 = context.RequestContext('foo', 'foo')
+        ctxt1 = context.RequestContext(user_id='foo', project_id='foo')
         ctxt2 = context.RequestContext(user_id='alternate')
         obj = MyObj.query(ctxt1)
         obj.update_test(ctxt2)

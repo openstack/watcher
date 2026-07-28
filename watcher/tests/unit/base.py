@@ -81,31 +81,23 @@ class TestCase(BaseTestCase):
 
         objects_base.WatcherObject.indirection_api = None
 
-        self.context = watcher_context.RequestContext(
-            auth_token_info=self.token_info,
-            project_id='fake_project',
-            user_id='fake_user',
-        )
+        self.context = self._create_context()
 
         self.policy = self.useFixture(policy_fixture.PolicyFixture())
 
-        def make_context(*args, **kwargs):
-            # If context hasn't been constructed with token_info
-            if not kwargs.get('auth_token_info'):
-                kwargs['auth_token_info'] = copy.deepcopy(self.token_info)
-            if not kwargs.get('project_id'):
-                kwargs['project_id'] = 'fake_project'
-            if not kwargs.get('user_id'):
-                kwargs['user_id'] = 'fake_user'
-
-            context = watcher_context.RequestContext(*args, **kwargs)
-            return watcher_context.RequestContext.from_dict(context.to_dict())
-
-        p = mock.patch.object(
-            watcher_context, 'make_context', side_effect=make_context
+        p_context = mock.patch.object(
+            watcher_context, 'make_context', side_effect=self._create_context
         )
-        self.mock_make_context = p.start()
-        self.addCleanup(p.stop)
+        p_context.start()
+        self.addCleanup(p_context.stop)
+
+        p_env = mock.patch.object(
+            watcher_context.RequestContext,
+            'from_environ',
+            side_effect=self._create_context,
+        )
+        p_env.start()
+        self.addCleanup(p_env.stop)
 
         self.useFixture(conf_fixture.ConfFixture(cfg.CONF))
         self._reset_singletons()
@@ -115,6 +107,17 @@ class TestCase(BaseTestCase):
         )
         self.addCleanup(self._restore_obj_registry)
         self.addCleanup(self._reset_singletons)
+
+    def _create_context(self, *args, **kwargs):
+        return watcher_context.RequestContext(
+            *args,
+            project_id='fake_project',
+            project_domain_id='fake_proj_domain_id',
+            user_id='fake_user',
+            user_domain_id='fake_user_domain_id',
+            roles=['member'],
+            **kwargs,
+        )
 
     def _reset_singletons(self):
         service.Singleton._instances.clear()
