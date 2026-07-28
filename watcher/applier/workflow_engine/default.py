@@ -62,6 +62,7 @@ class DefaultWorkFlowEngine(base.BaseWorkFlowEngine):
             cfg.IntOpt(
                 'max_workers',
                 default=processutils.get_worker_count(),
+                sample_default='<NUM_PROCESSOR>',
                 min=1,
                 required=True,
                 help='Number of workers for taskflow engine '
