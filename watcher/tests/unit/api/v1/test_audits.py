@@ -203,6 +203,56 @@ class TestListAudit(api_base.FunctionalTest):
         response = self.get_json('/audits/detail')
         self.assertEqual([], response['audits'])
 
+    def test_detail_filter_by_strategy_uuid(self):
+        strategy1 = obj_utils.create_test_strategy(
+            self.context, id=2, uuid=utils.generate_uuid(), name='strategy1'
+        )
+        strategy2 = obj_utils.create_test_strategy(
+            self.context, id=3, uuid=utils.generate_uuid(), name='strategy2'
+        )
+        audit1 = obj_utils.create_test_audit(
+            self.context,
+            id=1,
+            uuid=utils.generate_uuid(),
+            name='Audit 1',
+            strategy_id=strategy1.id,
+        )
+        obj_utils.create_test_audit(
+            self.context,
+            id=2,
+            uuid=utils.generate_uuid(),
+            name='Audit 2',
+            strategy_id=strategy2.id,
+        )
+        response = self.get_json(f'/audits/detail?strategy={strategy1.uuid}')
+        self.assertEqual(1, len(response['audits']))
+        self.assertEqual(audit1.uuid, response['audits'][0]['uuid'])
+
+    def test_detail_filter_by_strategy_name(self):
+        strategy1 = obj_utils.create_test_strategy(
+            self.context, id=2, uuid=utils.generate_uuid(), name='strategy1'
+        )
+        strategy2 = obj_utils.create_test_strategy(
+            self.context, id=3, uuid=utils.generate_uuid(), name='strategy2'
+        )
+        audit1 = obj_utils.create_test_audit(
+            self.context,
+            id=1,
+            uuid=utils.generate_uuid(),
+            name='Audit 1',
+            strategy_id=strategy1.id,
+        )
+        obj_utils.create_test_audit(
+            self.context,
+            id=2,
+            uuid=utils.generate_uuid(),
+            name='Audit 2',
+            strategy_id=strategy2.id,
+        )
+        response = self.get_json(f'/audits/detail?strategy={strategy1.name}')
+        self.assertEqual(1, len(response['audits']))
+        self.assertEqual(audit1.uuid, response['audits'][0]['uuid'])
+
     def test_detail_against_single(self):
         audit = obj_utils.create_test_audit(self.context)
         response = self.get_json('/audits/{}/detail'.format(audit['uuid']),
