@@ -26,7 +26,6 @@ from keystoneauth1 import exceptions as ksa_exc
 from openstack import exceptions as sdk_exc
 
 from watcher import conf
-from watcher.common import clients
 from watcher.common import exception
 from watcher.common import nova_helper
 from watcher.common import utils
@@ -37,7 +36,6 @@ from watcher.tests.unit.common import utils as test_utils
 CONF = conf.CONF
 
 
-@mock.patch.object(clients.OpenStackClients, 'cinder')
 class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
     def setUp(self):
         super().setUp()
@@ -77,7 +75,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
                 fake_list
             ]
 
-    def test_get_compute_node_by_hostname(self, mock_cinder):
+    def test_get_compute_node_by_hostname(self):
         nova_util = nova_helper.NovaHelper()
         hypervisor_id = utils.generate_uuid()
         hypervisor_name = "fake_hypervisor_1"
@@ -108,7 +106,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
             hypervisor_name,
         )
 
-    def test_get_compute_node_by_hostname_multiple_matches(self, mocks_cinder):
+    def test_get_compute_node_by_hostname_multiple_matches(self):
         # Tests a scenario where get_compute_node_by_name returns multiple
         # hypervisors and we have to pick the exact match based on the given
         # compute service hostname.
@@ -130,7 +128,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
                 nova_helper.Hypervisor.from_openstacksdk(nodes[index]), result
             )
 
-    def test_get_compute_node_by_uuid(self, mock_cinder):
+    def test_get_compute_node_by_uuid(self):
         nova_util = nova_helper.NovaHelper()
         hypervisor_id = utils.generate_uuid()
         hypervisor_name = "fake_hypervisor_1"
@@ -144,7 +142,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
             compute_node, nova_helper.Hypervisor.from_openstacksdk(hypervisor)
         )
 
-    def test_get_instance_list(self, *args):
+    def test_get_instance_list(self):
         nova_util = nova_helper.NovaHelper()
         # Call it once with no filters.
         result = nova_util.get_instance_list()
@@ -166,7 +164,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
         )
         self.assertEqual([], result)
 
-    def test_stop_instance(self, mock_cinder):
+    def test_stop_instance(self):
         nova_util = nova_helper.NovaHelper()
         instance_id = utils.generate_uuid()
         # verify that the method will return True when stopped
@@ -207,7 +205,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
         result = nova_util.stop_instance(instance_id)
         self.assertFalse(result)
 
-    def test_start_instance(self, mock_cinder):
+    def test_start_instance(self):
         nova_util = nova_helper.NovaHelper()
         instance_id = utils.generate_uuid()
         # verify that the method will return True when active
@@ -254,9 +252,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
     @mock.patch.object(
         nova_helper.NovaHelper, '_instance_confirm_resize', autospec=True
     )
-    def test_resize_instance(
-        self, mock_confirm_resize, mock_resize, mock_cinder
-    ):
+    def test_resize_instance(self, mock_confirm_resize, mock_resize):
         nova_util = nova_helper.NovaHelper()
         kwargs = {
             "id": self.instance_uuid,
@@ -283,7 +279,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
     @mock.patch.object(
         nova_helper.NovaHelper, '_instance_resize', autospec=True
     )
-    def test_resize_instance_wrong_status(self, mock_resize, mock_cinder):
+    def test_resize_instance_wrong_status(self, mock_resize):
         nova_util = nova_helper.NovaHelper()
         kwargs = {
             "id": self.instance_uuid,
@@ -306,7 +302,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
             nova_util, self.instance_uuid, self.flavor_name
         )
 
-    def test_watcher_resize_instance_retry_success(self, mock_cinder):
+    def test_watcher_resize_instance_retry_success(self):
         """Test that resize_instance uses config timeout by default"""
         nova_util = nova_helper.NovaHelper()
         kwargs = {
@@ -349,7 +345,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
         for call in self.mock_sleep.call_args_list:
             self.assertEqual(call[0][0], 4)
 
-    def test_watcher_resize_instance_retry_default(self, mock_cinder):
+    def test_watcher_resize_instance_retry_default(self):
         """Test that resize_instance uses config timeout by default"""
         nova_util = nova_helper.NovaHelper()
         kwargs = {
@@ -374,7 +370,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
         for call in self.mock_sleep.call_args_list:
             self.assertEqual(call[0][0], 5)
 
-    def test_watcher_resize_instance_retry_custom(self, mock_cinder):
+    def test_watcher_resize_instance_retry_custom(self):
         """Test that watcher_non_live_migrate respects explicit retry value"""
         nova_util = nova_helper.NovaHelper()
         kwargs = {
@@ -403,7 +399,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
         for call in self.mock_sleep.call_args_list:
             self.assertEqual(call[0][0], 3)
 
-    def test_live_migrate_instance(self, mock_cinder):
+    def test_live_migrate_instance(self):
         nova_util = nova_helper.NovaHelper()
         kwargs = {
             "id": self.instance_uuid,
@@ -454,9 +450,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
     @mock.patch.object(
         nova_helper.NovaHelper, '_instance_live_migrate', autospec=True
     )
-    def test_live_migrate_instance_with_task_state(
-        self, mock_migrate, mock_cinder
-    ):
+    def test_live_migrate_instance_with_task_state(self, mock_migrate):
         nova_util = nova_helper.NovaHelper()
         kwargs = {
             "id": self.instance_uuid,
@@ -488,9 +482,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
     @mock.patch.object(
         nova_helper.NovaHelper, '_instance_live_migrate', autospec=True
     )
-    def test_live_migrate_instance_no_destination_node(
-        self, mock_migrate, mock_cinder
-    ):
+    def test_live_migrate_instance_no_destination_node(self, mock_migrate):
         nova_util = nova_helper.NovaHelper()
         kwargs = {
             "id": self.instance_uuid,
@@ -522,7 +514,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
         # Should succeed
         self.assertTrue(is_success)
 
-    def test_watcher_non_live_migrate_instance_not_found(self, mock_cinder):
+    def test_watcher_non_live_migrate_instance_not_found(self):
         nova_util = nova_helper.NovaHelper()
         err = sdk_exc.NotFoundException()
         self.mock_connection.compute.get_server.side_effect = err
@@ -533,7 +525,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
 
         self.assertFalse(is_success)
 
-    def test_abort_live_migrate_instance(self, mock_cinder):
+    def test_abort_live_migrate_instance(self):
         nova_util = nova_helper.NovaHelper()
         kwargs = {
             "id": self.instance_uuid,
@@ -603,7 +595,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
     )
     @mock.patch.object(nova_helper.NovaHelper, 'confirm_resize', autospec=True)
     def test_non_live_migrate_instance_no_destination_node(
-        self, mock_confirm_resize, mock_migrate, mock_cinder
+        self, mock_confirm_resize, mock_migrate
     ):
         nova_util = nova_helper.NovaHelper()
         kwargs = {
@@ -645,7 +637,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
         nova_helper.NovaHelper, '_instance_migrate', autospec=True
     )
     def test_watcher_non_live_migrate_instance_retry_success(
-        self, mock_migrate, mock_confirm_resize, mock_cinder
+        self, mock_migrate, mock_confirm_resize
     ):
         """Test that watcher_non_live_migrate uses config timeout by default"""
         nova_util = nova_helper.NovaHelper()
@@ -699,7 +691,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
         nova_helper.NovaHelper, '_instance_migrate', autospec=True
     )
     def test_watcher_non_live_migrate_instance_retry_default(
-        self, mock_migrate, mock_cinder
+        self, mock_migrate
     ):
         """Test that watcher_non_live_migrate uses config timeout by default"""
         nova_util = nova_helper.NovaHelper()
@@ -736,7 +728,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
         nova_helper.NovaHelper, '_instance_migrate', autospec=True
     )
     def test_watcher_non_live_migrate_instance_retry_custom(
-        self, mock_migrate, mock_cinder
+        self, mock_migrate
     ):
         """Test that watcher_non_live_migrate respects explicit retry value"""
         nova_util = nova_helper.NovaHelper()
@@ -776,9 +768,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
     @mock.patch.object(
         nova_helper.NovaHelper, '_instance_live_migrate', autospec=True
     )
-    def test_live_migrate_instance_retry_default_success(
-        self, mock_migrate, mock_cinder
-    ):
+    def test_live_migrate_instance_retry_default_success(self, mock_migrate):
         """Test that live_migrate_instance uses config timeout by default"""
         nova_util = nova_helper.NovaHelper()
         kwargs = {
@@ -819,9 +809,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
     @mock.patch.object(
         nova_helper.NovaHelper, '_instance_live_migrate', autospec=True
     )
-    def test_live_migrate_instance_retry_default(
-        self, mock_migrate, mock_cinder
-    ):
+    def test_live_migrate_instance_retry_default(self, mock_migrate):
         """Test that live_migrate_instance uses config timeout by default"""
         nova_util = nova_helper.NovaHelper()
         kwargs = {
@@ -856,9 +844,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
     @mock.patch.object(
         nova_helper.NovaHelper, '_instance_live_migrate', autospec=True
     )
-    def test_live_migrate_instance_retry_custom(
-        self, mock_migrate, mock_cinder
-    ):
+    def test_live_migrate_instance_retry_custom(self, mock_migrate):
         """Test that live_migrate_instance uses config timeout by default"""
         nova_util = nova_helper.NovaHelper()
         kwargs = {
@@ -899,9 +885,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
     @mock.patch.object(
         nova_helper.NovaHelper, '_instance_live_migrate', autospec=True
     )
-    def test_live_migrate_instance_no_dest_retry_default(
-        self, mock_migrate, mock_cinder
-    ):
+    def test_live_migrate_instance_no_dest_retry_default(self, mock_migrate):
         """Test live_migrate with no destination uses config timeout"""
         nova_util = nova_helper.NovaHelper()
         kwargs = {
@@ -935,9 +919,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
     @mock.patch.object(
         nova_helper.NovaHelper, '_instance_live_migrate', autospec=True
     )
-    def test_live_migrate_instance_no_dest_retry_custom(
-        self, mock_migrate, mock_cinder
-    ):
+    def test_live_migrate_instance_no_dest_retry_custom(self, mock_migrate):
         """Test live_migrate with no destination uses config timeout"""
         nova_util = nova_helper.NovaHelper()
         kwargs = {
@@ -973,7 +955,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
         for call in self.mock_sleep.call_args_list:
             self.assertEqual(call[0][0], 3)
 
-    def test_enable_service_nova_compute(self, mock_cinder):
+    def test_enable_service_nova_compute(self):
         nova_util = nova_helper.NovaHelper()
         svc = self.create_openstacksdk_service(id='nanjing', status='disabled')
         self.mock_connection.compute.services.return_value = [svc]
@@ -986,7 +968,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
 
         nova_services.assert_called_with('nanjing')
 
-    def test_enable_service_missing_nova_compute(self, mock_cinder):
+    def test_enable_service_missing_nova_compute(self):
         nova_util = nova_helper.NovaHelper()
         self.mock_connection.compute.services.return_value = []
         nova_services = self.mock_connection.compute.enable_service
@@ -996,7 +978,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
 
         nova_services.assert_not_called()
 
-    def test_disable_service_missing_nova_compute(self, mock_cinder):
+    def test_disable_service_missing_nova_compute(self):
         nova_util = nova_helper.NovaHelper()
         self.mock_connection.compute.services.return_value = []
         nova_services = self.mock_connection.compute.disable_service
@@ -1006,7 +988,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
 
         nova_services.assert_not_called()
 
-    def test_disable_service_nova_compute(self, mock_cinder):
+    def test_disable_service_nova_compute(self):
         nova_util = nova_helper.NovaHelper()
         svc = self.create_openstacksdk_service(id='nanjing')
         self.mock_connection.compute.services.return_value = [svc]
@@ -1035,7 +1017,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
     @mock.patch.object(
         nova_helper.NovaHelper, '_instance_confirm_resize', autospec=True
     )
-    def test_confirm_resize(self, mock_confirm_resize, mock_cinder):
+    def test_confirm_resize(self, mock_confirm_resize):
         nova_util = nova_helper.NovaHelper()
         kwargs = {"id": self.instance_uuid}
         instance = self.create_openstacksdk_server(**kwargs)
@@ -1057,7 +1039,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
         self.assertEqual(1, mock_confirm_resize.call_count)
         self.assertFalse(result)
 
-    def test_get_compute_node_list(self, mock_cinder):
+    def test_get_compute_node_list(self):
         nova_util = nova_helper.NovaHelper()
         hypervisor1_id = utils.generate_uuid()
         hypervisor1_name = "fake_hypervisor_1"
@@ -1084,7 +1066,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
             hypervisor1_name, compute_nodes[0].hypervisor_hostname
         )
 
-    def test_get_compute_node_list_with_ironic(self, mock_cinder):
+    def test_get_compute_node_list_with_ironic(self):
         nova_util = nova_helper.NovaHelper()
         hypervisor1_id = utils.generate_uuid()
         hypervisor1_name = "fake_hypervisor_1"
@@ -1116,7 +1098,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
             hypervisor2_name, compute_nodes[1].hypervisor_hostname
         )
 
-    def test_find_instance(self, mock_cinder):
+    def test_find_instance(self):
         nova_util = nova_helper.NovaHelper()
         kwargs = {"id": self.instance_uuid}
         instance = self.create_openstacksdk_server(**kwargs)
@@ -1131,7 +1113,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
             nova_helper.Server.from_openstacksdk(instance), result
         )
 
-    def test_find_instance_retries(self, mock_cinder):
+    def test_find_instance_retries(self):
         nova_util = nova_helper.NovaHelper()
         kwargs = {"id": self.instance_uuid}
         instance = self.create_openstacksdk_server(**kwargs)
@@ -1150,7 +1132,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
             nova_helper.Server.from_openstacksdk(instance), result
         )
 
-    def test_find_instance_retries_exhausts_retries(self, mock_cinder):
+    def test_find_instance_retries_exhausts_retries(self):
         nova_util = nova_helper.NovaHelper()
         kwargs = {"id": self.instance_uuid}
         instance = self.create_openstacksdk_server(**kwargs)
@@ -1168,7 +1150,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
         self.assertEqual(4, self.mock_connection.compute.get_server.call_count)
         self.assertEqual(3, self.mock_sleep.call_count)
 
-    def test_nova_start_instance(self, mock_cinder):
+    def test_nova_start_instance(self):
         nova_util = nova_helper.NovaHelper()
         kwargs = {"id": self.instance_uuid}
         instance = self.create_openstacksdk_server(**kwargs)
@@ -1177,7 +1159,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
             instance.id
         )
 
-    def test_nova_stop_instance(self, mock_cinder):
+    def test_nova_stop_instance(self):
         nova_util = nova_helper.NovaHelper()
         kwargs = {"id": self.instance_uuid}
         instance = self.create_openstacksdk_server(**kwargs)
@@ -1186,7 +1168,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
             instance.id
         )
 
-    def test_instance_resize(self, mock_cinder):
+    def test_instance_resize(self):
         nova_util = nova_helper.NovaHelper()
         kwargs = {"id": self.instance_uuid}
         instance = self.create_openstacksdk_server(**kwargs)
@@ -1198,14 +1180,14 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
         )
         self.assertTrue(result)
 
-    def test_instance_confirm_resize(self, mock_cinder):
+    def test_instance_confirm_resize(self):
         nova_util = nova_helper.NovaHelper()
         kwargs = {"id": self.instance_uuid}
         instance = self.create_openstacksdk_server(**kwargs)
         nova_util._instance_confirm_resize(instance)
         self.mock_connection.compute.confirm_server_resize(instance)
 
-    def test_instance_live_migrate(self, mock_cinder):
+    def test_instance_live_migrate(self):
         nova_util = nova_helper.NovaHelper()
         kwargs = {"id": self.instance_uuid}
         instance = self.create_openstacksdk_server(**kwargs)
@@ -1216,7 +1198,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
             instance, host="dest_hostname", block_migration='auto'
         )
 
-    def test_instance_migrate(self, mock_cinder):
+    def test_instance_migrate(self):
         nova_util = nova_helper.NovaHelper()
         kwargs = {"id": self.instance_uuid}
         instance = self.create_openstacksdk_server(**kwargs)
@@ -1226,7 +1208,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
             instance, host="dest_hostname"
         )
 
-    def test_live_migration_abort(self, mock_cinder):
+    def test_live_migration_abort(self):
         nova_util = nova_helper.NovaHelper()
         kwargs = {"id": self.instance_uuid}
         instance = self.create_openstacksdk_server(**kwargs)
@@ -1235,7 +1217,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
             1, instance.id
         )
 
-    def test_is_pinned_az_available_version_supported(self, mock_cinder):
+    def test_is_pinned_az_available_version_supported(self):
         """Test is_pinned_az_available returns True for version >= 2.96."""
         nova_util = nova_helper.NovaHelper()
         CONF.set_override('api_version', '2.96', group='nova')
@@ -1243,7 +1225,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
         result = nova_util.is_pinned_az_available()
         self.assertTrue(result)
 
-    def test_is_pinned_az_available_version_higher(self, mock_cinder):
+    def test_is_pinned_az_available_version_higher(self):
         """Test is_pinned_az_available returns True for version > 2.96."""
         nova_util = nova_helper.NovaHelper()
         CONF.set_override('api_version', '2.97', group='nova')
@@ -1251,7 +1233,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
         result = nova_util.is_pinned_az_available()
         self.assertTrue(result)
 
-    def test_is_pinned_az_available_version_not_supported(self, mock_cinder):
+    def test_is_pinned_az_available_version_not_supported(self):
         """Test is_pinned_az_available returns False for version < 2.96."""
         nova_util = nova_helper.NovaHelper()
         CONF.set_override('api_version', '2.95', group='nova')
@@ -1259,7 +1241,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
         result = nova_util.is_pinned_az_available()
         self.assertFalse(result)
 
-    def test_is_pinned_az_available_version_much_lower(self, mock_cinder):
+    def test_is_pinned_az_available_version_much_lower(self):
         """Test is_pinned_az_available returns False for older versions."""
         nova_util = nova_helper.NovaHelper()
         CONF.set_override('api_version', '2.53', group='nova')
@@ -1267,7 +1249,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
         result = nova_util.is_pinned_az_available()
         self.assertFalse(result)
 
-    def test_is_pinned_az_available_caching(self, mock_cinder):
+    def test_is_pinned_az_available_caching(self):
         """Test is_pinned_az_available caches the result."""
         nova_util = nova_helper.NovaHelper()
         CONF.set_override('api_version', '2.96', group='nova')
@@ -1283,7 +1265,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
         # Verify that the result is cached
         self.assertIsNotNone(nova_util._is_pinned_az_available)
 
-    def test_get_flavor_id_by_id(self, mock_cinder):
+    def test_get_flavor_id_by_id(self):
         """Test get_flavor_id returns id when flavor is found by ID."""
         nova_util = nova_helper.NovaHelper()
         flavor_id = 'flavor-123'
@@ -1297,7 +1279,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
             flavor_id
         )
 
-    def test_get_flavor_id_by_name(self, mock_cinder):
+    def test_get_flavor_id_by_name(self):
         """Test get_flavor_id returns id when flavor is found by name."""
         nova_util = nova_helper.NovaHelper()
         flavor_name = 'm1.small'
@@ -1323,7 +1305,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
             is_public=None
         )
 
-    def test_get_flavor_id_not_found_by_id_or_name(self, mock_cinder):
+    def test_get_flavor_id_not_found_by_id_or_name(self):
         """Test get_flavor_id raises exception when flavor is not found."""
         nova_util = nova_helper.NovaHelper()
         flavor_name = 'nonexistent-flavor'
@@ -1342,7 +1324,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
             flavor_name,
         )
 
-    def test_get_flavor_id_not_found_in_list(self, mock_cinder):
+    def test_get_flavor_id_not_found_in_list(self):
         """Test get_flavor_id when flavor name not in returned list."""
         nova_util = nova_helper.NovaHelper()
         flavor_name = 'm1.small'
@@ -1364,7 +1346,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
             flavor_name,
         )
 
-    def test_get_flavor_id_sdk_exception(self, mock_cinder):
+    def test_get_flavor_id_sdk_exception(self):
         """Test get_flavor_id raises NovaClientError on SDK exception."""
         nova_util = nova_helper.NovaHelper()
         flavor_id = 'flavor-123'
@@ -1378,7 +1360,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
             exception.NovaClientError, nova_util.get_flavor_id, flavor_id
         )
 
-    def test_get_flavor_id_by_name_multiple_flavors(self, mock_cinder):
+    def test_get_flavor_id_by_name_multiple_flavors(self):
         """Test get_flavor_id finds correct flavor by name in list."""
         nova_util = nova_helper.NovaHelper()
         flavor_name = 'm1.medium'
@@ -2255,7 +2237,6 @@ class TestServerMigrationWrapper(test_utils.NovaResourcesMixin, base.TestCase):
         self.assertNotEqual(mig1a, "not-a-migration")
 
 
-@mock.patch.object(clients.OpenStackClients, 'cinder', autospec=True)
 class TestNovaHelperConfigOverrides(base.TestCase):
     """Test suite for the NovaHelper config override functionality.
 
@@ -2268,7 +2249,7 @@ class TestNovaHelperConfigOverrides(base.TestCase):
             fixtures.MockPatch("watcher.common.clients.get_sdk_connection")
         )
 
-    def test_endpoint_type_override_public_url(self, mock_cinder):
+    def test_endpoint_type_override_public_url(self):
         """Test endpoint_type publicURL is converted to public."""
         self.flags(endpoint_type='publicURL', group='nova_client')
 
@@ -2276,7 +2257,7 @@ class TestNovaHelperConfigOverrides(base.TestCase):
 
         self.assertEqual(['public'], CONF.nova.valid_interfaces)
 
-    def test_endpoint_type_override_internal_url(self, mock_cinder):
+    def test_endpoint_type_override_internal_url(self):
         """Test endpoint_type internalURL is converted to internal."""
         self.flags(endpoint_type='internalURL', group='nova_client')
 
@@ -2284,7 +2265,7 @@ class TestNovaHelperConfigOverrides(base.TestCase):
 
         self.assertEqual(['internal'], CONF.nova.valid_interfaces)
 
-    def test_endpoint_type_override_admin_url(self, mock_cinder):
+    def test_endpoint_type_override_admin_url(self):
         """Test endpoint_type adminURL is converted to admin."""
         self.flags(endpoint_type='adminURL', group='nova_client')
 
@@ -2292,7 +2273,7 @@ class TestNovaHelperConfigOverrides(base.TestCase):
 
         self.assertEqual(['admin'], CONF.nova.valid_interfaces)
 
-    def test_endpoint_type_override_without_url_suffix(self, mock_cinder):
+    def test_endpoint_type_override_without_url_suffix(self):
         """Test endpoint_type without URL suffix is preserved."""
         self.flags(endpoint_type='public', group='nova_client')
 
@@ -2300,7 +2281,7 @@ class TestNovaHelperConfigOverrides(base.TestCase):
 
         self.assertEqual(['public'], CONF.nova.valid_interfaces)
 
-    def test_endpoint_type_override_internal_without_suffix(self, mock_cinder):
+    def test_endpoint_type_override_internal_without_suffix(self):
         """Test endpoint_type internal without suffix is preserved."""
         self.flags(endpoint_type='internal', group='nova_client')
 
@@ -2308,7 +2289,7 @@ class TestNovaHelperConfigOverrides(base.TestCase):
 
         self.assertEqual(['internal'], CONF.nova.valid_interfaces)
 
-    def test_endpoint_type_override_admin_without_suffix(self, mock_cinder):
+    def test_endpoint_type_override_admin_without_suffix(self):
         """Test endpoint_type admin without suffix is preserved."""
         self.flags(endpoint_type='admin', group='nova_client')
 

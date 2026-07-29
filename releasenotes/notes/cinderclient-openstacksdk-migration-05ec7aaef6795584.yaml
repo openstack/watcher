@@ -13,4 +13,5 @@ deprecations:
 other:
   - |
     Replaced python-cinderclient with the openstacksdk block-storage proxy
-    in CinderHelper.
+    in CinderHelper. Usage of cinderclient has been removed and
+    python-cinderclient has been removed as a dependency.
