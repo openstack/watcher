@@ -71,7 +71,7 @@ class TestUniformAirflow(TestBaseStrategy):
         self.strategy.threshold_airflow = 400
         self.strategy.threshold_inlet_t = 28
         self.strategy.threshold_power = 350
-        self._period = 300
+        self.strategy.input_parameters.update({"period": 300})
         self.strategy.pre_execute()
 
     def test_calc_used_resource(self):
@@ -194,3 +194,13 @@ class TestUniformAirflow(TestBaseStrategy):
             loaded_action = loader.load(action['action_type'])
             loaded_action.input_parameters = action['input_parameters']
             loaded_action.validate_parameters()
+
+    def test_get_period(self):
+        self.strategy.input_parameters.update({'period': 600})
+        self.assertEqual(600, self.strategy.get_period('compute_node'))
+
+    def test_get_period_default(self):
+        self.assertEqual(300, self.strategy.get_period('compute_node'))
+
+    def test_get_granularity(self):
+        self.assertEqual(300, self.strategy.get_granularity('compute_node'))

@@ -128,3 +128,13 @@ class TestOutletTempControl(TestBaseStrategy):
             loaded_action = loader.load(action['action_type'])
             loaded_action.input_parameters = action['input_parameters']
             loaded_action.validate_parameters()
+
+    def test_get_period(self):
+        self.strategy.input_parameters = utils.Struct()
+        self.strategy.input_parameters.update(
+            {'threshold': 34.3, 'period': 600}
+        )
+        self.assertEqual(600, self.strategy.get_period('compute_node'))
+
+    def test_get_granularity(self):
+        self.assertEqual(300, self.strategy.get_granularity('compute_node'))

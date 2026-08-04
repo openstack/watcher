@@ -115,6 +115,15 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
     def granularity(self):
         return self.input_parameters.get('granularity', 300)
 
+    def get_period(self, resource):
+        return self.period
+
+    def get_granularity(self, resource):
+        return self.granularity
+
+    def get_aggregate(self, resource):
+        return self.AGGREGATE
+
     @classmethod
     def get_schema(cls):
         # Mandatory default setting for each element

@@ -102,6 +102,31 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
     def granularity(self):
         return self.input_parameters.get('granularity', 300)
 
+    def get_datasource_metrics(self):
+        if not self.metrics:
+            return self.DATASOURCE_METRICS
+        active = list(self.metrics)
+        for m in self.metrics:
+            host_metric = (
+                self.instance_metrics.get(m) if self.instance_metrics else None
+            )
+            if host_metric:
+                active.append(host_metric)
+        return active
+
+    def get_period(self, resource):
+        return self.periods.get(resource) if self.periods else None
+
+    def get_granularity(self, resource):
+        return self.granularity
+
+    def get_aggregate(self, resource):
+        return (
+            self.aggregation_method.get(resource)
+            if self.aggregation_method
+            else None
+        )
+
     @classmethod
     def get_schema(cls):
         return {

@@ -140,3 +140,19 @@ class TestBaseStrategyException(TestBaseStrategy):
             exception.ClusterStateNotDefined,
             self.strategy.execute,
         )
+
+
+class TestBaseStrategyGetters(TestBaseStrategy):
+    """Tests for BaseStrategy getter methods (default stubs)."""
+
+    def test_get_datasource_metrics_default(self):
+        self.assertEqual([], self.strategy.get_datasource_metrics())
+
+    def test_get_period_default(self):
+        self.assertIsNone(self.strategy.get_period('compute_node'))
+
+    def test_get_granularity_default(self):
+        self.assertIsNone(self.strategy.get_granularity('compute_node'))
+
+    def test_get_aggregate_default(self):
+        self.assertIsNone(self.strategy.get_aggregate('compute_node'))

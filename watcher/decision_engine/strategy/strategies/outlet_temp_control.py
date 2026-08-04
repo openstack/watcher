@@ -132,6 +132,12 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
     def granularity(self):
         return self.input_parameters.get('granularity', 300)
 
+    def get_period(self, resource):
+        return self.period
+
+    def get_granularity(self, resource):
+        return self.granularity
+
     def get_available_compute_nodes(self):
         default_node_scope = [element.ServiceState.ENABLED.value]
         return {

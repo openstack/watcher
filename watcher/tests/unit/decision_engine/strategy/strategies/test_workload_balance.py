@@ -237,3 +237,32 @@ class TestWorkloadBalance(TestBaseStrategy):
             loaded_action = loader.load(action['action_type'])
             loaded_action.input_parameters = action['input_parameters']
             loaded_action.validate_parameters()
+
+    def test_get_datasource_metrics_with_meter(self):
+        self.strategy._meter = 'instance_ram_usage'
+        self.assertEqual(
+            ['instance_ram_usage'], self.strategy.get_datasource_metrics()
+        )
+
+    def test_get_datasource_metrics_without_meter(self):
+        self.strategy._meter = None
+        result = self.strategy.get_datasource_metrics()
+        self.assertEqual(
+            workload_balance.WorkloadBalance.DATASOURCE_METRICS, result
+        )
+
+    def test_get_period(self):
+        self.strategy.input_parameters = utils.Struct()
+        self.strategy.input_parameters.update({'period': 200})
+        self.assertEqual(200, self.strategy.get_period('instance'))
+
+    def test_get_period_default(self):
+        self.assertEqual(300, self.strategy.get_period('instance'))
+
+    def test_get_granularity(self):
+        self.strategy.input_parameters = utils.Struct()
+        self.strategy.input_parameters.update({'granularity': 500})
+        self.assertEqual(500, self.strategy.get_granularity('instance'))
+
+    def test_get_aggregate(self):
+        self.assertEqual('mean', self.strategy.get_aggregate('instance'))

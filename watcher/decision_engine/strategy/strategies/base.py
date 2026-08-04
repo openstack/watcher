@@ -147,6 +147,15 @@ class BaseStrategy(loadable.Loadable, metaclass=abc.ABCMeta):
     """Contains all metrics the strategy requires from a datasource to properly
     execute"""
 
+    def get_datasource_metrics(self):
+        """Return the datasource metrics that will be used in this execution.
+
+        Strategies that allow the operator to select a subset of metrics via
+        ``input_parameters`` should override this method to return only the
+        active subset. The default returns the full :attr:`DATASOURCE_METRICS`.
+        """
+        return self.DATASOURCE_METRICS
+
     MIGRATION = "migrate"
 
     def __init__(self, config, osc=None):
@@ -406,6 +415,15 @@ class BaseStrategy(loadable.Loadable, metaclass=abc.ABCMeta):
     @input_parameters.setter
     def input_parameters(self, p):
         self._input_parameters = p
+
+    def get_period(self, resource):
+        return None
+
+    def get_granularity(self, resource):
+        return None
+
+    def get_aggregate(self, resource):
+        return None
 
     @property
     def osc(self):

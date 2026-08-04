@@ -293,3 +293,12 @@ class TestBasicConsolidation(TestBaseStrategy):
         self.assertEqual(
             'min', self.strategy.aggregation_method['compute_node']
         )
+
+    def test_get_period(self):
+        self.assertEqual(7200, self.strategy.get_period('compute_node'))
+
+    def test_get_granularity(self):
+        self.assertEqual(300, self.strategy.get_granularity('compute_node'))
+
+    def test_get_aggregate(self):
+        self.assertEqual('mean', self.strategy.get_aggregate('compute_node'))

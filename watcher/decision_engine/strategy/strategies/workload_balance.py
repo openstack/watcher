@@ -94,6 +94,20 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
     def granularity(self):
         return self.input_parameters.get('granularity', 300)
 
+    def get_datasource_metrics(self):
+        if self._meter:
+            return [self._meter]
+        return self.DATASOURCE_METRICS
+
+    def get_period(self, resource):
+        return self.input_parameters.get('period', 300)
+
+    def get_granularity(self, resource):
+        return self.granularity
+
+    def get_aggregate(self, resource):
+        return 'mean'
+
     @classmethod
     def get_schema(cls):
         # Mandatory default setting for each element
@@ -306,9 +320,9 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                         instance,
                         'instance',
                         self._meter,
-                        self._period,
-                        'mean',
-                        self._granularity,
+                        self.get_period('instance'),
+                        self.get_aggregate('instance'),
+                        self.get_granularity('instance'),
                     )
                 except Exception as exc:
                     LOG.exception(exc)
@@ -366,9 +380,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
     def pre_execute(self):
         self._pre_execute()
         self.threshold = self.input_parameters.threshold
-        self._period = self.input_parameters.period
         self._meter = self.input_parameters.metrics
-        self._granularity = self.input_parameters.granularity
 
     def do_execute(self, audit=None):
         """Strategy execution phase

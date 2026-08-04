@@ -80,6 +80,15 @@ class NoisyNeighbor(base.NoisyNeighborBaseStrategy):
     def get_translatable_display_name(cls):
         return "Noisy Neighbor"
 
+    def get_period(self, resource):
+        return self.input_parameters.get('period', 100.0)
+
+    def get_granularity(self, resource):
+        return 300
+
+    def get_aggregate(self, resource):
+        return 'mean'
+
     @classmethod
     def get_schema(cls):
         # Mandatory default setting for each element
@@ -103,7 +112,11 @@ class NoisyNeighbor(base.NoisyNeighborBaseStrategy):
     def get_current_and_previous_cache(self, instance):
         try:
             curr_cache = self.datasource_backend.get_instance_l3_cache_usage(
-                instance, self.meter_name, self.period, 'mean', granularity=300
+                instance,
+                self.meter_name,
+                self.get_period('instance'),
+                self.get_aggregate('instance'),
+                granularity=self.get_granularity('instance'),
             )
             previous_cache = (
                 2
@@ -111,9 +124,9 @@ class NoisyNeighbor(base.NoisyNeighborBaseStrategy):
                     self.datasource_backend.get_instance_l3_cache_usage(
                         instance,
                         self.meter_name,
-                        2 * self.period,
-                        'mean',
-                        granularity=300,
+                        2 * self.get_period('instance'),
+                        self.get_aggregate('instance'),
+                        granularity=self.get_granularity('instance'),
                     )
                 )
                 - curr_cache
@@ -264,7 +277,6 @@ class NoisyNeighbor(base.NoisyNeighborBaseStrategy):
 
     def do_execute(self, audit=None):
         self.cache_threshold = self.input_parameters.cache_threshold
-        self.period = self.input_parameters.period
 
         hosts_need_release, hosts_target = self.group_hosts()
 

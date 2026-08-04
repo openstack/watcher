@@ -92,6 +92,15 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
     def granularity(self):
         return self.input_parameters.get('granularity', 300)
 
+    def get_period(self, resource):
+        return self.period
+
+    def get_granularity(self, resource):
+        return self.granularity
+
+    def get_aggregate(self, resource):
+        return self.aggregation_method.get(resource)
+
     @property
     def aggregation_method(self):
         return self.input_parameters.get(

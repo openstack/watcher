@@ -65,7 +65,7 @@ class TestNoisyNeighbor(TestBaseStrategy):
 
     def test_group_hosts(self):
         self.strategy.cache_threshold = 35
-        self.strategy.period = 100
+        self.strategy.input_parameters.update({"period": 100})
         model = self.fake_c_cluster.generate_scenario_7_with_2_nodes()
         self.m_c_model.return_value = model
         node_uuid = 'Node_1'
@@ -77,7 +77,7 @@ class TestNoisyNeighbor(TestBaseStrategy):
 
     def test_find_priority_instance(self):
         self.strategy.cache_threshold = 35
-        self.strategy.period = 100
+        self.strategy.input_parameters.update({"period": 100})
         model = self.fake_c_cluster.generate_scenario_7_with_2_nodes()
         self.m_c_model.return_value = model
         potential_prio_inst = model.get_instance_by_uuid('INSTANCE_3')
@@ -86,7 +86,7 @@ class TestNoisyNeighbor(TestBaseStrategy):
 
     def test_find_noisy_instance(self):
         self.strategy.cache_threshold = 35
-        self.strategy.period = 100
+        self.strategy.input_parameters.update({"period": 100})
         model = self.fake_c_cluster.generate_scenario_7_with_2_nodes()
         self.m_c_model.return_value = model
         potential_noisy_inst = model.get_instance_by_uuid('INSTANCE_4')
@@ -97,7 +97,7 @@ class TestNoisyNeighbor(TestBaseStrategy):
         model = self.fake_c_cluster.generate_scenario_7_with_2_nodes()
         self.m_c_model.return_value = model
         self.strategy.cache_threshold = 35
-        self.strategy.period = 100
+        self.strategy.input_parameters.update({"period": 100})
         n1, n2 = self.strategy.group_hosts()
         mig_source_node = max(n1.keys(), key=lambda a: n1[a]['priority_vm'])
         instance_to_mig = n1[mig_source_node]['noisy_vm']
@@ -108,7 +108,7 @@ class TestNoisyNeighbor(TestBaseStrategy):
 
     def test_execute_no_workload(self):
         self.strategy.cache_threshold = 35
-        self.strategy.period = 100
+        self.strategy.input_parameters.update({"period": 100})
         model = (
             self.fake_c_cluster.generate_scenario_4_with_1_node_no_instance()
         )
@@ -119,7 +119,7 @@ class TestNoisyNeighbor(TestBaseStrategy):
 
     def test_execute(self):
         self.strategy.cache_threshold = 35
-        self.strategy.period = 100
+        self.strategy.input_parameters.update({"period": 100})
         model = self.fake_c_cluster.generate_scenario_7_with_2_nodes()
         self.m_c_model.return_value = model
         solution = self.strategy.execute()
@@ -139,3 +139,17 @@ class TestNoisyNeighbor(TestBaseStrategy):
             loaded_action = loader.load(action['action_type'])
             loaded_action.input_parameters = action['input_parameters']
             loaded_action.validate_parameters()
+
+    def test_get_period(self):
+        self.assertEqual(100.0, self.strategy.get_period('instance'))
+
+    def test_get_period_default(self):
+        self.strategy.input_parameters = utils.Struct()
+        self.strategy.input_parameters.update({'period': 200})
+        self.assertEqual(200, self.strategy.get_period('instance'))
+
+    def test_get_granularity(self):
+        self.assertEqual(300, self.strategy.get_granularity('instance'))
+
+    def test_get_aggregate(self):
+        self.assertEqual('mean', self.strategy.get_aggregate('instance'))

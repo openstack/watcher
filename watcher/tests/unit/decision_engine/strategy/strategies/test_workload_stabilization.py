@@ -414,3 +414,40 @@ class TestWorkloadStabilization(TestBaseStrategy):
             'min', self.strategy.aggregation_method['compute_node']
         )
         self.assertEqual(500, self.strategy.periods['compute_node'])
+
+    def test_get_period_by_resource(self):
+        self.strategy.periods = {'instance': 300, 'compute_node': 600}
+        self.assertEqual(300, self.strategy.get_period('instance'))
+        self.assertEqual(600, self.strategy.get_period('compute_node'))
+
+    def test_get_period_none_when_periods_empty(self):
+        self.strategy.periods = {}
+        self.assertIsNone(self.strategy.get_period('instance'))
+
+    def test_get_granularity(self):
+        self.assertEqual(300, self.strategy.get_granularity('instance'))
+
+    def test_get_aggregate_by_resource(self):
+        self.strategy.aggregation_method = {
+            'instance': 'mean',
+            'compute_node': 'max',
+        }
+        self.assertEqual('mean', self.strategy.get_aggregate('instance'))
+        self.assertEqual('max', self.strategy.get_aggregate('compute_node'))
+
+    def test_get_datasource_metrics_with_metrics(self):
+        self.strategy.metrics = ['instance_ram_usage']
+        self.strategy.instance_metrics = {
+            'instance_ram_usage': 'host_ram_usage'
+        }
+        result = self.strategy.get_datasource_metrics()
+        self.assertIn('instance_ram_usage', result)
+        self.assertIn('host_ram_usage', result)
+        self.assertNotIn('host_cpu_usage', result)
+
+    def test_get_datasource_metrics_no_metrics(self):
+        self.strategy.metrics = []
+        result = self.strategy.get_datasource_metrics()
+        self.assertEqual(
+            strategies.WorkloadStabilization.DATASOURCE_METRICS, result
+        )

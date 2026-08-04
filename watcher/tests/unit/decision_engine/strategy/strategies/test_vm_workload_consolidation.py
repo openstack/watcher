@@ -746,3 +746,12 @@ class TestVMWorkloadConsolidation(TestBaseStrategy):
             cpu=40.0, ram=0, disk=0
         )
         self.assertTrue(self.strategy.is_node_saturated(node_1, cc))
+
+    def test_get_period(self):
+        self.assertEqual(3600, self.strategy.get_period('compute_node'))
+
+    def test_get_granularity(self):
+        self.assertEqual(300, self.strategy.get_granularity('compute_node'))
+
+    def test_get_aggregate(self):
+        self.assertEqual('mean', self.strategy.get_aggregate('compute_node'))

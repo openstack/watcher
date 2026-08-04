@@ -65,9 +65,6 @@ class UniformAirflow(base.BaseStrategy):
         :param osc: an OpenStackClients object
         """
         super().__init__(config, osc)
-        # The migration plan will be triggered when the airflow reaches
-        # threshold
-        self._period = self.PERIOD
 
     @classmethod
     def get_name(cls):
@@ -85,8 +82,10 @@ class UniformAirflow(base.BaseStrategy):
     def get_goal_name(cls):
         return "airflow_optimization"
 
-    @property
-    def granularity(self):
+    def get_period(self, resource):
+        return self.input_parameters.get('period', self.PERIOD)
+
+    def get_granularity(self, resource):
         return self.input_parameters.get('granularity', 300)
 
     @classmethod
@@ -160,15 +159,15 @@ class UniformAirflow(base.BaseStrategy):
                     resource=source_node,
                     resource_type='instance',
                     meter_name='host_inlet_temp',
-                    period=self._period,
-                    granularity=self.granularity,
+                    period=self.get_period('compute_node'),
+                    granularity=self.get_granularity('compute_node'),
                 )
                 power = self.datasource_backend.statistic_aggregation(
                     resource=source_node,
                     resource_type='instance',
                     meter_name='host_power',
-                    period=self._period,
-                    granularity=self.granularity,
+                    period=self.get_period('compute_node'),
+                    granularity=self.get_granularity('compute_node'),
                 )
                 if (
                     power < self.threshold_power
@@ -261,8 +260,8 @@ class UniformAirflow(base.BaseStrategy):
                 resource=node,
                 resource_type='compute_node',
                 meter_name='host_airflow',
-                period=self._period,
-                granularity=self.granularity,
+                period=self.get_period('compute_node'),
+                granularity=self.get_granularity('compute_node'),
             )
             # some hosts may not have airflow meter, remove from target
             if airflow is None:
@@ -290,7 +289,6 @@ class UniformAirflow(base.BaseStrategy):
         self.threshold_airflow = self.input_parameters.threshold_airflow
         self.threshold_inlet_t = self.input_parameters.threshold_inlet_t
         self.threshold_power = self.input_parameters.threshold_power
-        self._period = self.input_parameters.period
 
     def do_execute(self, audit=None):
         source_nodes, target_nodes = self.group_hosts_by_airflow()
