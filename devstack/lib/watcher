@@ -129,7 +129,7 @@ function create_watcher_conf {
     iniset $WATCHER_CONF oslo_messaging_notifications driver "messagingv2"
 
     configure_keystone_authtoken_middleware $WATCHER_CONF watcher
-    configure_keystone_authtoken_middleware $WATCHER_CONF watcher "watcher_clients_auth"
+    configure_keystoneauth $WATCHER_CONF watcher "watcher_clients_auth"
     configure_keystoneauth $WATCHER_CONF watcher "nova"
     configure_keystoneauth $WATCHER_CONF watcher "keystone"
     configure_keystoneauth $WATCHER_CONF watcher "placement"
