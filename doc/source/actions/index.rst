@@ -28,10 +28,14 @@ Available Actions
          - Compute node power on/off through Ironic
        * - :doc:`change_nova_service_state`
          - Disables or enables the nova-compute service on a host
+       * - :doc:`delete`
+         - Deletes a server instance
        * - :doc:`migrate`
          - Migrates a server to a destination nova-compute host (live or cold)
        * - :doc:`resize`
          - Resizes a server with the specified flavor
+       * - :doc:`shelve`
+         - Shelves a server instance
        * - :doc:`stop`
          - Stops a server instance
        * - :doc:`volume_migration`

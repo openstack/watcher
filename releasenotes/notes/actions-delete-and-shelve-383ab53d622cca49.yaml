@@ -1,0 +1,15 @@
+---
+features:
+  - |
+    Added two new actions: ``delete`` and ``shelve``.
+
+    The ``delete`` action permanently removes a server instance and all its
+    associated resources via the Nova API. It is automatically skipped when
+    the target instance does not exist. Deletion cannot be reverted.
+
+    The ``shelve`` action shelves a server instance via the Nova API, freeing
+    compute resources (vCPU and RAM) on the host while preserving the
+    instance data. It is automatically skipped when the target instance does
+    not exist or is already in ``SHELVED`` or ``SHELVED_OFFLOADED`` state.
+    The action accepts both states as valid postconditions, since Nova may
+    offload the instance immediately depending on the backend storage.

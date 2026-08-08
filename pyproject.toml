@@ -104,6 +104,8 @@ resize = "watcher.applier.actions.resize:Resize"
 change_node_power_state = "watcher.applier.actions.change_node_power_state:ChangeNodePowerState"
 volume_migrate = "watcher.applier.actions.volume_migration:VolumeMigrate"
 stop = "watcher.applier.actions.stop:Stop"
+delete = "watcher.applier.actions.delete:Delete"
+shelve = "watcher.applier.actions.shelve:Shelve"
 
 [project.entry-points."watcher_workflow_engines"]
 taskflow = "watcher.applier.workflow_engine.default:DefaultWorkFlowEngine"

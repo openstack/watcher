@@ -47,6 +47,38 @@ NOVA_OPTS = [
         'seconds.',
     ),
     cfg.IntOpt(
+        'delete_max_retries',
+        default=15,
+        min=1,
+        help='Maximum number of retries for instance deletion '
+        'before giving up and considering the operation failed. '
+        'Default value is 15.',
+    ),
+    cfg.FloatOpt(
+        'delete_interval',
+        default=1.0,
+        min=0.1,
+        help='Interval in seconds to check the status in instance '
+        'deletion operations (value is float). Default value is 1.0 '
+        'seconds.',
+    ),
+    cfg.IntOpt(
+        'shelve_max_retries',
+        default=15,
+        min=1,
+        help='Maximum number of retries for instance shelve '
+        'before giving up and considering the operation failed. '
+        'Default value is 15.',
+    ),
+    cfg.FloatOpt(
+        'shelve_interval',
+        default=1.0,
+        min=0.1,
+        help='Interval in seconds to check the status in instance '
+        'shelve operations (value is float). Default value is 1.0 '
+        'seconds.',
+    ),
+    cfg.IntOpt(
         'http_retries',
         default=3,
         min=1,

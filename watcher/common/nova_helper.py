@@ -1136,7 +1136,7 @@ class NovaHelper(BaseConnectionMixin):
         else:
             self._nova_stop_instance(instance_id)
 
-            if self.wait_for_instance_state(instance, "stopped", 8, 10):
+            if self.wait_for_instance_state(instance, ["stopped"], 8, 10):
                 LOG.debug("Instance %s stopped.", instance_id)
                 return True
             else:
@@ -1163,20 +1163,21 @@ class NovaHelper(BaseConnectionMixin):
         else:
             self._nova_start_instance(instance_id)
 
-            if self.wait_for_instance_state(instance, "active", 8, 10):
+            if self.wait_for_instance_state(instance, ["active"], 8, 10):
                 LOG.debug("Instance %s started.", instance_id)
                 return True
             else:
                 return False
 
-    def wait_for_instance_state(self, server, state, retry, sleep):
+    def wait_for_instance_state(self, server, states, retry, sleep):
         """Waits for server to be in a specific state
 
-        The state can be one of the following :
-        active, stopped
+        The state can be one of the following:
+        active, stopped, soft-delete, deleted, shelved, shelved_offloaded.
 
         :param server: Server wrapper object.
-        :param state: for which state we are waiting for
+        :param states: list of target vm_state strings for which we
+        are waiting.
         :param retry: how many times to retry
         :param sleep: seconds to sleep between the retries
         :raises: NovaClientError if there is any problem while calling the Nova
@@ -1185,18 +1186,23 @@ class NovaHelper(BaseConnectionMixin):
         if not server:
             return False
 
-        while server.vm_state != state and retry:
+        # Check if we're waiting for deletion (soft-delete or deleted)
+        wait_for_deleted = "deleted" in states or "soft-delete" in states
+
+        while server.vm_state not in states and retry:
             time.sleep(sleep)
             server_id = server.uuid
             try:
                 server = self.find_instance(server.uuid)
             except exception.ComputeResourceNotFound:
+                if wait_for_deleted:
+                    return True
                 LOG.debug(
                     "Instance not found: %s, can't wait for status", server_id
                 )
                 return False
             retry -= 1
-        return server.vm_state == state
+        return server.vm_state in states
 
     def get_hostname(self, instance):
         """Get the hostname of the compute node hosting an instance.
@@ -1218,3 +1224,87 @@ class NovaHelper(BaseConnectionMixin):
         """
         migrations = self.connection.compute.server_migrations(instance_id)
         return [ServerMigration.from_openstacksdk(m) for m in migrations]
+
+    @nova_retries
+    @handle_nova_error("Instance")
+    def _nova_delete_instance(self, instance_id):
+        """Delete an instance via Nova API.
+
+        :param instance_id: the UUID of the instance to delete
+        """
+        return self.connection.compute.delete_server(instance_id)
+
+    def delete_instance(self, instance_id):
+        """This method deletes a given instance.
+
+        :param instance_id: the unique id of the instance to delete.
+        :raises: NovaClientError if there is any problem while calling
+            the Nova api
+        """
+        LOG.debug("Trying to delete instance %s ...", instance_id)
+
+        try:
+            instance = self.find_instance(instance_id)
+
+            self._nova_delete_instance(instance_id)
+        except exception.ComputeResourceNotFound:
+            LOG.debug("Instance not found: %s, already deleted", instance_id)
+            return True
+
+        retry = CONF.nova.delete_max_retries
+        interval = CONF.nova.delete_interval
+        # Wait for either soft-delete or deleted state
+        # Nova may soft-delete first before final deletion
+        if self.wait_for_instance_state(
+            instance, ["soft-delete", "deleted"], retry, interval
+        ):
+            LOG.debug("Instance %s deleted.", instance_id)
+            return True
+        else:
+            return False
+
+    @nova_retries
+    @handle_nova_error("Instance")
+    def _nova_shelve_instance(self, instance_id):
+        """Shelve an instance via Nova API.
+
+        :param instance_id: the UUID of the instance to shelve
+        """
+        return self.connection.compute.shelve_server(instance_id)
+
+    def shelve_instance(self, instance_id):
+        """This method shelves a given instance.
+
+        Waits for the instance to reach either the ``shelved`` or
+        ``shelved_offloaded`` state. Nova may offload the instance
+        immediately (especially with Ceph/BFV), so both states are
+        accepted as success.
+
+        :param instance_id: the unique id of the instance to shelve.
+        :raises: NovaClientError if there is any problem while calling
+            the Nova api
+        """
+        LOG.debug("Trying to shelve instance %s ...", instance_id)
+
+        try:
+            instance = self.find_instance(instance_id)
+        except exception.ComputeResourceNotFound:
+            LOG.debug("Instance not found: %s, can't shelve it", instance_id)
+            return False
+
+        if instance.vm_state in ("shelved", "shelved_offloaded"):
+            LOG.debug("Instance already shelved: %s", instance_id)
+            return True
+
+        self._nova_shelve_instance(instance_id)
+
+        retry = CONF.nova.shelve_max_retries
+        interval = CONF.nova.shelve_interval
+        if self.wait_for_instance_state(
+            instance, ["shelved", "shelved_offloaded"], retry, interval
+        ):
+            LOG.debug("Instance %s shelved.", instance_id)
+            return True
+        else:
+            LOG.error("Failed to shelve instance %s", instance_id)
+            return False

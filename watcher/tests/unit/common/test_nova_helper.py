@@ -195,7 +195,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
             result = nova_util.stop_instance(instance_id)
             self.assertTrue(result)
             mock_instance_state.assert_called_once_with(
-                mock.ANY, "stopped", 8, 10
+                mock.ANY, ["stopped"], 8, 10
             )
 
         # verify that the method stop_instance will return False when the
@@ -204,6 +204,321 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
         self.mock_connection.compute.get_server.side_effect = err
         result = nova_util.stop_instance(instance_id)
         self.assertFalse(result)
+
+    def test_delete_instance_already_deleted(self):
+        """Verify delete_instance returns True when instance is not found."""
+        nova_util = nova_helper.NovaHelper()
+        instance_id = utils.generate_uuid()
+        err = sdk_exc.NotFoundException()
+        self.mock_connection.compute.get_server.side_effect = err
+
+        result = nova_util.delete_instance(instance_id)
+        self.assertTrue(result)
+        # Should not attempt to call delete_server
+        self.mock_connection.compute.delete_server.assert_not_called()
+        self.mock_sleep.assert_not_called()
+
+    def test_delete_instance_success(self):
+        """Verify delete_instance returns True after instance disappears."""
+        nova_util = nova_helper.NovaHelper()
+        instance_id = utils.generate_uuid()
+        kwargs = {"id": instance_id, "vm_state": "active"}
+        server = self.create_openstacksdk_server(**kwargs)
+
+        # First call: find_instance before delete succeeds.
+        # Second call (first poll in wait_for_instance_state): NotFound,
+        # meaning the instance has already been removed from the API.
+        self.mock_connection.compute.get_server.side_effect = [
+            server,
+            sdk_exc.NotFoundException(),
+        ]
+
+        result = nova_util.delete_instance(instance_id)
+        self.assertTrue(result)
+        self.mock_connection.compute.delete_server.assert_called_once_with(
+            instance_id
+        )
+        # wait_for_instance_state sleeps once before polling
+        self.assertEqual(1, self.mock_sleep.call_count)
+        self.mock_sleep.assert_called_with(1.0)
+
+    def test_delete_instance_waits_for_disappearance(self):
+        """Verify delete_instance retries until instance disappears."""
+        nova_util = nova_helper.NovaHelper()
+        instance_id = utils.generate_uuid()
+        kwargs = {"id": instance_id, "vm_state": "active"}
+        server = self.create_openstacksdk_server(**kwargs)
+
+        # First call: find_instance before delete succeeds.
+        # Next two polls in wait_for_instance_state: instance still exists.
+        # Third poll: instance gone (NotFound).
+        self.mock_connection.compute.get_server.side_effect = [
+            server,
+            server,
+            server,
+            sdk_exc.NotFoundException(),
+        ]
+
+        result = nova_util.delete_instance(instance_id)
+        self.assertTrue(result)
+        self.mock_connection.compute.delete_server.assert_called_once_with(
+            instance_id
+        )
+        # Three sleeps: one before each poll in wait_for_instance_state
+        self.assertEqual(3, self.mock_sleep.call_count)
+        for call in self.mock_sleep.call_args_list:
+            self.assertEqual(call[0][0], 1.0)
+
+    def test_delete_instance_accepts_soft_delete_state(self):
+        """Verify delete_instance accepts soft-delete as a valid end state."""
+        nova_util = nova_helper.NovaHelper()
+        instance_id = utils.generate_uuid()
+        active_server = self.create_openstacksdk_server(
+            id=instance_id, vm_state="active"
+        )
+        soft_deleted_server = self.create_openstacksdk_server(
+            id=instance_id, vm_state="soft-delete"
+        )
+
+        # First call: find_instance before delete.
+        # Second call: instance is now soft-deleted.
+        self.mock_connection.compute.get_server.side_effect = [
+            active_server,
+            soft_deleted_server,
+        ]
+
+        result = nova_util.delete_instance(instance_id)
+        self.assertTrue(result)
+        self.mock_connection.compute.delete_server.assert_called_once_with(
+            instance_id
+        )
+        # Should succeed once soft-delete state is reached
+        self.assertEqual(1, self.mock_sleep.call_count)
+
+    def test_delete_instance_timeout(self):
+        """Verify delete_instance returns False when instance is not found."""
+        nova_util = nova_helper.NovaHelper()
+        instance_id = utils.generate_uuid()
+        kwargs = {"id": instance_id, "vm_state": "active"}
+        server = self.create_openstacksdk_server(**kwargs)
+
+        # Instance always found - never disappears.
+        self.fake_nova_find_list(
+            self.mock_connection, fake_find=server, fake_list=server
+        )
+
+        result = nova_util.delete_instance(instance_id)
+        self.assertFalse(result)
+        self.mock_connection.compute.delete_server.assert_called_once_with(
+            instance_id
+        )
+        # Default retry=15, sleep=1s: wait_for_instance_state sleeps 15 times
+        self.assertEqual(15, self.mock_sleep.call_count)
+        for call in self.mock_sleep.call_args_list:
+            self.assertEqual(call[0][0], 1.0)
+
+    def test_delete_instance_custom_retry(self):
+        """Verify delete_instance respects configured retry count."""
+        CONF.set_override('delete_max_retries', 5, group='nova')
+        nova_util = nova_helper.NovaHelper()
+        instance_id = utils.generate_uuid()
+        kwargs = {"id": instance_id, "vm_state": "active"}
+        server = self.create_openstacksdk_server(**kwargs)
+
+        # Instance never disappears so timeout is reached.
+        self.fake_nova_find_list(
+            self.mock_connection, fake_find=server, fake_list=server
+        )
+
+        result = nova_util.delete_instance(instance_id)
+        self.assertFalse(result)
+        self.mock_connection.compute.delete_server.assert_called_once_with(
+            instance_id
+        )
+        self.assertEqual(5, self.mock_sleep.call_count)
+        for call in self.mock_sleep.call_args_list:
+            self.assertEqual(call[0][0], 1.0)
+
+    def test_shelve_instance_not_found(self):
+        """Verify shelve_instance returns False when instance is not found."""
+        nova_util = nova_helper.NovaHelper()
+        instance_id = utils.generate_uuid()
+        self.mock_connection.compute.get_server.side_effect = (
+            sdk_exc.NotFoundException()
+        )
+
+        result = nova_util.shelve_instance(instance_id)
+        self.assertFalse(result)
+        self.mock_connection.compute.shelve_server.assert_not_called()
+        self.mock_sleep.assert_not_called()
+
+    def test_shelve_instance_already_shelved(self):
+        """Verify shelve_instance returns True without API call when shelved"""
+        nova_util = nova_helper.NovaHelper()
+        instance_id = utils.generate_uuid()
+        kwargs = {"id": instance_id, "vm_state": "shelved"}
+        server = self.create_openstacksdk_server(**kwargs)
+        self.fake_nova_find_list(
+            self.mock_connection, fake_find=server, fake_list=server
+        )
+
+        result = nova_util.shelve_instance(instance_id)
+        self.assertTrue(result)
+        self.mock_connection.compute.shelve_server.assert_not_called()
+        self.mock_sleep.assert_not_called()
+
+    def test_shelve_instance_already_shelved_offloaded(self):
+        nova_util = nova_helper.NovaHelper()
+        instance_id = utils.generate_uuid()
+        kwargs = {"id": instance_id, "vm_state": "shelved_offloaded"}
+        server = self.create_openstacksdk_server(**kwargs)
+        self.fake_nova_find_list(
+            self.mock_connection, fake_find=server, fake_list=server
+        )
+
+        result = nova_util.shelve_instance(instance_id)
+        self.assertTrue(result)
+        self.mock_connection.compute.shelve_server.assert_not_called()
+        self.mock_sleep.assert_not_called()
+
+    def test_shelve_instance_success_shelved(self):
+        nova_util = nova_helper.NovaHelper()
+        instance_id = utils.generate_uuid()
+        active_server = self.create_openstacksdk_server(
+            id=instance_id, vm_state="active"
+        )
+        shelved_server = self.create_openstacksdk_server(
+            id=instance_id, vm_state="shelved"
+        )
+        # First call: find_instance before shelve.
+        # Second call (first poll in wait_for_instance_state): shelved.
+        self.mock_connection.compute.get_server.side_effect = [
+            active_server,
+            shelved_server,
+        ]
+
+        result = nova_util.shelve_instance(instance_id)
+        self.assertTrue(result)
+        self.mock_connection.compute.shelve_server.assert_called_once_with(
+            instance_id
+        )
+        self.assertEqual(1, self.mock_sleep.call_count)
+        self.mock_sleep.assert_called_with(1.0)
+
+    def test_shelve_instance_success_shelved_offloaded(self):
+        nova_util = nova_helper.NovaHelper()
+        instance_id = utils.generate_uuid()
+        active_server = self.create_openstacksdk_server(
+            id=instance_id, vm_state="active"
+        )
+        shelved_offloaded_server = self.create_openstacksdk_server(
+            id=instance_id, vm_state="shelved_offloaded"
+        )
+        # First call: find_instance before shelve.
+        # Second call: already offloaded (Nova offloaded immediately).
+        self.mock_connection.compute.get_server.side_effect = [
+            active_server,
+            shelved_offloaded_server,
+        ]
+
+        result = nova_util.shelve_instance(instance_id)
+        self.assertTrue(result)
+        self.mock_connection.compute.shelve_server.assert_called_once_with(
+            instance_id
+        )
+        self.assertEqual(1, self.mock_sleep.call_count)
+        self.mock_sleep.assert_called_with(1.0)
+
+    def test_shelve_instance_waits_for_state(self):
+        """Verify shelve_instance retries until instance is in shelved state"""
+        nova_util = nova_helper.NovaHelper()
+        instance_id = utils.generate_uuid()
+        active_server = self.create_openstacksdk_server(
+            id=instance_id, vm_state="active"
+        )
+        shelved_server = self.create_openstacksdk_server(
+            id=instance_id, vm_state="shelved"
+        )
+        # First call: find_instance before shelve.
+        # Next two polls: still active (shelving in progress).
+        # Third poll: shelved.
+        self.mock_connection.compute.get_server.side_effect = [
+            active_server,
+            active_server,
+            active_server,
+            shelved_server,
+        ]
+
+        result = nova_util.shelve_instance(instance_id)
+        self.assertTrue(result)
+        self.mock_connection.compute.shelve_server.assert_called_once_with(
+            instance_id
+        )
+        self.assertEqual(3, self.mock_sleep.call_count)
+        for call in self.mock_sleep.call_args_list:
+            self.assertEqual(call[0][0], 1.0)
+
+    def test_shelve_instance_timeout(self):
+        nova_util = nova_helper.NovaHelper()
+        instance_id = utils.generate_uuid()
+        kwargs = {"id": instance_id, "vm_state": "active"}
+        server = self.create_openstacksdk_server(**kwargs)
+
+        # Instance stays active - never shelves.
+        self.fake_nova_find_list(
+            self.mock_connection, fake_find=server, fake_list=server
+        )
+
+        result = nova_util.shelve_instance(instance_id)
+        self.assertFalse(result)
+        self.mock_connection.compute.shelve_server.assert_called_once_with(
+            instance_id
+        )
+        # Default retry=15, sleep=1s
+        self.assertEqual(15, self.mock_sleep.call_count)
+        for call in self.mock_sleep.call_args_list:
+            self.assertEqual(call[0][0], 1.0)
+
+    def test_shelve_instance_custom_retry(self):
+        """Verify shelve_instance respects configured retry count."""
+        CONF.set_override('shelve_max_retries', 5, group='nova')
+        nova_util = nova_helper.NovaHelper()
+        instance_id = utils.generate_uuid()
+        kwargs = {"id": instance_id, "vm_state": "active"}
+        server = self.create_openstacksdk_server(**kwargs)
+
+        # Instance never shelves so timeout is reached.
+        self.fake_nova_find_list(
+            self.mock_connection, fake_find=server, fake_list=server
+        )
+
+        result = nova_util.shelve_instance(instance_id)
+        self.assertFalse(result)
+        self.mock_connection.compute.shelve_server.assert_called_once_with(
+            instance_id
+        )
+        self.assertEqual(5, self.mock_sleep.call_count)
+        for call in self.mock_sleep.call_args_list:
+            self.assertEqual(call[0][0], 1.0)
+
+    def test_shelve_instance_disappears_during_wait(self):
+        nova_util = nova_helper.NovaHelper()
+        instance_id = utils.generate_uuid()
+        active_server = self.create_openstacksdk_server(
+            id=instance_id, vm_state="active"
+        )
+        # First call: find_instance before shelve succeeds.
+        # Second call: instance disappears unexpectedly during shelving.
+        self.mock_connection.compute.get_server.side_effect = [
+            active_server,
+            sdk_exc.NotFoundException(),
+        ]
+
+        result = nova_util.shelve_instance(instance_id)
+        self.assertFalse(result)
+        self.mock_connection.compute.shelve_server.assert_called_once_with(
+            instance_id
+        )
 
     def test_start_instance(self):
         nova_util = nova_helper.NovaHelper()
@@ -236,7 +551,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
             result = nova_util.start_instance(instance_id)
             self.assertTrue(result)
             mock_instance_state.assert_called_once_with(
-                mock.ANY, "active", 8, 10
+                mock.ANY, ["active"], 8, 10
             )
 
         # verify that the method start_instance will return False when the
@@ -1165,6 +1480,24 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
         instance = self.create_openstacksdk_server(**kwargs)
         nova_util._nova_stop_instance(instance.id)
         self.mock_connection.compute.stop_server.assert_called_once_with(
+            instance.id
+        )
+
+    def test_nova_delete_instance(self):
+        nova_util = nova_helper.NovaHelper()
+        kwargs = {"id": self.instance_uuid}
+        instance = self.create_openstacksdk_server(**kwargs)
+        nova_util._nova_delete_instance(instance.id)
+        self.mock_connection.compute.delete_server.assert_called_once_with(
+            instance.id
+        )
+
+    def test_nova_shelve_instance(self):
+        nova_util = nova_helper.NovaHelper()
+        kwargs = {"id": self.instance_uuid}
+        instance = self.create_openstacksdk_server(**kwargs)
+        nova_util._nova_shelve_instance(instance.id)
+        self.mock_connection.compute.shelve_server.assert_called_once_with(
             instance.id
         )
 

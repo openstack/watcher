@@ -152,6 +152,7 @@
               run_zone_migration_storage_tests: true
               run_bfv_tests: true
               run_skipped_action_tests: true
+              run_delete_shelve_action_tests: true
       # tempest variables
       tempest_test_regex: watcher_tempest_plugin.tests\.(api|scenario)
       # excluding tests with tag "real_load"
