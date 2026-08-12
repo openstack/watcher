@@ -10,10 +10,7 @@ Installing API behind mod_wsgi
 
 #. Install the Apache Service::
 
-    Fedora 21/RHEL7/CentOS7:
-      sudo yum install httpd
-
-    Fedora 22 (or higher):
+    Fedora/RHEL/CentOS:
       sudo dnf install httpd
 
     Debian/Ubuntu:
@@ -21,7 +18,7 @@ Installing API behind mod_wsgi
 
 #. Copy ``etc/apache2/watcher.conf`` under the apache sites::
 
-    Fedora/RHEL7/CentOS7:
+    Fedora/RHEL/CentOS:
       sudo cp etc/apache2/watcher /etc/httpd/conf.d/watcher.conf
 
     Debian/Ubuntu:
@@ -41,7 +38,7 @@ Installing API behind mod_wsgi
 
 #. Enable the apache watcher site and reload::
 
-    Fedora/RHEL7/CentOS7:
+    Fedora/RHEL/CentOS:
       sudo systemctl reload httpd
 
     Debian/Ubuntu:

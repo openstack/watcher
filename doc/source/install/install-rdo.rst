@@ -16,7 +16,7 @@ Install and configure components
 
    .. code-block:: console
 
-      # sudo yum install openstack-watcher-api openstack-watcher-applier \
+      # sudo dnf install openstack-watcher-api openstack-watcher-applier \
         openstack-watcher-decision-engine
 
 .. include:: common_configure.rst

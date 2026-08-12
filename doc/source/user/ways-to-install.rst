@@ -21,27 +21,26 @@ packages, instead using the source for the code and the Python Package Index
 
 .. _PyPi: https://pypi.org/
 
-It's expected that your system already has python2.7_, latest version of pip_,
+It's expected that your system already has python3_, latest version of pip_,
 and git_ available.
 
-.. _python2.7: https://www.python.org
+.. _python3: https://www.python.org
 .. _pip: https://pip.pypa.io/en/latest/installing/
 .. _git: https://git-scm.com/
 
 Your system shall also have some additional system libraries:
 
-  On Ubuntu (tested on 16.04LTS):
+  On Ubuntu:
 
   .. code-block:: bash
 
-    $ sudo apt-get install python-dev libssl-dev libmysqlclient-dev libffi-dev
+    $ sudo apt-get install python3-dev libssl-dev libmysqlclient-dev libffi-dev
 
-  On Fedora-based distributions e.g., Fedora/RHEL/CentOS/Scientific Linux
-  (tested on CentOS 7.1):
+  On Fedora-based distributions e.g., Fedora/RHEL/CentOS/Scientific Linux:
 
   .. code-block:: bash
 
-    $ sudo yum install gcc python-devel openssl-devel libffi-devel mysql-devel
+    $ sudo dnf install gcc python3-devel openssl-devel libffi-devel mysql-devel
 
 
 Installing from Source
