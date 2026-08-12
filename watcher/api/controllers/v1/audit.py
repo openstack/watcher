@@ -652,14 +652,27 @@ class AuditsController(rest.RestController):
         )
 
     @wsme_pecan.wsexpose(
-        AuditCollection, wtypes.text, types.uuid, int, wtypes.text, wtypes.text
+        AuditCollection,
+        wtypes.text,
+        wtypes.text,
+        types.uuid,
+        int,
+        wtypes.text,
+        wtypes.text,
     )
     def detail(
-        self, goal=None, marker=None, limit=None, sort_key='id', sort_dir='asc'
+        self,
+        goal=None,
+        strategy=None,
+        marker=None,
+        limit=None,
+        sort_key='id',
+        sort_dir='asc',
     ):
         """Retrieve a list of audits with detail.
 
         :param goal: goal UUID or name to filter by
+        :param strategy: strategy UUID or name to filter by
         :param marker: pagination marker for large data sets.
         :param limit: maximum number of resources to return in a single result.
         :param sort_key: column to sort results by. Default: id.
@@ -675,7 +688,14 @@ class AuditsController(rest.RestController):
         expand = True
         resource_url = '/'.join(['audits', 'detail'])
         return self._get_audits_collection(
-            marker, limit, sort_key, sort_dir, expand, resource_url, goal=goal
+            marker,
+            limit,
+            sort_key,
+            sort_dir,
+            expand,
+            resource_url,
+            goal=goal,
+            strategy=strategy,
         )
 
     @wsme_pecan.wsexpose(Audit, wtypes.text)
