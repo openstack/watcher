@@ -396,6 +396,14 @@
         - watcher-tempest-prometheus
         - watcher-tempest-prometheus-eventlet
         - watcher-tempest-aetos
+        - openstack-tox-functional-py313:
+            irrelevant-files:
+              - ^\.pre-commit-config\.yaml$
+              - ^.*\.rst$
+              - ^watcher/tests/unit.*$
+              - ^doc/.*$
+              - ^api-ref/.*$
+              - ^releasenotes/.*$
     gate:
       jobs:
         - openstack-tox-py313-eventlet
@@ -408,6 +416,14 @@
         - watcher-tempest-prometheus
         - watcher-tempest-prometheus-eventlet
         - watcher-tempest-aetos
+        - openstack-tox-functional-py313:
+            irrelevant-files:
+              - ^\.pre-commit-config\.yaml$
+              - ^.*\.rst$
+              - ^watcher/tests/unit.*$
+              - ^doc/.*$
+              - ^api-ref/.*$
+              - ^releasenotes/.*$
     experimental:
       jobs:
         - watcher-tempest-prometheus-realdata
