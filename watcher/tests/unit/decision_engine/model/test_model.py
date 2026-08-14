@@ -322,6 +322,251 @@ class TestModel(base.TestCase):
         self.assertEqual(127, resources_free.get('memory'))
         self.assertEqual(212, resources_free.get('disk'))
 
+    def _build_cache_test_model(self):
+        model = model_root.ModelRoot()
+        node_a = element.ComputeNode(
+            uuid='node-a',
+            hostname='host-a',
+            vcpus=40,
+            vcpu_reserved=0,
+            vcpu_ratio=1,
+            memory=4096,
+            memory_mb_reserved=0,
+            memory_ratio=1,
+            disk=250,
+            disk_gb_reserved=0,
+            disk_ratio=1,
+        )
+        node_b = element.ComputeNode(
+            uuid='node-b',
+            hostname='host-b',
+            vcpus=40,
+            vcpu_reserved=0,
+            vcpu_ratio=1,
+            memory=4096,
+            memory_mb_reserved=0,
+            memory_ratio=1,
+            disk=250,
+            disk_gb_reserved=0,
+            disk_ratio=1,
+        )
+        inst1 = element.Instance(uuid='inst-1', vcpus=4, memory=512, disk=10)
+        inst2 = element.Instance(uuid='inst-2', vcpus=2, memory=256, disk=20)
+        model.add_node(node_a)
+        model.add_node(node_b)
+        model.add_instance(inst1)
+        model.add_instance(inst2)
+        model.map_instance(inst1, node_a)
+        model.map_instance(inst2, node_a)
+        return model, node_a, node_b, inst1, inst2
+
+    def test_resource_cache_map_instance(self):
+        model, node_a, node_b, inst1, inst2 = self._build_cache_test_model()
+        # test cache is empty
+        self.assertEqual({}, model._node_resource_cache)
+        # Populate cache for both nodes.
+        used_a = model.get_node_used_resources(node_a)
+        self.assertEqual(6, used_a['vcpu'])
+        self.assertEqual(768, used_a['memory'])
+        self.assertEqual(30, used_a['disk'])
+        used_b = model.get_node_used_resources(node_b)
+        self.assertEqual({"vcpu": 0, "memory": 0, "disk": 0}, used_b)
+        # test cache is populated
+        self.assertEqual(
+            {
+                'node-a': {'vcpu': 6, 'memory': 768, 'disk': 30},
+                'node-b': {'vcpu': 0, 'memory': 0, 'disk': 0},
+            },
+            model._node_resource_cache,
+        )
+
+        # Map a new instance to node_b: cache must update.
+        inst3 = element.Instance(uuid='inst-3', vcpus=8, memory=1024, disk=40)
+        model.add_instance(inst3)
+        model.map_instance(inst3, node_b)
+
+        used_b = model.get_node_used_resources(node_b)
+        self.assertEqual(8, used_b['vcpu'])
+        self.assertEqual(1024, used_b['memory'])
+        self.assertEqual(40, used_b['disk'])
+        # test cache is updated
+        self.assertEqual(
+            {
+                'node-a': {'vcpu': 6, 'memory': 768, 'disk': 30},
+                'node-b': {'vcpu': 8, 'memory': 1024, 'disk': 40},
+            },
+            model._node_resource_cache,
+        )
+
+        # Validate that get_node_used_resources does not read the instances
+        # when the cache is populated
+        mock_get_node_instances = mock.patch.object(
+            model, 'get_node_instances'
+        )
+        mock_get_node_instances.return_value = []
+        with mock_get_node_instances:
+            used_b = model.get_node_used_resources(node_b)
+            self.assertEqual(8, used_b['vcpu'])
+            self.assertEqual(1024, used_b['memory'])
+            self.assertEqual(40, used_b['disk'])
+            # It should report 0 resources usage with mocked get_node_instances
+            # when the cache is invalidated
+            model.invalidate_node_resource_cache(node_b)
+            used_b = model.get_node_used_resources(node_b)
+            self.assertEqual(0, used_b['vcpu'])
+            self.assertEqual(0, used_b['memory'])
+            self.assertEqual(0, used_b['disk'])
+
+    def test_resource_cache_unmap_instance(self):
+        model, node_a, node_b, inst1, inst2 = self._build_cache_test_model()
+        model.get_node_used_resources(node_a)
+
+        model.unmap_instance(inst1, node_a)
+
+        used_a = model.get_node_used_resources(node_a)
+        used_b = model.get_node_used_resources(node_b)
+        self.assertEqual(2, used_a['vcpu'])
+        self.assertEqual(256, used_a['memory'])
+        self.assertEqual(20, used_a['disk'])
+        self.assertEqual(0, used_b['vcpu'])
+        self.assertEqual(0, used_b['memory'])
+        self.assertEqual(0, used_b['disk'])
+        # test cache is updated
+        self.assertEqual(
+            {
+                'node-a': {'vcpu': 2, 'memory': 256, 'disk': 20},
+                'node-b': {'vcpu': 0, 'memory': 0, 'disk': 0},
+            },
+            model._node_resource_cache,
+        )
+
+    def test_resource_cache_migrate_instance(self):
+        model, node_a, node_b, inst1, inst2 = self._build_cache_test_model()
+        model.get_node_used_resources(node_a)
+        model.get_node_used_resources(node_b)
+
+        self.assertEqual(
+            {
+                'node-a': {'vcpu': 6, 'memory': 768, 'disk': 30},
+                'node-b': {'vcpu': 0, 'memory': 0, 'disk': 0},
+            },
+            model._node_resource_cache,
+        )
+
+        model.migrate_instance(inst1, node_a, node_b)
+
+        used_a = model.get_node_used_resources(node_a)
+        self.assertEqual(2, used_a['vcpu'])
+        self.assertEqual(256, used_a['memory'])
+        self.assertEqual(20, used_a['disk'])
+        used_b = model.get_node_used_resources(node_b)
+        self.assertEqual(4, used_b['vcpu'])
+        self.assertEqual(512, used_b['memory'])
+        self.assertEqual(10, used_b['disk'])
+        # test cache is updated
+        self.assertEqual(
+            {
+                'node-a': {'vcpu': 2, 'memory': 256, 'disk': 20},
+                'node-b': {'vcpu': 4, 'memory': 512, 'disk': 10},
+            },
+            model._node_resource_cache,
+        )
+
+    def test_resource_cache_remove_instance(self):
+        model, node_a, node_b, inst1, inst2 = self._build_cache_test_model()
+        model.get_node_used_resources(node_a)
+        model.get_node_used_resources(node_b)
+        self.assertEqual(
+            {
+                'node-a': {'vcpu': 6, 'memory': 768, 'disk': 30},
+                'node-b': {'vcpu': 0, 'memory': 0, 'disk': 0},
+            },
+            model._node_resource_cache,
+        )
+
+        model.remove_instance(inst1)
+
+        used_a = model.get_node_used_resources(node_a)
+        self.assertEqual(2, used_a['vcpu'])
+        self.assertEqual(256, used_a['memory'])
+        self.assertEqual(20, used_a['disk'])
+        # test cache is updated
+        self.assertEqual(
+            {
+                'node-a': {'vcpu': 2, 'memory': 256, 'disk': 20},
+                'node-b': {'vcpu': 0, 'memory': 0, 'disk': 0},
+            },
+            model._node_resource_cache,
+        )
+
+    def test_resource_cache_remove_node(self):
+        model, node_a, node_b, inst1, inst2 = self._build_cache_test_model()
+        model.get_node_used_resources(node_a)
+        model.get_node_used_resources(node_b)
+        self.assertEqual(
+            {
+                'node-a': {'vcpu': 6, 'memory': 768, 'disk': 30},
+                'node-b': {'vcpu': 0, 'memory': 0, 'disk': 0},
+            },
+            model._node_resource_cache,
+        )
+        model.remove_node(node_b)
+
+        # test cache is updated
+        self.assertEqual(
+            {'node-a': {'vcpu': 6, 'memory': 768, 'disk': 30}},
+            model._node_resource_cache,
+        )
+        used_a = model.get_node_used_resources(node_a)
+        self.assertEqual(6, used_a['vcpu'])
+        self.assertEqual(768, used_a['memory'])
+        self.assertEqual(30, used_a['disk'])
+        model.remove_node(node_a)
+        self.assertEqual({}, model._node_resource_cache)
+
+    def test_resource_cache_map_instance_idempotent(self):
+        model, node_a, node_b, inst1, inst2 = self._build_cache_test_model()
+        model.get_node_used_resources(node_a)
+        model.get_node_used_resources(node_b)
+        self.assertEqual(
+            {
+                'node-a': {'vcpu': 6, 'memory': 768, 'disk': 30},
+                'node-b': {'vcpu': 0, 'memory': 0, 'disk': 0},
+            },
+            model._node_resource_cache,
+        )
+        # Calling map_instance again for an already-mapped instance
+        # must not double-count its resources.
+        model.map_instance(inst1, node_a)
+        self.assertEqual(
+            {
+                'node-a': {'vcpu': 6, 'memory': 768, 'disk': 30},
+                'node-b': {'vcpu': 0, 'memory': 0, 'disk': 0},
+            },
+            model._node_resource_cache,
+        )
+        used_a = model.get_node_used_resources(node_a)
+        self.assertEqual(6, used_a['vcpu'])
+        self.assertEqual(768, used_a['memory'])
+        self.assertEqual(30, used_a['disk'])
+
+    def test_resource_cache_invalidate_all(self):
+        model, node_a, node_b, inst1, inst2 = self._build_cache_test_model()
+        # Populate cache for both nodes.
+        model.get_node_used_resources(node_a)
+        model.migrate_instance(inst1, node_a, node_b)
+        model.get_node_used_resources(node_b)
+
+        self.assertEqual(
+            {
+                'node-a': {'vcpu': 2, 'memory': 256, 'disk': 20},
+                'node-b': {'vcpu': 4, 'memory': 512, 'disk': 10},
+            },
+            model._node_resource_cache,
+        )
+        model.invalidate_resource_cache()
+        self.assertEqual({}, model._node_resource_cache)
+
     def test_map_instance_with_string_uuids_no_deadlock(self):
         """map_instance with string UUIDs must complete within timeout.
 

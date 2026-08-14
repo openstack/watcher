@@ -310,6 +310,11 @@ class BaseStrategy(loadable.Loadable, metaclass=abc.ABCMeta):
             self._compute_model = audit_scope_handler.get_scoped_model(
                 collector.get_latest_cluster_data_model()
             )
+            # Resources cache is not intended to be shared among strategies
+            # executions but on each audit. This is clearing the cache on
+            # initializing of the model when starting each strategy execution.
+            if self._compute_model:
+                self._compute_model.invalidate_resource_cache()
 
         if not self._compute_model:
             raise exception.ClusterStateNotDefined()

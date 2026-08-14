@@ -1,0 +1,9 @@
+---
+features:
+  - |
+    The cluster data model (ModelRoot) now maintains a lazily-populated
+    cache of per-node allocated resources (vcpu, memory, disk), kept in
+    sync by topology-changing methods (map_instance, unmap_instance,
+    migrate_instance, remove_instance, remove_node). This avoids
+    redundant O(N) iterations over a node's instances on repeated calls
+    to get_node_used_resources / get_node_free_resources.

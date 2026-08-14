@@ -87,6 +87,12 @@ class ModelRoot(nx.DiGraph, base.Model):
         super().__init__()
         self.stale = stale
         self._extended_attributes_enabled = None
+        # Lazily-populated cache of per-node allocated resources (vcpu, memory,
+        # disk).  Kept in sync by topology-changing methods (map_instance,
+        # unmap_instance, migrate_instance, remove_instance, remove_node)
+        # and invalidated when instance attributes change externally (e.g.
+        # nova resize notifications).
+        self._node_resource_cache = {}
 
     def __nonzero__(self):
         return not self.stale
@@ -104,6 +110,28 @@ class ModelRoot(nx.DiGraph, base.Model):
     @extended_attributes_enabled.setter
     def extended_attributes_enabled(self, value):
         self._extended_attributes_enabled = value
+
+    def _add_to_resource_cache(self, node_uuid, instance):
+        if node_uuid in self._node_resource_cache:
+            cached = self._node_resource_cache[node_uuid]
+            cached['vcpu'] += instance.vcpus
+            cached['memory'] += instance.memory
+            cached['disk'] += instance.disk
+
+    def _subtract_from_resource_cache(self, node_uuid, instance):
+        if node_uuid in self._node_resource_cache:
+            cached = self._node_resource_cache[node_uuid]
+            cached['vcpu'] -= instance.vcpus
+            cached['memory'] -= instance.memory
+            cached['disk'] -= instance.disk
+
+    @instance_lock
+    def invalidate_node_resource_cache(self, node):
+        self._node_resource_cache.pop(node.uuid, None)
+
+    @instance_lock
+    def invalidate_resource_cache(self):
+        self._node_resource_cache.clear()
 
     @staticmethod
     def assert_node(obj):
@@ -127,6 +155,7 @@ class ModelRoot(nx.DiGraph, base.Model):
     @instance_lock
     def remove_node(self, node):
         self.assert_node(node)
+        self.invalidate_node_resource_cache(node)
         try:
             super().remove_node(node.uuid)
         except nx.NetworkXError as exc:
@@ -145,6 +174,14 @@ class ModelRoot(nx.DiGraph, base.Model):
     @instance_lock
     def remove_instance(self, instance):
         self.assert_instance(instance)
+        try:
+            node = self.get_node_by_instance_uuid(instance.uuid)
+            self._subtract_from_resource_cache(node.uuid, instance)
+        except (
+            exception.ComputeResourceNotFound,
+            exception.InstanceNotMapped,
+        ):
+            pass
         super().remove_node(instance.uuid)
 
     @instance_lock
@@ -164,7 +201,11 @@ class ModelRoot(nx.DiGraph, base.Model):
         self.assert_node(node)
         self.assert_instance(instance)
 
+        already_mapped = self.has_edge(instance.uuid, node.uuid)
         self.add_edge(instance.uuid, node.uuid)
+        # Make map_instance idempotent in terms of _node_resource_cache
+        if not already_mapped:
+            self._add_to_resource_cache(node.uuid, instance)
 
     @instance_lock
     def unmap_instance(self, instance, node):
@@ -174,6 +215,7 @@ class ModelRoot(nx.DiGraph, base.Model):
             node = self.get_node_by_uuid(node)
 
         self.remove_edge(instance.uuid, node.uuid)
+        self._subtract_from_resource_cache(node.uuid, instance)
 
     def delete_instance(self, instance, node=None):
         self.assert_instance(instance)
@@ -199,6 +241,9 @@ class ModelRoot(nx.DiGraph, base.Model):
         self.remove_edge(instance.uuid, source_node.uuid)
         # map
         self.add_edge(instance.uuid, destination_node.uuid)
+
+        self._subtract_from_resource_cache(source_node.uuid, instance)
+        self._add_to_resource_cache(destination_node.uuid, instance)
         return True
 
     @instance_lock
@@ -276,7 +321,11 @@ class ModelRoot(nx.DiGraph, base.Model):
 
         return node_instances
 
+    @instance_lock
     def get_node_used_resources(self, node):
+        if node.uuid in self._node_resource_cache:
+            return dict(self._node_resource_cache[node.uuid])
+
         vcpu_used = 0
         memory_used = 0
         disk_used = 0
@@ -285,7 +334,9 @@ class ModelRoot(nx.DiGraph, base.Model):
             memory_used += instance.memory
             disk_used += instance.disk
 
-        return dict(vcpu=vcpu_used, memory=memory_used, disk=disk_used)
+        result = dict(vcpu=vcpu_used, memory=memory_used, disk=disk_used)
+        self._node_resource_cache[node.uuid] = result
+        return dict(result)
 
     def get_node_free_resources(self, node):
         resources_used = self.get_node_used_resources(node)
