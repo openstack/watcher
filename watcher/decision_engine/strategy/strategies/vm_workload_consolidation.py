@@ -522,6 +522,38 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
                 return True
         return False
 
+    def is_node_saturated(self, node, cc):
+        """Check if a node cannot accept any more instances.
+
+        A node is saturated when its free allocation is exhausted or
+        its utilization has reached capacity * cc on any metric.
+        :param node: node object
+        :param cc: dictionary containing resource capacity coefficients
+        :return: True if saturated
+        """
+        # For memory, it may happen that remaining memory is
+        # > 0 but it is too small to host any VM. That would
+        # lead to a node being saturated in practical terms
+        # but not included in the saturated_nodes list.
+        # To avoid that, a value representing a minimal
+        # saturation threshold is created with 128MB value
+        # for memory which is a usual minimum ram size of
+        # real world flavors
+        saturation_limit = {'cpu': 0, 'ram': 128, 'disk': 0}
+        free = self.compute_model.get_node_free_resources(node)
+        if (
+            free['vcpu'] <= saturation_limit['cpu']
+            or free['memory'] <= saturation_limit['ram']
+            or free['disk'] <= saturation_limit['disk']
+        ):
+            return True
+        node_util = self.get_node_utilization(node)
+        node_cap = self.get_node_capacity(node)
+        for m in ('cpu', 'ram', 'disk'):
+            if node_util[m] >= (node_cap[m] * cc[m]) - saturation_limit[m]:
+                return True
+        return False
+
     def instance_fits(self, instance, node, cc):
         """Indicate whether is a node able to accommodate a VM.
 
@@ -555,6 +587,28 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
             )
             if not fits:
                 return False
+
+        free = self.compute_model.get_node_free_resources(node)
+        if (
+            instance.vcpus > free['vcpu']
+            or instance.memory > free['memory']
+            or instance.disk > free['disk']
+        ):
+            LOG.debug(
+                "Instance %s does not fit on node %s: "
+                "allocation check failed. "
+                "instance vcpus: %s, memory: %s, disk: %s, "
+                "node free vcpus: %s, memory: %s, disk: %s",
+                instance,
+                node,
+                instance.vcpus,
+                instance.memory,
+                instance.disk,
+                free['vcpu'],
+                free['memory'],
+                free['disk'],
+            )
+            return False
         return True
 
     def optimize_solution(self):
@@ -651,6 +705,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
             self.get_available_compute_nodes().values(),
             key=lambda x: self.get_node_utilization(x)['cpu'],
         )
+        saturated_nodes = set()
         for node in reversed(sorted_nodes):
             if self.is_overloaded(node, cc):
                 for instance in sorted(
@@ -668,6 +723,8 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
                         )
                         continue
                     for destination_node in reversed(sorted_nodes):
+                        if destination_node.hostname in saturated_nodes:
+                            continue
                         if self.instance_fits(instance, destination_node, cc):
                             LOG.info(
                                 "Offload: found fitting "
@@ -680,6 +737,9 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
                                 instance, node, destination_node
                             )
                             break
+                        else:
+                            if self.is_node_saturated(destination_node, cc):
+                                saturated_nodes.add(destination_node.hostname)
                     if not self.is_overloaded(node, cc):
                         LOG.info("Node %s no longer overloaded.", node)
                         break
@@ -743,24 +803,8 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
                         self.add_migration(instance, node, destination_node)
                         break
                     else:
-                        node_util = self.get_node_utilization(destination_node)
-                        node_cap = self.get_node_capacity(destination_node)
-                        # For memory, it may happen that remaining memory is
-                        # > 0 but it is too small to host any VM. That would
-                        # lead to a node being saturated in practical terms
-                        # but not included in the saturated_nodes list.
-                        # To avoid that, a value representing a minimal
-                        # saturation threshold is created with 128MB value
-                        # for memory which is a usual minimum ram size of
-                        # real world flavors
-                        saturation_limit = {'cpu': 0, 'ram': 128, 'disk': 0}
-                        for m in ('cpu', 'ram', 'disk'):
-                            if (
-                                node_util[m]
-                                >= (node_cap[m] * cc[m]) - saturation_limit[m]
-                            ):
-                                saturated_nodes.add(destination_node.hostname)
-                                break
+                        if self.is_node_saturated(destination_node, cc):
+                            saturated_nodes.add(destination_node.hostname)
                     dsc -= 1
             asc += 1
 

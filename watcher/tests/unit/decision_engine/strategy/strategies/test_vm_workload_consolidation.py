@@ -370,63 +370,24 @@ class TestVMWorkloadConsolidation(TestBaseStrategy):
         n1 = model.get_node_by_uuid('Node_0')
         self.strategy.get_relative_cluster_utilization = mock.MagicMock()
         self.strategy.do_execute()
-        n2_name = self.strategy.solution.actions[0]['input_parameters'][
-            'destination_node'
-        ]
-        n2 = model.get_node_by_name(n2_name)
-        n3_uuid = self.strategy.solution.actions[2]['input_parameters'][
-            'resource_id'
-        ]
-        n3 = model.get_node_by_uuid(n3_uuid)
-        n4_uuid = self.strategy.solution.actions[3]['input_parameters'][
-            'resource_id'
-        ]
-        n4 = model.get_node_by_uuid(n4_uuid)
-        expected = [
-            {
-                'action_type': 'migrate',
-                'input_parameters': {
-                    'destination_node': n2.hostname,
-                    'source_node': n1.hostname,
-                    'migration_type': 'live',
-                    'resource_id': 'INSTANCE_3',
-                    'resource_name': '',
-                },
-            },
-            {
-                'action_type': 'migrate',
-                'input_parameters': {
-                    'destination_node': n2.hostname,
-                    'source_node': n1.hostname,
-                    'migration_type': 'live',
-                    'resource_id': 'INSTANCE_1',
-                    'resource_name': '',
-                },
-            },
-            {
-                'action_type': 'change_nova_service_state',
-                'input_parameters': {
-                    'state': 'disabled',
-                    'disabled_reason': 'watcher_disabled',
-                    'resource_id': n3.uuid,
-                    'resource_name': n3.hostname,
-                },
-            },
-            {
-                'action_type': 'change_nova_service_state',
-                'input_parameters': {
-                    'state': 'disabled',
-                    'disabled_reason': 'watcher_disabled',
-                    'resource_id': n4.uuid,
-                    'resource_name': n4.hostname,
-                },
-            },
-        ]
-        self.assertEqual(expected, self.strategy.solution.actions)
+
+        # Scenario 2 has 6 instances (10 vcpus each) on Node_0 (16 vcpus).
+        # Offload moves instances to separate nodes because the allocation
+        # check prevents packing more than one 10-vcpu instance on a
+        # 16-vcpu node.  Three migrations are needed to bring Node_0's
+        # CPU utilization below capacity.  No consolidation is possible
+        # and no nodes are left empty.
+        actions = self.strategy.solution.actions
+        self.assertEqual(3, len(actions))
+        for a in actions:
+            self.assertEqual('migrate', a['action_type'])
+            self.assertEqual(n1.hostname, a['input_parameters']['source_node'])
 
         compute_nodes_count = len(self.strategy.get_available_compute_nodes())
         number_of_released_nodes = self.strategy.number_of_released_nodes
         number_of_migrations = self.strategy.number_of_migrations
+        self.assertEqual(3, number_of_migrations)
+        self.assertEqual(0, number_of_released_nodes)
         with mock.patch.object(
             BaseSolution, 'set_efficacy_indicators'
         ) as mock_set_efficacy_indicators:
@@ -512,6 +473,60 @@ class TestVMWorkloadConsolidation(TestBaseStrategy):
         for m in ('cpu', 'ram', 'disk'):
             self.assertAlmostEqual(cache_after_n1[m], cache_before_n1[m])
             self.assertAlmostEqual(cache_after_n2[m], cache_before_n2[m])
+
+    def test_strategy_scenario_1(self):
+        model = self.fake_c_cluster.generate_scenario_1()
+        self.m_c_model.return_value = model
+        self.fake_metrics.model = model
+
+        result = self.strategy.pre_execute()
+        self.assertIsNone(result)
+
+        n1 = model.get_node_by_uuid('Node_0')
+        n2 = model.get_node_by_uuid('Node_1')
+        self.strategy.get_relative_cluster_utilization = mock.MagicMock()
+        self.strategy.do_execute()
+
+        # Scenario 1: 2 nodes (40 vcpus, 64 mem, 250 disk) each with
+        # one instance (10 vcpus, 2 mem, 20 disk).  No node is
+        # overloaded.  Consolidation moves INSTANCE_0 from the least
+        # utilized node (Node_0) to Node_1.  Node_0 is then disabled.
+        actions = self.strategy.solution.actions
+        expected = [
+            {
+                'action_type': 'migrate',
+                'input_parameters': {
+                    'destination_node': n2.hostname,
+                    'source_node': n1.hostname,
+                    'migration_type': 'live',
+                    'resource_id': 'INSTANCE_0',
+                    'resource_name': '',
+                },
+            },
+            {
+                'action_type': 'change_nova_service_state',
+                'input_parameters': {
+                    'state': 'disabled',
+                    'disabled_reason': 'watcher_disabled',
+                    'resource_id': n1.uuid,
+                    'resource_name': n1.hostname,
+                },
+            },
+        ]
+        self.assertEqual(expected, actions)
+
+        self.assertEqual(1, self.strategy.number_of_migrations)
+        self.assertEqual(1, self.strategy.number_of_released_nodes)
+
+        with mock.patch.object(
+            BaseSolution, 'set_efficacy_indicators'
+        ) as mock_set_efficacy_indicators:
+            result = self.strategy.post_execute()
+            mock_set_efficacy_indicators.assert_called_once_with(
+                compute_nodes_count=2,
+                released_compute_nodes_count=1,
+                instance_migrations_count=1,
+            )
 
     def test_node_utilization_cache_populated(self):
         model = self.fake_c_cluster.generate_scenario_1()
@@ -621,3 +636,113 @@ class TestVMWorkloadConsolidation(TestBaseStrategy):
                 before_2[metric] + instance_util[metric],
                 msg="Node_2 (destination) used resources should increase",
             )
+
+    def test_instance_fits_allocation_check(self):
+        model = self.fake_c_cluster.generate_scenario_1()
+        self.m_c_model.return_value = model
+        self.fake_metrics.model = model
+        node_1 = model.get_node_by_uuid('Node_1')
+        instance_0 = model.get_instance_by_uuid('INSTANCE_0')
+        instance_1 = model.get_instance_by_uuid('INSTANCE_1')
+        cc = {'cpu': 1.0, 'ram': 1.0, 'disk': 1.0}
+
+        # Baseline: Node_1 (40 vcpus, 64 mem, 250 disk) hosts
+        # INSTANCE_1 (10 vcpus, 2 mem, 20 disk) runs in Node_1
+        # INSTANCE_0 (10 vcpus, 2 mem, 20 disk) runs in Node_0 and should fit.
+        self.assertTrue(self.strategy.instance_fits(instance_0, node_1, cc))
+
+        # --- vcpu: reject when exhausted ---
+        model._node_resource_cache.clear()
+        instance_1.vcpus = 35
+        self.assertFalse(self.strategy.instance_fits(instance_0, node_1, cc))
+
+        # --- vcpu: accept when just enough ---
+        model._node_resource_cache.clear()
+        instance_1.vcpus = 30
+        self.assertTrue(self.strategy.instance_fits(instance_0, node_1, cc))
+
+        # --- memory: reject when exhausted ---
+        model._node_resource_cache.clear()
+        instance_1.vcpus = 10
+        instance_1.memory = 63
+        self.assertFalse(self.strategy.instance_fits(instance_0, node_1, cc))
+
+        # --- memory: accept when just enough ---
+        model._node_resource_cache.clear()
+        instance_1.memory = 62
+        self.assertTrue(self.strategy.instance_fits(instance_0, node_1, cc))
+
+        # --- disk: reject when exhausted ---
+        model._node_resource_cache.clear()
+        instance_1.memory = 2
+        instance_1.disk = 241
+        self.assertFalse(self.strategy.instance_fits(instance_0, node_1, cc))
+
+        # --- disk: accept when just enough ---
+        model._node_resource_cache.clear()
+        instance_1.disk = 230
+        self.assertTrue(self.strategy.instance_fits(instance_0, node_1, cc))
+
+    def test_is_node_saturated_not_saturated(self):
+        model = self.fake_c_cluster.generate_scenario_1()
+        self.m_c_model.return_value = model
+        self.fake_metrics.model = model
+        node_1 = model.get_node_by_uuid('Node_1')
+        cc = {'cpu': 1.0, 'ram': 1.0, 'disk': 1.0}
+        # Scenario_1 memory (64 MB) is below the 128 MB buffer, so
+        # seed caches with realistic values: plenty of room left.
+        model._node_resource_cache[node_1.uuid] = dict(
+            vcpu=10, memory=2048, disk=20
+        )
+        self.strategy.node_utilization_cache[node_1.hostname] = dict(
+            cpu=1.0, ram=1, disk=10
+        )
+        node_1.memory = 514901
+        node_1.memory_mb_reserved = 512
+        self.assertFalse(self.strategy.is_node_saturated(node_1, cc))
+
+    def test_is_node_saturated_by_allocation(self):
+        model = self.fake_c_cluster.generate_scenario_1()
+        self.m_c_model.return_value = model
+        self.fake_metrics.model = model
+        node_1 = model.get_node_by_uuid('Node_1')
+        cc = {'cpu': 1.0, 'ram': 1.0, 'disk': 1.0}
+        # Exhaust vcpu allocation: 40 used on 40 capacity → 0 free.
+        model._node_resource_cache[node_1.uuid] = dict(
+            vcpu=40, memory=0, disk=0
+        )
+        self.assertTrue(self.strategy.is_node_saturated(node_1, cc))
+
+    def test_is_node_saturated_by_memory_buffer(self):
+        model = self.fake_c_cluster.generate_scenario_1()
+        self.m_c_model.return_value = model
+        self.fake_metrics.model = model
+        node_1 = model.get_node_by_uuid('Node_1')
+        cc = {'cpu': 1.0, 'ram': 1.0, 'disk': 1.0}
+        # Leave only 100 MB free memory (below the 128 MB buffer).
+        node_1.memory = 514901
+        node_1.memory_mb_reserved = 512
+        model._node_resource_cache[node_1.uuid] = dict(
+            vcpu=0, memory=node_1.memory_mb_capacity - 100, disk=0
+        )
+        self.strategy.node_utilization_cache[node_1.hostname] = dict(
+            cpu=0, ram=0, disk=0
+        )
+        self.assertTrue(self.strategy.is_node_saturated(node_1, cc))
+
+    def test_is_node_saturated_by_utilization(self):
+        model = self.fake_c_cluster.generate_scenario_1()
+        self.m_c_model.return_value = model
+        self.fake_metrics.model = model
+        node_1 = model.get_node_by_uuid('Node_1')
+        cc = {'cpu': 1.0, 'ram': 1.0, 'disk': 1.0}
+        # Plenty of allocation room, but CPU utilization at capacity.
+        node_1.memory = 514901
+        node_1.memory_mb_reserved = 512
+        model._node_resource_cache[node_1.uuid] = dict(
+            vcpu=10, memory=2048, disk=20
+        )
+        self.strategy.node_utilization_cache[node_1.hostname] = dict(
+            cpu=40.0, ram=0, disk=0
+        )
+        self.assertTrue(self.strategy.is_node_saturated(node_1, cc))
