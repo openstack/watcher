@@ -1,0 +1,7 @@
+---
+fixes:
+  - |
+    Compute scope ``availability_zones`` filtering now correctly limits
+    audits to the specified zones. Previously, nodes were not properly
+    matched, causing all nodes to be included or excluded unexpectedly.
+    See: https://bugs.launchpad.net/watcher/+bug/1988981
