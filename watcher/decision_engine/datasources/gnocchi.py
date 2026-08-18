@@ -48,6 +48,7 @@ class GnocchiHelper(base.DataSourceBase):
 
     def __init__(self, osc=None):
         """:param osc: an OpenStackClients instance"""
+        super().__init__()
         self.osc = osc if osc else clients.OpenStackClients()
         self.gnocchi = self.osc.gnocchi()
 
@@ -66,7 +67,7 @@ class GnocchiHelper(base.DataSourceBase):
         else:
             return {metric['name'] for metric in response}
 
-    def statistic_aggregation(
+    def _statistic_aggregation(
         self,
         resource=None,
         resource_type=None,

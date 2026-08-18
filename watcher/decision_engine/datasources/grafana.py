@@ -45,6 +45,7 @@ class GrafanaHelper(base.DataSourceBase):
 
     def __init__(self, osc=None):
         """:param osc: an OpenStackClients instance"""
+        super().__init__()
         self.osc = osc if osc else clients.OpenStackClients()
         self.configured = False
         self._base_url = None
@@ -171,7 +172,7 @@ class GrafanaHelper(base.DataSourceBase):
             LOG.error("Authorization token is invalid")
         raise exception.DataSourceNotAvailable(self.NAME)
 
-    def statistic_aggregation(
+    def _statistic_aggregation(
         self,
         resource=None,
         resource_type=None,

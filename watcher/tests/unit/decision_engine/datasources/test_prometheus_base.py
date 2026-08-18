@@ -17,6 +17,7 @@ from unittest import mock
 from observabilityclient import prometheus_client
 
 from watcher.common import exception
+from watcher.decision_engine.datasources import base as datasource_base
 from watcher.decision_engine.datasources import prometheus_base
 from watcher.tests.unit import base
 
@@ -82,7 +83,7 @@ class TestPrometheusBase(base.BaseTestCase):
         stat_agg_patcher = mock.patch.object(
             self.helper,
             'statistic_aggregation',
-            spec=prometheus_base.PrometheusBase.statistic_aggregation,
+            spec=datasource_base.DataSourceBase.statistic_aggregation,
         )
         self.mock_aggregation = stat_agg_patcher.start()
         self.addCleanup(stat_agg_patcher.stop)
