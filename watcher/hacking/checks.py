@@ -57,9 +57,6 @@ def _regex_for_level(level, hint):
     )
 
 
-log_warn = re.compile(r"(.)*LOG\.(warn)\(\s*('|\"|_)")
-unittest_imports_dot = re.compile(r"\bimport[\s]+unittest\b")
-unittest_imports_from = re.compile(r"\bfrom[\s]+unittest\b")
 re_redundant_import_alias = re.compile(r".*import (.+) as \1$")
 
 
@@ -206,13 +203,6 @@ def check_assertequal_for_httpcode(logical_line, filename):
             r"assertEqual\(\s*[^,]*,[^,]*HTTP[^\.]*\.code\s*\)", logical_line
         ):
             yield (0, msg)
-
-
-@flake8ext
-def check_log_warn_deprecated(logical_line, filename):
-    msg = "N333: Use LOG.warning due to compatibility with py3"
-    if log_warn.match(logical_line):
-        yield (0, msg)
 
 
 @flake8ext
