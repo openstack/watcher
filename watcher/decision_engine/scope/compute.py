@@ -78,7 +78,7 @@ class ComputeScope(base.BaseScope):
                     resource="availability zones")
         for service in service_list:
             if service.zone in zone_names or include_all_nodes:
-                allowed_nodes.extend(service.host)
+                allowed_nodes.append(service.host)
 
     def exclude_resources(self, resources, **kwargs):
         instances_to_exclude = kwargs.get('instances')
