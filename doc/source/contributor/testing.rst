@@ -216,9 +216,11 @@ Key components:
   (``DecisionEngineManager``, ``ApplierManager``) but mock
   ``ServiceHeartbeat`` to avoid unnecessary database writes.
 - **External services**: Keystone is mocked via the ``KeystoneClient``
-  fixture. Fixtures for Nova, Placement, Cinder and Prometheus APIs will be
-  provided. Until the fixutres are provided, the Cluster data model collectors
-  are disabled (``collector_plugins = []``) and a fake empty model is provided.
+  fixture. Nova and Placement are emulated in-process (see
+  `Tests with cluster topology (Nova/Placement emulators)`_).
+  When ``COMPUTE_TOPOLOGY`` is not set on the test class, collectors
+  are disabled (``collector_plugins = []``) and a fake empty model is
+  provided.
 
 Fixture setup order
 ~~~~~~~~~~~~~~~~~~~
@@ -329,6 +331,506 @@ of a single test. The original values are restored automatically on cleanup:
         self.flags(weights={'change_nova_service_state': 8},
                    group='watcher_planners.weight')
         # ... test code that depends on the custom config ...
+
+Tests with cluster topology (Nova/Placement emulators)
+------------------------------------------------------
+
+Many Watcher strategies (e.g. ``host_maintenance``, ``workload_balance``)
+need a realistic cluster data model to produce meaningful action plans.
+The functional test framework provides in-process Nova and Placement API
+emulators that can be loaded with arbitrary topologies — no real OpenStack
+services required.
+
+How the emulators work
+~~~~~~~~~~~~~~~~~~~~~~
+
+The ``NovaAPIEmulator`` and ``PlacementAPIEmulator`` (in
+``watcher/tests/local_fixtures/``) are lightweight Flask apps that serve the
+subset of Nova v2.1 and Placement APIs that Watcher's collectors and
+actions use. They are wired into the test process via ``wsgi-intercept``
+so that all HTTP requests from openstacksdk and keystoneauth1 are routed
+in-process.
+
+The ``NovaPlacementFixture`` (in ``watcher/tests/local_fixtures/nova.py``)
+handles the wiring: it creates both emulators, installs the WSGI
+intercepts, and patches ``OpenStackClients`` so the decision engine's
+collectors build a real cluster data model from the emulated APIs.
+
+Defining topology with dataclasses
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Topologies are defined using typed dataclass objects from
+``watcher.tests.functional.topology``. Each dataclass has sensible defaults
+matching the emulator defaults, so tests only need to specify the fields
+that matter for their scenario:
+
+.. code-block:: python
+
+    from watcher.tests.functional import base
+    from watcher.tests.functional import topology
+
+
+    MY_TOPOLOGY = (
+        topology.ComputeTopology()
+        .add_computes(count=2)
+        .add_instances(computes=['compute-1'], count=2, vcpus=2)
+        .add_instances(computes=['compute-2'], count=1, vcpus=2)
+    )
+
+
+    class TestMyStrategy(base.WatcherFunctionalTestCase):
+        COMPUTE_TOPOLOGY = topology.ComputeTopology()
+
+        def test_something(self):
+            self.load_topology(MY_TOPOLOGY)
+            # ... create audit, wait for result, assert actions ...
+
+Setting ``COMPUTE_TOPOLOGY = ComputeTopology()`` on the test class enables
+the emulators with an empty initial topology. Each test method then
+calls ``self.load_topology()`` to set its own cluster state. This means
+different tests in the same class can use different topologies.
+
+The ``ComputeTopology`` dataclass groups compute nodes, instances, and
+aggregates into a single object, simplifying topology definition and
+the ``load_topology()`` call.
+
+Builder pattern
+^^^^^^^^^^^^^^^
+
+``ComputeTopology`` supports builder-pattern chaining via
+``add_computes``, ``add_instances``, ``update_compute``, and
+``update_instance`` methods.  Each method returns ``self``, so calls
+can be chained:
+
+.. code-block:: python
+
+    from watcher.tests.functional import topology
+
+    topo = (
+        topology.ComputeTopology()
+        .add_computes(count=2, vcpus=64, memory=131072, disk=2000)
+        .add_instances(computes=['compute-1'], count=5, vcpus=2)
+        .add_instances(computes=['compute-1'], count=3, vcpus=2,
+                       state='stopped')
+    )
+
+``.add_computes(count, hostname_prefix='compute', **kwargs)``
+    Appends *count* compute nodes.  Hostnames are
+    ``{hostname_prefix}-{N}`` where N continues from existing nodes
+    with the same prefix.  Extra ``**kwargs`` are forwarded to
+    ``ComputeNode``.
+
+``.add_instances(computes, count, name_prefix='vm', **kwargs)``
+    Appends *count* instances **per compute node**.  *computes* is a
+    list of hostnames or ``'all'`` to target every node.  Names are
+    ``{name_prefix}-{M}`` with global sequential numbering.  Extra
+    ``**kwargs`` are forwarded to ``Instance``.
+
+``.update_compute(hostname, **kwargs)``
+    Modify fields on an existing compute node by hostname.
+
+``.update_instance(name, **kwargs)``
+    Modify fields on an existing instance by name.
+
+These methods cover the common case.  For topologies with per-instance
+variation (BFV, ephemeral/swap, multiple projects), construct
+``ComputeNode`` and ``Instance`` objects directly.
+
+ComputeNode fields
+^^^^^^^^^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 15 50
+
+   * - Field
+     - Default
+     - Description
+   * - ``hostname``
+     - *(required)*
+     - Compute node hostname
+   * - ``uuid``
+     - auto-generated
+     - Resource provider UUID
+   * - ``vcpus``
+     - 16
+     - Total VCPUs
+   * - ``memory``
+     - 32768
+     - Total memory in MB
+   * - ``disk``
+     - 500
+     - Total disk in GB
+   * - ``state``
+     - ``'up'``
+     - Service state (``up`` or ``down``)
+   * - ``status``
+     - ``'enabled'``
+     - Service status (``enabled`` or ``disabled``)
+   * - ``disabled_reason``
+     - ``None``
+     - Reason string when service status is ``disabled``
+   * - ``availability_zone``
+     - ``'nova'``
+     - Service availability zone
+   * - ``vcpu_ratio``
+     - 1.0
+     - Placement allocation ratio for VCPU
+   * - ``memory_ratio``
+     - 1.0
+     - Placement allocation ratio for MEMORY_MB
+   * - ``disk_ratio``
+     - 1.0
+     - Placement allocation ratio for DISK_GB
+   * - ``vcpu_reserved``
+     - 0
+     - Reserved VCPUs in Placement inventory
+   * - ``memory_mb_reserved``
+     - 0
+     - Reserved memory (MB) in Placement inventory
+   * - ``disk_gb_reserved``
+     - 0
+     - Reserved disk (GB) in Placement inventory
+
+Instance fields
+^^^^^^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 15 50
+
+   * - Field
+     - Default
+     - Description
+   * - ``uuid``
+     - auto-generated
+     - Instance UUID
+   * - ``name``
+     - ``''``
+     - Instance display name (defaults to ``instance-<uuid[:8]>`` in emulator)
+   * - ``host``
+     - ``''``
+     - Hostname of the compute node running this instance
+   * - ``vcpus``
+     - 4
+     - VCPUs consumed
+   * - ``memory``
+     - 4096
+     - Memory consumed (MB)
+   * - ``disk``
+     - 20
+     - Disk consumed (GB)
+   * - ``state``
+     - ``'active'``
+     - VM state (``active``, ``stopped``, etc.)
+   * - ``project_id``
+     - ``'test-project'``
+     - Tenant/project ID
+   * - ``hypervisor_hostname``
+     - ``None`` (defaults to ``host``)
+     - Hypervisor hostname (``OS-EXT-SRV-ATTR:hypervisor_hostname``)
+   * - ``locked``
+     - ``False``
+     - Whether the instance is locked
+   * - ``metadata``
+     - ``{}``
+     - Instance metadata dict (used by scope ``instance_metadata`` filter)
+   * - ``ephemeral``
+     - 0
+     - Ephemeral disk (GB), added to flavor
+   * - ``swap``
+     - 0
+     - Swap disk (MB), added to flavor
+   * - ``created``
+     - ``'2025-01-01T00:00:00Z'``
+     - Server creation timestamp
+   * - ``bfv``
+     - ``False``
+     - Boot from volume. See `Boot from volume (BFV) instances`_ below.
+   * - ``availability_zone``
+     - ``'nova'``
+     - Availability zone (``OS-EXT-AZ:availability_zone``)
+   * - ``volumes_attached``
+     - ``[]``
+     - List of attached volume dicts
+
+Aggregate fields
+^^^^^^^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 15 50
+
+   * - Field
+     - Default
+     - Description
+   * - ``id``
+     - *(required)*
+     - Aggregate ID
+   * - ``name``
+     - *(required)*
+     - Aggregate name
+   * - ``hosts``
+     - ``[]``
+     - List of compute node hostnames in this aggregate
+   * - ``metadata``
+     - ``{}``
+     - Aggregate metadata dict
+
+ComputeTopology fields
+^^^^^^^^^^^^^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 15 50
+
+   * - Field
+     - Default
+     - Description
+   * - ``compute_nodes``
+     - ``[]``
+     - List of ``ComputeNode`` objects
+   * - ``instances``
+     - ``[]``
+     - List of ``Instance`` objects
+   * - ``aggregates``
+     - ``[]``
+     - List of ``Aggregate`` objects
+
+Boot from volume (BFV) instances
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When ``bfv`` is ``True``, the emulators reproduce the behavior of a
+real Nova/Placement deployment for boot-from-volume instances:
+
+- **Nova API**: The server's ``image`` field is ``""`` (empty string).
+  openstacksdk converts this to ``image=None``, which makes
+  ``Server.is_boot_from_volume`` return ``True``.
+- **Placement API**: The root disk is excluded from the ``DISK_GB``
+  allocation. Only ``ephemeral`` and ``swap`` (converted to GB with
+  ``math.ceil``) contribute to ``DISK_GB`` usage and allocations.
+- **Cluster data model**: The model builder sets
+  ``instance.disk = ephemeral + ceil(swap_mb / 1024)`` (no root disk),
+  matching the Placement allocation.
+
+When ``bfv`` is ``False`` (the default), the server has a fake image UUID
+and the full ``disk`` value is included in the ``DISK_GB`` allocation.
+
+The ``disk`` field in the instance dict always represents the flavor's
+root disk size, regardless of ``bfv``. This is the same value that
+appears in the Nova flavor response. For BFV instances the root disk is
+stored on a Cinder volume, so it does not consume local disk on the
+compute node — the emulators handle this automatically.
+
+Example with mixed BFV and image-backed instances:
+
+.. code-block:: python
+
+    from watcher.tests.functional import topology
+
+    INSTANCES = [
+        # Image-backed: DISK_GB = 20 + 0 + 0 = 20
+        topology.Instance(
+            uuid='11111111-1111-1111-1111-111111111111',
+            name='vm-image', host='compute-1',
+            vcpus=2, disk=20,
+        ),
+        # BFV, no ephemeral/swap: DISK_GB = 0
+        topology.Instance(
+            uuid='22222222-2222-2222-2222-222222222222',
+            name='vm-bfv', host='compute-1',
+            vcpus=2, disk=80,
+            bfv=True,
+        ),
+        # BFV with ephemeral and swap:
+        # DISK_GB = 0 + 10 + ceil(512/1024) = 11
+        topology.Instance(
+            uuid='33333333-3333-3333-3333-333333333333',
+            name='vm-bfv-eph', host='compute-1',
+            vcpus=4, memory=8192, disk=80,
+            ephemeral=10, swap=512,
+            bfv=True,
+        ),
+    ]
+
+In XML model files, use the ``bfv="True"`` attribute on ``<Instance>``
+elements:
+
+.. code-block:: xml
+
+    <Instance uuid="INST_1" name="vm-bfv" vcpus="2" memory="4096"
+              disk="80" state="active" bfv="True" />
+
+Loading topology from XML or JSON files
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Both emulators can also load topology from XML model files (the same
+format used by Watcher's unit test scenarios in
+``watcher/tests/unit/decision_engine/model/data/``) or from JSON files.
+This is mainly intended for running the emulators in standalone mode
+(see `Running the emulators standalone`_), where topology is provided
+via command-line flags rather than constructed in Python.
+
+In functional tests, prefer defining topologies using the builder helpers
+or dataclass objects described above — they are type-checked, support
+IDE autocompletion, and produce more readable test code.
+
+The XML format uses ``<ComputeNode>`` elements with nested ``<Instance>``
+elements:
+
+.. code-block:: xml
+
+    <ModelRoot>
+      <ComputeNode uuid="Node_0" hostname="hostname_0"
+                   vcpus="40" memory="132" disk="250"
+                   vcpu_ratio="1" memory_ratio="1" disk_ratio="1"
+                   vcpu_reserved="0" memory_mb_reserved="0" disk_gb_reserved="0"
+                   status="enabled" state="up">
+        <Instance uuid="INSTANCE_0" name="vm-0"
+                  vcpus="10" memory="2" disk="20"
+                  state="active" project_id="project-1" />
+      </ComputeNode>
+    </ModelRoot>
+
+The Placement emulator extracts the allocation ratios and reserved values
+from the XML, while the Nova emulator extracts hypervisor and server state.
+
+The JSON format uses a flat structure with ``compute_nodes``, ``instances``,
+and ``aggregates`` lists:
+
+.. code-block:: json
+
+    {
+        "compute_nodes": [
+            {"uuid": "...", "hostname": "compute-1", "vcpus": 16,
+             "memory": 32768, "disk": 500}
+        ],
+        "instances": [
+            {"uuid": "...", "name": "vm-1", "host": "compute-1",
+             "vcpus": 2, "memory": 4096, "disk": 20, "state": "active",
+             "project_id": "..."}
+        ],
+        "aggregates": [
+            {"id": 1, "name": "rack-a", "hosts": ["compute-1"]}
+        ]
+    }
+
+Per-test topology loading
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When ``COMPUTE_TOPOLOGY = ComputeTopology()`` is set on the test class,
+each test method can call ``self.load_topology()`` with a different
+``ComputeTopology``. This resets both the Nova and Placement emulators
+and loads the new data:
+
+.. code-block:: python
+
+    from watcher.tests.functional import topology
+
+    SMALL_TOPOLOGY = (
+        topology.ComputeTopology()
+        .add_computes(count=1, hostname_prefix='node')
+        .add_instances(computes='all', count=1)
+    )
+
+    LARGE_TOPOLOGY = (
+        topology.ComputeTopology()
+        .add_computes(count=3, hostname_prefix='node')
+        .add_instances(computes=['node-1', 'node-2'], count=1)
+    )
+
+
+    class TestScaling(base.WatcherFunctionalTestCase):
+        COMPUTE_TOPOLOGY = topology.ComputeTopology()
+
+        def test_small_cluster(self):
+            self.load_topology(SMALL_TOPOLOGY)
+            # ...
+
+        def test_large_cluster(self):
+            self.load_topology(LARGE_TOPOLOGY)
+            # ...
+
+This is preferred over defining a full topology at the class level,
+because it allows different test methods to exercise different scenarios
+without needing separate test classes.
+
+Gabbi tests with topology
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For gabbi YAML tests that need a cluster topology, use a fixture that
+subclasses ``_GabbiTopologyFixtureBase`` instead of ``WatcherGabbiFixture``.
+Each subclass defines a ``COMPUTE_TOPOLOGY`` class attribute and can be
+referenced by name in the YAML ``fixtures:`` list.
+
+For example, the ``WatcherGabbiWithTopologyFixture`` provides a 3-node cluster
+(two instances on compute-1, one on compute-2, none on compute-3):
+
+.. code-block:: yaml
+
+    fixtures:
+      - WatcherGabbiWithTopologyFixture
+
+To add a different topology for a new gabbi test file, define a new
+subclass in ``gabbi_fixture.py``:
+
+.. code-block:: python
+
+    class MyTopologyFixture(_GabbiTopologyFixtureBase):
+        COMPUTE_TOPOLOGY = (
+            topology.ComputeTopology()
+            .add_computes(count=2, vcpus=8)
+            .add_instances(computes='all', count=3, vcpus=2)
+        )
+
+Then reference it in the YAML file:
+
+.. code-block:: yaml
+
+    fixtures:
+      - MyTopologyFixture
+
+Gabbi resolves fixture class names from the ``gabbi_fixture`` module, so
+any class defined there is automatically available to YAML files.
+
+Running the emulators standalone
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Both emulators can also run as standalone Flask servers for manual testing
+or debugging outside the test framework.  Use ``tox -e venv`` to run them
+in an environment with all dependencies installed.  The ``--model`` flag
+accepts both XML and JSON files — the format is auto-detected from file
+content::
+
+    $ tox -e venv -- python -m watcher.tests.local_fixtures.nova_api_emulator \
+        --model watcher/tests/unit/decision_engine/model/data/scenario_1.xml \
+        --port 8774 --debug
+
+    $ tox -e venv -- python -m watcher.tests.local_fixtures.placement_api_emulator \
+        --model watcher/tests/unit/decision_engine/model/data/scenario_1.xml \
+        --port 8778 --debug
+
+JSON topology files work the same way::
+
+    $ tox -e venv -- python -m watcher.tests.local_fixtures.nova_api_emulator \
+        --model path/to/topology.json --port 8774
+
+    $ tox -e venv -- python -m watcher.tests.local_fixtures.placement_api_emulator \
+        --model path/to/topology.json --port 8778
+
+To serve over HTTPS, provide both ``--cert`` and ``--key``::
+
+    $ tox -e venv -- python -m watcher.tests.local_fixtures.nova_api_emulator \
+        --model scenario_1.xml --port 8774 \
+        --cert /path/to/server.crt --key /path/to/server.key
+
+    $ tox -e venv -- python -m watcher.tests.local_fixtures.placement_api_emulator \
+        --model scenario_1.xml --port 8778 \
+        --cert /path/to/server.crt --key /path/to/server.key
+
+Both TLS flags must be provided together; passing only one is an error.
+This is useful when testing Watcher against emulators configured with TLS
+endpoints (e.g. ``https://localhost:8774/v2.1``).
 
 YAML-driven tests with gabbi
 -----------------------------

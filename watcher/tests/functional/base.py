@@ -12,6 +12,7 @@
 
 import logging as std_logging
 import os
+import time
 import warnings
 
 from unittest import mock
@@ -27,6 +28,7 @@ from sqlalchemy import exc as sqla_exc
 from watcher import objects
 from watcher.common import context as watcher_context
 from watcher.common import service as watcher_service
+from watcher.decision_engine import rpcapi
 from watcher.decision_engine import sync
 from watcher.decision_engine.model import model_root
 from watcher.objects import base as objects_base
@@ -39,6 +41,7 @@ from watcher.tests.local_fixtures import rpc as rpc_fixture
 from watcher.tests.local_fixtures import watcher as watcher_fixtures
 from watcher.tests.local_fixtures.api import APIFixture
 from watcher.tests.local_fixtures.cast_as_call import CastAsCallFixture
+from watcher.tests.local_fixtures.nova import NovaPlacementFixture
 from watcher.tests.local_fixtures.service import ServiceFixture
 
 
@@ -70,14 +73,22 @@ class WatcherEnvironment(fixtures.Fixture):
         start_applier=True,
         log_name=None,
         cast_as_call=True,
+        compute_topology=None,
     ):
         super().__init__()
         self.start_de = start_de
         self.start_applier = start_applier
         self.log_name = log_name
         self._cast_as_call = cast_as_call
+        self._compute_topology = compute_topology
         self.dbapi = None
         self.context = None
+        self.nova_fixture = None
+
+    def flags(self, group=None, **kw):
+        for k, v in kw.items():
+            CONF.set_override(k, v, group)
+            self.addCleanup(CONF.clear_override, k, group)
 
     def setUp(self):
         super().setUp()
@@ -116,7 +127,7 @@ class WatcherEnvironment(fixtures.Fixture):
         self.useFixture(policy_fixture.PolicyFixture())
 
         # 4. Database
-        CONF.set_override('enable_authentication', False)
+        self.flags(enable_authentication=False)
         self._db = self.useFixture(db_fixture.WatcherDatabase())
         self.dbapi = self._db.dbapi
 
@@ -128,36 +139,55 @@ class WatcherEnvironment(fixtures.Fixture):
         syncer = sync.Syncer()
         syncer.sync()
 
-        # 7. Disable all collectors — functional tests don't need real
-        #    OpenStack services. Provide a fake empty model so strategies
-        #    that check self.compute_model in pre_execute() don't fail.
-        #    These fake model will be remove once we have nova fixtures
-        #    in place.
-        CONF.set_override('collector_plugins', [], group='collector')
-        fake_model = model_root.ModelRoot(stale=False)
-        fake_scope_handler = mock.Mock()
-        fake_scope_handler.get_scoped_model.return_value = fake_model
-        fake_collector = mock.Mock()
-        fake_collector.get_latest_cluster_data_model.return_value = fake_model
-        fake_collector.get_audit_scope_handler.return_value = (
-            fake_scope_handler
+        # 7. Reduce retry noise: during cleanup, the DE may still
+        #    attempt model builds after mocks are removed.
+        self.flags(
+            group='collector', api_query_max_retries=1, api_query_interval=0
         )
-        self.useFixture(
-            fixtures.MockPatch(
-                'watcher.decision_engine.model.collector.manager'
-                '.CollectorManager.get_cluster_model_collector',
-                return_value=fake_collector,
-            )
-        )
+        self.flags(group='nova', http_retries=1, http_retry_interval=0.1)
 
         # 8. Make RPC casts synchronous for deterministic tests
         if self._cast_as_call:
             self.useFixture(CastAsCallFixture())
 
-        # 9. Mock Keystone client
+        # 9. Mock Keystone client — must come BEFORE NovaPlacementFixture
+        #    because both patch clients.get_sdk_connection, and the
+        #    emulator's patch must win (last writer wins).
         self.useFixture(watcher_fixtures.KeystoneClient())
 
-        # 10. Services
+        # 10. Collectors — either use emulated Nova/Placement APIs
+        #     (when COMPUTE_TOPOLOGY is set on the test class) or a
+        #     fake empty model (for tests that don't need a real
+        #     cluster data model).
+        if self._compute_topology is not None:
+            self.flags(group='collector', collector_plugins=['compute'])
+            self.flags(
+                group='nova', migration_max_retries=5, migration_interval=0.1
+            )
+            self.nova_fixture = self.useFixture(
+                NovaPlacementFixture(topology=self._compute_topology)
+            )
+        else:
+            self.flags(group='collector', collector_plugins=[])
+            fake_model = model_root.ModelRoot(stale=False)
+            fake_scope_handler = mock.Mock()
+            fake_scope_handler.get_scoped_model.return_value = fake_model
+            fake_collector = mock.Mock()
+            fake_collector.get_latest_cluster_data_model.return_value = (
+                fake_model
+            )
+            fake_collector.get_audit_scope_handler.return_value = (
+                fake_scope_handler
+            )
+            self.useFixture(
+                fixtures.MockPatch(
+                    'watcher.decision_engine.model.collector.manager'
+                    '.CollectorManager.get_cluster_model_collector',
+                    return_value=fake_collector,
+                )
+            )
+
+        # 11. Services
         if self.start_de:
             self.de_fixture = self.useFixture(
                 ServiceFixture('watcher-decision-engine')
@@ -167,7 +197,7 @@ class WatcherEnvironment(fixtures.Fixture):
                 ServiceFixture('watcher-applier')
             )
 
-        # 11. Admin context for direct DB operations
+        # 12. Admin context for direct DB operations
         self.context = watcher_context.make_context(
             user_id=FAKE_USER_UUID, project_id=FAKE_PROJECT_UUID, is_admin=True
         )
@@ -233,6 +263,8 @@ class WatcherFunctionalTestCase(watcher_base.WatcherBaseTestCase):
     START_APPLIER = True
     CAST_AS_CALL = True
 
+    COMPUTE_TOPOLOGY = None
+
     def setUp(self):
         super().setUp()
 
@@ -242,6 +274,7 @@ class WatcherFunctionalTestCase(watcher_base.WatcherBaseTestCase):
                 start_applier=self.START_APPLIER,
                 log_name=self.id(),
                 cast_as_call=self.CAST_AS_CALL,
+                compute_topology=self.COMPUTE_TOPOLOGY,
             )
         )
         self.dbapi = self.env.dbapi
@@ -257,3 +290,88 @@ class WatcherFunctionalTestCase(watcher_base.WatcherBaseTestCase):
         self.admin_api = WatcherTestClient(
             self.api_fixture.base_url, user_id=FAKE_USER_UUID, roles=['admin']
         )
+
+    def load_topology(self, topology):
+        """Load or replace cluster topology for the current test.
+
+        Requires COMPUTE_TOPOLOGY set on the test class so the
+        Nova/Placement emulator fixture exists.
+        """
+        self.env.nova_fixture.reload_topology(topology)
+
+    def _wait_for_audit_state(self, audit_uuid, target_state, timeout=30):
+        """Poll until audit reaches the target state."""
+        deadline = time.time() + timeout
+        while time.time() < deadline:
+            resp = self.admin_api.get('/audits/%s' % audit_uuid)
+            self.assertEqual(200, resp.status_code)
+            state = resp.json()['state']
+            if state == target_state:
+                return resp.json()
+            if state in ('FAILED', 'CANCELLED'):
+                self.fail('Audit %s ended in state %s' % (audit_uuid, state))
+            time.sleep(0.1)
+        self.fail(
+            'Audit %s did not reach state %s within %ss '
+            '(last state: %s)' % (audit_uuid, target_state, timeout, state)
+        )
+
+    def _wait_for_action_plan_state(self, ap_uuid, target_state, timeout=30):
+        """Poll until action plan reaches the target state."""
+        deadline = time.time() + timeout
+        while time.time() < deadline:
+            resp = self.admin_api.get('/action_plans/%s' % ap_uuid)
+            self.assertEqual(200, resp.status_code)
+            state = resp.json()['state']
+            if state == target_state:
+                return resp.json()
+            if state == 'FAILED':
+                self.fail('Action plan %s FAILED' % ap_uuid)
+            time.sleep(0.1)
+        self.fail(
+            'Action plan %s did not reach state %s within %ss '
+            '(last state: %s)' % (ap_uuid, target_state, timeout, state)
+        )
+
+    def _assert_action(self, actions, action_type, **expected_params):
+        """Assert an action with matching type and input_parameters exists.
+
+        Searches through actions for one whose ``action_type`` matches
+        and whose ``input_parameters`` contain all ``expected_params``
+        key/value pairs.  Returns the matching action dict.
+
+        Fails with a descriptive message listing all actions if no
+        match is found.
+        """
+        for action in actions:
+            if action['action_type'] != action_type:
+                continue
+            params = action['input_parameters']
+            if all(params.get(k) == v for k, v in expected_params.items()):
+                return action
+        self.fail(
+            'No %s action found with params %s.\n'
+            'Actions present (%d):\n%s'
+            % (
+                action_type,
+                expected_params,
+                len(actions),
+                '\n'.join(
+                    '  %s: %s' % (a['action_type'], a['input_parameters'])
+                    for a in actions
+                ),
+            )
+        )
+
+    def get_data_model(self, audit_uuid=None):
+        """Get the cluster data model via RPC.
+
+        Returns the unfiltered to_list() flat dicts with all
+        node_* and server_* fields.  Pass *audit_uuid* to get
+        the model filtered by the audit's scope.
+        """
+        de_client = rpcapi.DecisionEngineAPI()
+        result = de_client.get_data_model_info(
+            self.context, 'compute', audit_uuid
+        )
+        return result['context']

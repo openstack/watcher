@@ -1,0 +1,113 @@
+# End-to-end test of the host_maintenance strategy.
+#
+# Uses the WatcherGabbiWithTopologyFixture which provides emulated
+# Nova and Placement APIs with a 3-node cluster:
+#
+#   compute-1: 2 active instances (vm-1, vm-2)  <- maintenance node
+#   compute-2: 1 active instance  (vm-3)        <- backup node
+#   compute-3: 0 instances
+#
+# The strategy should migrate all instances from compute-1 to
+# compute-2, then disable the compute service on compute-1.
+
+fixtures:
+  - WatcherGabbiWithTopologyFixture
+
+defaults:
+  request_headers:
+    x-auth-token: fake-token
+    x-user-id: bbbbbbbb-1111-2222-3333-444444444444
+    x-project-id: aaaaaaaa-1111-2222-3333-444444444444
+    x-roles: admin
+    content-type: application/json
+    accept: application/json
+
+tests:
+
+  - name: create host_maintenance audit
+    POST: /audits
+    data:
+      audit_type: ONESHOT
+      goal: cluster_maintaining
+      strategy: host_maintenance
+      parameters:
+        maintenance_node: compute-1
+        backup_node: compute-2
+    status: 201
+    response_json_paths:
+      $.uuid: /^[a-f0-9-]+$/
+
+  - name: wait for audit succeeded
+    GET: /audits/$RESPONSE['$.uuid']
+    poll:
+      count: 300
+      delay: 0.1
+    status: 200
+    response_json_paths:
+      $.state: SUCCEEDED
+
+  - name: list action plans for audit
+    GET: /action_plans?audit_uuid=$RESPONSE['$.uuid']
+    status: 200
+    response_json_paths:
+      $.action_plans.`len`: 1
+
+  - name: verify action plan state
+    GET: /action_plans/$RESPONSE['$.action_plans[0].uuid']
+    status: 200
+    response_json_paths:
+      $.state: RECOMMENDED
+
+  - name: list actions for action plan
+    GET: /actions?action_plan_uuid=$RESPONSE['$.uuid']
+    status: 200
+    response_json_paths:
+      $.actions.`len`: 3
+      $.actions[0].action_type: change_nova_service_state
+      $.actions[1].action_type: migrate
+      $.actions[2].action_type: migrate
+
+  - name: verify disable action parameters
+    GET: /actions/$RESPONSE['$.actions[0].uuid']
+    status: 200
+    response_json_paths:
+      $.action_type: change_nova_service_state
+      $.input_parameters.state: disabled
+      $.input_parameters.resource_name: compute-1
+
+  - name: verify first migrate action
+    GET: /actions/$HISTORY['list actions for action plan'].$RESPONSE['$.actions[1].uuid']
+    status: 200
+    response_json_paths:
+      $.action_type: migrate
+      $.input_parameters.migration_type: live
+      $.input_parameters.source_node: compute-1
+      $.input_parameters.destination_node: compute-2
+      $.input_parameters.resource_name: /^vm-[12]$/
+
+  - name: verify second migrate action
+    GET: /actions/$HISTORY['list actions for action plan'].$RESPONSE['$.actions[2].uuid']
+    status: 200
+    response_json_paths:
+      $.action_type: migrate
+      $.input_parameters.migration_type: live
+      $.input_parameters.source_node: compute-1
+      $.input_parameters.destination_node: compute-2
+      $.input_parameters.resource_name: /^vm-[12]$/
+
+  - name: trigger action plan
+    PATCH: /action_plans/$HISTORY['verify action plan state'].$RESPONSE['$.uuid']
+    data:
+      - op: replace
+        path: /state
+        value: PENDING
+    status: 200
+
+  - name: wait for action plan succeeded
+    GET: /action_plans/$RESPONSE['$.uuid']
+    poll:
+      count: 300
+      delay: 0.1
+    status: 200
+    response_json_paths:
+      $.state: SUCCEEDED
