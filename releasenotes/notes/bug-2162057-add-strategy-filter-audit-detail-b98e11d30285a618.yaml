@@ -1,0 +1,11 @@
+---
+fixes:
+  - |
+    The ``/v1/audits/detail`` endpoint now accepts the ``strategy`` query
+    parameter to filter audits by strategy UUID or name. Previously, using
+    the ``--strategy`` filter together with ``--detail`` on
+    ``openstack optimize audit list`` would fail because the detail endpoint
+    did not declare the ``strategy`` parameter.
+
+    See: `Bug #2162057 <https://bugs.launchpad.net/watcher/+bug/2162057>`_
+    for more details.
