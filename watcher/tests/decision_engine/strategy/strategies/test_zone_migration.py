@@ -157,6 +157,37 @@ class TestZoneMigration(TestBaseStrategy):
         self.assertIn(instance_on_src2, instances)
         self.assertNotIn(instance_on_src3, instances)
 
+    def test_get_instances_with_excluded_instance(self):
+        # Instances flagged by the audit scope (watcher_exclude) must not be
+        # returned as migration targets. See LP#2154805.
+        input_parameters = {
+            "compute_nodes": [
+                {"src_node": "hostname_0", "dst_node": "hostname_1"}
+            ]
+        }
+        self.strategy.input_parameters = input_parameters
+
+        excluded_instance = self.fake_instance(
+            host="hostname_0",
+            id="INSTANCE_0",
+            name="INSTANCE_0")
+        included_instance = self.fake_instance(
+            host="hostname_0",
+            id="INSTANCE_1",
+            name="INSTANCE_1")
+        self.m_n_helper.get_instance_list.return_value = [
+            excluded_instance,
+            included_instance,
+        ]
+
+        self.strategy.compute_model.get_instance_by_uuid(
+            excluded_instance.id).watcher_exclude = True
+
+        instances = self.strategy.get_instances()
+
+        self.assertNotIn(excluded_instance, instances)
+        self.assertIn(included_instance, instances)
+
     def test_get_instances_with_instance_not_found(self):
         # Create a test instance without a known id
         # so we expect it to not be in the model

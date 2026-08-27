@@ -559,6 +559,12 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
         return [v for dic in self.migrate_storage_pools
                 for k, v in dic.items() if k == "src_pool"]
 
+    def is_instance_excluded(self, instance_uuid):
+        """Check if an instance is excluded by the audit scope"""
+
+        return self.compute_model.get_instance_by_uuid(
+            instance_uuid).watcher_exclude
+
     def get_instances(self):
         """Get migrate target instances
 
@@ -572,7 +578,8 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
 
         return [i for i in self.nova.get_instance_list()
                 if getattr(i, 'OS-EXT-SRV-ATTR:host') in src_node_list and
-                self.compute_model.has_node(i.id)]
+                self.compute_model.has_node(i.id) and
+                not self.is_instance_excluded(i.id)]
 
     def get_volumes(self):
         """Get migrate target volumes
