@@ -160,6 +160,47 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         self.assertIn(instance_on_src2, instances)
         self.assertNotIn(instance_on_src3, instances)
 
+    def test_get_instances_with_excluded_instance(self):
+        # Instances flagged by the audit scope (watcher_exclude) must not be
+        # returned as migration targets. See LP#2154805.
+        input_parameters = {
+            "compute_nodes": [
+                {"src_node": "hostname_0", "dst_node": "hostname_1"}
+            ]
+        }
+        self.strategy.input_parameters = input_parameters
+
+        server_info = {
+            "compute_host": "hostname_0",
+            "name": "INSTANCE_0",
+            "id": "d000ef1f-dc19-4982-9383-087498bfde03",
+            "vm_state": "active"
+        }
+        excluded_instance = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
+        )
+        server_info = {
+            "compute_host": "hostname_0",
+            "name": "INSTANCE_1",
+            "id": "d010ef1f-dc19-4982-9383-087498bfde03",
+            "vm_state": "active"
+        }
+        included_instance = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
+        )
+        self.m_n_helper.get_instance_list.return_value = [
+            excluded_instance,
+            included_instance,
+        ]
+
+        self.strategy.compute_model.get_instance_by_uuid(
+            excluded_instance.uuid).watcher_exclude = True
+
+        instances = self.strategy.get_instances()
+
+        self.assertNotIn(excluded_instance, instances)
+        self.assertIn(included_instance, instances)
+
     def test_get_instances_with_instance_not_found(self):
         # Create a test instance without a known id
         # so we expect it to not be in the model
