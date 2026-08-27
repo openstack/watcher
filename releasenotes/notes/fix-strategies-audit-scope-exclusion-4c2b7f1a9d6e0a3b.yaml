@@ -1,0 +1,12 @@
+---
+fixes:
+  - |
+    The ``host_maintenance``, ``zone_migration`` and
+    ``node_resource_consolidation`` strategies now honor audit scope instance
+    exclusions. Previously, instances excluded through the audit scope were
+    still migrated or considered as migration candidates by these strategies,
+    which prevented operators from protecting critical instances during
+    optimization and maintenance operations.
+    See Bug 2154805: https://bugs.launchpad.net/watcher/+bug/2154805,
+    Bug 2154806: https://bugs.launchpad.net/watcher/+bug/2154806 and
+    Bug 2154807: https://bugs.launchpad.net/watcher/+bug/2154807 for more info.

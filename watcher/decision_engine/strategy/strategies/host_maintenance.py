@@ -269,6 +269,11 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
         """
         instances = self.compute_model.get_node_instances(source_node)
         for instance in instances:
+            if instance.watcher_exclude:
+                LOG.debug(
+                    "Instance is excluded by scope, skipped: %s", instance.uuid
+                )
+                continue
             self.instance_handle(instance, source_node, destination_node)
 
     def safe_maintain(self, maintenance_node, backup_node=None):
@@ -304,6 +309,11 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
         self.add_action_maintain_compute_node(maintenance_node)
         instances = self.compute_model.get_node_instances(maintenance_node)
         for instance in instances:
+            if instance.watcher_exclude:
+                LOG.debug(
+                    "Instance is excluded by scope, skipped: %s", instance.uuid
+                )
+                continue
             self.instance_handle(instance, maintenance_node)
 
     def pre_execute(self):

@@ -245,10 +245,6 @@ class TestHostMaintenanceScoped(base.WatcherFunctionalTestCase):
 
         The scope excludes vm-1 by UUID, which sets watcher_exclude=True
         on the instance. A correct strategy should skip it.
-
-        Bug #2154805: host_maintenance does NOT check watcher_exclude,
-        so vm-1 is still migrated. The commented-out assertions show
-        the expected correct behavior.
         """
         excluded_uuid = SCOPED_TOPOLOGY.instances[0].uuid
 
@@ -297,19 +293,8 @@ class TestHostMaintenanceScoped(base.WatcherFunctionalTestCase):
 
         migrate_actions = [a for a in actions if a['action_type'] == 'migrate']
 
-        # TODO(amoralej) uncomment when bug #2154805 is fixed
-        # self.assertEqual(2, len(migrate_actions))
-        # self.assertEqual(3, len(actions))
-        self.assertEqual(3, len(migrate_actions))
-        self.assertEqual(4, len(actions))
-        self._assert_action(
-            actions,
-            'migrate',
-            resource_name='vm-1',
-            resource_id=excluded_uuid,
-            migration_type='live',
-            destination_node='compute-2',
-        )
+        self.assertEqual(2, len(migrate_actions))
+        self.assertEqual(3, len(actions))
 
     # Negative: maintenance_node not in included aggregate
 
