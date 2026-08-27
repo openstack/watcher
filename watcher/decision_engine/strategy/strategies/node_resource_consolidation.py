@@ -98,6 +98,18 @@ class NodeResourceConsolidation(base.ServerConsolidationBaseStrategy):
             }
         }
 
+    def get_migratable_instances(self, node):
+        """Get node instances that are not excluded by the audit scope.
+
+        Instances excluded through the audit scope are flagged with
+        ``watcher_exclude`` and must never be selected for migration.
+        """
+        return [
+            instance
+            for instance in self.compute_model.get_node_instances(node)
+            if not instance.watcher_exclude
+        ]
+
     def check_resources(self, servers, destination):
         # check whether a node able to accommodate a VM
         dest_flag = False
@@ -138,7 +150,7 @@ class NodeResourceConsolidation(base.ServerConsolidationBaseStrategy):
         if not sources or not destinations:
             return
         for node in sources:
-            servers = self.compute_model.get_node_instances(node)
+            servers = self.get_migratable_instances(node)
             sorted_servers = sorted(
                 servers, key=lambda x: x.vcpus, reverse=True
             )
@@ -235,7 +247,7 @@ class NodeResourceConsolidation(base.ServerConsolidationBaseStrategy):
                 continue
             used_resource = self.compute_model.get_node_used_resources(node)
             if used_resource['vcpu'] > 0:
-                servers = self.compute_model.get_node_instances(node)
+                servers = self.get_migratable_instances(node)
                 for dest in reversed(sorted_nodes):
                     # skip if compute node is disabled
                     if dest.status == element.ServiceState.DISABLED.value:

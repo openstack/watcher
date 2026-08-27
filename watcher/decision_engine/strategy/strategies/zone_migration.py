@@ -288,7 +288,11 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
             node = self.compute_model.get_node_by_name(node_name)
         except exception.ComputeNodeNotFound:
             return []
-        return self.compute_model.get_node_instances(node)
+        return [
+            instance
+            for instance in self.compute_model.get_node_instances(node)
+            if not instance.watcher_exclude
+        ]
 
     def pre_execute(self):
         self._pre_execute()
