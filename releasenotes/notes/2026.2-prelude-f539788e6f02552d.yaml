@@ -1,0 +1,51 @@
+---
+prelude: |
+    The ``OpenStack 2026.2`` (``Watcher 17.0.0``) release advances Watcher's
+    modernization efforts, delivering a major milestone in the eventlet removal
+    initiative, broader adoption of openstacksdk, more accurate cluster
+    modelling, and stronger security defaults. This release focuses on making
+    Watcher deployments more maintainable, more correct in their optimization
+    decisions, and safer by default.
+
+    This release marks a turning point in the eventlet removal initiative:
+    all Watcher services (API, Decision Engine, and Applier) now run in
+    ``native threading`` mode by default. Eventlet, previously the default
+    concurrency library, is now deprecated and will be removed in a future
+    release.
+
+    The migration from legacy per-service clients to openstacksdk continues
+    across the codebase. Building on the novaclient migration from the previous
+    release, the Cinder, Keystone, and Placement integrations now use
+    openstacksdk, removing the python-cinderclient and python-keystoneclient
+    dependencies and aligning all integrations on OpenStack's standard client
+    library.
+
+    Optimization decisions are now more accurate and better aligned with Nova's
+    placement constraints. The vm_workload_consolidation strategy enforces
+    allocation-based capacity checks in addition to utilization-based checks,
+    producing more conservative and correct migration plans. Local disk
+    accounting has been improved for boot-from-volume instances and flavors
+    with ephemeral or swap devices, preventing valid destination hosts from
+    being wrongly rejected. Compute scope ``availability_zones`` filtering now
+    correctly limits audits to the specified zones.
+
+    Reliability of the cluster data model has been significantly hardened. A
+    reentrant deadlock affecting the compute, storage, and baremetal models was
+    fixed and a race condition that could silently lose model updates during
+    periodic synchronization has been resolved. A lazily-populated per-node
+    allocation cache further improves performance by avoiding redundant
+    iterations when computing node resource usage.
+
+    New feature capabilities include support for ``default_parameters`` on
+    audit templates (API microversion 1.7), allowing operators to pre-configure
+    strategy parameter values directly on a template so that audits inherit
+    them automatically. The action catalog also grows with two new actions:
+    ``delete``, which permanently removes a server instance and its associated
+    resources, and ``shelve``, which frees a host's vCPU and RAM while
+    preserving the instance data.
+
+    Finally, this release strengthens security defaults. Policy enforcement was
+    added to the webhook trigger endpoint, requiring appropriate privileges to
+    trigger event-driven audits, and service debug logging was hardened so the
+    messaging transport URL is no longer written to logs, avoiding accidental
+    exposure of embedded credentials.
