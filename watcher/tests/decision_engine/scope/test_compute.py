@@ -38,9 +38,8 @@ class TestComputeScope(base.TestCase):
         cluster = self.fake_cluster.generate_scenario_1()
         audit_scope = fake_scopes.fake_scope_1
         mock_zone_list.return_value = [
-            mock.Mock(zone='AZ{0}'.format(i),
-                      host={'hostname_{0}'.format(i): {}})
-            for i in range(4)]
+            mock.Mock(zone=f'AZ{i}', host=f'hostname_{i}') for i in range(4)
+        ]
         model = compute.ComputeScope(audit_scope, mock.Mock(),
                                      osc=mock.Mock()).get_scoped_model(cluster)
 
@@ -123,10 +122,11 @@ class TestComputeScope(base.TestCase):
     def test_collect_zones(self, mock_zone_list):
         allowed_nodes = []
         mock_zone_list.return_value = [
-            mock.Mock(zone="AZ{0}".format(i + 1),
-                      host={'Node_{0}'.format(2 * i): 1,
-                            'Node_{0}'.format(2 * i + 1): 2})
-            for i in range(2)]
+            mock.Mock(zone="AZ1", host="Node_0"),
+            mock.Mock(zone="AZ1", host="Node_1"),
+            mock.Mock(zone="AZ2", host="Node_2"),
+            mock.Mock(zone="AZ2", host="Node_3"),
+        ]
         compute.ComputeScope([{'availability_zones': [{'name': "AZ1"}]}],
                              mock.Mock(), osc=mock.Mock())._collect_zones(
             [{'name': "AZ1"}], allowed_nodes)
@@ -136,10 +136,11 @@ class TestComputeScope(base.TestCase):
     def test_zones_wildcard_is_used(self, mock_zone_list):
         allowed_nodes = []
         mock_zone_list.return_value = [
-            mock.Mock(zone="AZ{0}".format(i + 1),
-                      host={'Node_{0}'.format(2 * i): 1,
-                            'Node_{0}'.format(2 * i + 1): 2})
-            for i in range(2)]
+            mock.Mock(zone="AZ1", host="Node_0"),
+            mock.Mock(zone="AZ1", host="Node_1"),
+            mock.Mock(zone="AZ2", host="Node_2"),
+            mock.Mock(zone="AZ2", host="Node_3"),
+        ]
         compute.ComputeScope([{'availability_zones': [{'name': "*"}]}],
                              mock.Mock(), osc=mock.Mock())._collect_zones(
             [{'name': "*"}], allowed_nodes)
@@ -150,10 +151,11 @@ class TestComputeScope(base.TestCase):
     def test_zones_wildcard_with_other_ids(self, mock_zone_list):
         allowed_nodes = []
         mock_zone_list.return_value = [
-            mock.Mock(zone="AZ{0}".format(i + 1),
-                      host={'Node_{0}'.format(2 * i): 1,
-                            'Node_{0}'.format(2 * i + 1): 2})
-            for i in range(2)]
+            mock.Mock(zone="AZ1", host="Node_0"),
+            mock.Mock(zone="AZ1", host="Node_1"),
+            mock.Mock(zone="AZ2", host="Node_2"),
+            mock.Mock(zone="AZ2", host="Node_3"),
+        ]
         scope_handler = compute.ComputeScope(
             [{'availability_zones': [{'name': "*"}, {'name': 'AZ1'}]}],
             mock.Mock(), osc=mock.Mock())
@@ -289,9 +291,8 @@ class TestComputeScope(base.TestCase):
         audit_scope.extend(fake_scopes.fake_scope_1)
         audit_scope.extend(fake_scopes.fake_scope_2)
         mock_zone_list.return_value = [
-            mock.Mock(zone='AZ{0}'.format(i),
-                      host={'hostname_{0}'.format(i): {}})
-            for i in range(4)]
+            mock.Mock(zone=f'AZ{i}', host=f'hostname_{i}') for i in range(4)
+        ]
         model = compute.ComputeScope(audit_scope, mock.Mock(),
                                      osc=mock.Mock()).get_scoped_model(cluster)
 
