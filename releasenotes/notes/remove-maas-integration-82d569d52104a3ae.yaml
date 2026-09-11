@@ -1,0 +1,12 @@
+---
+upgrade:
+  - |
+    The MAAS (Metal as a Service) integration has been removed from Watcher.
+    It was marked as experimental due to the lack of testing, maintenance and
+    documentation, and deprecated in the 2026.1 release. The ``[maas_client]``
+    configuration section and its ``url``, ``api_key`` and ``timeout`` options
+    no longer exist and are ignored if still present in ``watcher.conf``. The
+    ``change_node_power_state`` action now manages bare metal nodes through
+    Ironic only. Deployments that relied on MAAS to power compute nodes on and
+    off must enroll those nodes in Ironic. The optional ``python-libmaas``
+    dependency is no longer used by Watcher.

@@ -131,4 +131,4 @@ class ChangeNodePowerState(base.BaseAction):
 
     def get_description(self):
         """Description of the action"""
-        return "Compute node power on/off through Ironic or MaaS."
+        return "Compute node power on/off through Ironic."

@@ -88,7 +88,6 @@ class BareMetalModelBuilder(base.BaseModelBuilder):
     def __init__(self, osc):
         self.osc = osc
         self.model = model_root.BaremetalModelRoot()
-        # TODO(lpetrut): add MAAS support
         self.ironic_helper = ironic_helper.IronicHelper(osc=self.osc)
 
     def add_ironic_node(self, node):

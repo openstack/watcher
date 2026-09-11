@@ -13,22 +13,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from oslo_config import cfg
-
 from watcher.common import clients
 from watcher.common.metal_helper import ironic
-from watcher.common.metal_helper import maas
-
-
-CONF = cfg.CONF
 
 
 def get_helper(osc=None):
     # TODO(lpetrut): consider caching this client.
     if not osc:
         osc = clients.OpenStackClients()
-
-    if CONF.maas_client.url:
-        return maas.MaasHelper(osc)
-    else:
-        return ironic.IronicHelper(osc)
+    return ironic.IronicHelper(osc)

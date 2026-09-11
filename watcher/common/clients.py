@@ -24,13 +24,6 @@ from oslo_config import cfg
 
 from watcher.common import context
 from watcher.common import exception
-from watcher.common import utils
-
-
-try:
-    from maas import client as maas_client
-except ImportError:
-    maas_client = None
 
 
 CONF = cfg.CONF
@@ -129,7 +122,6 @@ class OpenStackClients:
         self._session = None
         self._gnocchi = None
         self._ironic = None
-        self._maas = None
 
     def _get_keystone_session(self):
         auth = ka_loading.load_auth_from_conf_options(
@@ -202,32 +194,3 @@ class OpenStackClients:
             session=self.session,
         )
         return self._ironic
-
-    def maas(self):
-        if self._maas:
-            return self._maas
-
-        # NOTE(dviroel): This integration is deprecated due to the lack of
-        # maintenance and support. It has eventlet code that is required to be
-        # removed/replaced in future releases.
-        debtcollector.deprecate(
-            (
-                "MAAS integration is deprecated and it will be removed in a "
-                "future release."
-            ),
-            version="2026.1",
-            category=DeprecationWarning,
-        )
-
-        if not maas_client:
-            raise exception.UnsupportedError(
-                "MAAS client unavailable. Please install python-libmaas."
-            )
-
-        url = self._get_client_option('maas', 'url')
-        api_key = self._get_client_option('maas', 'api_key')
-        timeout = self._get_client_option('maas', 'timeout')
-        self._maas = utils.async_compat_call(
-            maas_client.connect, url, apikey=api_key, timeout=timeout
-        )
-        return self._maas

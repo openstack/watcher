@@ -23,8 +23,6 @@
 # until now, apscheduler is used to provide a job schedulers which mixes
 # monkey patched and non monkey patched code in the same process.
 # That is problematic and can lead to errors on python 3.12+.
-# The maas support added asyncio to the codebase which is unsafe to mix
-# with eventlets by default.
 from watcher import eventlet
 from watcher.common import oslo_service_helper as helper
 
