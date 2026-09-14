@@ -19,20 +19,17 @@ import socket
 
 import oslo_messaging as messaging
 
-from oslo_concurrency import processutils
 from oslo_config import cfg
 from oslo_log import _options
 from oslo_log import log
 from oslo_reports import guru_meditation_report as gmr
 from oslo_reports import opts as gmr_opts
 from oslo_service import service
-from oslo_service import wsgi
 from oslo_utils import timeutils
 
 from watcher import objects
 from watcher import version
 from watcher._i18n import _
-from watcher.api import app
 from watcher.common import config
 from watcher.common import context
 from watcher.common import rpc
@@ -68,7 +65,6 @@ _DEFAULT_LOG_LEVELS = [
     'oslo.messaging=INFO',
     'sqlalchemy=WARN',
     'stevedore=INFO',
-    'eventlet.wsgi.server=WARN',
     'iso8601=WARN',
     'requests=WARN',
     'neutronclient=WARN',
@@ -76,45 +72,6 @@ _DEFAULT_LOG_LEVELS = [
 ]
 
 Singleton = service.Singleton
-
-
-class WSGIService(service.ServiceBase):
-    """Provides ability to launch Watcher API from wsgi app."""
-
-    def __init__(self, service_name, use_ssl=False):
-        """Initialize, but do not start the WSGI server.
-
-        :param service_name: The service name of the WSGI server.
-        :param use_ssl: Wraps the socket in an SSL context if True.
-        """
-        self.service_name = service_name
-        self.app = app.VersionSelectorApplication()
-        self.workers = CONF.api.workers or processutils.get_worker_count()
-        self.server = wsgi.Server(
-            CONF,
-            self.service_name,
-            self.app,
-            host=CONF.api.host,
-            port=CONF.api.port,
-            use_ssl=use_ssl,
-            logger_name=self.service_name,
-        )
-
-    def start(self):
-        """Start serving this service using loaded configuration"""
-        self.server.start()
-
-    def stop(self):
-        """Stop serving this API"""
-        self.server.stop()
-
-    def wait(self):
-        """Wait for the service to stop serving this API"""
-        self.server.wait()
-
-    def reset(self):
-        """Reset server greenpool size to default"""
-        self.server.reset()
 
 
 class ServiceHeartbeat(scheduling.BackgroundSchedulerService):

@@ -34,7 +34,6 @@ dynamic = ["version", "dependencies"]
 "Source Code" = "https://opendev.org/openstack/watcher"
 
 [project.scripts]
-watcher-api = "watcher.cmd.eventlet.api:main"
 watcher-db-manage = "watcher.cmd.dbmanage:main"
 watcher-decision-engine = "watcher.cmd.eventlet.decisionengine:main"
 watcher-applier = "watcher.cmd.eventlet.applier:main"

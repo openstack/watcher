@@ -84,9 +84,12 @@ these commands:
 
 .. code-block:: bash
 
-    $ watcher-api
     $ watcher-decision-engine
     $ watcher-applier
+
+The Watcher API is a WSGI application and must be served by a WSGI server,
+referencing the ``watcher.wsgi.api:application`` module path. See
+:doc:`../admin/wsgi` for details.
 
 By default, this will show logging on the console from which it was started.
 Once started, you can use the `Watcher Client`_ to play with Watcher service.

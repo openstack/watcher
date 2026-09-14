@@ -92,7 +92,6 @@ pygments_style = 'native'
 # List of tuples 'sourcefile', 'target', u'title', u'Authors name', 'manual'
 
 man_pages = [
-    ('man/watcher-api', 'watcher-api', 'Watcher API Server', ['OpenStack'], 1),
     (
         'man/watcher-applier',
         'watcher-applier',

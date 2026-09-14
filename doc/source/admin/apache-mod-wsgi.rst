@@ -8,6 +8,11 @@
 Installing API behind mod_wsgi
 ==============================
 
+``mod_wsgi`` requires a script on disk and cannot reference the
+``watcher.wsgi.api:application`` module path directly. The steps below use
+the ``watcher-api-wsgi`` script generated at install time. See
+:doc:`wsgi` for the other deployment options.
+
 #. Install the Apache Service::
 
     Fedora/RHEL/CentOS:
@@ -30,7 +35,7 @@ Installing API behind mod_wsgi
    * Modify the ``WSGIDaemonProcess`` directive to set the ``user`` and
      ``group`` values to appropriate user on your server.
    * Modify the ``WSGIScriptAlias`` directive to point to the
-     watcher/api/app.wsgi script.
+     ``watcher-api-wsgi`` script, as installed on your system.
    * Modify the ``Directory`` directive to set the path to the Watcher API
      code.
    * Modify the ``ErrorLog and CustomLog`` to redirect the logs to the right

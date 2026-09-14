@@ -329,9 +329,13 @@ so that the watcher service is configured for your needs.
 
     $ watcher-db-manage --config-file /etc/watcher/watcher.conf create_schema
 
-#. Start the Watcher Service::
+#. Start the Watcher Decision Engine and Applier services::
 
-    $ watcher-api &&  watcher-decision-engine && watcher-applier
+    $ watcher-decision-engine && watcher-applier
+
+#. Deploy the Watcher API. It is a WSGI application and must be served by a
+   WSGI server, referencing the ``watcher.wsgi.api:application`` module path.
+   See :doc:`../admin/wsgi` for details.
 
 Configure Nova compute
 ======================

@@ -218,13 +218,18 @@ place:
 Running Watcher services
 ========================
 
-To run the Watcher API service, use:
+The Watcher API is a WSGI application and must be served by a WSGI server,
+referencing the ``watcher.wsgi.api:application`` module path. For a
+development environment, uwsgi is usually the most convenient option:
 
 .. code-block:: bash
 
     $ workon watcher
 
-    (watcher) $ watcher-api
+    (watcher) $ uwsgi --http 127.0.0.1:9322 \
+        --module watcher.wsgi.api:application
+
+See :doc:`../admin/wsgi` for the deployment options.
 
 To run the Watcher Decision Engine service, use:
 

@@ -5,6 +5,7 @@ Administrator Guide
 .. toctree::
    :maxdepth: 2
 
+   wsgi
    apache-mod-wsgi
    gmr
    policy
