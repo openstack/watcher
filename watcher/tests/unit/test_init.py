@@ -12,25 +12,17 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from oslo_log import log
 from oslo_service import backend
 
-from watcher import eventlet as eventlet_helper
+from watcher.tests.unit import base
 
 
-LOG = log.getLogger(__name__)
-
-
-def init_oslo_service_backend():
-    if eventlet_helper.is_patched():
-        backend.init_backend(backend.BackendType.EVENTLET)
-        LOG.warning(
-            "Service is starting with Eventlet based service backend. "
-            "Running in eventlet mode is deprecated and it will "
-            "be removed in future releases."
-        )
-    else:
-        backend.init_backend(backend.BackendType.THREADING)
-        LOG.warning(
-            "Service is starting with Threading based service backend."
+class TestOsloServiceBackend(base.TestCase):
+    def test_threading_backend_is_selected(self):
+        # Importing the watcher package selects the backend, so by the time
+        # any test runs it must already be the threading one. Anything that
+        # imports oslo_service.service or oslo_service.loopingcall before
+        # watcher would latch the eventlet default instead.
+        self.assertEqual(
+            backend.BackendType.THREADING, backend.get_backend_type()
         )

@@ -1,0 +1,9 @@
+---
+upgrade:
+  - |
+    Eventlet has been removed from Watcher. All services now run exclusively
+    in native threading mode. The ``OS_WATCHER_DISABLE_EVENTLET_PATCHING``
+    environment variable no longer has any effect and can be dropped from
+    service environments. Deployments that were still opting back into the
+    deprecated eventlet mode must validate their configuration under the
+    threading model.

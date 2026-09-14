@@ -12,5 +12,15 @@
 
 import pbr.version
 
+from oslo_service import backend
+
+
+# NOTE(dviroel): the oslo service backend has to be selected before
+# anything imports oslo_service.service or oslo_service.loopingcall:
+# those modules resolve their components at import time and silently
+# fall back to the EVENTLET default. Doing it in the top level package
+# guarantees it runs before any other watcher module. It can be removed
+# once oslo changes the default to THREADING.
+backend.init_backend(backend.BackendType.THREADING)
 
 __version__ = pbr.version.VersionInfo('python-watcher').version_string()

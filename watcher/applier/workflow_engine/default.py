@@ -23,7 +23,6 @@ from taskflow import task as flow_task
 from taskflow.patterns import graph_flow as gf
 
 from watcher import conf
-from watcher import eventlet as eventlet_helper
 from watcher import objects
 from watcher.applier.workflow_engine import base
 from watcher.common import exception
@@ -116,20 +115,10 @@ class DefaultWorkFlowEngine(base.BaseWorkFlowEngine):
                         decider=self.decider,
                     )
 
-            e = None
-            engine_type = "parallel"
-            if eventlet_helper.is_patched():
-                executor_type = "greenthreaded"
-            else:
-                LOG.info(
-                    "Using Taskflow parallel engine when running "
-                    "in native threading mode."
-                )
-                executor_type = "threaded"
             e = engines.load(
                 flow,
-                executor=executor_type,
-                engine=engine_type,
+                executor="threaded",
+                engine="parallel",
                 max_workers=self.config.max_workers,
             )
 

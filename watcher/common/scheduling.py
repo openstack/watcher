@@ -19,7 +19,6 @@ from apscheduler import events
 from apscheduler.schedulers import background
 from oslo_service import service
 
-from watcher import eventlet as eventlet_helper
 from watcher.common import executor
 
 
@@ -38,13 +37,6 @@ class BackgroundSchedulerService(
             if 'executors' not in options.keys():
                 options['executors'] = executors
         super().__init__(gconfig or {}, **options)
-
-    def _main_loop(self):
-        # NOTE(dviroel): to make sure that we monkey patch when needed.
-        # helper patch() now checks a environment variable to see if
-        # the service should or not be patched.
-        eventlet_helper.patch()
-        super()._main_loop()
 
     def add_job(self, *args, **kwargs):
         executor.log_executor_stats(

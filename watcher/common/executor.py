@@ -18,8 +18,6 @@ from apscheduler.executors import pool as pool_executor
 from oslo_config import cfg
 from oslo_log import log
 
-from watcher import eventlet as eventlet_helper
-
 
 LOG = log.getLogger(__name__)
 
@@ -31,13 +29,9 @@ def get_futurist_pool_executor(max_workers=10):
 
     :param max_workers: the maximum number of spawned threads
     :return: a futurist pool executor
-    :rtype: futurist.ThreadPoolExecutor or futurist.GreenThreadPoolExecutor
-            depending if eventlet patching is enabled or not
+    :rtype: futurist.ThreadPoolExecutor
     """
-    if eventlet_helper.is_patched():
-        return futurist.GreenThreadPoolExecutor(max_workers)
-    else:
-        return futurist.ThreadPoolExecutor(max_workers)
+    return futurist.ThreadPoolExecutor(max_workers)
 
 
 def log_executor_stats(executor, name="unknown"):
@@ -50,29 +44,17 @@ def log_executor_stats(executor, name="unknown"):
 
     stats: futurist.ExecutorStatistics = executor.statistics
     try:
-        if isinstance(executor, futurist.ThreadPoolExecutor):
-            LOG.debug(
-                "State of %s ThreadPoolExecutor when submitting a new "
-                "task: max_workers: %d, workers: %d, idle workers: %d, "
-                "queued work: %d, stats: %s",
-                name,
-                executor._max_workers,
-                len(executor._workers),
-                len([w for w in executor._workers if w.idle]),
-                executor._work_queue.qsize(),
-                stats,
-            )
-        elif isinstance(executor, futurist.GreenThreadPoolExecutor):
-            LOG.debug(
-                "State of %s GreenThreadPoolExecutor when submitting a "
-                "new task: workers: %d, max_workers: %d, "
-                "work queued length: %d, stats: %s",
-                name,
-                len(executor._pool.coroutines_running),
-                executor._pool.size,
-                executor._delayed_work.unfinished_tasks,
-                stats,
-            )
+        LOG.debug(
+            "State of %s ThreadPoolExecutor when submitting a new "
+            "task: max_workers: %d, workers: %d, idle workers: %d, "
+            "queued work: %d, stats: %s",
+            name,
+            executor._max_workers,
+            len(executor._workers),
+            len([w for w in executor._workers if w.idle]),
+            executor._work_queue.qsize(),
+            stats,
+        )
     except Exception as e:
         LOG.debug("Failed to log executor stats for %s: %s", name, e)
 
@@ -81,9 +63,7 @@ class APSchedulerThreadPoolExecutor(pool_executor.BasePoolExecutor):
     """Thread pool executor for APScheduler based classes
 
     This will return an executor for APScheduler based class which
-    will be constructed using the futurist.ThreadPoolExecutor or
-    futurist.GreenThreadPoolExecutor as pool, depending if eventlet
-    patching is enabled or not.
+    will be constructed using the futurist.ThreadPoolExecutor
 
     :param max_workers: the maximum number of spawned threads
     :return: a thread pool executor

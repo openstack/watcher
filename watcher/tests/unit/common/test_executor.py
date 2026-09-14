@@ -16,22 +16,12 @@ from unittest import mock
 
 import futurist
 
-from watcher import eventlet as eventlet_helper
 from watcher.common import executor
 from watcher.tests.unit import base
 
 
-@mock.patch.object(eventlet_helper, 'is_patched')
 class TestFuturistPoolExecutor(base.TestCase):
-    def test_get_futurist_pool_executor_eventlet(self, eventlet_patched_mock):
-        eventlet_patched_mock.return_value = True
-
-        pool_executor = executor.get_futurist_pool_executor(max_workers=1)
-
-        self.assertIsInstance(pool_executor, futurist.GreenThreadPoolExecutor)
-
-    def test_get_futurist_pool_executor_threading(self, eventlet_patched_mock):
-        eventlet_patched_mock.return_value = False
+    def test_get_futurist_pool_executor_threading(self):
 
         pool_executor = executor.get_futurist_pool_executor(max_workers=1)
 
@@ -40,26 +30,6 @@ class TestFuturistPoolExecutor(base.TestCase):
 
 @mock.patch.object(executor.CONF, 'print_thread_pool_stats', True)
 class TestLogExecutorStats(base.TestCase):
-    @mock.patch.object(executor.LOG, 'debug')
-    def test_log_executor_stats_eventlet(self, m_log_debug):
-        workers = 2
-        pool_executor = futurist.GreenThreadPoolExecutor(workers)
-
-        executor.log_executor_stats(
-            pool_executor, name="test-threadpool-eventlet"
-        )
-
-        m_log_debug.assert_called_once_with(
-            "State of %s GreenThreadPoolExecutor when submitting a "
-            "new task: workers: %d, max_workers: %d, "
-            "work queued length: %d, stats: %s",
-            "test-threadpool-eventlet",
-            len(pool_executor._pool.coroutines_running),
-            workers,
-            pool_executor._delayed_work.unfinished_tasks,
-            pool_executor.statistics,
-        )
-
     @mock.patch.object(executor.LOG, 'debug')
     def test_log_executor_stats_threading(self, m_log_debug):
         workers = 3

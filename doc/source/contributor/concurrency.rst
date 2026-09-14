@@ -61,30 +61,20 @@ the maintenance of eventlet has decreased and the efforts to remove the GIL
 from Python (PEP 703), have fundamentally changed how concurrency works, making
 eventlet no longer viable.
 
-Starting from the 2026.2 release, Watcher services use native threading mode
-by default. The eventlet mode is still supported but is now deprecated and
-will be removed in a future release.
-
-To re-enable the legacy eventlet mode, set the following environment variable
-in the corresponding service configuration:
-
-.. code:: bash
-
-   OS_WATCHER_DISABLE_EVENTLET_PATCHING=false
+Starting from the 2027.1 release eventlet has been removed altogether, and
+native threading is the only concurrency mode Watcher supports.
 
 Decision engine concurrency
 ***************************
 
 The concurrency in the decision engine is governed by two independent
-threadpools. These threadpools can be configured as GreenThreadPoolExecutor_
-or ThreadPoolExecutor_, both from the futurist_ library, depending on the
-service configuration. One of these is used automatically and most contributors
+threadpools. Both are ThreadPoolExecutor_ instances from the futurist_
+library. One of these is used automatically and most contributors
 will not interact with it while developing new features. The other threadpool
 can frequently be used while developing new features or updating existing ones.
 It is known as the DecisionEngineThreadpool and allows to achieve performance
 improvements in network or I/O bound operations.
 
-.. _GreenThreadPoolExecutor: https://docs.openstack.org/futurist/latest/reference/index.html#futurist.GreenThreadPoolExecutor
 .. _ThreadPoolExecutor: https://docs.openstack.org/futurist/latest/reference/index.html#futurist.ThreadPoolExecutor
 
 AuditEndpoint
