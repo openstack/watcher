@@ -21,6 +21,7 @@ from watcher.decision_engine.model import model_root
 from watcher.decision_engine.model.collector import base
 from watcher.decision_engine.model.collector import cinder
 from watcher.decision_engine.model.collector import ironic
+from watcher.decision_engine.model.collector import manager
 from watcher.decision_engine.model.collector import nova
 from watcher.decision_engine.model.notification import (
     base as notification_base,
@@ -163,3 +164,19 @@ class TestBareMetalDataModelCollector(test_base.TestCase):
         collector._audit_scope_handler = mock.Mock()
         collector._data_model_scope = None
         self.assertIsNone(collector.execute())
+
+    def test_notification_endpoints_returns_empty_list(self):
+        m_config = mock.Mock()
+        collector = ironic.BaremetalClusterDataModelCollector(config=m_config)
+
+        self.assertEqual([], collector.notification_endpoints)
+
+    def test_notification_endpoints_is_iterable(self):
+        # Regression test for bug #2167461: returning None caused
+        # CollectorManager.get_notification_endpoints() to raise
+        # TypeError: 'NoneType' object is not iterable
+        self.config(collector_plugins=['baremetal'], group='collector')
+        m_manager = manager.CollectorManager(osc=mock.Mock())
+
+        result = m_manager.get_notification_endpoints()
+        self.assertIsInstance(result, list)
