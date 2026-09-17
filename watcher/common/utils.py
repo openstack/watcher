@@ -15,15 +15,10 @@
 
 """Utilities and helper functions."""
 
-import asyncio
 import datetime
-import inspect
 import re
 
-import eventlet
-
 from croniter import croniter
-from eventlet import tpool
 from jsonschema import validators
 from oslo_config import cfg
 from oslo_log import log
@@ -159,37 +154,3 @@ StrictDefaultValidatingDraft4Validator = extend_with_default(
 
 
 Draft4Validator = validators.Draft4Validator
-
-
-# Some clients (e.g. MAAS) use asyncio, which isn't compatible with Eventlet.
-# As a workaround, we're delegating such calls to a native thread.
-def async_compat_call(f, *args, **kwargs):
-    timeout = kwargs.pop('timeout', None)
-
-    async def async_wrapper():
-        ret = f(*args, **kwargs)
-        if inspect.isawaitable(ret):
-            return await asyncio.wait_for(ret, timeout)
-        return ret
-
-    def tpool_wrapper():
-        # This will run in a separate native thread. Ideally, there should be
-        # a single thread permanently running an asyncio loop, but for
-        # convenience we'll use eventlet.tpool, which leverages a thread pool.
-        #
-        # That being considered, we're setting up a temporary asyncio loop to
-        # handle this call.
-        loop = asyncio.new_event_loop()
-        try:
-            asyncio.set_event_loop(loop)
-            return loop.run_until_complete(async_wrapper())
-        finally:
-            loop.close()
-
-    # We'll use eventlet timeouts as an extra precaution and asyncio timeouts
-    # to avoid lingering threads. For consistency, we'll convert eventlet
-    # timeout exceptions to asyncio timeout errors.
-    with eventlet.timeout.Timeout(
-        seconds=timeout, exception=TimeoutError(f"Timeout: {timeout}s")
-    ):
-        return tpool.execute(tpool_wrapper)

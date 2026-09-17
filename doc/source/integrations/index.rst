@@ -30,10 +30,6 @@ Integration Status Matrix
          - Supported
          - Minimal
          - Integration
-       * - :ref:`MAAS <maas_integration>`
-         - Deprecated
-         - Missing
-         - Unit
        * - :ref:`Nova <nova_integration>`
          - Supported
          - Minimal
@@ -71,14 +67,6 @@ Keystone
 ^^^^^^^^
 The Identity service integration includes authentication with other services
 and retrieving information about domains, projects and users.
-
-.. _maas_integration:
-
-MAAS (Metal As A Service)
-^^^^^^^^^^^^^^^^^^^^^^^^^
-This integration allows managing bare metal servers of a MAAS service,
-which includes Actions that manage the power state of nodes. This
-integration is deprecated and will be removed in a future release.
 
 .. _nova_integration:
 

@@ -35,7 +35,6 @@ from watcher.conf import grafana_translators
 from watcher.conf import ironic_client
 from watcher.conf import keystone
 from watcher.conf import keystone_client
-from watcher.conf import maas_client
 from watcher.conf import models
 from watcher.conf import nova
 from watcher.conf import nova_client
@@ -59,7 +58,6 @@ db.register_opts(CONF)
 planner.register_opts(CONF)
 applier.register_opts(CONF)
 decision_engine.register_opts(CONF)
-maas_client.register_opts(CONF)
 models.register_opts(CONF)
 nova_client.register_opts(CONF)
 gnocchi_client.register_opts(CONF)

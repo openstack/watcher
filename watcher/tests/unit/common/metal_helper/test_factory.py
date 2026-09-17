@@ -18,16 +18,11 @@ from unittest import mock
 from watcher.common import clients
 from watcher.common.metal_helper import factory
 from watcher.common.metal_helper import ironic
-from watcher.common.metal_helper import maas
 from watcher.tests.unit import base
 
 
 class TestMetalHelperFactory(base.TestCase):
     @mock.patch.object(clients, 'OpenStackClients')
-    @mock.patch.object(maas, 'MaasHelper')
     @mock.patch.object(ironic, 'IronicHelper')
-    def test_factory(self, mock_ironic, mock_maas, mock_osc):
+    def test_factory(self, mock_ironic, mock_osc):
         self.assertEqual(mock_ironic.return_value, factory.get_helper())
-
-        self.config(url="fake_maas_url", group="maas_client")
-        self.assertEqual(mock_maas.return_value, factory.get_helper())
