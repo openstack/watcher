@@ -52,9 +52,6 @@ watcher = "watcher.common.policies:list_rules"
 [project.entry-points."oslo.policy.enforcer"]
 watcher = "watcher.common.policy:get_enforcer"
 
-[project.entry-points."wsgi_scripts"]
-watcher-api-wsgi = "watcher.api.wsgi:initialize_wsgi_app"
-
 [project.entry-points."watcher.database.migration_backend"]
 sqlalchemy = "watcher.db.sqlalchemy.migration"
 

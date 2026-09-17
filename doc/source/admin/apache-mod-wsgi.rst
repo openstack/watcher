@@ -8,10 +8,11 @@
 Installing API behind mod_wsgi
 ==============================
 
-``mod_wsgi`` requires a script on disk and cannot reference the
-``watcher.wsgi.api:application`` module path directly. The steps below use
-the ``watcher-api-wsgi`` script generated at install time. See
-:doc:`wsgi` for the other deployment options.
+``mod_wsgi`` requires a file on disk and cannot reference the
+``watcher.wsgi.api:application`` module path directly. The steps below point
+it at the installed ``watcher/wsgi/api.py`` module, which exposes the
+``application`` object ``mod_wsgi`` looks for. See :doc:`wsgi` for the other
+deployment options.
 
 #. Install the Apache Service::
 
@@ -21,7 +22,7 @@ the ``watcher-api-wsgi`` script generated at install time. See
     Debian/Ubuntu:
       apt-get install apache2
 
-#. Copy ``etc/apache2/watcher.conf`` under the apache sites::
+#. Copy ``etc/apache2/watcher`` under the apache sites::
 
     Fedora/RHEL/CentOS:
       sudo cp etc/apache2/watcher /etc/httpd/conf.d/watcher.conf
@@ -34,10 +35,10 @@ the ``watcher-api-wsgi`` script generated at install time. See
 
    * Modify the ``WSGIDaemonProcess`` directive to set the ``user`` and
      ``group`` values to appropriate user on your server.
-   * Modify the ``WSGIScriptAlias`` directive to point to the
-     ``watcher-api-wsgi`` script, as installed on your system.
-   * Modify the ``Directory`` directive to set the path to the Watcher API
-     code.
+   * Modify the ``WSGIScriptAlias`` and ``Directory`` directives to match the
+     location of the installed ``watcher/wsgi/api.py`` module on your system.
+     Both must point at the same place: Apache only serves the script if the
+     directory holding it is granted access.
    * Modify the ``ErrorLog and CustomLog`` to redirect the logs to the right
      directory.
 

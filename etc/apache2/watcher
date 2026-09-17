@@ -11,23 +11,26 @@
 # under the License.
 
 # This is an example Apache2 configuration file for using
-# Watcher API through mod_wsgi
+# Watcher API through mod_wsgi.
+#
+# The WSGI application is the installed watcher/wsgi/api.py module, which
+# exposes the 'application' object mod_wsgi looks for. The paths below assume
+# a system wide install; adjust them to match your distribution or virtual
+# environment. The WSGIScriptAlias and the Directory block must always refer
+# to the same location.
 Listen 9322
 
 <VirtualHost *:9322>
     WSGIDaemonProcess watcher-api user=stack group=stack processes=2 threads=2 display-name=%{GROUP}
-    WSGIScriptAlias / /usr/local/bin/watcher-api-wsgi
     WSGIProcessGroup watcher-api
+    WSGIScriptAlias / /usr/lib/python3/site-packages/watcher/wsgi/api.py
+    WSGIApplicationGroup %{GLOBAL}
 
     ErrorLog /var/log/httpd/watcher_error.log
     LogLevel info
     CustomLog /var/log/httpd/watcher_access.log combined
 
-    <Directory /opt/stack/watcher/watcher/api>
-        WSGIProcessGroup watcher-api
-        WSGIApplicationGroup %{GLOBAL}
-        AllowOverride All
+    <Directory /usr/lib/python3/site-packages/watcher/wsgi>
         Require all granted
     </Directory>
 </VirtualHost>
-

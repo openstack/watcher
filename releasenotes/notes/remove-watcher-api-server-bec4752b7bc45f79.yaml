@@ -6,9 +6,9 @@ upgrade:
     ``oslo_service.wsgi.Server``, which is eventlet based and cannot run
     under the threading service backend. The Watcher API must now be deployed
     as a WSGI application behind a WSGI server such as uwsgi or Apache
-    ``mod_wsgi``, using the ``watcher-api-wsgi`` script or the
-    ``watcher.wsgi.api:application`` entry point. Deployments that already
-    serve the API over uwsgi or mod_wsgi are unaffected.
+    ``mod_wsgi``, using the ``watcher.wsgi.api:application`` module path.
+    Deployments that already serve the API over uwsgi or mod_wsgi are
+    unaffected.
   - |
     The ``[api] host``, ``[api] port``, ``[api] workers`` and
     ``[api] enable_ssl_api`` configuration options have been removed. They
