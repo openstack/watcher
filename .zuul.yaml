@@ -60,7 +60,7 @@
       - openstack/watcher-tempest-plugin
       - openstack/tempest
     irrelevant-files: &irrelevant_files
-      - ^(test-|)requirements.txt$
+      - ^test-requirements\.txt$
       - ^.*\.rst$
       - ^api-ref/.*$
       - ^doc/.*$
