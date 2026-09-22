@@ -20,7 +20,9 @@ from oslo_config import cfg
 
 grafana_translators = cfg.OptGroup(
     name='grafana_translators',
-    title='Configuration Options for Grafana transalators',
+    title='Configuration Options for Grafana translators (DEPRECATED)',
+    help="DEPRECATED: The Grafana datasource is deprecated and will be "
+    "removed in the 2027.2 release.",
 )
 
 GRAFANA_TRANSLATOR_INFLUX_OPTS = [

@@ -1,0 +1,23 @@
+---
+deprecations:
+  - |
+    The Grafana datasource (``grafana``) is now deprecated and will be removed
+    in the 2027.2 release. The datasource has no continuous integration test
+    coverage, it has received no functional change since 2023, and it never
+    gained support for any Grafana backend other than InfluxDB.
+
+    Deployers using the Grafana datasource should migrate to the Gnocchi or
+    Aetos datasource.
+
+upgrade:
+  - |
+    The Grafana datasource is no longer enabled by default. The default value
+    of the ``datasources`` option in the ``[watcher_datasources]`` group has
+    changed from ``['gnocchi', 'grafana', 'aetos']`` to
+    ``['gnocchi', 'aetos']``.
+
+    Deployments that relied on the default value while configuring
+    ``[grafana_client]`` must now list ``grafana`` explicitly to keep using
+    it, for the remaining releases before it is removed. See
+    https://docs.openstack.org/watcher/latest/configuration/watcher.html#watcher-datasources
+    for more details.

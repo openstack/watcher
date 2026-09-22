@@ -20,8 +20,10 @@ from oslo_config import cfg
 
 grafana_client = cfg.OptGroup(
     name='grafana_client',
-    title='Configuration Options for Grafana',
-    help="See https://docs.openstack.org/watcher/lat"
+    title='Configuration Options for Grafana (DEPRECATED)',
+    help="DEPRECATED: The Grafana datasource is deprecated and will be "
+    "removed in the 2027.2 release. "
+    "See https://docs.openstack.org/watcher/lat"
     "est/datasources/grafana.html for details "
     "on how these options are used.",
 )
