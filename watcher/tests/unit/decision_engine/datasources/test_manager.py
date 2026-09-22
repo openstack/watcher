@@ -72,6 +72,15 @@ class TestDataSourceManager(base.BaseTestCase):
             backend = manager.get_backend(['host_airflow'])
             self.assertEqual(metric_map, backend.METRIC_MAP['host_airflow'])
 
+    @mock.patch.object(ds_manager.graf, 'GrafanaHelper', autospec=True)
+    def test_grafana_helper_not_instantiated_without_grafana_datasource(
+        self, m_grafana_helper
+    ):
+        """GrafanaHelper must not be built when grafana isn't configured"""
+        dsmcfg = self._dsm_config(datasources=['gnocchi'])
+        self._dsm(config=dsmcfg)
+        m_grafana_helper.assert_not_called()
+
     def test_metric_file_invalid_ds(self):
         with mock.patch('yaml.safe_load') as mo:
             mo.return_value = {"newds": {"metric_one": "i_am_metric_one"}}

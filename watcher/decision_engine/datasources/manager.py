@@ -51,10 +51,12 @@ class DataSourceManager:
         self._grafana = None
         self._prometheus = None
         self._aetos = None
+        self.datasources = self.config.datasources
 
         # Dynamically update grafana metric map, only available at runtime
         # The metric map can still be overridden by a yaml config file
-        self.metric_map[graf.GrafanaHelper.NAME] = self.grafana.METRIC_MAP
+        if self.datasources and graf.GrafanaHelper.NAME in self.datasources:
+            self.metric_map[graf.GrafanaHelper.NAME] = self.grafana.METRIC_MAP
 
         metric_map_path = cfg.CONF.watcher_decision_engine.metric_map_path
         metrics_from_file = self.load_metric_map(metric_map_path)
@@ -65,7 +67,6 @@ class DataSourceManager:
                 msgargs = (ds, self.metric_map.keys())
                 LOG.warning('Invalid Datasource: %s. Allowed: %s ', *msgargs)
 
-        self.datasources = self.config.datasources
         if self.datasources and 'prometheus' in self.datasources:
             LOG.warning(
                 'The prometheus datasource is deprecated and will '

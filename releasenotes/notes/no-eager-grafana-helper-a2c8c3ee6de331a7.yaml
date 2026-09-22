@@ -1,0 +1,11 @@
+---
+fixes:
+  - |
+    The Grafana datasource helper is no longer instantiated when the
+    ``grafana`` datasource is not listed in the ``datasources`` option of the
+    ``[watcher_datasources]`` group. Previously it was built every time a
+    strategy resolved its datasource backend, which logged
+    ``GrafanaHelper authentication token not configured`` at CRITICAL level on
+    every audit for deployments that do not use Grafana.
+
+    See: https://bugs.launchpad.net/watcher/+bug/2152623 for more details.
