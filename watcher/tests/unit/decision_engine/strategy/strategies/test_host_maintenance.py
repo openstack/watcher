@@ -202,6 +202,31 @@ class TestHostMaintenance(TestBaseStrategy):
         self.assertIn(expected[0], self.strategy.solution.actions)
         self.assertIn(expected[1], self.strategy.solution.actions)
 
+    def test_host_migration_with_excluded_instance(self):
+        # Instances flagged by the audit scope (watcher_exclude) must not be
+        # migrated. See LP#2154805.
+        model = self.fake_c_cluster.generate_scenario_1()
+        self.m_c_model.return_value = model
+        node_0 = model.get_node_by_uuid('Node_0')
+        node_1 = model.get_node_by_uuid('Node_1')
+        instance_0 = model.get_instance_by_uuid(
+            "d000ef1f-dc19-4982-9383-087498bfde03"
+        )
+        instance_1 = model.get_instance_by_uuid(
+            "d010ef1f-dc19-4982-9383-087498bfde03"
+        )
+        instance_0.watcher_exclude = True
+
+        self.strategy.host_migration(node_0, node_1)
+
+        self.assertEqual(1, len(self.strategy.solution.actions))
+        migrated_ids = [
+            action['input_parameters']['resource_id']
+            for action in self.strategy.solution.actions
+        ]
+        self.assertNotIn(instance_0.uuid, migrated_ids)
+        self.assertIn(instance_1.uuid, migrated_ids)
+
     def test_safe_maintain(self):
         model = self.fake_c_cluster.generate_scenario_1()
         self.m_c_model.return_value = model
@@ -226,6 +251,31 @@ class TestHostMaintenance(TestBaseStrategy):
         node_1 = model.get_node_by_uuid('Node_1')
         self.strategy.try_maintain(node_1)
         self.assertEqual(2, len(self.strategy.solution.actions))
+
+    def test_try_maintain_with_excluded_instance(self):
+        # Instances flagged by the audit scope (watcher_exclude) must not be
+        # migrated. See LP#2154805.
+        model = self.fake_c_cluster.generate_scenario_1()
+        self.m_c_model.return_value = model
+        # Node_0 hosts two instances; exclude one of them.
+        node_0 = model.get_node_by_uuid('Node_0')
+        excluded = model.get_node_instances(node_0)[0]
+        excluded.watcher_exclude = True
+
+        self.strategy.try_maintain(node_0)
+
+        # One maintain action + one migrate action for the non-excluded
+        # instance (the excluded one is skipped).
+        migrate_actions = [
+            action
+            for action in self.strategy.solution.actions
+            if action['action_type'] == 'migrate'
+        ]
+        self.assertEqual(1, len(migrate_actions))
+        self.assertNotIn(
+            excluded.uuid,
+            [a['input_parameters']['resource_id'] for a in migrate_actions],
+        )
 
     def test_exception_compute_node_not_found(self):
         self.m_c_model.return_value = self.fake_c_cluster.build_scenario_1()

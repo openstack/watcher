@@ -117,6 +117,29 @@ class TestNodeResourceConsolidation(TestBaseStrategy):
         ]
         self.assertEqual(expected, self.strategy.solution.actions)
 
+    def test_add_migrate_actions_with_excluded_instance(self):
+        # Instances flagged by the audit scope (watcher_exclude) must not be
+        # migrated. See LP#2154806.
+        self.strategy.host_choice = 'auto'
+        source = self.model.get_node_by_instance_uuid(
+            "6ae05517-a512-462d-9d83-90c313b5a8ff"
+        )
+        excluded = self.model.get_instance_by_uuid(
+            "6ae05517-a512-462d-9d83-90c313b5a8f1"
+        )
+        excluded.watcher_exclude = True
+        nodes = list(self.model.get_all_compute_nodes().values())
+        nodes.remove(source)
+
+        self.strategy.add_migrate_actions([source], nodes)
+
+        migrated_ids = [
+            action['input_parameters']['resource_id']
+            for action in self.strategy.solution.actions
+        ]
+        self.assertNotIn(excluded.uuid, migrated_ids)
+        self.assertIn("6ae05517-a512-462d-9d83-90c313b5a8ff", migrated_ids)
+
     def test_add_migrate_actions_with_specify(self):
         self.strategy.host_choice = 'specify'
         source = self.model.get_node_by_instance_uuid(
