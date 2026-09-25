@@ -41,7 +41,7 @@ class BaremetalClusterDataModelCollector(base.BaseClusterDataModelCollector):
         :return: Associated notification endpoints
         :rtype: List of :py:class:`~.EventsNotificationEndpoint` instances
         """
-        return None
+        return []
 
     def get_audit_scope_handler(self, audit_scope):
         self._audit_scope_handler = baremetal_scope.BaremetalScope(
