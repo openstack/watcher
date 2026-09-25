@@ -259,12 +259,18 @@ class CinderModelBuilder(base.BaseModelBuilder):
     def _add_virtual_storage(self):
         volumes = self.call_retry(self.cinder_helper.get_volume_list)
         for vol in volumes:
+            if vol.host is None:
+                # A volume without a host has not finished being created
+                # (e.g. it is still in the "creating" state). Skip it for
+                # now; it will be picked up in a later collection cycle or
+                # via notifications once its creation completes.
+                LOG.debug(
+                    "Skipping volume %s as it has no host assigned yet", vol.id
+                )
+                continue
             volume = self._build_volume_node(vol)
             self.model.add_volume(volume)
             pool_name = vol.host
-            if pool_name is None:
-                # The volume is not attached to any pool
-                continue
             try:
                 pool = self.model.get_pool_by_pool_name(pool_name)
                 self.model.map_volume(volume, pool)

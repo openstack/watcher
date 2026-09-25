@@ -102,6 +102,85 @@ class TestCinderClusterDataModelCollector(
         self.assertEqual(volume.uuid, 'd010ef1f-dc19-4982-9383-087498bfde03')
 
     @mock.patch.object(cinder_helper, 'CinderHelper', autospec=True)
+    def test_cinder_cdmc_execute_skips_volume_without_host(
+        self, m_cinder_helper_cls
+    ):
+        m_cinder_helper = m_cinder_helper_cls.return_value
+
+        fake_storage_node = cinder_helper.StorageService.from_openstacksdk(
+            self.create_openstacksdk_storage_service(zone='zone')
+        )
+        fake_storage_pool = cinder_helper.StoragePool.from_openstacksdk(
+            self.create_openstacksdk_pool(
+                total_volumes=1,
+                total_capacity_gb=30,
+                free_capacity_gb=20,
+                provisioned_capacity_gb=10,
+                allocated_capacity_gb=10,
+            )
+        )
+        fake_volume = cinder_helper.Volume.from_openstacksdk(
+            self.create_openstacksdk_volume(
+                id='d010ef1f-dc19-4982-9383-087498bfde03',
+                name='name',
+                status='in-use',
+                attachments=[
+                    {
+                        "server_id": "server_id",
+                        "attachment_id": "attachment_id",
+                    }
+                ],
+                snapshot_id='',
+                metadata={"key": "value"},
+                volume_type="fake_type",
+                project_id='0c003652-0cb1-4210-9005-fd5b92b1faa2',
+                created_at='2017-10-30T00:00:00',
+                host='host@backend#pool',
+            )
+        )
+        # A volume in "creating" state has no host assigned yet.
+        fake_volume_no_host = cinder_helper.Volume.from_openstacksdk(
+            self.create_openstacksdk_volume(
+                id='1a3b5c7d-9e11-4321-8765-abcdefabcdef',
+                name='creating-volume',
+                status='creating',
+                project_id='0c003652-0cb1-4210-9005-fd5b92b1faa2',
+                created_at='2017-10-30T00:00:00',
+                host=None,
+            )
+        )
+
+        m_cinder_helper.get_storage_node_list.return_value = [
+            fake_storage_node
+        ]
+        m_cinder_helper.get_volume_type_by_backendname.return_value = [
+            'fake_type'
+        ]
+        m_cinder_helper.get_storage_pool_list.return_value = [
+            fake_storage_pool
+        ]
+        m_cinder_helper.get_volume_list.return_value = [
+            fake_volume,
+            fake_volume_no_host,
+        ]
+
+        m_config = mock.Mock()
+        m_osc = mock.Mock()
+
+        cinder_cdmc = cinder.CinderClusterDataModelCollector(
+            config=m_config, osc=m_osc
+        )
+
+        cinder_cdmc.get_audit_scope_handler([])
+        # The model is built successfully despite the host-less volume.
+        model = cinder_cdmc.execute()
+
+        all_volumes = model.get_all_volumes()
+        self.assertEqual(1, len(all_volumes))
+        self.assertIn('d010ef1f-dc19-4982-9383-087498bfde03', all_volumes)
+        self.assertNotIn('1a3b5c7d-9e11-4321-8765-abcdefabcdef', all_volumes)
+
+    @mock.patch.object(cinder_helper, 'CinderHelper', autospec=True)
     def test_cinder_cdmc_total_capacity_gb_not_integer(
         self, m_cinder_helper_cls
     ):
