@@ -1,0 +1,9 @@
+---
+fixes:
+  - |
+    Fixes a bug in the Cinder cluster data model collector where building the
+    storage data model would fail when a volume had no host assigned yet, for
+    example while it was still in the ``creating`` state. Such volumes are now
+    skipped and will be picked up in a later collection cycle or via
+    notifications once their creation completes. For more details, please see
+    `Bug #2167852 <https://bugs.launchpad.net/watcher/+bug/2167852>`_.
