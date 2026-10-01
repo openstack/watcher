@@ -19,7 +19,6 @@ from unittest import mock
 import oslo_messaging as messaging
 
 from oslo_config import cfg
-from oslo_serialization import jsonutils
 
 from watcher.api.controllers import root
 from watcher.tests.unit.api import base
@@ -49,9 +48,7 @@ class TestNoExceptionTracebackHook(base.FunctionalTest):
 
         response = self.get_json('/', path_prefix='', expect_errors=True)
 
-        actual_msg = jsonutils.loads(response.json['error_message'])[
-            'faultstring'
-        ]
+        actual_msg = response.json['error_message']['faultstring']
         self.assertEqual(self.MSG_WITHOUT_TRACE, actual_msg)
 
     def test_hook_remote_error_success(self):
@@ -70,9 +67,7 @@ class TestNoExceptionTracebackHook(base.FunctionalTest):
         expected_msg = (
             f"Remote error: {test_exc_type} {self.MSG_WITHOUT_TRACE}\n['"
         )
-        actual_msg = jsonutils.loads(response.json['error_message'])[
-            'faultstring'
-        ]
+        actual_msg = response.json['error_message']['faultstring']
         self.assertEqual(expected_msg, actual_msg)
 
     def _test_hook_without_traceback(self):
@@ -81,9 +76,7 @@ class TestNoExceptionTracebackHook(base.FunctionalTest):
 
         response = self.get_json('/', path_prefix='', expect_errors=True)
 
-        actual_msg = jsonutils.loads(response.json['error_message'])[
-            'faultstring'
-        ]
+        actual_msg = response.json['error_message']['faultstring']
         self.assertEqual(msg, actual_msg)
 
     def test_hook_without_traceback(self):
@@ -98,9 +91,7 @@ class TestNoExceptionTracebackHook(base.FunctionalTest):
 
         response = self.get_json('/', path_prefix='', expect_errors=True)
 
-        actual_msg = jsonutils.loads(response.json['error_message'])[
-            'faultstring'
-        ]
+        actual_msg = response.json['error_message']['faultstring']
         return actual_msg
 
     def test_hook_on_serverfault(self):
@@ -120,9 +111,7 @@ class TestNoExceptionTracebackHook(base.FunctionalTest):
 
         response = self.get_json('/', path_prefix='', expect_errors=True)
 
-        actual_msg = jsonutils.loads(response.json['error_message'])[
-            'faultstring'
-        ]
+        actual_msg = response.json['error_message']['faultstring']
         return actual_msg
 
     def test_hook_on_clientfault(self):

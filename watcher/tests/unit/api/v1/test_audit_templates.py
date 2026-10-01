@@ -20,7 +20,6 @@ from urllib import parse as urlparse
 import webtest.app as webtest_app
 
 from oslo_config import cfg
-from oslo_serialization import jsonutils
 from oslo_utils import timeutils
 from wsme import types as wtypes
 
@@ -1415,7 +1414,7 @@ class TestAuditTemplatePolicyEnforcement(api_base.FunctionalTest):
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(
             f"Policy doesn't allow {rule} to be performed.",
-            jsonutils.loads(response.json['error_message'])['faultstring'],
+            response.json['error_message']['faultstring'],
         )
 
     def test_policy_disallow_get_all(self):

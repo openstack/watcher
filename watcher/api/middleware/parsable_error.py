@@ -19,6 +19,8 @@ response with one formatted so the client can parse it.
 Based on pecan.middleware.errordocument
 """
 
+import contextlib
+
 from xml import etree as et
 
 import webob
@@ -92,11 +94,16 @@ class ParsableErrorMiddleware:
                     ]
                 state['headers'].append(('Content-Type', 'application/xml'))
             else:
-                app_iter = [i.decode('utf-8') for i in app_iter]
+                err_message = b''.join(app_iter).decode('utf-8')
+                with contextlib.suppress(ValueError):
+                    # WSME encodes error bodies as JSON before they reach here;
+                    # decode first to avoid double-encoding in dumps().
+                    err_message = jsonutils.loads(err_message)
                 body = [
-                    jsonutils.dumps({'error_message': '\n'.join(app_iter)})
+                    jsonutils.dumps({'error_message': err_message}).encode(
+                        'utf-8'
+                    )
                 ]
-                body = [item.encode('utf-8') for item in body]
                 state['headers'].append(('Content-Type', 'application/json'))
             state['headers'].append(('Content-Length', str(len(body[0]))))
         else:

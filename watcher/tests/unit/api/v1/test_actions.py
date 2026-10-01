@@ -17,7 +17,6 @@ from http import HTTPStatus
 import fixtures
 
 from oslo_config import cfg
-from oslo_serialization import jsonutils
 from wsme import types as wtypes
 
 from watcher import objects
@@ -669,7 +668,7 @@ class TestPatchAction(api_base.FunctionalTest):
         self.assertTrue(response.json['error_message'])
         self.assertIn(
             "State transition not allowed: (PENDING -> SUCCEEDED)",
-            response.json['error_message'],
+            response.json['error_message']['faultstring'],
         )
 
     def test_patch_action_skip_non_pending_ap(self):
@@ -692,7 +691,7 @@ class TestPatchAction(api_base.FunctionalTest):
         self.assertTrue(response.json['error_message'])
         self.assertIn(
             "State update not allowed for actionplan state: ONGOING",
-            response.json['error_message'],
+            response.json['error_message']['faultstring'],
         )
 
     def test_patch_action_skip_transition_with_status_message(self):
@@ -744,7 +743,7 @@ class TestPatchAction(api_base.FunctionalTest):
         self.assertTrue(response.json['error_message'])
         self.assertIn(
             "is a mandatory attribute and can not be removed",
-            response.json['error_message'],
+            response.json['error_message']['faultstring'],
         )
 
     def test_patch_action_status_message_not_allowed(self):
@@ -765,7 +764,7 @@ class TestPatchAction(api_base.FunctionalTest):
         self.assertEqual('application/json', response.content_type)
         self.assertIn(
             "status_message update only allowed when action state is SKIPPED",
-            response.json['error_message'],
+            response.json['error_message']['faultstring'],
         )
         self.assertIsNone(self.action.status_message)
 
@@ -787,7 +786,7 @@ class TestPatchAction(api_base.FunctionalTest):
         self.assertIn(
             "'/action_plan_id' is not an allowed attribute and "
             "can not be updated",
-            response.json['error_message'],
+            response.json['error_message']['faultstring'],
         )
         self.assertIsNone(self.action.status_message)
 
@@ -852,7 +851,7 @@ class TestActionPolicyEnforcement(api_base.FunctionalTest):
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(
             f"Policy doesn't allow {rule} to be performed.",
-            jsonutils.loads(response.json['error_message'])['faultstring'],
+            response.json['error_message']['faultstring'],
         )
 
     def test_policy_disallow_get_all(self):
