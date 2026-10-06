@@ -26,6 +26,10 @@ PATH_OPTS = [
         default=os.path.abspath(
             os.path.join(os.path.dirname(__file__), '../')
         ),
+        # The real default is the install path, which differs per build
+        # environment. Use a placeholder so that the generated sample
+        # config and docs are reproducible.
+        sample_default='<PYBASEDIR>',
         help='Directory where the watcher python module is installed.',
     ),
     cfg.StrOpt(
