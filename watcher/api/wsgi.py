@@ -9,7 +9,7 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
-"""WSGI script for Watcher API, installed by pbr."""
+"""WSGI application builder for the Watcher API."""
 
 import sys
 
@@ -26,19 +26,12 @@ CONF = cfg.CONF
 LOG = log.getLogger(__name__)
 
 
-def initialize_wsgi_app(show_deprecated=False):
+def initialize_wsgi_app():
     i18n.install('watcher')
 
     service.prepare_service(sys.argv)
 
     LOG.debug("Configuration:")
     CONF.log_opt_values(LOG, log.DEBUG)
-
-    if show_deprecated:
-        LOG.warning(
-            "Using watcher/api/app.wsgi is deprecated and it will "
-            "be removed in U release. Please use automatically "
-            "generated watcher-api-wsgi instead."
-        )
 
     return app.VersionSelectorApplication()
