@@ -199,6 +199,34 @@ class TestZoneMigration(TestBaseStrategy):
         self.assertIn(instance_on_src2, instances)
         self.assertNotIn(instance_on_src3, instances)
 
+    def test_get_instances_with_excluded_instance(self):
+        # Instances flagged by the audit scope (watcher_exclude) must not be
+        # returned as migration targets. See LP#2154805.
+        self.m_migrate_compute_nodes.return_value = [
+            {"src_node": "hostname_0", "dst_node": "hostname_1"}
+        ]
+
+        excluded_instance = self.fake_instance(
+            host="hostname_0",
+            id="INSTANCE_0",
+            name="INSTANCE_0")
+        included_instance = self.fake_instance(
+            host="hostname_0",
+            id="INSTANCE_1",
+            name="INSTANCE_1")
+        self.m_n_helper.get_instance_list.return_value = [
+            excluded_instance,
+            included_instance,
+        ]
+
+        self.strategy.compute_model.get_instance_by_uuid(
+            excluded_instance.id).watcher_exclude = True
+
+        instances = self.strategy.get_instances()
+
+        self.assertNotIn(excluded_instance, instances)
+        self.assertIn(included_instance, instances)
+
     def test_get_volumes(self):
         volume_on_src1 = self.fake_volume(host="src1@back1#pool1",
                                           id=volume_uuid_mapping["volume_1"],
