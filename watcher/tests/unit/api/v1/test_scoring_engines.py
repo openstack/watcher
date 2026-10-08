@@ -13,7 +13,6 @@
 from http import HTTPStatus
 
 from oslo_config import cfg
-from oslo_serialization import jsonutils
 
 from watcher.common import utils
 from watcher.tests.unit.api import base as api_base
@@ -185,7 +184,7 @@ class TestScoringEnginePolicyEnforcement(api_base.FunctionalTest):
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(
             f"Policy doesn't allow {rule} to be performed.",
-            jsonutils.loads(response.json['error_message'])['faultstring'],
+            response.json['error_message']['faultstring'],
         )
 
     def test_policy_disallow_get_all(self):

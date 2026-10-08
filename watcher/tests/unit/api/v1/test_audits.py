@@ -18,7 +18,6 @@ from unittest import mock
 from urllib import parse as urlparse
 
 from oslo_config import cfg
-from oslo_serialization import jsonutils
 from oslo_utils import timeutils
 from wsme import types as wtypes
 
@@ -876,7 +875,9 @@ class TestPost(TestPostBase):
             'The audit template UUID or name specified is invalid'
         )
         self.assertTrue(response.json['error_message'])
-        self.assertIn(expected_error_msg, response.json['error_message'])
+        self.assertIn(
+            expected_error_msg, response.json['error_message']['faultstring']
+        )
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
     def test_create_audit_doesnt_contain_id(self, mock_trigger_audit):
@@ -1004,7 +1005,9 @@ class TestPost(TestPostBase):
             'columns has to be specified for iterator expression.'
         )
         self.assertTrue(response.json['error_message'])
-        self.assertIn(expected_error_msg, response.json['error_message'])
+        self.assertIn(
+            expected_error_msg, response.json['error_message']['faultstring']
+        )
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
     def test_create_continuous_audit_without_period(self, mock_trigger_audit):
@@ -1030,7 +1033,9 @@ class TestPost(TestPostBase):
             'Interval of audit must be specified for CONTINUOUS.'
         )
         self.assertTrue(response.json['error_message'])
-        self.assertIn(expected_error_msg, response.json['error_message'])
+        self.assertIn(
+            expected_error_msg, response.json['error_message']['faultstring']
+        )
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
     def test_create_oneshot_audit_with_period(self, mock_trigger_audit):
@@ -1053,7 +1058,9 @@ class TestPost(TestPostBase):
         self.assertEqual('application/json', response.content_type)
         expected_error_msg = 'Interval of audit must not be set for ONESHOT.'
         self.assertTrue(response.json['error_message'])
-        self.assertIn(expected_error_msg, response.json['error_message'])
+        self.assertIn(
+            expected_error_msg, response.json['error_message']['faultstring']
+        )
 
     def test_create_audit_trigger_decision_engine(self):
         with mock.patch.object(
@@ -1112,7 +1119,9 @@ class TestPost(TestPostBase):
             'parameter spec in predefined strategy'
         )
         self.assertTrue(response.json['error_message'])
-        self.assertIn(expected_error_msg, response.json['error_message'])
+        self.assertIn(
+            expected_error_msg, response.json['error_message']['faultstring']
+        )
         mock_trigger_audit.assert_not_called()
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
@@ -1137,7 +1146,9 @@ class TestPost(TestPostBase):
             'parameter spec in predefined strategy'
         )
         self.assertTrue(response.json['error_message'])
-        self.assertIn(expected_error_msg, response.json['error_message'])
+        self.assertIn(
+            expected_error_msg, response.json['error_message']['faultstring']
+        )
         mock_trigger_audit.assert_not_called()
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
@@ -1168,7 +1179,9 @@ class TestPost(TestPostBase):
         self.assertEqual("application/json", response.content_type)
         expected_error_msg = 'Audit parameter fake2 are not allowed'
         self.assertTrue(response.json['error_message'])
-        self.assertIn(expected_error_msg, response.json['error_message'])
+        self.assertEqual(
+            expected_error_msg, response.json['error_message']['faultstring']
+        )
         mock_trigger_audit.assert_not_called()
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
@@ -1199,7 +1212,9 @@ class TestPost(TestPostBase):
             "Invalid parameters for strategy: 'fake1' is a required property"
         )
         self.assertTrue(response.json['error_message'])
-        self.assertIn(expected_error_msg, response.json['error_message'])
+        self.assertIn(
+            expected_error_msg, response.json['error_message']['faultstring']
+        )
         mock_trigger_audit.assert_not_called()
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
@@ -1483,7 +1498,9 @@ class TestPost(TestPostBase):
         self.assertEqual(HTTPStatus.NOT_ACCEPTABLE, response.status_int)
         expected_error_msg = 'Request not acceptable.'
         self.assertTrue(response.json['error_message'])
-        self.assertIn(expected_error_msg, response.json['error_message'])
+        self.assertIn(
+            expected_error_msg, response.json['error_message']['faultstring']
+        )
         mock_trigger_audit.assert_not_called()
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
@@ -1565,7 +1582,9 @@ class TestPost(TestPostBase):
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
         expected_msg = 'A valid goal or audit_template_id must be provided'
         self.assertTrue(response.json['error_message'])
-        self.assertIn(expected_msg, response.json['error_message'])
+        self.assertIn(
+            expected_msg, response.json['error_message']['faultstring']
+        )
         mock_trigger_audit.assert_not_called()
 
 
@@ -1652,7 +1671,7 @@ class TestAuditPolicyEnforcement(api_base.FunctionalTest):
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(
             f"Policy doesn't allow {rule} to be performed.",
-            jsonutils.loads(response.json['error_message'])['faultstring'],
+            response.json['error_message']['faultstring'],
         )
 
     def test_policy_disallow_get_all(self):
@@ -1823,7 +1842,10 @@ class TestAuditZoneMigration(TestPostBase):
             "Failed validating 'oneOf' in schema",
         )
         for expected_error_msg in expected_error_msgs:
-            self.assertIn(expected_error_msg, response.json['error_message'])
+            self.assertIn(
+                expected_error_msg,
+                response.json['error_message']['faultstring'],
+            )
         mock_trigger_audit.assert_not_called()
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
@@ -1910,7 +1932,10 @@ class TestAuditZoneMigration(TestPostBase):
             "Failed validating 'oneOf' in schema",
         )
         for expected_error_msg in expected_error_msgs:
-            self.assertIn(expected_error_msg, response.json['error_message'])
+            self.assertIn(
+                expected_error_msg,
+                response.json['error_message']['faultstring'],
+            )
         mock_trigger_audit.assert_not_called()
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
@@ -1943,7 +1968,10 @@ class TestAuditZoneMigration(TestPostBase):
             "Failed validating 'oneOf' in schema",
         )
         for expected_error_msg in expected_error_msgs:
-            self.assertIn(expected_error_msg, response.json['error_message'])
+            self.assertIn(
+                expected_error_msg,
+                response.json['error_message']['faultstring'],
+            )
         mock_trigger_audit.assert_not_called()
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
@@ -2018,5 +2046,8 @@ class TestAuditZoneMigration(TestPostBase):
             "Failed validating 'oneOf' in schema",
         )
         for expected_error_msg in expected_error_msgs:
-            self.assertIn(expected_error_msg, response.json['error_message'])
+            self.assertIn(
+                expected_error_msg,
+                response.json['error_message']['faultstring'],
+            )
         mock_trigger_audit.assert_not_called()

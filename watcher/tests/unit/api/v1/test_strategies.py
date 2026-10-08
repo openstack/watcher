@@ -15,7 +15,6 @@ from unittest import mock
 from urllib import parse as urlparse
 
 from oslo_config import cfg
-from oslo_serialization import jsonutils
 
 from watcher.common import utils
 from watcher.decision_engine import rpcapi as deapi
@@ -312,7 +311,7 @@ class TestStrategyPolicyEnforcement(api_base.FunctionalTest):
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(
             f"Policy doesn't allow {rule} to be performed.",
-            jsonutils.loads(response.json['error_message'])['faultstring'],
+            response.json['error_message']['faultstring'],
         )
 
     def test_policy_disallow_get_all(self):

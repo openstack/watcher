@@ -20,7 +20,6 @@ from unittest import mock
 
 import ddt
 
-from oslo_serialization import jsonutils
 from oslo_versionedobjects import fields as ovo_fields
 
 from watcher.api.controllers.v1 import data_model as dm_ctrl
@@ -177,7 +176,7 @@ class TestDataModelPolicyEnforcement(api_base.FunctionalTest):
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(
             f"Policy doesn't allow {rule} to be performed.",
-            jsonutils.loads(response.json['error_message'])['faultstring'],
+            response.json['error_message']['faultstring'],
         )
 
     def test_policy_disallow_get_all(self):
