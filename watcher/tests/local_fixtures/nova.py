@@ -74,16 +74,31 @@ class NovaPlacementFixture(fixtures.Fixture):
 
     :param topology: A ``ComputeTopology`` instance.
     :param model_path: Path to a model file (XML or JSON).
+    :param endpoint_overrides: Extra openstacksdk ``Connection``
+        endpoint-override kwargs (e.g. from another emulator fixture)
+        merged into the same ``Connection`` so a single patch of
+        ``clients.get_sdk_connection`` serves every helper.
     """
 
-    def __init__(self, topology=None, model_path=None):
+    def __init__(
+        self, topology=None, model_path=None, endpoint_overrides=None
+    ):
         super().__init__()
         self._topology = topology
         self._model_path = model_path
+        self._endpoint_overrides = dict(endpoint_overrides or {})
         self.nova_emulator = None
         self.placement_emulator = None
         self.nova_url = None
         self.placement_url = None
+
+    @property
+    def endpoint_overrides(self):
+        """Overrides this fixture contributes (after setUp)."""
+        return {
+            'compute_endpoint_override': self.nova_url + '/v2.1',
+            'placement_endpoint_override': self.placement_url,
+        }
 
     def setUp(self):
         super().setUp()
@@ -124,22 +139,16 @@ class NovaPlacementFixture(fixtures.Fixture):
         self.addCleanup(placement_intercept.uninstall_intercept)
 
         # Build clients
-
-        nova_endpoint = self.nova_url + '/v2.1'
-        placement_endpoint = self.placement_url
-
-        auth = noauth.NoAuth(endpoint=nova_endpoint)
-        sess = ks_session.Session(auth=auth)
-
         # Nova/compute: openstacksdk Connection (used by NovaHelper)
         # Placement: openstacksdk proxy (used by PlacementHelper)
         # Endpoint overrides must be set via the constructor so
         # they are available during service version discovery.
-        sdk_conn = os_connection.Connection(
-            session=sess,
-            compute_endpoint_override=nova_endpoint,
-            placement_endpoint_override=placement_endpoint,
-        )
+        overrides = dict(self._endpoint_overrides)
+        overrides.update(self.endpoint_overrides)
+
+        auth = noauth.NoAuth(endpoint=overrides['compute_endpoint_override'])
+        sess = ks_session.Session(auth=auth)
+        sdk_conn = os_connection.Connection(session=sess, **overrides)
 
         # Patch get_sdk_connection to return our pre-configured
         # Connection with compute.endpoint_override set.

@@ -345,8 +345,8 @@ How the emulators work
 ~~~~~~~~~~~~~~~~~~~~~~
 
 The ``NovaAPIEmulator`` and ``PlacementAPIEmulator`` (in
-``watcher/tests/local_fixtures/``) are lightweight Flask apps that serve the
-subset of Nova v2.1 and Placement APIs that Watcher's collectors and
+``watcher/tests/local_fixtures/``) are lightweight Pecan WSGI apps that serve
+the subset of Nova v2.1 and Placement APIs that Watcher's collectors and
 actions use. They are wired into the test process via ``wsgi-intercept``
 so that all HTTP requests from openstacksdk and keystoneauth1 are routed
 in-process.
@@ -831,6 +831,69 @@ The emulator recognises these PromQL patterns (regex-matched):
 Host FQDNs are constructed as ``hostname + '.example.com'`` (configurable
 via the ``fqdn_suffix`` parameter on ``load_from_topology()``).
 
+Tests with storage topology (Cinder emulator)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Strategies that manage storage resources (e.g. ``zone_migration`` with
+``storage_pools`` parameters) need a storage data model.  The Cinder API
+emulator serves storage topology from in-memory data — no real Cinder
+service required.  It follows the same design as the Nova/Placement
+emulators: a Pecan WSGI app (in
+``watcher/tests/local_fixtures/cinder_api_emulator.py``) implementing the
+subset of the Cinder v3 API that ``CinderHelper`` (via openstacksdk's
+``block_storage`` proxy) actually calls, wired in via the ``CinderFixture``
+(in ``watcher/tests/local_fixtures/cinder.py``).
+
+Enable it by setting ``STORAGE_TOPOLOGY`` on the test class, using the
+``StorageTopology``/``StorageNode``/``Pool``/``VolumeType``/``Volume``
+dataclasses from ``watcher.tests.functional.topology`` (mirroring
+``ComputeTopology``):
+
+.. code-block:: python
+
+    from watcher.tests.functional import base
+    from watcher.tests.functional import topology
+
+    class TestMyStrategy(base.WatcherFunctionalTestCase):
+        COMPUTE_TOPOLOGY = topology.ComputeTopology()
+        STORAGE_TOPOLOGY = (
+            topology.StorageTopology()
+            .add_storage_node('storage-1@backend1')
+            .add_pool(
+                'storage-1@backend1#pool1',
+                total_capacity_gb=1000, free_capacity_gb=800,
+            )
+            .add_volume_type(
+                'type1',
+                extra_specs={'volume_backend_name': 'backend1'},
+            )
+            .add_volumes(
+                pools=['storage-1@backend1#pool1'],
+                count=2, volume_type='type1',
+            )
+        )
+
+        def test_storage_model(self):
+            # ... create audit, assert on actions ...
+
+Storage nodes, pools, and volume types are identified by host/name rather
+than generated sequentially, so they are added one at a time
+(``add_storage_node()``, ``add_pool()``, ``add_volume_type()``), each with
+a matching ``update_*()`` method.  Volumes, like instances, are added in
+bulk per pool via ``add_volumes(pools, count, ...)``.
+
+When both ``COMPUTE_TOPOLOGY`` and ``STORAGE_TOPOLOGY`` are set, the
+Cinder emulator is wired in *after* the Nova/Placement emulator so the
+combined openstacksdk ``Connection`` carries compute, placement, *and*
+block-storage endpoint overrides together — a single patched
+``clients.get_sdk_connection()`` serves ``NovaHelper`` and
+``CinderHelper`` alike.
+
+Use ``self.load_storage_topology(topology)`` to replace storage topology
+mid-test (requires ``STORAGE_TOPOLOGY`` set on the test class), and
+``self.get_storage_data_model()`` to inspect the built
+``StorageModelRoot`` directly.
+
 Gabbi tests with topology
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -872,7 +935,7 @@ any class defined there is automatically available to YAML files.
 Running the emulators standalone
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Both emulators can also run as standalone Flask servers for manual testing
+Both emulators can also run as standalone Pecan WSGI apps for manual testing
 or debugging outside the test framework.  Use ``tox -e venv`` to run them
 in an environment with all dependencies installed.  The ``--model`` flag
 accepts both XML and JSON files — the format is auto-detected from file
@@ -912,6 +975,12 @@ The Prometheus emulator can also run standalone::
 
     $ tox -e venv -- python -m watcher.tests.local_fixtures.prometheus_api_emulator \
         --port 9090 --debug
+
+The Cinder emulator can also run standalone, loading topology from a JSON
+file via ``--model``::
+
+    $ tox -e venv -- python -m watcher.tests.local_fixtures.cinder_api_emulator \
+        --model path/to/storage-topology.json --port 8776 --debug
 
 YAML-driven tests with gabbi
 -----------------------------

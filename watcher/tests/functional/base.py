@@ -31,6 +31,7 @@ from watcher.common import service as watcher_service
 from watcher.decision_engine import rpcapi
 from watcher.decision_engine import sync
 from watcher.decision_engine.model import model_root
+from watcher.decision_engine.model.collector import cinder as cinder_coll
 from watcher.objects import base as objects_base
 from watcher.tests import base as watcher_base
 from watcher.tests.functional.api.client import WatcherTestClient
@@ -41,6 +42,7 @@ from watcher.tests.local_fixtures import rpc as rpc_fixture
 from watcher.tests.local_fixtures import watcher as watcher_fixtures
 from watcher.tests.local_fixtures.api import APIFixture
 from watcher.tests.local_fixtures.cast_as_call import CastAsCallFixture
+from watcher.tests.local_fixtures.cinder import CinderFixture
 from watcher.tests.local_fixtures.nova import NovaPlacementFixture
 from watcher.tests.local_fixtures.prometheus import PrometheusFixture
 from watcher.tests.local_fixtures.service import ServiceFixture
@@ -75,6 +77,7 @@ class WatcherEnvironment(fixtures.Fixture):
         log_name=None,
         cast_as_call=True,
         compute_topology=None,
+        storage_topology=None,
         use_prometheus=False,
     ):
         super().__init__()
@@ -83,10 +86,12 @@ class WatcherEnvironment(fixtures.Fixture):
         self.log_name = log_name
         self._cast_as_call = cast_as_call
         self._compute_topology = compute_topology
+        self._storage_topology = storage_topology
         self._use_prometheus = use_prometheus
         self.dbapi = None
         self.context = None
         self.nova_fixture = None
+        self.cinder_fixture = None
         self.prometheus_fixture = None
 
     def flags(self, group=None, **kw):
@@ -159,18 +164,39 @@ class WatcherEnvironment(fixtures.Fixture):
         #    emulator's patch must win (last writer wins).
         self.useFixture(watcher_fixtures.KeystoneClient())
 
-        # 10. Collectors — either use emulated Nova/Placement APIs
-        #     (when COMPUTE_TOPOLOGY is set on the test class) or a
-        #     fake empty model (for tests that don't need a real
-        #     cluster data model).
-        if self._compute_topology is not None:
-            self.flags(group='collector', collector_plugins=['compute'])
+        # 10. Collectors — either use emulated Nova/Placement/Cinder
+        #     APIs (when COMPUTE_TOPOLOGY/STORAGE_TOPOLOGY are set on
+        #     the test class) or a fake empty model (for tests that
+        #     don't need a real cluster data model).
+        use_compute = self._compute_topology is not None
+        use_storage = self._storage_topology is not None
+        if use_compute or use_storage:
+            collector_plugins = []
+            if use_compute:
+                collector_plugins.append('compute')
+            if use_storage:
+                collector_plugins.append('storage')
+            self.flags(group='collector', collector_plugins=collector_plugins)
             self.flags(
                 group='nova', migration_max_retries=5, migration_interval=0.1
             )
-            self.nova_fixture = self.useFixture(
-                NovaPlacementFixture(topology=self._compute_topology)
-            )
+            if use_compute:
+                self.nova_fixture = self.useFixture(
+                    NovaPlacementFixture(topology=self._compute_topology)
+                )
+            # Cinder emulator — install AFTER Nova so that the
+            # combined sdk Connection (built from both fixtures)
+            # overrides Nova's compute/placement-only one.
+            if use_storage:
+                extra_overrides = None
+                if self.nova_fixture is not None:
+                    extra_overrides = self.nova_fixture.endpoint_overrides
+                self.cinder_fixture = self.useFixture(
+                    CinderFixture(
+                        topology=self._storage_topology,
+                        endpoint_overrides=extra_overrides,
+                    )
+                )
         else:
             self.flags(group='collector', collector_plugins=[])
             fake_model = model_root.ModelRoot(stale=False)
@@ -291,6 +317,7 @@ class WatcherFunctionalTestCase(watcher_base.WatcherBaseTestCase):
     CAST_AS_CALL = True
 
     COMPUTE_TOPOLOGY = None
+    STORAGE_TOPOLOGY = None
     USE_PROMETHEUS = False
 
     def setUp(self):
@@ -303,6 +330,7 @@ class WatcherFunctionalTestCase(watcher_base.WatcherBaseTestCase):
                 log_name=self.id(),
                 cast_as_call=self.CAST_AS_CALL,
                 compute_topology=self.COMPUTE_TOPOLOGY,
+                storage_topology=self.STORAGE_TOPOLOGY,
                 use_prometheus=self.USE_PROMETHEUS,
             )
         )
@@ -312,6 +340,8 @@ class WatcherFunctionalTestCase(watcher_base.WatcherBaseTestCase):
             self.de_fixture = self.env.de_fixture
         if self.START_APPLIER:
             self.applier_fixture = self.env.applier_fixture
+        if self.env.cinder_fixture:
+            self.cinder_fixture = self.env.cinder_fixture
         if self.env.prometheus_fixture:
             self.prometheus_fixture = self.env.prometheus_fixture
 
@@ -335,6 +365,14 @@ class WatcherFunctionalTestCase(watcher_base.WatcherBaseTestCase):
         self.env.nova_fixture.reload_topology(topology)
         if self.env.prometheus_fixture:
             self.env.prometheus_fixture.load_from_topology(topology)
+
+    def load_storage_topology(self, topology):
+        """Load or replace storage topology for the current test.
+
+        Requires STORAGE_TOPOLOGY set on the test class so the
+        Cinder emulator fixture exists.
+        """
+        self.env.cinder_fixture.reload_topology(topology)
 
     def load_metrics(self, hosts=None, instances=None):
         """Load or replace Prometheus metrics for the current test.
@@ -380,6 +418,19 @@ class WatcherFunctionalTestCase(watcher_base.WatcherBaseTestCase):
             '(last state: %s)' % (ap_uuid, target_state, timeout, state)
         )
 
+    def _execute_action_plan(self, ap_uuid, expected_state='SUCCEEDED'):
+        """Trigger action plan execution and wait for completion.
+
+        PATCHes the action plan state to PENDING which triggers the
+        applier.  Returns the final action plan dict.
+        """
+        resp = self.admin_api.patch(
+            '/action_plans/%s' % ap_uuid,
+            [{'op': 'replace', 'path': '/state', 'value': 'PENDING'}],
+        )
+        self.assertEqual(200, resp.status_code, resp.text)
+        return self._wait_for_action_plan_state(ap_uuid, expected_state)
+
     def _assert_action(self, actions, action_type, **expected_params):
         """Assert an action with matching type and input_parameters exists.
 
@@ -422,3 +473,16 @@ class WatcherFunctionalTestCase(watcher_base.WatcherBaseTestCase):
             self.context, 'compute', audit_uuid
         )
         return result['context']
+
+    def get_storage_data_model(self):
+        """Get the storage data model via the collector manager.
+
+        Returns the ``StorageModelRoot`` object directly from the
+        collector singleton.
+        """
+        collector = watcher_service.Singleton._instances.get(
+            cinder_coll.CinderClusterDataModelCollector
+        )
+        if collector is None:
+            self.fail('CinderClusterDataModelCollector not instantiated')
+        return collector.get_latest_cluster_data_model()

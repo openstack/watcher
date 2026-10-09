@@ -111,6 +111,71 @@ class Aggregate:
 
 
 @dataclass
+class StorageNode:
+    """A cinder-volume storage service in the emulated cluster."""
+
+    host: str
+    zone: str = 'nova'
+    state: str = 'up'
+    status: str = 'enabled'
+    binary: str = 'cinder-volume'
+
+
+@dataclass
+class Pool:
+    """A cinder back-end storage pool."""
+
+    name: str
+    total_capacity_gb: float = 0
+    free_capacity_gb: float = 0
+    provisioned_capacity_gb: float | None = None
+    allocated_capacity_gb: float | None = None
+    total_volumes: int | None = None
+    volume_backend_name: str = None
+
+
+@dataclass
+class VolumeType:
+    """A cinder volume type."""
+
+    name: str
+    id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    is_public: bool = True
+    extra_specs: dict = field(default_factory=dict)
+    description: str = None
+
+
+@dataclass
+class Volume:
+    """A cinder volume."""
+
+    id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    name: str = ''
+    size: int = 0
+    status: str = 'available'
+    volume_type: str = ''
+    host: str = ''
+    project_id: str = ''
+    bootable: bool = False
+    multiattach: bool = False
+    snapshot_id: str = None
+    metadata: dict = field(default_factory=dict)
+    attachments: list = field(default_factory=list)
+
+
+@dataclass
+class VolumeSnapshot:
+    """A cinder volume snapshot."""
+
+    volume_id: str
+    id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    name: str = ''
+    status: str = 'available'
+    size: int = 0
+    metadata: dict = field(default_factory=dict)
+
+
+@dataclass
 class ComputeTopology:
     """A complete compute cluster topology for functional tests.
 
@@ -222,6 +287,135 @@ class ComputeTopology:
         raise ValueError('No instance with name %r' % name)
 
 
+@dataclass
+class StorageTopology:
+    """A complete storage cluster topology for functional tests.
+
+    Supports builder-pattern chaining, similarly to ``ComputeTopology``::
+
+        topo = (
+            StorageTopology()
+            .add_storage_node('storage-1@backend1')
+            .add_pool('storage-1@backend1#pool1', total_capacity_gb=1000)
+            .add_volume_type(
+                'type1', extra_specs={'volume_backend_name': 'backend1'}
+            )
+            .add_volumes(
+                pools=['storage-1@backend1#pool1'],
+                count=2,
+                volume_type='type1',
+            )
+        )
+
+    Storage nodes, pools, and volume types are identified by host/name
+    rather than generated sequentially, so they are added one at a time.
+    Volumes, like instances, are added in bulk per pool via
+    ``add_volumes()``.
+    """
+
+    storage_nodes: list = field(default_factory=list)
+    pools: list = field(default_factory=list)
+    volume_types: list = field(default_factory=list)
+    volumes: list = field(default_factory=list)
+    snapshots: list = field(default_factory=list)
+
+    def add_storage_node(self, host, **kwargs):
+        """Append a ``StorageNode`` with the given *host*.
+
+        Returns ``self`` for chaining.
+        """
+        self.storage_nodes.append(StorageNode(host=host, **kwargs))
+        return self
+
+    def add_pool(self, name, **kwargs):
+        """Append a ``Pool`` with the given *name*.
+
+        Returns ``self`` for chaining.
+        """
+        self.pools.append(Pool(name=name, **kwargs))
+        return self
+
+    def add_volume_type(self, name, **kwargs):
+        """Append a ``VolumeType`` with the given *name*.
+
+        Returns ``self`` for chaining.
+        """
+        self.volume_types.append(VolumeType(name=name, **kwargs))
+        return self
+
+    def add_volumes(self, pools, count, name_prefix='vol', **kwargs):
+        """Append *count* volumes per pool.
+
+        :param pools: List of pool names, or ``'all'`` to use every
+            pool already added via ``add_pool()``.
+        :param count: Number of volumes to add per pool.
+        :param name_prefix: Prefix for generated volume names.
+
+        Returns ``self`` for chaining.
+        """
+        if pools == 'all':
+            pools = [p.name for p in self.pools]
+        start = _next_index(self.volumes, name_prefix, 'name')
+        vol_index = start
+        for pool_name in pools:
+            for _ in range(count):
+                global_idx = len(self.volumes) + 1
+                self.volumes.append(
+                    Volume(
+                        id=_volume_uuid(global_idx),
+                        name='%s-%d' % (name_prefix, vol_index),
+                        host=pool_name,
+                        **kwargs,
+                    )
+                )
+                vol_index += 1
+        return self
+
+    def add_snapshot(self, volume_id, **kwargs):
+        """Append a ``VolumeSnapshot`` for *volume_id*.
+
+        Returns ``self`` for chaining.
+        """
+        self.snapshots.append(VolumeSnapshot(volume_id=volume_id, **kwargs))
+        return self
+
+    def update_storage_node(self, host, **kwargs):
+        """Update fields on the ``StorageNode`` with the given *host*.
+
+        Returns ``self`` for chaining.
+        """
+        for node in self.storage_nodes:
+            if node.host == host:
+                for k, v in kwargs.items():
+                    setattr(node, k, v)
+                return self
+        raise ValueError('No storage node with host %r' % host)
+
+    def update_pool(self, name, **kwargs):
+        """Update fields on the ``Pool`` with the given *name*.
+
+        Returns ``self`` for chaining.
+        """
+        for pool in self.pools:
+            if pool.name == name:
+                for k, v in kwargs.items():
+                    setattr(pool, k, v)
+                return self
+        raise ValueError('No pool with name %r' % name)
+
+    def update_volume(self, name, **kwargs):
+        """Update fields on the ``Volume`` with the given *name*.
+
+        Returns ``self`` for chaining.
+        """
+        for vol in self.volumes:
+            if vol.name == name:
+                for k, v in kwargs.items():
+                    setattr(vol, k, v)
+                return self
+        raise ValueError('No volume with name %r' % name)
+
+
 def _asdict_strip_none(obj):
     """Convert a dataclass to a dict, dropping keys with None values.
 
@@ -256,6 +450,11 @@ def _node_uuid(index):
 def _instance_uuid(index):
     """Deterministic UUID for instance at 1-based *index*."""
     return 'bbbb%04d-0000-0000-0000-%012d' % (index, index)
+
+
+def _volume_uuid(index):
+    """Deterministic UUID for volume at 1-based *index*."""
+    return 'cccc%04d-0000-0000-0000-%012d' % (index, index)
 
 
 def _next_index(items, prefix, name_attr):

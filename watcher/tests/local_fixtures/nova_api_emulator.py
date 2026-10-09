@@ -98,6 +98,7 @@ class _ActionController(rest.RestController):
             return ''
 
         if 'migrate' in body:
+            srv['_pre_resize_status'] = srv['status']
             dest = None
             if isinstance(body['migrate'], dict):
                 dest = body['migrate'].get('host')
@@ -121,7 +122,7 @@ class _ActionController(rest.RestController):
             return ''
 
         if 'confirmResize' in body:
-            srv['status'] = 'ACTIVE'
+            srv['status'] = srv.pop('_pre_resize_status', 'ACTIVE')
             response.status = 204
             return ''
 
@@ -481,7 +482,19 @@ class NovaAPIEmulator(base_emulator.BaseAPIEmulator):
                     'extra_specs': {},
                 }
 
-            status = 'ACTIVE' if state == 'active' else state.upper()
+            state_to_status = {
+                'active': 'ACTIVE',
+                'stopped': 'SHUTOFF',
+                'paused': 'PAUSED',
+                'suspended': 'SUSPENDED',
+                'error': 'ERROR',
+                'building': 'BUILD',
+                'rescued': 'RESCUED',
+                'resized': 'VERIFY_RESIZE',
+                'shelved': 'SHELVED',
+                'shelved_offloaded': 'SHELVED_OFFLOADED',
+            }
+            status = state_to_status.get(state, state.upper())
             bfv = inst_def.get('bfv', False)
             image = (
                 ''
@@ -515,7 +528,12 @@ class NovaAPIEmulator(base_emulator.BaseAPIEmulator):
                 'links': [],
                 'OS-DCF:diskConfig': 'AUTO',
                 'progress': 0,
-                'OS-EXT-STS:power_state': 1 if state == 'active' else 0,
+                'OS-EXT-STS:power_state': {
+                    'active': 1,
+                    'paused': 3,
+                    'stopped': 4,
+                    'suspended': 4,
+                }.get(state, 0),
                 'OS-EXT-STS:vm_state': state,
                 'OS-EXT-STS:task_state': None,
                 'OS-EXT-SRV-ATTR:host': hostname,
@@ -529,7 +547,9 @@ class NovaAPIEmulator(base_emulator.BaseAPIEmulator):
                 'config_drive': '',
                 'key_name': None,
                 'security_groups': [{'name': 'default'}],
-                'os-extended-volumes:volumes_attached': [],
+                'os-extended-volumes:volumes_attached': inst_def.get(
+                    'volumes_attached', []
+                ),
                 'locked': inst_def.get('locked', False),
                 'pinned_availability_zone': inst_def.get('pinned_az', None),
             }

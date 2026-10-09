@@ -29,6 +29,8 @@ The default ``load_from_xml()`` and ``load_from_json()`` build a
 
 import argparse
 import dataclasses
+import types
+import typing
 
 from xml.etree import ElementTree
 
@@ -41,13 +43,24 @@ from werkzeug import serving
 from watcher.tests.functional import topology as topo_mod
 
 
+def _unwrap_type(tp):
+    """Return the non-None member of ``X | None`` / ``Optional[X]``."""
+    origin = typing.get_origin(tp)
+    if origin is typing.Union or isinstance(tp, types.UnionType):
+        args = [a for a in typing.get_args(tp) if a is not type(None)]
+        if len(args) == 1:
+            return args[0]
+    return tp
+
+
 def _parse_xml_element(element, cls, **extra):
     """Build a dataclass instance from XML element attributes.
 
     Field names and types are discovered dynamically from *cls*.
-    Only simple scalar types (int, float, str, bool) are extracted;
-    complex types (dict, list) cannot be represented as XML
-    attributes and are left to the dataclass defaults.
+    Supports scalar types (int, float, str, bool), ``X | None``
+    optionals, and JSON-encoded ``dict``/``list`` attributes.  Empty
+    attribute values are skipped so dataclass defaults apply.  Bools
+    accept case-insensitive ``true``/``1``/``yes``.
     """
     kwargs = dict(extra)
     for f in dataclasses.fields(cls):
@@ -56,14 +69,19 @@ def _parse_xml_element(element, cls, **extra):
         if f.name not in element.attrib:
             continue
         raw = element.attrib[f.name]
-        if f.type is bool:
-            kwargs[f.name] = raw == 'True'
-        elif f.type is int:
+        if raw == '':
+            continue
+        tp = _unwrap_type(f.type)
+        if tp is bool:
+            kwargs[f.name] = raw.lower() in ('true', '1', 'yes')
+        elif tp is int:
             kwargs[f.name] = int(raw)
-        elif f.type is float:
+        elif tp is float:
             kwargs[f.name] = float(raw)
-        elif f.type is str:
+        elif tp is str:
             kwargs[f.name] = raw
+        elif tp in (dict, list):
+            kwargs[f.name] = jsonutils.loads(raw)
     return cls(**kwargs)
 
 
