@@ -184,13 +184,25 @@ class TestCinderClusterDataModelCollector(
     def test_cinder_cdmc_total_capacity_gb_not_integer(
         self, m_cinder_helper_cls
     ):
+        # A non-numeric capacity value that is not None (for example an
+        # unexpected string) cannot be converted to an int, so building the
+        # storage model fails.
         m_cinder_helper = m_cinder_helper_cls.return_value
 
         fake_storage_node = cinder_helper.StorageService.from_openstacksdk(
             self.create_openstacksdk_storage_service(zone='zone')
         )
-        fake_storage_pool = cinder_helper.StoragePool.from_openstacksdk(
-            self.create_openstacksdk_pool(total_capacity_gb="unknown")
+        fake_storage_pool = cinder_helper.StoragePool(
+            name='host@backend#pool',
+            pool_name='pool',
+            total_volumes=1,
+            total_capacity_gb="not-a-number",
+            free_capacity_gb=20.0,
+            provisioned_capacity_gb=10.0,
+            allocated_capacity_gb=10.0,
+            max_over_subscription_ratio=1.0,
+            volume_backend_name='backend',
+            capabilities={},
         )
 
         m_cinder_helper.get_storage_node_list.return_value = [
@@ -218,13 +230,23 @@ class TestCinderClusterDataModelCollector(
 
     @mock.patch.object(cinder_helper, 'CinderHelper', autospec=True)
     def test_cinder_cdmc_total_capacity_gb_None(self, m_cinder_helper_cls):
+        # A pool whose capacity attribute is reported by Cinder as None
+        # must not abort the whole model collection. The offending
+        # attribute should simply be ignored while the pool is still
+        # built. See https://bugs.launchpad.net/watcher/+bug/2170714
         m_cinder_helper = m_cinder_helper_cls.return_value
 
         fake_storage_node = cinder_helper.StorageService.from_openstacksdk(
             self.create_openstacksdk_storage_service(zone='zone')
         )
         fake_storage_pool = cinder_helper.StoragePool.from_openstacksdk(
-            self.create_openstacksdk_pool(total_capacity_gb=None)
+            self.create_openstacksdk_pool(
+                total_volumes=1,
+                total_capacity_gb=None,
+                free_capacity_gb=20,
+                provisioned_capacity_gb=10,
+                allocated_capacity_gb=10,
+            )
         )
 
         m_cinder_helper.get_storage_node_list.return_value = [
@@ -246,6 +268,78 @@ class TestCinderClusterDataModelCollector(
         )
 
         cinder_cdmc.get_audit_scope_handler([])
-        self.assertRaises(
-            exception.ClusterDataModelCollectionError, cinder_cdmc.execute
+        model = cinder_cdmc.execute()
+
+        storage_nodes = model.get_all_storage_nodes()
+        storage_node = list(storage_nodes.values())[0]
+        storage_pools = model.get_node_pools(storage_node)
+
+        self.assertEqual(1, len(storage_pools))
+        storage_pool = storage_pools[0]
+        self.assertEqual(storage_pool.name, 'host@backend#pool')
+        # The None value must have been dropped, not stored.
+        self.assertFalse(storage_pool.obj_attr_is_set('total_capacity_gb'))
+        # The other, valid attributes are still populated.
+        self.assertEqual(20, storage_pool.free_capacity_gb)
+        self.assertEqual(10, storage_pool.provisioned_capacity_gb)
+
+    @mock.patch.object(cinder_helper, 'CinderHelper', autospec=True)
+    def test_cinder_cdmc_total_capacity_gb_unknown(self, m_cinder_helper_cls):
+        # A pool whose capacity attribute is reported by Cinder as the
+        # string 'unknown' must not abort the whole model collection. The
+        # offending attribute should simply be ignored while the pool is
+        # still built. The StoragePool is built directly here (instead of
+        # via from_openstacksdk, which already normalizes 'unknown' to None)
+        # to exercise the defensive 'unknown' handling in the collector.
+        # See https://bugs.launchpad.net/watcher/+bug/2170714
+        m_cinder_helper = m_cinder_helper_cls.return_value
+
+        fake_storage_node = cinder_helper.StorageService.from_openstacksdk(
+            self.create_openstacksdk_storage_service(zone='zone')
         )
+        fake_storage_pool = cinder_helper.StoragePool(
+            name='host@backend#pool',
+            pool_name='pool',
+            total_volumes=1,
+            total_capacity_gb='unknown',
+            free_capacity_gb=20.0,
+            provisioned_capacity_gb=10.0,
+            allocated_capacity_gb=10.0,
+            max_over_subscription_ratio=1.0,
+            volume_backend_name='backend',
+            capabilities={},
+        )
+
+        m_cinder_helper.get_storage_node_list.return_value = [
+            fake_storage_node
+        ]
+        m_cinder_helper.get_volume_type_by_backendname.return_value = [
+            'fake_type'
+        ]
+        m_cinder_helper.get_storage_pool_list.return_value = [
+            fake_storage_pool
+        ]
+        m_cinder_helper.get_volume_list.return_value = []
+
+        m_config = mock.Mock()
+        m_osc = mock.Mock()
+
+        cinder_cdmc = cinder.CinderClusterDataModelCollector(
+            config=m_config, osc=m_osc
+        )
+
+        cinder_cdmc.get_audit_scope_handler([])
+        model = cinder_cdmc.execute()
+
+        storage_nodes = model.get_all_storage_nodes()
+        storage_node = list(storage_nodes.values())[0]
+        storage_pools = model.get_node_pools(storage_node)
+
+        self.assertEqual(1, len(storage_pools))
+        storage_pool = storage_pools[0]
+        self.assertEqual(storage_pool.name, 'host@backend#pool')
+        # The 'unknown' value must have been dropped, not stored.
+        self.assertFalse(storage_pool.obj_attr_is_set('total_capacity_gb'))
+        # The other, valid attributes are still populated.
+        self.assertEqual(20, storage_pool.free_capacity_gb)
+        self.assertEqual(10, storage_pool.provisioned_capacity_gb)
