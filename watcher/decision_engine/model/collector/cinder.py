@@ -234,13 +234,24 @@ class CinderModelBuilder(base.BaseModelBuilder):
         node_attributes = {"name": pool.name}
         for attr in attrs:
             try:
-                node_attributes[attr] = int(getattr(pool, attr))
-            except AttributeError:
-                LOG.debug(
-                    "Attribute %s for pool %s is not provided", attr, pool.name
-                )
-            # trying to convert None or "unknown" capacity values to an int
-            # will raise TypeError or ValueError
+                value = getattr(pool, attr, None)
+                # Cinder may report a capacity value as None, when backends
+                # do not report optional fields. In those cases, watcher
+                # should simply ignore instead of aborting the build of the
+                # storage model.
+                # Cinder API returns the value 'unknown' for some capacity
+                # fields when can not discover a value. Although that should
+                # be managed in the cinder_helper, also managing here as
+                # defensive protection.
+                if value is None or value == 'unknown':
+                    LOG.debug(
+                        "Attribute %s for pool %s is not provided",
+                        attr,
+                        pool.name,
+                    )
+                    continue
+                node_attributes[attr] = int(value)
+            # Catch other cases where attribute is reporting unexpected values
             except (ValueError, TypeError):
                 raise exception.InvalidPoolAttributeValue(
                     name=pool.name, attribute=attr

@@ -1,0 +1,9 @@
+---
+fixes:
+  - |
+    Fixed building of the storage data model failing when the cinder API
+    reports a pool capacity attribute (such as ``provisioned_capacity_gb``) as
+    ``None``. Some backends report ``None`` for these values when the driver
+    does not support it as they are optional in Cinder API.
+
+    See: https://bugs.launchpad.net/watcher/+bug/2170714 for more details.
