@@ -20,6 +20,7 @@ from urllib import parse as urlparse
 
 import requests
 
+from debtcollector import removals
 from oslo_config import cfg
 from oslo_log import log
 
@@ -34,7 +35,20 @@ CONF = cfg.CONF
 LOG = log.getLogger(__name__)
 
 
+@removals.removed_class(
+    "GrafanaHelper", version="2027.1", removal_version="2027.2"
+)
 class GrafanaHelper(base.DataSourceBase):
+    """GrafanaHelper class for retrieving metrics from Grafana
+
+    This class implements the DataSourceBase to allow Watcher to query
+    Grafana as a data source for metrics.
+
+    .. deprecated:: 2027.1
+       The Grafana datasource is deprecated and will be removed in the
+       2027.2 release. Use the Gnocchi or Aetos datasource instead.
+    """
+
     NAME = 'grafana'
 
     """METRIC_MAP is only available at runtime _build_metric_map"""

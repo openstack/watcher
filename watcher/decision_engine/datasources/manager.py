@@ -57,6 +57,10 @@ class DataSourceManager:
         # The metric map can still be overridden by a yaml config file
         if self.datasources and graf.GrafanaHelper.NAME in self.datasources:
             self.metric_map[graf.GrafanaHelper.NAME] = self.grafana.METRIC_MAP
+            LOG.warning(
+                'The grafana datasource is deprecated and will be '
+                'removed in the 2027.2 release.'
+            )
 
         metric_map_path = cfg.CONF.watcher_decision_engine.metric_map_path
         metrics_from_file = self.load_metric_map(metric_map_path)

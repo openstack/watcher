@@ -17,6 +17,7 @@
 
 from oslo_config import cfg
 
+from watcher.decision_engine.datasources import grafana
 from watcher.decision_engine.datasources import manager
 from watcher.decision_engine.datasources import prometheus
 
@@ -34,6 +35,9 @@ possible_datasources = list(manager.DataSourceManager.metric_map.keys())
 # the default configuration.
 default_datasources = list(possible_datasources)
 default_datasources.remove(prometheus.PrometheusHelper.NAME)
+# The Grafana datasource is deprecated and will be removed in 2027.2, so it
+# is no longer offered by default.
+default_datasources.remove(grafana.GrafanaHelper.NAME)
 
 DATASOURCES_OPTS = [
     cfg.ListOpt(

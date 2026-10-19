@@ -7,6 +7,13 @@ Datasources
    provides the same functionality with added multi-tenancy and Keystone
    authentication support. See the :doc:`migrate-prometheus-to-aetos` guide.
 
+.. note::
+   The Grafana datasource is deprecated as of the 2027.1 release and will be
+   removed in the 2027.2 release. It has no continuous integration test
+   coverage, has received no functional change since 2023, and supports no
+   Grafana backend other than InfluxDB. Use the Gnocchi or Aetos datasource
+   instead.
+
 .. toctree::
    :maxdepth: 1
 
