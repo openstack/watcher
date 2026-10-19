@@ -233,13 +233,8 @@ class TestPlacementHelper(base.TestCase):
         kss_req.return_value = fake_requests.FakeResponse(
             HTTPStatus.NOT_FOUND,
             content=jsonutils.dump_as_bytes(self.fake_err_msg))
-        # the logging in this function has a bug, temporarily changing the
-        # assert to catch the exception
-        # https://review.opendev.org/c/openstack/watcher/+/822559 merges
-        self.assertRaises(ValueError, self.client.get_allocations_for_consumer,
-                          c_uuid)
-        # result = self.client.get_allocations_for_consumer(c_uuid)
-        # self.assertIsNone(result)
+        result = self.client.get_allocations_for_consumer(c_uuid)
+        self.assertIsNone(result)
 
     def test_get_usages_for_resource_provider_OK(self, kss_req):
         rp_uuid = uuidutils.generate_uuid()

@@ -122,7 +122,7 @@ class PlacementHelper(object):
         if resp.status_code == HTTPStatus.OK:
             json = resp.json()
             return json['allocations']
-        msg = ("Failed to get allocations for consumer %(c_uuid). "
+        msg = ("Failed to get allocations for consumer %(c_uuid)s. "
                "Got %(status_code)d: %(err_text)s.")
         args = {
             'c_uuid': consumer_uuid,
