@@ -1,0 +1,11 @@
+---
+upgrade:
+  - |
+    The default value of ``[keystone_client] interface`` has been changed from
+    ``admin`` to ``public``.
+fixes:
+  - |
+    When trying to do volume migration using the zone migration strategy, the
+    keystone service is reached, by default through the admin endpoint.
+    The default value of ``[keystone_client] interface`` has been fixed.
+    see Bug https://bugs.launchpad.net/watcher/+bug/2109494 for more info.
