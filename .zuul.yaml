@@ -114,7 +114,6 @@
             compute:
               min_compute_nodes: 2
               min_microversion: 2.56
-              max_microversion: 2.96
             placement:
               min_microversion: 1.29
             telemetry:
