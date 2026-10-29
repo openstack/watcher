@@ -278,6 +278,10 @@ class AuditReferenced(Invalid):
                 "plans")
 
 
+class AuditCancelled(WatcherException):
+    msg_fmt = _("Audit with UUID %(uuid)s is cancelled")
+
+
 class ActionSkipped(WatcherException):
     pass
 
