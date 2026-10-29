@@ -107,6 +107,86 @@ class TestCinderClusterDataModelCollector(base.TestCase):
 
     @mock.patch('keystoneclient.v3.client.Client', mock.Mock())
     @mock.patch.object(cinder_helper, 'CinderHelper')
+    def test_cinder_cdmc_execute_skips_volume_without_host(
+        self, m_cinder_helper_cls
+    ):
+        m_cinder_helper = m_cinder_helper_cls.return_value
+
+        fake_storage_node = mock.Mock(
+            host='host@backend',
+            zone='zone',
+            status='enabled',
+            state='up',
+            volume_type=['fake_type'],
+        )
+
+        fake_storage_pool = mock.Mock(
+            total_volumes=1,
+            total_capacity_gb=30,
+            free_capacity_gb=20,
+            provisioned_capacity_gb=10,
+            allocated_capacity_gb=10,
+            virtual_free=20,
+        )
+        setattr(fake_storage_pool, 'name', 'host@backend#pool')
+        fake_volume = mock.Mock(
+            id='d010ef1f-dc19-4982-9383-087498bfde03',
+            size=1,
+            status='in-use',
+            attachments=[
+                {'server_id': 'server_id', 'attachment_id': 'attachment_id'}
+            ],
+            multiattach='false',
+            snapshot_id='',
+            metadata='{"key": "value"}',
+            volume_type='fake_type',
+            bootable='false',
+        )
+        setattr(fake_volume, 'name', 'name')
+        setattr(fake_volume, 'os-vol-host-attr:host', 'host@backend#pool')
+
+        # A volume in 'creating' state has no host assigned yet.
+        fake_volume_no_host = mock.Mock(
+            id='1a3b5c7d-9e11-4321-8765-abcdefabcdef',
+            size=1,
+            attachments=[],
+            status='creating',
+        )
+        setattr(fake_volume_no_host, 'name', 'creating-volume')
+        setattr(fake_volume_no_host, 'os-vol-host-attr:host', None)
+
+        m_cinder_helper.get_storage_node_list.return_value = [
+            fake_storage_node
+        ]
+        m_cinder_helper.get_volume_type_by_backendname.return_value = [
+            'fake_type'
+        ]
+        m_cinder_helper.get_storage_pool_list.return_value = [
+            fake_storage_pool
+        ]
+        m_cinder_helper.get_volume_list.return_value = [
+            fake_volume,
+            fake_volume_no_host,
+        ]
+
+        m_config = mock.Mock()
+        m_osc = mock.Mock()
+
+        cinder_cdmc = cinder.CinderClusterDataModelCollector(
+            config=m_config, osc=m_osc
+        )
+
+        cinder_cdmc.get_audit_scope_handler([])
+        # The model is built successfully despite the host-less volume.
+        model = cinder_cdmc.execute()
+
+        all_volumes = model.get_all_volumes()
+        self.assertEqual(1, len(all_volumes))
+        self.assertIn('d010ef1f-dc19-4982-9383-087498bfde03', all_volumes)
+        self.assertNotIn('1a3b5c7d-9e11-4321-8765-abcdefabcdef', all_volumes)
+
+    @mock.patch('keystoneclient.v3.client.Client', mock.Mock())
+    @mock.patch.object(cinder_helper, 'CinderHelper')
     def test_cinder_cdmc_total_capacity_gb_not_integer(
             self, m_cinder_helper_cls):
 
