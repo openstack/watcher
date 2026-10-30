@@ -1,0 +1,13 @@
+---
+fixes:
+  - |
+    Fixed ``workload_stabilization`` audits failing when ``host_choice`` is
+    ``fullsearch`` on clusters with three or more compute nodes. Multiple
+    candidate destinations for the same instance could cause the strategy to
+    attempt to migrate that instance twice and fail the audit with a
+    ``NetworkXError``. The strategy now skips stale candidates after an
+    instance has been migrated, while retaining alternate destinations until
+    a migration is selected.
+
+    See `bug 2170351 <https://bugs.launchpad.net/watcher/+bug/2170351>`_
+    for details.
