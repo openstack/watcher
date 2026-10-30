@@ -258,9 +258,9 @@ class TestWorkloadStabilization(TestBaseStrategy):
         model = self.fake_c_cluster.generate_scenario_1()
         self.m_c_model.return_value = model
         self.strategy.host_choice = 'fullsearch'
-        self.assertEqual(
-            10, len(self.strategy.simulate_migrations(self.hosts_load_assert))
-        )
+        migrations = self.strategy.simulate_migrations(self.hosts_load_assert)
+        self.assertEqual(10, len(migrations))
+        self.assertEqual(4, len({entry['instance'] for entry in migrations}))
 
     def test_simulate_migrations_with_all_instances_exclude(self):
         model = self.fake_c_cluster.generate_scenario_1_with_all_instances_exclude()  # noqa: E501
@@ -268,6 +268,65 @@ class TestWorkloadStabilization(TestBaseStrategy):
         self.strategy.host_choice = 'fullsearch'
         self.assertEqual(
             0, len(self.strategy.simulate_migrations(self.hosts_load_assert))
+        )
+
+    def test_do_execute_tries_alternate_destination(self):
+        model = self.fake_c_cluster.generate_scenario_1()
+        self.m_c_model.return_value = model
+        instance_uuid = 'd050ef1f-dc19-4982-9383-087498bfde03'
+        source = model.get_node_by_instance_uuid(instance_uuid)
+        model.get_node_by_uuid('Node_0').disk = 0
+        self.strategy.check_threshold = mock.Mock(
+            return_value=[
+                {
+                    'instance': instance_uuid,
+                    's_host': source.uuid,
+                    'host': 'Node_0',
+                    'value': 0.1,
+                },
+                {
+                    'instance': instance_uuid,
+                    's_host': source.uuid,
+                    'host': 'Node_1',
+                    'value': 0.2,
+                },
+            ]
+        )
+        self.strategy.migrate = mock.Mock()
+
+        self.strategy.do_execute()
+
+        self.strategy.migrate.assert_called_once_with(
+            instance_uuid, source.uuid, 'Node_1'
+        )
+
+    def test_do_execute_alternate_destination_first_fits(self):
+        model = self.fake_c_cluster.generate_scenario_1()
+        self.m_c_model.return_value = model
+        instance_uuid = 'd050ef1f-dc19-4982-9383-087498bfde03'
+        source = model.get_node_by_instance_uuid(instance_uuid)
+        self.strategy.check_threshold = mock.Mock(
+            return_value=[
+                {
+                    'instance': instance_uuid,
+                    's_host': source.uuid,
+                    'host': 'Node_0',
+                    'value': 0.1,
+                },
+                {
+                    'instance': instance_uuid,
+                    's_host': source.uuid,
+                    'host': 'Node_1',
+                    'value': 0.2,
+                },
+            ]
+        )
+        self.strategy.migrate = mock.Mock()
+
+        self.strategy.do_execute()
+
+        self.strategy.migrate.assert_called_once_with(
+            instance_uuid, source.uuid, 'Node_0'
         )
 
     def test_check_threshold(self):
