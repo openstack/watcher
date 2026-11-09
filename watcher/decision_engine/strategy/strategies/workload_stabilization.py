@@ -592,7 +592,10 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
             hosts_load = self.get_hosts_load()
             min_sd = 1
             balanced = False
+            migrated_instances = set()
             for instance_host in migration:
+                if instance_host['instance'] in migrated_instances:
+                    continue
                 instance = self.compute_model.get_instance_by_uuid(
                     instance_host['instance']
                 )
@@ -627,6 +630,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                         instance_host['s_host'],
                         instance_host['host'],
                     )
+                    migrated_instances.add(instance_host['instance'])
                     self.sd_after_audit = min_sd
 
                 for metric, value in zip(self.metrics, instance_load[:-1]):
