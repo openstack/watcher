@@ -1,0 +1,10 @@
+---
+fixes:
+  - |
+    Resolves an issue during state synchronization where modifying goal or
+    strategy definitions would incorrectly transition Audits and ActionPlans
+    already in a terminal state (e.g., ``SUCCEEDED`` or ``FAILED``) to
+    ``CANCELLED``. The sync process now only cancels non-terminal Audits and
+    ActionPlans.
+
+    See: https://bugs.launchpad.net/watcher/+bug/2174051 for more details.
