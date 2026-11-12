@@ -95,6 +95,36 @@ class TestSyncer(base.DbTestCase):
 
         return created, modified, unmodified
 
+    def _create_audit(self, audit_id, goal_id, strategy_id, state):
+        audit = objects.Audit(
+            self.ctx,
+            id=audit_id,
+            uuid=utils.generate_uuid(),
+            name=f'audit_{audit_id}',
+            audit_type=objects.audit.AuditType.ONESHOT.value,
+            state=state,
+            goal_id=goal_id,
+            strategy_id=strategy_id,
+            auto_trigger=False,
+        )
+        audit.create()
+        return audit
+
+    def _create_action_plan(
+        self, action_plan_id, audit_id, strategy_id, state
+    ):
+        action_plan = objects.ActionPlan(
+            self.ctx,
+            id=action_plan_id,
+            uuid=utils.generate_uuid(),
+            audit_id=audit_id,
+            strategy_id=strategy_id,
+            state=state,
+            global_efficacy=[],
+        )
+        action_plan.create()
+        return action_plan
+
     @mock.patch.object(objects.Strategy, "soft_delete")
     @mock.patch.object(objects.Strategy, "save")
     @mock.patch.object(objects.Strategy, "create")
@@ -326,68 +356,146 @@ class TestSyncer(base.DbTestCase):
         audit_template3.create()
         audit_template4.create()
 
-        # Should stay unmodified after sync()
-        audit1 = objects.Audit(
-            self.ctx, id=1, uuid=utils.generate_uuid(), name='audit_1',
-            audit_type=objects.audit.AuditType.ONESHOT.value,
-            state=objects.audit.State.PENDING,
-            goal_id=goal1.id, strategy_id=strategy1.id, auto_trigger=False)
-        # Should be modified by the sync() because its associated goal
-        # has been modified (compared to the defined fake goals)
-        audit2 = objects.Audit(
-            self.ctx, id=2, uuid=utils.generate_uuid(), name='audit_2',
-            audit_type=objects.audit.AuditType.ONESHOT.value,
-            state=objects.audit.State.PENDING,
-            goal_id=goal2.id, strategy_id=strategy2.id, auto_trigger=False)
-        # Should be modified by the sync() because its associated strategy
-        # has been modified (compared to the defined fake strategies)
-        audit3 = objects.Audit(
-            self.ctx, id=3, uuid=utils.generate_uuid(), name='audit_3',
-            audit_type=objects.audit.AuditType.ONESHOT.value,
-            state=objects.audit.State.PENDING,
-            goal_id=goal1.id, strategy_id=strategy3.id, auto_trigger=False)
-        # Modified because of both because its associated goal and associated
-        # strategy should be modified (compared to the defined fake
-        # goals/strategies)
-        audit4 = objects.Audit(
-            self.ctx, id=4, uuid=utils.generate_uuid(), name='audit_4',
-            audit_type=objects.audit.AuditType.ONESHOT.value,
-            state=objects.audit.State.PENDING,
-            goal_id=goal2.id, strategy_id=strategy4.id, auto_trigger=False)
+        # Unchanged goal/strategy: should stay unmodified
+        audit1 = self._create_audit(
+            1, goal1.id, strategy1.id, objects.audit.State.PENDING
+        )
+        # Terminal audits whose goal was modified: left untouched
+        audit_goal_succeeded = self._create_audit(
+            2, goal2.id, strategy2.id, objects.audit.State.SUCCEEDED
+        )
+        audit_goal_failed = self._create_audit(
+            7, goal2.id, strategy2.id, objects.audit.State.FAILED
+        )
+        audit_goal_cancelled = self._create_audit(
+            8, goal2.id, strategy2.id, objects.audit.State.CANCELLED
+        )
+        # Non-terminal audits whose goal/strategy was modified: cancelled
+        audit_goal_ongoing = self._create_audit(
+            5, goal2.id, strategy2.id, objects.audit.State.ONGOING
+        )
+        audit_goal_suspended = self._create_audit(
+            6, goal2.id, strategy2.id, objects.audit.State.SUSPENDED
+        )
+        # Non-terminal audits whose strategy was modified: cancelled
+        audit_strategy_pending = self._create_audit(
+            3, goal1.id, strategy3.id, objects.audit.State.PENDING
+        )
+        audit_strategy_ongoing = self._create_audit(
+            9, goal1.id, strategy3.id, objects.audit.State.ONGOING
+        )
+        # Terminal audits whose strategy was modified: left untouched
+        audit_strategy_succeeded = self._create_audit(
+            10, goal1.id, strategy3.id, objects.audit.State.SUCCEEDED
+        )
+        audit_strategy_failed = self._create_audit(
+            11, goal1.id, strategy3.id, objects.audit.State.FAILED
+        )
+        audit_strategy_cancelled = self._create_audit(
+            12, goal1.id, strategy3.id, objects.audit.State.CANCELLED
+        )
+        # Non-terminal audits whose both goal and strategy were modified:
+        # cancelled
+        audit_both_pending = self._create_audit(
+            4, goal2.id, strategy4.id, objects.audit.State.PENDING
+        )
+        audit_both_ongoing = self._create_audit(
+            13, goal2.id, strategy4.id, objects.audit.State.ONGOING
+        )
+        audit_both_cancelled = self._create_audit(
+            14, goal2.id, strategy4.id, objects.audit.State.CANCELLED
+        )
+        # Terminal audits whose both goal and strategy were modified:
+        # left untouched
+        audit_both_succeeded = self._create_audit(
+            15, goal2.id, strategy4.id, objects.audit.State.SUCCEEDED
+        )
+        audit_both_failed = self._create_audit(
+            16, goal2.id, strategy4.id, objects.audit.State.FAILED
+        )
 
-        audit1.create()
-        audit2.create()
-        audit3.create()
-        audit4.create()
-
-        # Should stay unmodified after sync()
-        action_plan1 = objects.ActionPlan(
-            self.ctx, id=1, uuid=utils.generate_uuid(),
-            audit_id=audit1.id, strategy_id=strategy1.id,
-            state='DOESNOTMATTER', global_efficacy=[])
-        # Stale after syncing because the goal of the audit has been modified
-        # (compared to the defined fake goals)
-        action_plan2 = objects.ActionPlan(
-            self.ctx, id=2, uuid=utils.generate_uuid(),
-            audit_id=audit2.id, strategy_id=strategy2.id,
-            state='DOESNOTMATTER', global_efficacy=[])
-        # Stale after syncing because the strategy has been modified
-        # (compared to the defined fake strategies)
-        action_plan3 = objects.ActionPlan(
-            self.ctx, id=3, uuid=utils.generate_uuid(),
-            audit_id=audit3.id, strategy_id=strategy3.id,
-            state='DOESNOTMATTER', global_efficacy=[])
-        # Stale after syncing because both the strategy and the related audit
-        # have been modified (compared to the defined fake goals/strategies)
-        action_plan4 = objects.ActionPlan(
-            self.ctx, id=4, uuid=utils.generate_uuid(),
-            audit_id=audit4.id, strategy_id=strategy4.id,
-            state='DOESNOTMATTER', global_efficacy=[])
-
-        action_plan1.create()
-        action_plan2.create()
-        action_plan3.create()
-        action_plan4.create()
+        # Baseline AP on unchanged audit/strategy
+        action_plan1 = self._create_action_plan(
+            1, audit1.id, strategy1.id, objects.action_plan.State.RECOMMENDED
+        )
+        # Non-terminal APs on terminal audits with a modified goal: cancelled
+        ap_term_recommended = self._create_action_plan(
+            2,
+            audit_goal_succeeded.id,
+            strategy2.id,
+            objects.action_plan.State.RECOMMENDED,
+        )
+        ap_term_pending = self._create_action_plan(
+            6,
+            audit_goal_ongoing.id,
+            strategy2.id,
+            objects.action_plan.State.PENDING,
+        )
+        ap_term_ongoing = self._create_action_plan(
+            7,
+            audit_goal_cancelled.id,
+            strategy2.id,
+            objects.action_plan.State.ONGOING,
+        )
+        ap_term_cancelling = self._create_action_plan(
+            8,
+            audit_goal_succeeded.id,
+            strategy2.id,
+            objects.action_plan.State.CANCELLING,
+        )
+        # Terminal APs on terminal audits with a modified goal: left untouched
+        ap_term_succeeded = self._create_action_plan(
+            5,
+            audit_goal_succeeded.id,
+            strategy2.id,
+            objects.action_plan.State.SUCCEEDED,
+        )
+        ap_term_failed = self._create_action_plan(
+            9,
+            audit_goal_failed.id,
+            strategy2.id,
+            objects.action_plan.State.FAILED,
+        )
+        ap_term_cancelled = self._create_action_plan(
+            10,
+            audit_goal_cancelled.id,
+            strategy2.id,
+            objects.action_plan.State.CANCELLED,
+        )
+        ap_term_superseded = self._create_action_plan(
+            11,
+            audit_goal_succeeded.id,
+            strategy2.id,
+            objects.action_plan.State.SUPERSEDED,
+        )
+        # Non-terminal AP cancelled because its strategy was modified
+        ap_strategy_recommended = self._create_action_plan(
+            3,
+            audit_strategy_succeeded.id,
+            strategy3.id,
+            objects.action_plan.State.RECOMMENDED,
+        )
+        # Terminal AP kept even though its strategy was modified
+        ap_strategy_succeeded = self._create_action_plan(
+            13,
+            audit_strategy_ongoing.id,
+            strategy3.id,
+            objects.action_plan.State.SUCCEEDED,
+        )
+        # Non-terminal AP cancelled because its audit becomes stale
+        ap_on_stale_audit = self._create_action_plan(
+            12,
+            audit_goal_ongoing.id,
+            strategy2.id,
+            objects.action_plan.State.PENDING,
+        )
+        # Both goal and strategy modified: cancelled
+        ap_both = self._create_action_plan(
+            4,
+            audit_both_succeeded.id,
+            strategy4.id,
+            objects.action_plan.State.RECOMMENDED,
+        )
 
         before_goals = objects.Goal.list(self.ctx)
         before_strategies = objects.Strategy.list(self.ctx)
@@ -413,13 +521,13 @@ class TestSyncer(base.DbTestCase):
         self.assertEqual(2, len(before_goals))
         self.assertEqual(4, len(before_strategies))
         self.assertEqual(4, len(before_audit_templates))
-        self.assertEqual(4, len(before_audits))
-        self.assertEqual(4, len(before_action_plans))
+        self.assertEqual(16, len(before_audits))
+        self.assertEqual(13, len(before_action_plans))
         self.assertEqual(2, len(after_goals))
         self.assertEqual(4, len(after_strategies))
         self.assertEqual(4, len(after_audit_templates))
-        self.assertEqual(4, len(after_audits))
-        self.assertEqual(4, len(after_action_plans))
+        self.assertEqual(16, len(after_audits))
+        self.assertEqual(13, len(after_action_plans))
 
         self.assertEqual(
             {"dummy_1", "dummy_2"},
@@ -465,9 +573,6 @@ class TestSyncer(base.DbTestCase):
 
         self.assertEqual(2, strategy2.goal_id)
 
-        self.assertNotEqual(
-            {strategy2.id, strategy3.id, strategy4.id},
-            set(modified_strategies))
         self.assertEqual({strategy1.id}, set(unmodified_strategies))
 
         self.assertEqual(
@@ -476,18 +581,75 @@ class TestSyncer(base.DbTestCase):
         self.assertEqual({audit_template1.id},
                          set(unmodified_audit_templates))
 
-        self.assertEqual(
-            {audit2.id, audit3.id, audit4.id},
-            set(modified_audits))
-        self.assertEqual({audit1.id}, set(unmodified_audits))
-
-        self.assertEqual(
-            {action_plan2.id, action_plan3.id, action_plan4.id},
-            set(modified_action_plans))
+        cancelled_audits = {
+            audit_strategy_pending.id,
+            audit_strategy_ongoing.id,
+            audit_both_pending.id,
+            audit_both_ongoing.id,
+            audit_goal_ongoing.id,
+            audit_goal_suspended.id,
+        }
+        untouched_audits = {
+            audit1.id,
+            audit_goal_succeeded.id,
+            audit_goal_failed.id,
+            audit_goal_cancelled.id,
+            audit_strategy_succeeded.id,
+            audit_strategy_failed.id,
+            audit_strategy_cancelled.id,
+            audit_both_succeeded.id,
+            audit_both_failed.id,
+            audit_both_cancelled.id,
+        }
+        self.assertEqual(cancelled_audits, set(modified_audits))
+        self.assertEqual(untouched_audits, set(unmodified_audits))
         self.assertTrue(
-            all(ap.state == objects.action_plan.State.CANCELLED
-                for ap in modified_action_plans.values()))
-        self.assertEqual({action_plan1.id}, set(unmodified_action_plans))
+            all(
+                audit.state == objects.audit.State.CANCELLED
+                for audit in modified_audits.values()
+            )
+        )
+
+        cancelled_action_plans = {
+            ap_term_recommended.id,
+            ap_term_pending.id,
+            ap_term_ongoing.id,
+            ap_term_cancelling.id,
+            ap_strategy_recommended.id,
+            ap_on_stale_audit.id,
+            ap_both.id,
+        }
+        untouched_action_plans = {
+            action_plan1.id,
+            ap_term_succeeded.id,
+            ap_term_failed.id,
+            ap_term_cancelled.id,
+            ap_term_superseded.id,
+            ap_strategy_succeeded.id,
+        }
+        self.assertEqual(cancelled_action_plans, set(modified_action_plans))
+        self.assertTrue(
+            all(
+                ap.state == objects.action_plan.State.CANCELLED
+                for ap in modified_action_plans.values()
+            )
+        )
+        self.assertEqual(untouched_action_plans, set(unmodified_action_plans))
+        self.assertEqual(
+            ap_term_succeeded.state, objects.action_plan.State.SUCCEEDED
+        )
+        self.assertEqual(
+            ap_term_failed.state, objects.action_plan.State.FAILED
+        )
+        self.assertEqual(
+            ap_term_cancelled.state, objects.action_plan.State.CANCELLED
+        )
+        self.assertEqual(
+            ap_term_superseded.state, objects.action_plan.State.SUPERSEDED
+        )
+        self.assertEqual(
+            ap_strategy_succeeded.state, objects.action_plan.State.SUCCEEDED
+        )
 
     def test_end2end_sync_goals_with_removed_goal_and_strategy(self):
         # ### Setup ### #
@@ -550,35 +712,112 @@ class TestSyncer(base.DbTestCase):
         audit_template1.create()
         audit_template2.create()
 
-        # Should stay unmodified after sync()
-        audit1 = objects.Audit(
-            self.ctx, id=1, uuid=utils.generate_uuid(), name='audit_1',
-            audit_type=objects.audit.AuditType.ONESHOT.value,
-            state=objects.audit.State.PENDING,
-            goal_id=goal1.id, strategy_id=strategy1.id, auto_trigger=False)
-        # Stale after syncing because the goal has been soft deleted
-        audit2 = objects.Audit(
-            self.ctx, id=2, uuid=utils.generate_uuid(), name='audit_2',
-            audit_type=objects.audit.AuditType.ONESHOT.value,
-            state=objects.audit.State.PENDING,
-            goal_id=goal2.id, strategy_id=strategy2.id, auto_trigger=False)
-        audit1.create()
-        audit2.create()
+        # Unchanged goal/strategy: should stay unmodified
+        audit1 = self._create_audit(
+            1, goal1.id, strategy1.id, objects.audit.State.PENDING
+        )
+        # Non-terminal audits whose goal was removed: cancelled
+        audit_goal_pending = self._create_audit(
+            2, goal2.id, strategy3.id, objects.audit.State.PENDING
+        )
+        audit_goal_ongoing = self._create_audit(
+            3, goal2.id, strategy3.id, objects.audit.State.ONGOING
+        )
+        # Terminal audits whose goal was removed: left untouched
+        audit_goal_succeeded = self._create_audit(
+            4, goal2.id, strategy3.id, objects.audit.State.SUCCEEDED
+        )
+        audit_goal_failed = self._create_audit(
+            5, goal2.id, strategy3.id, objects.audit.State.FAILED
+        )
+        # Non-terminal audits whose strategy was removed: cancelled
+        audit_strategy_pending = self._create_audit(
+            6, goal1.id, strategy2.id, objects.audit.State.PENDING
+        )
+        audit_strategy_suspended = self._create_audit(
+            7, goal1.id, strategy2.id, objects.audit.State.SUSPENDED
+        )
+        audit_strategy_ongoing = self._create_audit(
+            8, goal1.id, strategy2.id, objects.audit.State.ONGOING
+        )
+        # Terminal audit whose strategy was removed: left untouched
+        audit_strategy_cancelled = self._create_audit(
+            9, goal1.id, strategy2.id, objects.audit.State.CANCELLED
+        )
+        audit_strategy_failed = self._create_audit(
+            10, goal1.id, strategy2.id, objects.audit.State.FAILED
+        )
+        audit_strategy_succeeded = self._create_audit(
+            11, goal1.id, strategy2.id, objects.audit.State.SUCCEEDED
+        )
 
-        # Stale after syncing because its related strategy has been be
-        # soft deleted
-        action_plan1 = objects.ActionPlan(
-            self.ctx, id=1, uuid=utils.generate_uuid(),
-            audit_id=audit1.id, strategy_id=strategy1.id,
-            state='DOESNOTMATTER', global_efficacy=[])
-        # Stale after syncing because its related goal has been soft deleted
-        action_plan2 = objects.ActionPlan(
-            self.ctx, id=2, uuid=utils.generate_uuid(),
-            audit_id=audit2.id, strategy_id=strategy2.id,
-            state='DOESNOTMATTER', global_efficacy=[])
-
-        action_plan1.create()
-        action_plan2.create()
+        # Baseline AP on unchanged audit/strategy
+        action_plan1 = self._create_action_plan(
+            1, audit1.id, strategy1.id, objects.action_plan.State.RECOMMENDED
+        )
+        # Non-terminal APs whose strategy was removed: cancelled
+        ap_strategy_recommended = self._create_action_plan(
+            2,
+            audit_goal_ongoing.id,
+            strategy3.id,
+            objects.action_plan.State.RECOMMENDED,
+        )
+        ap_strategy_pending = self._create_action_plan(
+            3,
+            audit_strategy_ongoing.id,
+            strategy2.id,
+            objects.action_plan.State.PENDING,
+        )
+        ap_strategy_ongoing = self._create_action_plan(
+            4,
+            audit_strategy_suspended.id,
+            strategy2.id,
+            objects.action_plan.State.ONGOING,
+        )
+        ap_strategy_cancelling = self._create_action_plan(
+            5,
+            audit_strategy_succeeded.id,
+            strategy2.id,
+            objects.action_plan.State.CANCELLING,
+        )
+        # Non-terminal AP on a terminal audit whose strategy was removed
+        ap_on_term_audit = self._create_action_plan(
+            10,
+            audit_goal_succeeded.id,
+            strategy3.id,
+            objects.action_plan.State.RECOMMENDED,
+        )
+        ap_on_term_audit_ongoing = self._create_action_plan(
+            11,
+            audit_goal_ongoing.id,
+            strategy3.id,
+            objects.action_plan.State.ONGOING,
+        )
+        # Terminal APs whose strategy was removed: left untouched
+        ap_strategy_succeeded = self._create_action_plan(
+            6,
+            audit_strategy_ongoing.id,
+            strategy2.id,
+            objects.action_plan.State.SUCCEEDED,
+        )
+        ap_strategy_failed = self._create_action_plan(
+            7,
+            audit_strategy_ongoing.id,
+            strategy2.id,
+            objects.action_plan.State.FAILED,
+        )
+        ap_strategy_cancelled = self._create_action_plan(
+            8,
+            audit_strategy_cancelled.id,
+            strategy2.id,
+            objects.action_plan.State.CANCELLED,
+        )
+        ap_strategy_superseded = self._create_action_plan(
+            9,
+            audit_strategy_ongoing.id,
+            strategy2.id,
+            objects.action_plan.State.SUPERSEDED,
+        )
 
         before_goals = objects.Goal.list(self.ctx)
         before_strategies = objects.Strategy.list(self.ctx)
@@ -604,19 +843,15 @@ class TestSyncer(base.DbTestCase):
         self.assertEqual(2, len(before_goals))
         self.assertEqual(3, len(before_strategies))
         self.assertEqual(2, len(before_audit_templates))
-        self.assertEqual(2, len(before_audits))
-        self.assertEqual(2, len(before_action_plans))
+        self.assertEqual(11, len(before_audits))
+        self.assertEqual(11, len(before_action_plans))
         self.assertEqual(1, len(after_goals))
         self.assertEqual(1, len(after_strategies))
         self.assertEqual(2, len(after_audit_templates))
-        self.assertEqual(2, len(after_audits))
-        self.assertEqual(2, len(after_action_plans))
-        self.assertEqual(
-            {"dummy_1"},
-            {g.name for g in after_goals})
-        self.assertEqual(
-            {"strategy_1"},
-            {s.name for s in after_strategies})
+        self.assertEqual(11, len(after_audits))
+        self.assertEqual(11, len(after_action_plans))
+        self.assertEqual({"dummy_1"}, {g.name for g in after_goals})
+        self.assertEqual({"strategy_1"}, {s.name for s in after_strategies})
 
         created_goals, modified_goals, unmodified_goals = (
             self._find_created_modified_unmodified_ids(
@@ -650,14 +885,79 @@ class TestSyncer(base.DbTestCase):
         self.assertEqual({audit_template1.id},
                          set(unmodified_audit_templates))
 
-        self.assertEqual({audit2.id}, set(modified_audits))
-        self.assertEqual({audit1.id}, set(unmodified_audits))
-
-        self.assertEqual({action_plan2.id}, set(modified_action_plans))
+        cancelled_audits = {
+            audit_goal_pending.id,
+            audit_goal_ongoing.id,
+            audit_strategy_pending.id,
+            audit_strategy_suspended.id,
+            audit_strategy_ongoing.id,
+        }
+        untouched_audits = {
+            audit1.id,
+            audit_goal_succeeded.id,
+            audit_goal_failed.id,
+            audit_strategy_cancelled.id,
+            audit_strategy_succeeded.id,
+            audit_strategy_failed.id,
+        }
+        self.assertEqual(cancelled_audits, set(modified_audits))
+        self.assertEqual(untouched_audits, set(unmodified_audits))
         self.assertTrue(
-            all(ap.state == objects.action_plan.State.CANCELLED
-                for ap in modified_action_plans.values()))
-        self.assertEqual({action_plan1.id}, set(unmodified_action_plans))
+            all(
+                audit.state == objects.audit.State.CANCELLED
+                for audit in modified_audits.values()
+            )
+        )
+
+        self.assertEqual(
+            audit_goal_succeeded.state, objects.audit.State.SUCCEEDED
+        )
+        self.assertEqual(audit_goal_failed.state, objects.audit.State.FAILED)
+        self.assertEqual(
+            audit_strategy_succeeded.state, objects.audit.State.SUCCEEDED
+        )
+        self.assertEqual(
+            audit_strategy_failed.state, objects.audit.State.FAILED
+        )
+        self.assertEqual(
+            audit_strategy_cancelled.state, objects.audit.State.CANCELLED
+        )
+
+        cancelled_action_plans = {
+            ap_strategy_recommended.id,
+            ap_strategy_pending.id,
+            ap_strategy_ongoing.id,
+            ap_strategy_cancelling.id,
+            ap_on_term_audit.id,
+            ap_on_term_audit_ongoing.id,
+        }
+        untouched_action_plans = {
+            action_plan1.id,
+            ap_strategy_succeeded.id,
+            ap_strategy_failed.id,
+            ap_strategy_cancelled.id,
+            ap_strategy_superseded.id,
+        }
+        self.assertEqual(cancelled_action_plans, set(modified_action_plans))
+        self.assertTrue(
+            all(
+                ap.state == objects.action_plan.State.CANCELLED
+                for ap in modified_action_plans.values()
+            )
+        )
+        self.assertEqual(untouched_action_plans, set(unmodified_action_plans))
+        self.assertEqual(
+            ap_strategy_succeeded.state, objects.action_plan.State.SUCCEEDED
+        )
+        self.assertEqual(
+            ap_strategy_failed.state, objects.action_plan.State.FAILED
+        )
+        self.assertEqual(
+            ap_strategy_cancelled.state, objects.action_plan.State.CANCELLED
+        )
+        self.assertEqual(
+            ap_strategy_superseded.state, objects.action_plan.State.SUPERSEDED
+        )
 
     def test_sync_strategies_with_removed_goal(self):
         # ### Setup ### #

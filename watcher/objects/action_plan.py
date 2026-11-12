@@ -99,6 +99,9 @@ class State:
 
     CANCEL_STATES = [CANCELLING, CANCELLED]
 
+    # States of action plans that may still be executed
+    NON_TERMINAL_STATES = (RECOMMENDED, PENDING, ONGOING, CANCELLING)
+
 
 @base.WatcherObjectRegistry.register
 class ActionPlan(base.WatcherPersistentObject, base.WatcherObject,

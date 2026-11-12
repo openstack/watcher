@@ -323,7 +323,10 @@ class Syncer:
 
     def _find_stale_audits_due_to_goal(self):
         for goal_id, synced_goal in self.goal_mapping.items():
-            filters = {"goal_id": goal_id}
+            filters = {
+                "goal_id": goal_id,
+                'state__in': objects.audit.State.NON_TERMINAL_STATES,
+            }
             stale_audits = objects.Audit.list(
                 self.ctx, filters=filters, eager=True)
 
@@ -337,7 +340,10 @@ class Syncer:
 
     def _find_stale_audits_due_to_strategy(self):
         for strategy_id, synced_strategy in self.strategy_mapping.items():
-            filters = {"strategy_id": strategy_id}
+            filters = {
+                "strategy_id": strategy_id,
+                'state__in': objects.audit.State.NON_TERMINAL_STATES,
+            }
             stale_audits = objects.Audit.list(
                 self.ctx, filters=filters, eager=True)
             # Update strategy IDs for all stale audits (w/o saving)
@@ -353,8 +359,15 @@ class Syncer:
                         audit.id].state = objects.audit.State.CANCELLED
 
     def _find_stale_action_plans_due_to_strategy(self):
+        # This will take care of the case where an ActionPlan becomes stale
+        # because its related Strategy has been modified. Note that, a
+        # modified goal will also trigger this case as the strategies for
+        # that goal will be modified to set the new goal uuid.
         for strategy_id, synced_strategy in self.strategy_mapping.items():
-            filters = {"strategy_id": strategy_id}
+            filters = {
+                "strategy_id": strategy_id,
+                'state__in': objects.action_plan.State.NON_TERMINAL_STATES,
+            }
             stale_action_plans = objects.ActionPlan.list(
                 self.ctx, filters=filters, eager=True)
 
@@ -372,8 +385,14 @@ class Syncer:
                             objects.action_plan.State.CANCELLED)
 
     def _find_stale_action_plans_due_to_audit(self):
+        # This will take care of the case where an ActionPlan becomes stale
+        # because its related Audit has been set to stale as it was in
+        # non-terminal state when the strategy or goal was updated.
         for audit_id, synced_audit in self.stale_audits_map.items():
-            filters = {"audit_id": audit_id}
+            filters = {
+                "audit_id": audit_id,
+                'state__in': objects.action_plan.State.NON_TERMINAL_STATES,
+            }
             stale_action_plans = objects.ActionPlan.list(
                 self.ctx, filters=filters, eager=True)
 
@@ -395,6 +414,9 @@ class Syncer:
             g for g in self.available_goals
             if g.name not in self.discovered_map['goals']]
         for removed_goal in removed_goals:
+            LOG.warning(
+                "Goal '%(goal)s' has been removed", {'goal': removed_goal.name}
+            )
             removed_goal.soft_delete()
             filters = {"goal_id": removed_goal.id}
 
@@ -402,14 +424,21 @@ class Syncer:
             for at in invalid_ats:
                 LOG.warning(
                     "Audit Template '%(audit_template)s' references a "
-                    "goal that does not exist", audit_template=at.uuid)
+                    "goal that does not exist",
+                    {'audit_template': at.uuid},
+                )
 
+            filters = {
+                "goal_id": removed_goal.id,
+                'state__in': objects.audit.State.NON_TERMINAL_STATES,
+            }
             stale_audits = objects.Audit.list(
                 self.ctx, filters=filters, eager=True)
             for audit in stale_audits:
                 LOG.warning(
-                    "Audit '%(audit)s' references a "
-                    "goal that does not exist", audit=audit.uuid)
+                    "Audit '%(audit)s' references a goal that does not exist",
+                    {'audit': audit.uuid},
+                )
                 if audit.id not in self.stale_audits_map:
                     audit.state = objects.audit.State.CANCELLED
                     self.stale_audits_map[audit.id] = audit
@@ -423,6 +452,10 @@ class Syncer:
             if s.name not in self.discovered_map['strategies']]
 
         for removed_strategy in removed_strategies:
+            LOG.warning(
+                "Strategy '%(strategy)s' has been removed",
+                {'strategy': removed_strategy.name},
+            )
             removed_strategy.soft_delete()
             filters = {"strategy_id": removed_strategy.id}
             invalid_ats = objects.AuditTemplate.list(self.ctx, filters=filters)
@@ -430,7 +463,8 @@ class Syncer:
                 LOG.info(
                     "Audit Template '%(audit_template)s' references a "
                     "strategy that does not exist",
-                    audit_template=at.uuid)
+                    {'audit_template': at.uuid},
+                )
                 # In this case we can reset the strategy ID to None
                 # so the audit template can still achieve the same goal
                 # but with a different strategy
@@ -440,12 +474,18 @@ class Syncer:
                 else:
                     self.stale_audit_templates_map[at.id].strategy_id = None
 
+            filters = {
+                "strategy_id": removed_strategy.id,
+                'state__in': objects.audit.State.NON_TERMINAL_STATES,
+            }
             stale_audits = objects.Audit.list(
                 self.ctx, filters=filters, eager=True)
             for audit in stale_audits:
                 LOG.warning(
                     "Audit '%(audit)s' references a "
-                    "strategy that does not exist", audit=audit.uuid)
+                    "strategy that does not exist",
+                    {'audit': audit.uuid},
+                )
                 if audit.id not in self.stale_audits_map:
                     audit.state = objects.audit.State.CANCELLED
                     self.stale_audits_map[audit.id] = audit
@@ -453,13 +493,18 @@ class Syncer:
                     self.stale_audits_map[
                         audit.id].state = objects.audit.State.CANCELLED
 
+            filters = {
+                "strategy_id": removed_strategy.id,
+                'state__in': objects.action_plan.State.NON_TERMINAL_STATES,
+            }
             stale_action_plans = objects.ActionPlan.list(
                 self.ctx, filters=filters, eager=True)
             for action_plan in stale_action_plans:
                 LOG.warning(
                     "Action Plan '%(action_plan)s' references a "
                     "strategy that does not exist",
-                    action_plan=action_plan.uuid)
+                    {'action_plan': action_plan.uuid},
+                )
                 if action_plan.id not in self.stale_action_plans_map:
                     action_plan.state = objects.action_plan.State.CANCELLED
                     self.stale_action_plans_map[action_plan.id] = action_plan

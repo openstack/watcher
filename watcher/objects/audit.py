@@ -70,6 +70,9 @@ class State:
     PENDING = 'PENDING'
     SUSPENDED = 'SUSPENDED'
 
+    # States of audits that may still be executed
+    NON_TERMINAL_STATES = (PENDING, ONGOING, SUSPENDED)
+
 
 class AuditType(enum.Enum):
     ONESHOT = 'ONESHOT'
