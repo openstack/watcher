@@ -39,11 +39,36 @@
     description: |
       Watcher multinode devstack tempest job with Gnocchi as datasource. This
       job uses fake metrics injection and does not requires ceilometer-acompute
-      to be enabled.
+      to be enabled. It also enables the oslo.middleware OpenTelemetry tracing
+      middleware for watcher-api during the whole run, using Jaeger deployed
+      by devstack-plugin-jaeger, and verifies afterwards that the watcher-api
+      traces were stored in Jaeger.
+    required-projects:
+      - openstack/devstack-plugin-jaeger
+    roles:
+      - zuul: openstack/devstack-plugin-jaeger
+    post-run: playbooks/verify-tracing.yaml
     vars:
       devstack_localrc:
         GNOCCHI_ARCHIVE_POLICY_TEMPEST: "ceilometer-low-rate"
         CEILOMETER_PIPELINE_INTERVAL: 15
+      # Only the controller runs watcher-api: the subnode group-vars
+      # override these, so Jaeger and tracing stay disabled on the subnodes.
+      devstack_plugins:
+        devstack-plugin-jaeger: https://opendev.org/openstack/devstack-plugin-jaeger
+      devstack_services:
+        jaeger: true
+      devstack_local_conf:
+        post-config:
+          # Configure tracing through local.conf rather than with
+          # OSLO_TRACING_SERVICES: the watcher devstack plugin runs after
+          # devstack-plugin-jaeger and recreates watcher.conf in post-config,
+          # while local.conf is merged after all plugins have run.
+          $WATCHER_CONF:
+            oslo_middleware_tracing:
+              enabled: true
+              otlp_endpoint: $JAEGER_OTLP_ENDPOINT
+              service_name: watcher-api
 
 - job:
     name: watcher-tempest-base
