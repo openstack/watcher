@@ -18,6 +18,7 @@ from unittest import mock
 from urllib import parse as urlparse
 
 from oslo_config import cfg
+from oslo_utils import fixture as utils_fixture
 from oslo_utils import timeutils
 from wsme import types as wtypes
 
@@ -425,10 +426,9 @@ class TestPatch(api_base.FunctionalTest):
         audit.save()
         return audit
 
-    @mock.patch('oslo_utils.timeutils.utcnow')
-    def test_replace_ok(self, mock_utcnow):
+    def test_replace_ok(self):
         test_time = datetime.datetime(2000, 1, 1, 0, 0)
-        mock_utcnow.return_value = test_time
+        self.useFixture(utils_fixture.TimeFixture(test_time))
 
         new_state = objects.audit.State.CANCELLED
         response = self.get_json(f'/audits/{self.audit.uuid}')
@@ -622,10 +622,9 @@ class TestPatchStateTransitionOk(api_base.FunctionalTest):
         audit.save()
         return audit
 
-    @mock.patch('oslo_utils.timeutils.utcnow')
-    def test_replace_ok(self, mock_utcnow):
+    def test_replace_ok(self):
         test_time = datetime.datetime(2000, 1, 1, 0, 0)
-        mock_utcnow.return_value = test_time
+        self.useFixture(utils_fixture.TimeFixture(test_time))
 
         response = self.get_json(f'/audits/{self.audit.uuid}')
         self.assertNotEqual(self.new_state, response['state'])
@@ -705,11 +704,10 @@ class TestPostBase(api_base.FunctionalTest):
 
 class TestPost(TestPostBase):
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
-    @mock.patch('oslo_utils.timeutils.utcnow')
-    def test_create_audit(self, mock_utcnow, mock_trigger_audit):
+    def test_create_audit(self, mock_trigger_audit):
         mock_trigger_audit.return_value = mock.ANY
         test_time = datetime.datetime(2000, 1, 1, 0, 0)
-        mock_utcnow.return_value = test_time
+        self.useFixture(utils_fixture.TimeFixture(test_time))
 
         audit_dict = post_get_test_audit(
             state=objects.audit.State.PENDING,

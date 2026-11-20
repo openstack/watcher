@@ -20,6 +20,7 @@ from urllib import parse as urlparse
 import webtest.app as webtest_app
 
 from oslo_config import cfg
+from oslo_utils import fixture as utils_fixture
 from oslo_utils import timeutils
 from wsme import types as wtypes
 
@@ -507,10 +508,9 @@ class TestPatch(FunctionalTestWithSetup):
             self.context, strategy_id=None
         )
 
-    @mock.patch.object(timeutils, 'utcnow')
-    def test_replace_goal_uuid(self, mock_utcnow):
+    def test_replace_goal_uuid(self):
         test_time = datetime.datetime(2000, 1, 1, 0, 0)
-        mock_utcnow.return_value = test_time
+        self.useFixture(utils_fixture.TimeFixture(test_time))
 
         new_goal_uuid = self.fake_goal2.uuid
         response = self.get_json(
@@ -534,10 +534,9 @@ class TestPatch(FunctionalTestWithSetup):
         ).replace(tzinfo=None)
         self.assertEqual(test_time, return_updated_at)
 
-    @mock.patch.object(timeutils, 'utcnow')
-    def test_replace_goal_uuid_by_name(self, mock_utcnow):
+    def test_replace_goal_uuid_by_name(self):
         test_time = datetime.datetime(2000, 1, 1, 0, 0)
-        mock_utcnow.return_value = test_time
+        self.useFixture(utils_fixture.TimeFixture(test_time))
 
         new_goal_uuid = self.fake_goal2.uuid
         response = self.get_json(
@@ -980,13 +979,12 @@ class TestPatch(FunctionalTestWithSetup):
 
 
 class TestPost(FunctionalTestWithSetup):
-    @mock.patch.object(timeutils, 'utcnow')
-    def test_create_audit_template(self, mock_utcnow):
+    def test_create_audit_template(self):
         audit_template_dict = post_get_test_audit_template(
             goal=self.fake_goal1.uuid, strategy=self.fake_strategy1.uuid
         )
         test_time = datetime.datetime(2000, 1, 1, 0, 0)
-        mock_utcnow.return_value = test_time
+        self.useFixture(utils_fixture.TimeFixture(test_time))
 
         response = self.post_json('/audit_templates', audit_template_dict)
         self.assertEqual('application/json', response.content_type)
@@ -1011,13 +1009,12 @@ class TestPost(FunctionalTestWithSetup):
         ).replace(tzinfo=None)
         self.assertEqual(test_time, return_created_at)
 
-    @mock.patch.object(timeutils, 'utcnow')
-    def test_create_audit_template_with_strategy_name(self, mock_utcnow):
+    def test_create_audit_template_with_strategy_name(self):
         audit_template_dict = post_get_test_audit_template(
             goal=self.fake_goal1.uuid, strategy=self.fake_strategy1.name
         )
         test_time = datetime.datetime(2000, 1, 1, 0, 0)
-        mock_utcnow.return_value = test_time
+        self.useFixture(utils_fixture.TimeFixture(test_time))
 
         response = self.post_json('/audit_templates', audit_template_dict)
         self.assertEqual('application/json', response.content_type)
