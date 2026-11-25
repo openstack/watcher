@@ -295,17 +295,14 @@
             $WATCHER_CONF: *watcher_conf_prom
 
 - job:
-    name: watcher-tempest-aetos
+    name: watcher-tempest-aetos-base
     parent: watcher-tempest-prometheus
     description: |
-      Watcher multinode devstack tempest job with Aetos reverse-proxy for
-      Prometheus, using Keystone authentication instead of direct Prometheus access.
-      This job uses fake metrics injection and does not require ceilometer-acompute
-      and node_exporter to be enabled.
+      Base job for jobs using aetos. It adds the required setup specific for aetos configuration
     required-projects:
       - openstack/python-observabilityclient
       - openstack/aetos
-    vars: &aetos_vars
+    vars:
       devstack_plugins:
         aetos: https://opendev.org/openstack/aetos
       devstack_local_conf:
@@ -318,6 +315,42 @@
               region_name: RegionOne
               fqdn_label: fqdn
               instance_uuid_label: resource
+
+- job:
+    name: watcher-tempest-aetos
+    parent: watcher-tempest-aetos-base
+    description: |
+      Watcher multinode devstack tempest job with Aetos reverse-proxy for
+      Prometheus, using Keystone authentication instead of direct Prometheus access.
+      This job uses fake metrics injection and does not require ceilometer-acompute
+      and node_exporter to be enabled.
+      This job also uses ceph as the storage backend instead of lvms.
+    required-projects:
+      - openstack/cinder-tempest-plugin
+      - openstack/devstack-plugin-ceph
+    timeout: 10800
+    vars:
+      # vars needed for ceph setup
+      configure_swap_size: 8192
+      devstack_localrc:
+        ENABLE_FILE_INJECTION: false
+        ENABLE_VOLUME_MULTIATTACH: true
+        TEMPEST_RUN_VALIDATION: true
+        USE_BLOCK_MIGRATION_FOR_LIVE_MIGRATION: false
+        DISABLE_CEPHADM_POST_DEPLOY: True
+        MYSQL_REDUCE_MEMORY: True
+        REMOTE_CEPH: False
+        CINDER_CEPH_UUID: d531d2d4-3937-429c-b0c2-658fe41e82aa
+      devstack_plugins:
+        devstack-plugin-ceph: https://opendev.org/openstack/devstack-plugin-ceph
+    group-vars:
+      # vars needed for ceph setup
+      subnode:
+        devstack_plugins:
+          devstack-plugin-ceph: https://opendev.org/openstack/devstack-plugin-ceph
+        devstack_localrc:
+          REMOTE_CEPH: True
+          CINDER_CEPH_UUID: d531d2d4-3937-429c-b0c2-658fe41e82aa
 
 - job:
     name: watcher-tempest-prometheus-realdata
@@ -354,7 +387,7 @@
 
 - job:
     name: watcher-tempest-aetos-realdata
-    parent: watcher-tempest-aetos
+    parent: watcher-tempest-aetos-base
     description: |
       Watcher multinode devstack tempest job with Aetos reverse-proxy and real
       workload data. This job is executed on a three-node setup to have
