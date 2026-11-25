@@ -42,6 +42,7 @@ from watcher.tests.local_fixtures import watcher as watcher_fixtures
 from watcher.tests.local_fixtures.api import APIFixture
 from watcher.tests.local_fixtures.cast_as_call import CastAsCallFixture
 from watcher.tests.local_fixtures.nova import NovaPlacementFixture
+from watcher.tests.local_fixtures.prometheus import PrometheusFixture
 from watcher.tests.local_fixtures.service import ServiceFixture
 
 
@@ -74,6 +75,7 @@ class WatcherEnvironment(fixtures.Fixture):
         log_name=None,
         cast_as_call=True,
         compute_topology=None,
+        use_prometheus=False,
     ):
         super().__init__()
         self.start_de = start_de
@@ -81,9 +83,11 @@ class WatcherEnvironment(fixtures.Fixture):
         self.log_name = log_name
         self._cast_as_call = cast_as_call
         self._compute_topology = compute_topology
+        self._use_prometheus = use_prometheus
         self.dbapi = None
         self.context = None
         self.nova_fixture = None
+        self.prometheus_fixture = None
 
     def flags(self, group=None, **kw):
         for k, v in kw.items():
@@ -187,7 +191,30 @@ class WatcherEnvironment(fixtures.Fixture):
                 )
             )
 
-        # 11. Services
+        # 11. Prometheus datasource emulator — install after Nova
+        #     so that CONF overrides for watcher_datasources are set
+        #     before the decision engine starts.
+        if self._use_prometheus:
+            self.prometheus_fixture = self.useFixture(PrometheusFixture())
+            self.flags(
+                group='prometheus_client',
+                host=self.prometheus_fixture.prometheus_url.split('//')[
+                    1
+                ].split(':')[0],
+                port=80,
+            )
+            self.flags(
+                group='watcher_datasources',
+                datasources=['prometheus'],
+                query_max_retries=1,
+                query_interval=0,
+            )
+            if self._compute_topology is not None:
+                self.prometheus_fixture.load_from_topology(
+                    self._compute_topology
+                )
+
+        # 12. Services — start after all mocks/emulators are in place
         if self.start_de:
             self.de_fixture = self.useFixture(
                 ServiceFixture('watcher-decision-engine')
@@ -197,7 +224,7 @@ class WatcherEnvironment(fixtures.Fixture):
                 ServiceFixture('watcher-applier')
             )
 
-        # 12. Admin context for direct DB operations
+        # 13. Admin context for direct DB operations
         self.context = watcher_context.make_context(
             user_id=FAKE_USER_UUID, project_id=FAKE_PROJECT_UUID, is_admin=True
         )
@@ -264,6 +291,7 @@ class WatcherFunctionalTestCase(watcher_base.WatcherBaseTestCase):
     CAST_AS_CALL = True
 
     COMPUTE_TOPOLOGY = None
+    USE_PROMETHEUS = False
 
     def setUp(self):
         super().setUp()
@@ -275,6 +303,7 @@ class WatcherFunctionalTestCase(watcher_base.WatcherBaseTestCase):
                 log_name=self.id(),
                 cast_as_call=self.CAST_AS_CALL,
                 compute_topology=self.COMPUTE_TOPOLOGY,
+                use_prometheus=self.USE_PROMETHEUS,
             )
         )
         self.dbapi = self.env.dbapi
@@ -283,6 +312,8 @@ class WatcherFunctionalTestCase(watcher_base.WatcherBaseTestCase):
             self.de_fixture = self.env.de_fixture
         if self.START_APPLIER:
             self.applier_fixture = self.env.applier_fixture
+        if self.env.prometheus_fixture:
+            self.prometheus_fixture = self.env.prometheus_fixture
 
         # 3. API via wsgi-intercept
         self.api_fixture = self.useFixture(APIFixture())
@@ -294,10 +325,26 @@ class WatcherFunctionalTestCase(watcher_base.WatcherBaseTestCase):
     def load_topology(self, topology):
         """Load or replace cluster topology for the current test.
 
+        Reloads both Nova/Placement and Prometheus (if enabled).
+        Prometheus metrics are derived from the ``cpu`` and ``ram``
+        fields on the topology's compute nodes and instances.
+
         Requires COMPUTE_TOPOLOGY set on the test class so the
         Nova/Placement emulator fixture exists.
         """
         self.env.nova_fixture.reload_topology(topology)
+        if self.env.prometheus_fixture:
+            self.env.prometheus_fixture.load_from_topology(topology)
+
+    def load_metrics(self, hosts=None, instances=None):
+        """Load or replace Prometheus metrics for the current test.
+
+        Requires USE_PROMETHEUS = True on the test class so the
+        Prometheus emulator fixture exists.
+        """
+        self.env.prometheus_fixture.reload_metrics(
+            hosts=hosts, instances=instances
+        )
 
     def _wait_for_audit_state(self, audit_uuid, target_state, timeout=30):
         """Poll until audit reaches the target state."""

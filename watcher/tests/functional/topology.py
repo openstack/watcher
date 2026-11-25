@@ -20,6 +20,28 @@ fields that matter for their scenario.
 Objects can be constructed manually or via helper functions for bulk
 generation.  The emulators accept dataclass instances directly via
 the ``normalize()`` helper which converts them to dicts.
+
+Metric values on ``ComputeNode`` and ``Instance`` live in the
+``metrics`` dict:
+
+- ``metrics['cpu']``: fraction of CPU capacity (0 = idle, 1 = fully
+  loaded).  Matches the 0-1 range ``workload_stabilization`` uses
+  after normalisation, so threshold values are directly comparable
+  with the strategy's standard deviation.
+- ``metrics['ram']``: memory used in MiB.  The strategy divides this
+  by ``node.memory`` (or ``instance.memory``) to obtain the
+  normalised fraction it uses for standard-deviation calculations.
+
+Host and instance metrics must be specified explicitly via
+``update_compute()`` and ``update_instance()``, passing a ``metrics``
+dict.  Physical consistency requires that host cpu and ram equal the
+sum of instance contributions:
+
+    host.metrics['cpu'] = sum(inst.metrics['cpu'] * inst.vcpus / host.vcpus)
+    host.metrics['ram'] = sum(inst.metrics['ram'])   # both MiB; direct sum
+
+With default 4-vcpu instances on 16-vcpu / 32768-MiB hosts the
+cpu ratio is 0.25.
 """
 
 import dataclasses
@@ -51,8 +73,7 @@ class ComputeNode:
     vcpu_reserved: int = 0
     memory_mb_reserved: int = 0
     disk_gb_reserved: int = 0
-    cpu: float = 0.0
-    ram: float = 0.0
+    metrics: dict = field(default_factory=lambda: {'cpu': 0.0, 'ram': 0.0})
 
 
 @dataclass
@@ -76,8 +97,7 @@ class Instance:
     bfv: bool = False
     availability_zone: str = 'nova'
     volumes_attached: list = field(default_factory=list)
-    cpu: float = 0.0
-    ram: float = 0.0
+    metrics: dict = field(default_factory=lambda: {'cpu': 0.0, 'ram': 0.0})
 
 
 @dataclass
@@ -101,7 +121,19 @@ class ComputeTopology:
             .add_computes(count=2)
             .add_instances(computes=['compute-1'], count=2, vcpus=2)
             .add_instances(computes=['compute-2'], count=1, vcpus=2)
+            .update_compute('compute-1', metrics={'cpu': 0.80, 'ram': 0.40})
+            .update_compute('compute-2', metrics={'cpu': 0.20, 'ram': 0.10})
+            .update_instance('vm-1', metrics={'cpu': 0.68, 'ram': 0.68})
+            .update_instance('vm-2', metrics={'cpu': 0.76, 'ram': 0.76})
         )
+
+    CPU values are normalised fractions (0-1); RAM values are in MiB.
+    Instance values must be physically consistent with host values:
+
+        host.metrics['cpu'] = sum(
+            inst.metrics['cpu'] * inst.vcpus / host.vcpus
+        )
+        host.metrics['ram'] = sum(inst.metrics['ram'])  # MiB; direct sum
     """
 
     compute_nodes: list = field(default_factory=list)
@@ -152,10 +184,18 @@ class ComputeTopology:
     def update_compute(self, hostname, **kwargs):
         """Update fields on the ComputeNode with the given *hostname*.
 
+        A ``metrics`` kwarg is merged into the node's existing
+        ``metrics`` dict rather than replacing it, so
+        ``update_compute(host, metrics={'ram': x})`` does not discard
+        a ``cpu`` value set by an earlier call.
+
         Returns ``self`` for chaining.
         """
         for node in self.compute_nodes:
             if node.hostname == hostname:
+                metrics = kwargs.pop('metrics', None)
+                if metrics:
+                    node.metrics.update(metrics)
                 for k, v in kwargs.items():
                     setattr(node, k, v)
                 return self
@@ -164,10 +204,18 @@ class ComputeTopology:
     def update_instance(self, name, **kwargs):
         """Update fields on the Instance with the given *name*.
 
+        A ``metrics`` kwarg is merged into the instance's existing
+        ``metrics`` dict rather than replacing it, so
+        ``update_instance(name, metrics={'ram': x})`` does not discard
+        a ``cpu`` value set by an earlier call.
+
         Returns ``self`` for chaining.
         """
         for inst in self.instances:
             if inst.name == name:
+                metrics = kwargs.pop('metrics', None)
+                if metrics:
+                    inst.metrics.update(metrics)
                 for k, v in kwargs.items():
                     setattr(inst, k, v)
                 return self

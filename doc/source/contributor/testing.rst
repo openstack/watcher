@@ -427,10 +427,14 @@ can be chained:
     ``**kwargs`` are forwarded to ``Instance``.
 
 ``.update_compute(hostname, **kwargs)``
-    Modify fields on an existing compute node by hostname.
+    Modify fields on an existing compute node by hostname.  A
+    ``metrics`` kwarg is merged into the node's existing ``metrics``
+    dict rather than replacing it.
 
 ``.update_instance(name, **kwargs)``
-    Modify fields on an existing instance by name.
+    Modify fields on an existing instance by name.  A ``metrics``
+    kwarg is merged into the instance's existing ``metrics`` dict
+    rather than replacing it.
 
 These methods cover the common case.  For topologies with per-instance
 variation (BFV, ephemeral/swap, multiple projects), construct
@@ -755,6 +759,78 @@ This is preferred over defining a full topology at the class level,
 because it allows different test methods to exercise different scenarios
 without needing separate test classes.
 
+Tests with Prometheus metrics
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Strategies that rely on real-time metrics (``workload_stabilization``,
+``workload_balance``, etc.) need a datasource.  The Prometheus API emulator
+serves PromQL query responses from in-memory metric data, eliminating the
+need for an external Prometheus server.
+
+Enable it by setting ``USE_PROMETHEUS = True`` on the test class, alongside
+``COMPUTE_TOPOLOGY``:
+
+.. code-block:: python
+
+    from watcher.tests.functional import base
+    from watcher.tests.functional import topology
+
+    class TestMyStrategy(base.WatcherFunctionalTestCase):
+        COMPUTE_TOPOLOGY = topology.ComputeTopology()
+        USE_PROMETHEUS = True
+
+Metrics are derived from the ``metrics`` dict on ``ComputeNode`` and
+``Instance`` objects (``metrics['cpu']`` and ``metrics['ram']``).  Set
+them via ``update_compute()`` / ``update_instance()``, passing a
+``metrics`` dict.  A ``metrics`` dict passed to either method is
+merged into the existing one, so setting ``ram`` in one call does not
+discard a ``cpu`` value set by an earlier call.
+
+Units:
+
+- ``cpu`` — normalised fraction in the range 0–1 (0 = idle, 1 = fully loaded).
+- ``ram`` — memory used in **MiB** (for both compute nodes and instances).
+
+.. code-block:: python
+
+    MY_TOPOLOGY = (
+        topology.ComputeTopology()
+        .add_computes(count=2)
+        .add_instances(computes='all', count=3)
+        .update_compute('compute-1', metrics={'cpu': 0.80, 'ram': 13107.2})
+        .update_compute('compute-2', metrics={'cpu': 0.20, 'ram': 3276.8})
+        .update_instance('vm-1', metrics={'cpu': 0.45, 'ram': 2048.0})
+    )
+
+When ``self.load_topology(topology)`` is called, **both** the
+Nova/Placement emulators and the Prometheus emulator are reloaded
+from the same topology object.
+
+The emulator recognises these PromQL patterns (regex-matched):
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 30 20
+
+   * - PromQL pattern
+     - Metric
+     - Unit
+   * - ``node_cpu_seconds_total{fqdn='HOST'}``
+     - Host CPU usage
+     - % (0–100)
+   * - ``node_memory_MemAvailable_bytes{fqdn='HOST'}``
+     - Host RAM available
+     - KiB
+   * - ``ceilometer_cpu{resource='UUID'}``
+     - Instance CPU usage
+     - % (0–100)
+   * - ``ceilometer_memory_usage{resource='UUID'}``
+     - Instance RAM usage
+     - MiB
+
+Host FQDNs are constructed as ``hostname + '.example.com'`` (configurable
+via the ``fqdn_suffix`` parameter on ``load_from_topology()``).
+
 Gabbi tests with topology
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -831,6 +907,11 @@ To serve over HTTPS, provide both ``--cert`` and ``--key``::
 Both TLS flags must be provided together; passing only one is an error.
 This is useful when testing Watcher against emulators configured with TLS
 endpoints (e.g. ``https://localhost:8774/v2.1``).
+
+The Prometheus emulator can also run standalone::
+
+    $ tox -e venv -- python -m watcher.tests.local_fixtures.prometheus_api_emulator \
+        --port 9090 --debug
 
 YAML-driven tests with gabbi
 -----------------------------
