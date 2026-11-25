@@ -28,6 +28,10 @@ class ConfFixture(conf_fixture.Config):
 
         self.conf.set_default('connection', "sqlite://", group='database')
         self.conf.set_default('sqlite_synchronous', False, group='database')
+        # Set the library defaults as prepare_service() does. This must be
+        # done before parsing, as options such as the required tracing
+        # service_name may already be registered by a previously built app.
+        config.set_lib_defaults()
         config.parse_args([], default_config_files=[])
 
 

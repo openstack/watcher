@@ -20,6 +20,7 @@ import pecan
 from oslo_middleware import cors
 from oslo_middleware import http_proxy_to_wsgi
 from oslo_middleware import request_id
+from oslo_middleware import tracing
 
 from watcher import conf
 from watcher.api import acl
@@ -55,6 +56,10 @@ def setup_app(config=None):
 def _wrap_app(app):
     """Wraps wsgi app with additional middlewares."""
     app = parsable_error.ParsableErrorMiddleware(app)
+
+    # TracingMiddleware goes inside RequestId so the request IDs are
+    # already in the environ when the span starts.
+    app = tracing.TracingMiddleware(app, CONF)
 
     app = request_id.RequestId(app)
 

@@ -17,6 +17,7 @@
 
 from oslo_config import cfg
 from oslo_middleware import cors
+from oslo_middleware import tracing
 
 from watcher import version
 from watcher.common import rpc
@@ -41,6 +42,7 @@ def set_lib_defaults():
         ],
         allow_methods=['GET', 'PUT', 'POST', 'DELETE', 'PATCH'],
     )
+    tracing.set_defaults(service_name='watcher-api')
 
 
 def parse_args(argv, default_config_files=None, default_config_dirs=None):
